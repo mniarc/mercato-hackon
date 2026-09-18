@@ -155,6 +155,10 @@ async function deleteCreatedDatabaseRows(
     }
     if (resources.caseId) {
       await client.query(
+        'DELETE FROM agency_client_replies WHERE case_id = $1 AND tenant_id = $2 AND organization_id = $3',
+        [resources.caseId, tenantId, organizationId],
+      )
+      await client.query(
         'DELETE FROM agency_client_submissions WHERE case_id = $1 AND tenant_id = $2 AND organization_id = $3',
         [resources.caseId, tenantId, organizationId],
       )
@@ -335,13 +339,16 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await expect(page).toHaveURL(new RegExp(`/portal/agency/cases/${intakeResult.caseId}$`))
         await page.reload({ waitUntil: 'domcontentloaded' })
         await expect(page.getByText(title, { exact: true })).toBeVisible()
-        await expect(page.getByRole('status')).toContainText('The requested process is complete')
+        await expect(page.getByRole('status').filter({ hasText: 'The requested process is complete' })).toBeVisible()
       })
 
-      await runDemoPhase('Route client submission', 'Clarification saved once', async () => {
+      await runDemoPhase('Route and reply to client submission', 'Clarification resumed once', async () => {
         const endpoint = new URL(`/api/agency/portal/cases/${intakeResult.caseId}/submissions`, BASE_URL).toString()
-        const original = { eventId: `demo-message-${suffix}`, text: 'Please help me clarify the next step.', scaffoldScenario: 'clarify' }
-        const response = await page.request.post(endpoint, { data: original })
+        await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Please help me clarify the next step.')
+        const submissionResponse = page.waitForResponse((response) => response.url() === endpoint && response.request().method() === 'POST')
+        await page.getByRole('button', { name: 'Send message', exact: true }).click()
+        const response = await submissionResponse
+        const original = response.request().postDataJSON() as { eventId: string; text: string }
         expect(response.status(), 'Client submission should be persisted').toBe(201)
         const result = await response.json() as { replayed: boolean; item: { submissionId: string; original: unknown; workflow: unknown; disposition: unknown } }
         expect(result).toMatchObject({ replayed: false, item: {
@@ -352,6 +359,38 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         const replayResponse = await page.request.post(endpoint, { data: original })
         expect(replayResponse.status()).toBe(200)
         expect(await replayResponse.json()).toMatchObject({ replayed: true, item: { submissionId: result.item.submissionId } })
+        const replyEndpoint = `${endpoint}/${result.item.submissionId}/replies`
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await expect(page.getByTestId(`agency-client-submission-${result.item.submissionId}`)).toContainText(original.text)
+        await page.getByRole('textbox', { name: 'Your clarification', exact: true }).fill('Please prepare the next steps for my campaign.')
+        const replyResult = page.waitForResponse((response) => response.url() === replyEndpoint && response.request().method() === 'POST')
+        await page.getByRole('button', { name: 'Send clarification', exact: true }).click()
+        const replyResponse = await replyResult
+        const reply = replyResponse.request().postDataJSON() as { eventId: string; text: string }
+        expect(replyResponse.status(), 'Clarification should resume its native workflow').toBe(201)
+        const accepted = await replyResponse.json() as { item: { replyId: string } }
+        const replyReplay = await page.request.post(replyEndpoint, { data: reply })
+        expect(replyReplay.status()).toBe(200)
+        expect(await replyReplay.json()).toMatchObject({ replayed: true, item: { replyId: accepted.item.replyId } })
+        const savedReplies = await page.request.get(replyEndpoint)
+        expect(savedReplies.ok()).toBeTruthy()
+        expect(await savedReplies.json()).toMatchObject({ items: [{ original: reply, outcome: 'clarification_received' }] })
+        const submissions = await page.request.get(endpoint)
+        expect(submissions.ok()).toBeTruthy()
+        expect(await submissions.json()).toMatchObject({ items: [{
+          submissionId: result.item.submissionId,
+          workflow: { status: 'COMPLETED', currentStep: 'reply_received' },
+        }] })
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await expect(page.getByTestId(`agency-client-reply-${accepted.item.replyId}`)).toContainText(reply.text)
+      })
+
+      await runDemoPhase('Read case artifacts', 'No unproduced artifacts exposed', async () => {
+        const endpoint = new URL(`/api/agency/portal/cases/${intakeResult.caseId}/artifacts`, BASE_URL).toString()
+        const response = await page.request.get(endpoint)
+        expect(response.status()).toBe(200)
+        expect(await response.json()).toEqual({ items: [] })
+        expect((await page.request.get(`${endpoint}/${randomUUID()}`)).status()).toBe(404)
       })
 
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {

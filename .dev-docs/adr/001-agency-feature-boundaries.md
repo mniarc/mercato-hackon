@@ -10,34 +10,66 @@ Domain terms remain in [the domain vocabulary](../.processes/current/ai-company-
 
 - **Our feature:** tenant-scoped cases, trusted material intake, stable worker
   assignment, the workflow bridge, and self-contained employee case UI/API.
-  The first worker is deliberately a deterministic no-op; its execution and
-  saved workflow evidence are real.
+  The deterministic baseline saves real workflow evidence; the native research
+  lane adds exact agent-run/document references without another lifecycle.
 - **Open Mercato:** customer/staff identities, authentication/ACL, private
   attachments, persistence, workflow/run records, and human `UserTask` inbox.
   Reference platform IDs; do not duplicate its entities or taskboard.
 - **Teammate customer portal (`agency`):** client-facing offer/order experience.
-  Its integration should call a narrow trusted intake contract after resolving client identity;
-  our module does not own its pages or authentication adapter.
+  Its adapter calls narrow intake/query contracts after resolving customer
+  identity. We may connect these seams in coordination with the owner, but do not
+  replace their frontend or duplicate its authentication.
 - **Teammate research (`agency_tov`):** corpus, tone research, grounding and
   versioned documents. Connect through a small artifact/run reference seam,
   not imports into research internals or copied tone logic. Enterprise agents
   are optional for the core no-op slice and explicitly gated for this lane.
 
-## Implemented boundary and pending connections
+## Integrated feature boundaries
 
-Intake, deterministic workflow, and employee case surfaces exist on main.
-[T04](../../.tasks/T04-prove-real-vertical-slice.md) owns the remaining full-browser
-proof; feature presence is not a completed-demo claim.
+The real customer portal calls scoped intake and case-query services. Native
+attachments and workflows connect that entry point to employee case/detail and
+material access. Explicit escalation creates a separate native attention workflow;
+employees claim and complete its UserTask through the platform inbox. The original
+portal-to-employee journey is demonstrated, not a substituted frontend/backend.
 
-The merged portal currently builds an in-memory order summary; it does not yet
-persist an order, call intake, or trigger a paid-case workflow. ToV's baseline and
-persistence implementation are merged; schema activation and durable case-to-ToV
-wiring remain separate integration work.
-Neither teammate feature supplies [human escalation](../../.tasks/T05-real-human-escalation-inbox.md).
+The portal's offer/order preview and task-review demo do not create paid orders
+or authoritative approvals. Real intake does not imply either business event.
+ToV research/persistence remains teammate-owned; its scoped server service and
+asynchronous case workflow return exact run/document-version references. This
+bridge is implemented, but live model proof is distinct from deterministic proof.
+
+## Process extension boundary
+
+`WorkflowInstance` owns execution state. Case records carry agency relationships
+and references; native activities/runs and `UserTask` supply execution and human
+assignment. A customer-service “ticket” does not introduce a second task engine.
+Agent workers make marketing decisions as typed outcomes; trusted domain actions
+apply them. Customer clarification/approval waits via workflow signals; employee
+tasks are for genuine exceptions, not every decision or waiting customer.
+
+Client submissions preserve original content and event identity. Replay returns
+the saved record/outcome instead of reclassifying or starting another workflow.
+The first worker supports explicitly deterministic answer/clarify routing; other
+typed intents do not silently authorize business effects. A clarification reply
+and exact-version artifact approval are separate contracts, not interchangeable
+signals. Client adapters resolve permitted native wait targets server-side.
+
+Artifact reads reference teammate-owned versions, with client-safe source-backed
+projections. A linked version does not itself establish a review invitation,
+current case version, approval, or a completed multi-document approval gate.
+
+Future workers reuse native agent definitions/execution and the shared server
+OpenRouter configuration. Use delegation only for a genuine supported research
+subtask. No general agency dispatcher is needed. Declared native budget options
+must not be confused with enforced limits on a particular execution path.
+Deterministic intelligence may scaffold these seams, but platform persistence,
+access and transitions remain real. Reusable extension points live in the domain
+vocabulary linked above.
 
 ## Consequence
 
-Reuse teammate implementations and platform contracts before adding code. Keep
-portal wiring, research-artifact wiring, and human escalation as explicit next
-capabilities, not implicit promises of the current slice. A Git merge brings in
-code; it does not by itself connect these domains.
+Reuse teammate implementations and platform contracts before adding code.
+Treat live execution, authorized version review and exact-step exception recovery
+as separate capabilities with explicit evidence, not promises inferred from a
+Git merge or scaffold. Task records own remaining delivery acceptance; this ADR
+captures the feature boundaries, not a running implementation log.

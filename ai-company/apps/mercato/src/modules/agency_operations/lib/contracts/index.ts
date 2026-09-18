@@ -1,3 +1,5 @@
 export * from './clientMaterialIntake'
 export * from './clientCaseQuery'
 export * from './clientSubmission'
+export * from './clientReply'
+export * from './clientArtifact'

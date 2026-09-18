@@ -3,8 +3,11 @@
 Integration is delivery work. Finish a coherent slice, integrate it, and review
 the affected seams once. Do not create foraging tasks or review reports for it.
 
-1. Inspect the worktree and commit the owned slice when authorized, preserving
-   unrelated work. Keep task Markdown out of staging unless requested.
+1. Inspect the worktree and stage/commit each authorized, coherent feature as soon
+   as it provides usable value and its affected seam is verified; do not wait for
+   unrelated backlog work. File count or an agent finishing alone is not a milestone.
+   The coordinator commits explicit paths, preserving unrelated/unfinished work.
+   Keep task Markdown out of staging unless requested; pushing is separate.
 2. Fetch and identify the teammate branch tip. Merge ongoing branches with
    ancestry preserved; cherry-pick only an explicitly finished one-off handoff.
 3. The coordinator resolves shared/generated files and cross-module wiring via

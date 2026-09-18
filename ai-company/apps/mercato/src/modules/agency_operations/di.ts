@@ -11,6 +11,10 @@ import { CLIENT_CASE_QUERY_SERVICE } from './lib/contracts/clientCaseQuery'
 import { AGENCY_HUMAN_ATTENTION_SERVICE, createAgencyHumanAttentionService } from './lib/humanAttentionService'
 import { CLIENT_SUBMISSION_SERVICE } from './lib/contracts/clientSubmission'
 import { createClientSubmissionService } from './lib/clientSubmissionService'
+import { CLIENT_REPLY_SERVICE } from './lib/contracts/clientReply'
+import { createClientReplyService } from './lib/clientReplyService'
+import { CLIENT_ARTIFACT_SERVICE } from './lib/contracts/clientArtifact'
+import { createClientArtifactService } from './lib/clientArtifactService'
 import { CLIENT_TRIAGE_FUNCTION_NAME, deterministicClientTriage } from './lib/clientSubmissionWorkflow'
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
@@ -35,6 +39,12 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [CLIENT_SUBMISSION_SERVICE]: asFunction(
       () => createClientSubmissionService(container),
+    ).scoped(),
+    [CLIENT_REPLY_SERVICE]: asFunction(
+      () => createClientReplyService(container),
+    ).scoped(),
+    [CLIENT_ARTIFACT_SERVICE]: asFunction(
+      () => createClientArtifactService(container),
     ).scoped(),
     [`workflowFunction:${CLIENT_TRIAGE_FUNCTION_NAME}`]: asValue(deterministicClientTriage),
     [`workflowFunction:${AGENCY_TOV_FUNCTION_NAME}`]: asFunction(
