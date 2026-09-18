@@ -1,0 +1,4 @@
+- jak działają agenci open mercato
+- jak polaczyc agentów open mercato
+- jak zarządzać ich kontekstem
+- jak mogą wykonywać pracę w aplikacji (nie w procesie developowania)
