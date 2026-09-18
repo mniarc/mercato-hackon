@@ -3,6 +3,7 @@ import type { CustomerAuthContext } from '@open-mercato/core/modules/customer_ac
 import {
   CLIENT_MATERIAL_INTAKE_SERVICE,
   type ClientMaterialIntakeService,
+  type TovProcessRequest,
 } from '@/modules/agency_operations/lib/contracts'
 
 export async function submitPortalMaterial(
@@ -10,6 +11,7 @@ export async function submitPortalMaterial(
   auth: CustomerAuthContext & { customerEntityId: string },
   title: string,
   file: File,
+  process?: TovProcessRequest,
 ) {
   const intake = container.resolve<ClientMaterialIntakeService>(CLIENT_MATERIAL_INTAKE_SERVICE)
   return intake.submitMaterial({
@@ -20,6 +22,7 @@ export async function submitPortalMaterial(
       customerUserId: auth.sub,
     },
     title,
+    ...(process ? { process } : {}),
     file: {
       buffer: Buffer.from(await file.arrayBuffer()),
       fileName: file.name,

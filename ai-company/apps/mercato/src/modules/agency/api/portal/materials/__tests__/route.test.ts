@@ -37,12 +37,13 @@ const auth = {
   resolvedFeatures: ['portal.*'],
 }
 
-function request() {
+function request(process?: string) {
   const body = new FormData()
   body.set('title', 'Campaign brief')
   body.set('file', new Blob(['Actual client material'], { type: 'text/plain' }), 'brief.txt')
   body.set('tenantId', 'attacker-tenant')
   body.set('customerEntityId', 'attacker-customer')
+  if (process !== undefined) body.set('process', process)
   return new Request('http://localhost/api/agency/portal/materials', { method: 'POST', body })
 }
 
@@ -87,4 +88,34 @@ it('does not invoke intake when a mutation guard rejects the submission', async 
   expect((await POST(request())).status).toBe(403)
   expect(submitMaterial).not.toHaveBeenCalled()
   expect(afterSuccess).not.toHaveBeenCalled()
+})
+
+it('accepts an explicit research request without reporting queued work as completed', async () => {
+  const process = { kind: 'tone_of_voice', brand: 'Acme', outputLanguage: 'pl' }
+  submitMaterial.mockResolvedValueOnce({ caseId: 'case-2', workflowInstanceId: 'workflow-2', status: 'WAITING_FOR_ACTIVITIES' })
+  const response = await POST(request(JSON.stringify(process)))
+  expect(response.status).toBe(202)
+  expect(await response.json()).toEqual({
+    caseId: 'case-2', workflowInstanceId: 'workflow-2', status: 'WAITING_FOR_ACTIVITIES',
+  })
+  expect(submitMaterial).toHaveBeenCalledWith(expect.objectContaining({
+    process,
+    identity: {
+      customerUserId: auth.sub, tenantId: auth.tenantId,
+      organizationId: auth.orgId, customerEntityId: auth.customerEntityId,
+    },
+    file: { buffer: Buffer.from('Actual client material'), fileName: 'brief.txt', mimeType: 'text/plain' },
+  }))
+  expect(runGuards).toHaveBeenCalledWith(expect.objectContaining({
+    input: expect.objectContaining({ mutationPayload: { title: 'Campaign brief', process } }),
+  }))
+  expect(afterSuccess).toHaveBeenCalledTimes(1)
+})
+
+it.each([
+  '{malformed',
+  JSON.stringify({ kind: 'arbitrary_worker', brand: 'Acme', outputLanguage: 'pl' }),
+])('rejects an invalid explicit process before calling intake', async (process) => {
+  expect((await POST(request(process))).status).toBe(400)
+  expect(submitMaterial).not.toHaveBeenCalled()
 })

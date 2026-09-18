@@ -93,6 +93,22 @@ links. Targets must return research and cannot delegate again. ToV's bounded
 map/reduce is already parallel; do not replace it with an LLM dispatcher merely
 to demonstrate delegation.
 
-The case-to-ToV bridge is being integrated separately; provider configuration
-alone does not prove that end-to-end path. See
-[testing](testing.md) for the persistent runtime.
+## Run research from a client case
+
+With the activation flags above, configure the native workflow once per scope:
+
+```powershell
+node scripts/agency-dev.mjs cli agency_operations configure-tov --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>
+```
+
+The granting staff user must hold the requested native research permissions.
+Start the app/workers with `AGENCY_TOV_EXECUTION_ENABLED=true` only when live
+execution is intended. In Materials select tone-of-voice research, brand and
+output language; upload a JSON array of 1–100 normalized ToV posts (max 1 MiB).
+Omitting the process keeps the deterministic intake baseline. Missing activation
+or workflow setup rejects research rather than silently substituting a no-op.
+Native workflow state and persisted research/run references are authoritative.
+
+The bridge/configuration and deterministic demo are verified independently;
+an end-to-end paid OpenRouter run still requires its own explicit smoke proof.
+See [testing](testing.md) for the persistent runtime.

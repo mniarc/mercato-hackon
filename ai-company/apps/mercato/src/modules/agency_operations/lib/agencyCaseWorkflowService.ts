@@ -4,6 +4,8 @@ import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { z } from 'zod'
 import { AgencyCase } from '../data/entities'
 import { createAgencyCaseSchema } from '../data/validators'
+import { tovProcessRequestSchema } from './contracts'
+import { AGENCY_TOV_WORKER_ID, AGENCY_TOV_WORKFLOW_ID, assertTovProcessConfigured } from './tovProcess'
 import {
   AGENCY_AGENT_FUNCTION_NAME,
   AGENCY_AGENT_RESULT_CONTEXT_KEY,
@@ -18,6 +20,7 @@ export const processAgencyCaseInputSchema = z.object({
   tenantId: z.uuid(),
   organizationId: z.uuid(),
   customerEntityId: z.uuid(),
+  process: tovProcessRequestSchema.optional(),
 })
 
 export type ProcessAgencyCaseInput = z.infer<typeof processAgencyCaseInputSchema>
@@ -94,9 +97,9 @@ type WorkflowExecutor = {
 export type AgencyCaseWorkflowResult = {
   caseId: string
   workflowInstanceId: string
-  status: 'COMPLETED'
-  currentStep: 'end'
-  agentOutput: DeterministicAgentWorkerOutput
+  status: 'COMPLETED' | 'RUNNING' | 'WAITING_FOR_ACTIVITIES' | 'PAUSED' | 'FAILED' | 'CANCELLED'
+  currentStep: string
+  agentOutput?: DeterministicAgentWorkerOutput
 }
 
 export type AgencyCaseWorkflowService = {
@@ -163,13 +166,18 @@ export function createAgencyCaseWorkflowService(
   const em = container.resolve<EntityManager>('em')
   const workflowExecutor = container.resolve<WorkflowExecutor>('workflowExecutor')
 
-  async function executeCase(agencyCase: AgencyCase): Promise<AgencyCaseWorkflowResult> {
+  async function executeCase(agencyCase: AgencyCase, input: ProcessAgencyCaseInput): Promise<AgencyCaseWorkflowResult> {
     const material = readMaterial(agencyCase)
+    const isTov = agencyCase.agentWorkerId === AGENCY_TOV_WORKER_ID
+    if (isTov) await assertTovProcessConfigured(container, input)
+    if (isTov && !agencyCase.workflowInstanceId && !input.process) {
+      throw new Error('[internal] Tone-of-voice process input is required')
+    }
 
     let workflowInstanceId = agencyCase.workflowInstanceId
     if (!workflowInstanceId) {
       const workflowInstance = await workflowExecutor.startWorkflow(em, {
-        workflowId: AGENCY_CASE_WORKFLOW_ID,
+        workflowId: isTov ? AGENCY_TOV_WORKFLOW_ID : AGENCY_CASE_WORKFLOW_ID,
         initialContext: {
           caseId: agencyCase.id,
           tenantId: agencyCase.tenantId,
@@ -179,6 +187,7 @@ export function createAgencyCaseWorkflowService(
           title: agencyCase.title,
           agentWorkerId: agencyCase.agentWorkerId,
           ...material,
+          ...(isTov ? { process: input.process } : {}),
         },
         correlationKey: `agency-case:${agencyCase.id}`,
         metadata: {
@@ -195,9 +204,15 @@ export function createAgencyCaseWorkflowService(
       await em.flush()
     }
 
-    const execution = completedExecutionSchema.parse(
-      await workflowExecutor.executeWorkflow(em, container, workflowInstanceId),
-    )
+    const rawExecution = await workflowExecutor.executeWorkflow(em, container, workflowInstanceId)
+    if (isTov) {
+      const execution = z.object({
+        status: z.enum(['COMPLETED', 'RUNNING', 'WAITING_FOR_ACTIVITIES', 'PAUSED', 'FAILED', 'CANCELLED']),
+        currentStep: z.string(),
+      }).parse(rawExecution)
+      return { caseId: agencyCase.id, workflowInstanceId, ...execution }
+    }
+    const execution = completedExecutionSchema.parse(rawExecution)
 
     return {
       caseId: agencyCase.id,
@@ -211,7 +226,7 @@ export function createAgencyCaseWorkflowService(
   return {
     async processCase(rawInput) {
       const input = processAgencyCaseInputSchema.parse(rawInput)
-      return executeCase(await loadCase(em, input))
+      return executeCase(await loadCase(em, input), input)
     },
   }
 }

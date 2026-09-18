@@ -14,6 +14,7 @@ import {
   type AgencyCaseWorkflowService,
 } from './agencyCaseWorkflowService'
 import { AGENCY_AGENT_WORKER_ID } from '../workflows'
+import { AGENCY_TOV_WORKER_ID, assertTovProcessConfigured, parseTovMaterial } from './tovProcess'
 
 type CustomerUserLookupService = {
   findById: (
@@ -52,6 +53,11 @@ export function createClientMaterialIntakeService(
         throw new Error('[internal] Customer identity does not own the intake scope')
       }
 
+      if (input.process) {
+        await assertTovProcessConfigured(container, input.identity)
+        await parseTovMaterial(input.file.buffer)
+      }
+
       const caseId = randomUUID()
       const assignment = { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: caseId }
       let casePersisted = false
@@ -74,7 +80,7 @@ export function createClientMaterialIntakeService(
             customerEntityId: input.identity.customerEntityId,
             submittedByCustomerUserId: input.identity.customerUserId,
             title: input.title,
-            agentWorkerId: AGENCY_AGENT_WORKER_ID,
+            agentWorkerId: input.process ? AGENCY_TOV_WORKER_ID : AGENCY_AGENT_WORKER_ID,
             materialAttachmentId: attachmentId,
             materialFileName: input.file.fileName,
             materialMimeType: input.file.mimeType,
@@ -95,6 +101,7 @@ export function createClientMaterialIntakeService(
         tenantId: input.identity.tenantId,
         organizationId: input.identity.organizationId,
         customerEntityId: input.identity.customerEntityId,
+        ...(input.process ? { process: input.process } : {}),
       })
 
       return {

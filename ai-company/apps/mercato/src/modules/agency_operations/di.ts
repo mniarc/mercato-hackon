@@ -10,6 +10,7 @@ import { createClientCaseQueryService } from './lib/clientCaseQueryService'
 import { CLIENT_CASE_QUERY_SERVICE } from './lib/contracts/clientCaseQuery'
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
+import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
@@ -25,5 +26,8 @@ export function register(container: AppContainer): void {
       () => createClientCaseQueryService(container),
     ).scoped(),
     [AGENCY_AGENT_FUNCTION_DI_KEY]: asValue(deterministicAgentWorker),
+    [`workflowFunction:${AGENCY_TOV_FUNCTION_NAME}`]: asFunction(
+      () => createTovWorkflowActivity(container),
+    ).scoped(),
   })
 }

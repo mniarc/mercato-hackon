@@ -6,11 +6,10 @@ import { isCrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { runRouteMutationGuards } from '@open-mercato/shared/lib/crud/route-mutation-guard'
 import { resolveTranslations } from '@open-mercato/shared/lib/i18n/server'
 import type { OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
+import { portalMaterialRequestSchema } from '../../../data/validators'
 import { submitPortalMaterial } from '../../../lib/materialIntakeBridge'
 
 export const metadata = { POST: { requireAuth: false } }
-
-const titleSchema = z.object({ title: z.string().trim().min(1).max(200) })
 
 export async function POST(req: Request) {
   const { translate } = await resolveTranslations()
@@ -27,7 +26,19 @@ export async function POST(req: Request) {
 
   try {
     const form = await attachments.readUploadForm(req)
-    const parsed = titleSchema.safeParse({ title: form.get('title') })
+    const processField = form.get('process')
+    let process: unknown
+    if (processField !== null) {
+      if (typeof processField !== 'string') {
+        return Response.json({ error: translate('agency.materials.invalidProcess') }, { status: 400 })
+      }
+      try {
+        process = JSON.parse(processField)
+      } catch {
+        return Response.json({ error: translate('agency.materials.invalidProcess') }, { status: 400 })
+      }
+    }
+    const parsed = portalMaterialRequestSchema.safeParse({ title: form.get('title'), process })
     const file = form.get('file')
     if (!parsed.success || !file || typeof file === 'string' || file.size === 0) {
       return Response.json({ error: translate('agency.materials.invalid') }, { status: 400 })
@@ -49,7 +60,7 @@ export async function POST(req: Request) {
       },
     })
     if (!guard.ok) return guard.response
-    const guarded = titleSchema.safeParse({ ...parsed.data, ...guard.modifiedPayload })
+    const guarded = portalMaterialRequestSchema.safeParse({ ...parsed.data, ...guard.modifiedPayload })
     if (!guarded.success) {
       return Response.json({ error: translate('agency.materials.invalid') }, { status: 400 })
     }
@@ -58,9 +69,10 @@ export async function POST(req: Request) {
       { ...auth, customerEntityId: auth.customerEntityId },
       guarded.data.title,
       file,
+      guarded.data.process,
     )
     await guard.runAfterSuccess()
-    return Response.json(result, { status: 201 })
+    return Response.json(result, { status: result.status === 'COMPLETED' ? 201 : 202 })
   } catch (error) {
     if (isCrudHttpError(error)) return Response.json(error.body, { status: error.status })
     throw error
@@ -74,17 +86,28 @@ export const openApi: OpenApiRouteDoc = {
       summary: 'Submit material for the signed-in customer',
       requestBody: {
         contentType: 'multipart/form-data',
-        schema: titleSchema.extend({ file: z.string().meta({ format: 'binary' }) }),
+        schema: z.object({
+          title: z.string().min(1).max(200),
+          file: z.string().meta({ format: 'binary' }),
+          process: z.string().optional().describe('JSON object: {kind:"tone_of_voice",brand:string,outputLanguage:"en"|"pl"}. Omit for deterministic intake.'),
+        }),
       },
       responses: [{
         status: 201,
         schema: z.object({ caseId: z.uuid(), workflowInstanceId: z.uuid(), status: z.literal('COMPLETED') }),
+      }, {
+        status: 202,
+        schema: z.object({
+          caseId: z.uuid(), workflowInstanceId: z.uuid(),
+          status: z.enum(['RUNNING', 'WAITING_FOR_ACTIVITIES', 'PAUSED', 'FAILED', 'CANCELLED']),
+        }),
       }],
       errors: [
         { status: 400, description: 'Invalid title or material' },
         { status: 401, description: 'Customer authentication required' },
         { status: 403, description: 'Customer account not linked or mutation denied' },
         { status: 413, description: 'Attachment upload limit exceeded' },
+        { status: 503, description: 'Requested process is not configured or enabled' },
       ],
     },
   },
