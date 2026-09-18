@@ -1,4 +1,4 @@
-# T05 — Build the tone-of-voice research agents (KLI-TOV from a scraped corpus)
+# TOV-01 — Build the tone-of-voice research agents (KLI-TOV from a scraped corpus)
 
 State: active
 Depends on: none
@@ -29,9 +29,10 @@ modules (see its README).
 - `yarn workspace @open-mercato/app jest --config jest.config.cjs src/modules/agency_tov` passes (15 tests).
 - `yarn generate && yarn workspace @open-mercato/app typecheck` pass with
   `OM_ENABLE_ENTERPRISE_MODULES=true` + `OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true` in `apps/mercato/.env`.
-- A live run over the 2 513-post Open Mercato LinkedIn export produces `KLI-TOV.md`
-  through the orchestrator runner, with the runs visible in Backend → Agents.
-  (Not yet done: needs an LLM key on the box and the enterprise flags enabled.)
+- A live run over the 2 513-post Open Mercato LinkedIn export produces `KLI-TOV.md`.
+  DONE 2026-09-18 with the direct runner (2 497 posts, 83 calls, 23 min, ~5 USD);
+  the orchestrator-runner path (runs visible in Backend → Agents) still needs
+  Postgres/Redis + migrations + the enterprise flags on a box.
 
 ## Constraints
 - Enterprise Agent Orchestrator ENABLED for this module (team decision 2026-09-18;
@@ -48,5 +49,9 @@ Verification: unit tests, typecheck and eslint green on the `main`-based copy; p
 to this tree unchanged (SDK identical to `develop@83330e27`). Live run pending an
 API key. Assumption: non-LinkedIn Apify actor ids/field maps are unverified defaults,
 overridable via `OM_AGENCY_TOV_APIFY_ACTOR_<SOURCE>`.
-Next: wire `runTovPipeline` to a work item in `agency_operations` (queue worker +
-orchestrator runner) and store the result as a KLI-TOV document version.
+Grounding gate added (`lib/tov/grounding.ts`): cite-or-abstain on every result and
+cache read; audit of the first full run: 92% of batch citations grounded, rest dropped.
+Next (agreed 2026-09-18): TOV-02 — persist corpus and outputs in module entities
+(`agency_tov_sources`, `_scrape_runs`, `_research_runs`, `_documents`/`_versions`) so
+citations resolve to stored source rows; that is the durable artifact reference the
+architect asked for before any bridge to `agency_operations` (no force-connect).

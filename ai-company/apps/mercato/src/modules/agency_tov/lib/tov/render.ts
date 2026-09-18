@@ -200,6 +200,7 @@ export function renderRunSummary(result: TovPipelineResult): string {
   return [
     `Posts: ${stats.posts} · Profiles: ${stats.profiles} · Batches: ${stats.batches}`,
     `Agent calls: ${stats.agentCalls} · Cached steps reused: ${stats.cachedSteps}`,
+    `Grounding gate: ${stats.ungroundedDropped} ungrounded evidence items dropped · ${stats.groundingRejections} results rejected and re-requested`,
     ...result.profiles.map(
       (p) => `- ${p.profile.displayName}: ${p.profile.postCount} posts in ${p.batches.length} batches, confidence ${Math.round(p.voice.confidence * 100)}%`,
     ),
