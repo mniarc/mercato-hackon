@@ -359,3 +359,29 @@ export const tovSourceScoutResult = z.object({
   }),
 })
 export type TovSourceScoutResult = z.infer<typeof tovSourceScoutResult>
+
+// ---------------------------------------------------------------------------
+// Persistence — what a stored document version says about its evidence
+// ---------------------------------------------------------------------------
+
+/** `KLI-TOV` is the brand document (F22-1); `TOV-PROFILE` is the per-author appendix behind it. */
+export const tovDocumentKinds = ['KLI-TOV', 'TOV-PROFILE'] as const
+export type TovDocumentKind = (typeof tovDocumentKinds)[number]
+
+export const tovResearchRunStatuses = ['running', 'done', 'failed'] as const
+export type TovResearchRunStatus = (typeof tovResearchRunStatuses)[number]
+
+/**
+ * One quoted thing in a document version, resolved to the stored post it came
+ * from. `path` is where in the body it sits (`exemplars[2]`, `hooks.examples[0]`);
+ * `postRowId` is `agency_tov_posts.id`, `postId` the platform id the agent cited.
+ */
+export const tovCitationSchema = z.object({
+  path: z.string().min(1),
+  postId: z.string().min(1),
+  postRowId: z.string().min(1),
+  profileUrl: z.string().min(1),
+  url: z.string().min(1),
+  quote: z.string().min(1),
+})
+export type TovCitation = z.infer<typeof tovCitationSchema>

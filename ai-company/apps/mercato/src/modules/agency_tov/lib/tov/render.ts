@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import type { TovBrandVoice, TovProfileVoice, TovProfileMeta, tovRegisterSchema } from '../../data/validators'
+import type { TovBrandVoice, TovPost, TovProfileVoice, TovProfileMeta, tovRegisterSchema } from '../../data/validators'
 import type { TovPipelineResult } from './pipeline'
 
 type Register = z.infer<typeof tovRegisterSchema>
@@ -23,12 +23,21 @@ function dials(register: Register): string {
   ].join('\n')
 }
 
-function postLink(profileUrl: string, postId: string): string {
-  return `${profileUrl.replace(/\/$/, '')}/recent-activity/all/ (post ${postId})`
+/** Platform post id → the post's own URL, or null when the corpus is not at hand. */
+export type TovLinkResolver = (postId: string) => string | null
+
+export function linkResolverFor(posts: TovPost[]): TovLinkResolver {
+  const byId = new Map(posts.map((post) => [post.id, post.url]))
+  return (postId) => byId.get(postId) ?? null
+}
+
+/** A citation links to the post itself; without the corpus it can only point at the author's feed. */
+function postLink(profileUrl: string, postId: string, linkOf?: TovLinkResolver): string {
+  return linkOf?.(postId) ?? `${profileUrl.replace(/\/$/, '')}/recent-activity/all/ (post ${postId})`
 }
 
 /** Renders the KLI-TOV document from the brand synthesis. */
-export function renderBrandTov(brand: TovBrandVoice, profiles: { profile: TovProfileMeta }[]): string {
+export function renderBrandTov(brand: TovBrandVoice, profiles: { profile: TovProfileMeta }[], linkOf?: TovLinkResolver): string {
   const nameOf = new Map(profiles.map((p) => [p.profile.profileUrl, p.profile.displayName]))
   return [
     `# Tone of voice — ${brand.brand}`,
@@ -115,7 +124,7 @@ export function renderBrandTov(brand: TovBrandVoice, profiles: { profile: TovPro
     '## Exemplars',
     ...brand.exemplars.flatMap((e) => [
       `> ${e.quote}`,
-      `> — ${nameOf.get(e.profileUrl) ?? e.profileUrl}, ${postLink(e.profileUrl, e.postId)}`,
+      `> — ${nameOf.get(e.profileUrl) ?? e.profileUrl}, ${postLink(e.profileUrl, e.postId, linkOf)}`,
       '',
       e.whyItWorks,
       '',
@@ -129,7 +138,7 @@ export function renderBrandTov(brand: TovBrandVoice, profiles: { profile: TovPro
 }
 
 /** Per-author appendix — the evidence behind the brand document. */
-export function renderProfileVoice(profile: TovProfileMeta, voice: TovProfileVoice): string {
+export function renderProfileVoice(profile: TovProfileMeta, voice: TovProfileVoice, linkOf?: TovLinkResolver): string {
   return [
     `# Voice profile — ${profile.displayName}`,
     '',
@@ -189,7 +198,7 @@ export function renderProfileVoice(profile: TovProfileMeta, voice: TovProfileVoi
     bullets(voice.dontList),
     '',
     '## Exemplars',
-    ...voice.exemplars.flatMap((e) => [`> ${e.quote}`, `> — ${postLink(profile.profileUrl, e.postId)}`, '', e.whyTypical, '']),
+    ...voice.exemplars.flatMap((e) => [`> ${e.quote}`, `> — ${postLink(profile.profileUrl, e.postId, linkOf)}`, '', e.whyTypical, '']),
     `_Confidence: ${Math.round(voice.confidence * 100)}%._`,
     '',
   ].join('\n')

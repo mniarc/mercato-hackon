@@ -6,6 +6,12 @@ export const features = [
     module: 'agency_tov',
     dependsOn: ['agency_tov.view'],
   },
+  {
+    id: 'agency_tov.documents.view',
+    title: 'View stored tone-of-voice documents and their sources',
+    module: 'agency_tov',
+    dependsOn: ['agency_tov.view'],
+  },
 ]
 
 export default features
