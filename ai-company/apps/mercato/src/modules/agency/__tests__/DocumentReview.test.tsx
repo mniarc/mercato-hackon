@@ -24,72 +24,40 @@ function mount(overrides: Partial<React.ComponentProps<typeof DocumentReview>> =
   return onRespond
 }
 
-test('renders received HTML in an isolated iframe and accepts only after loading', async () => {
+// The selection -> highlight -> comment flow drives the iframe's live contentDocument
+// selection, which jsdom does not implement for srcdoc frames; it is verified manually
+// in the portal. These tests cover the surrounding contract that jsdom can observe.
+
+test('renders received HTML in a same-origin sandboxed iframe and accepts only after loading', async () => {
   const respond = mount()
   const frame = screen.getByTitle('Brief — wersja 2')
-  expect(frame.getAttribute('sandbox')).toBe('')
+  expect(frame.getAttribute('sandbox')).toBe('allow-same-origin')
   expect(frame.getAttribute('srcdoc')).toContain(review.html)
   expect(frame.getAttribute('srcdoc')).toContain("default-src 'none'")
-  expect(screen.getByRole('button', { name: 'Akceptuj' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: pl['agency.review.accept'] })).toBeDisabled()
   fireEvent.load(frame)
-  fireEvent.click(screen.getByRole('button', { name: 'Akceptuj' }))
+  fireEvent.click(screen.getByRole('button', { name: pl['agency.review.accept'] }))
   await waitFor(() => expect(respond).toHaveBeenCalledWith('accept', '', ''))
 })
 
-test('opens a comments dialog, rejects whitespace and sends comments separately', async () => {
-  const respond = mount()
-  expect(screen.queryByRole('textbox')).toBeNull()
-  fireEvent.click(screen.getByRole('button', { name: 'Dodaj uwagi' }))
-  const input = await screen.findByRole('textbox', { name: /Twoje uwagi/ })
-  fireEvent.change(input, { target: { value: '   ' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Wyślij uwagi' }))
-  await waitFor(() => expect(input).toHaveAttribute('aria-invalid', 'true'))
-  expect(respond).not.toHaveBeenCalled()
-  fireEvent.change(input, { target: { value: 'Zmień odbiorców na właścicieli firm.' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Wyślij uwagi' }))
-  await waitFor(() => expect(respond).toHaveBeenCalledWith('comments', '', 'Zmień odbiorców na właścicieli firm.'))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-})
-
-test('keeps comments after a failed request', async () => {
-  mount({ onRespond: jest.fn().mockResolvedValue(false) })
-  fireEvent.click(screen.getByRole('button', { name: 'Dodaj uwagi' }))
-  const input = await screen.findByRole('textbox', { name: /Twoje uwagi/ })
-  fireEvent.change(input, { target: { value: 'Popraw cel.' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Wyślij uwagi' }))
-  await screen.findByText(pl['agency.review.submitError'])
-  expect(input).toHaveValue('Popraw cel.')
-  expect(screen.getByRole('dialog')).toBeVisible()
-})
-
-test('Escape closes the dialog without sending a decision', async () => {
-  const respond = mount()
-  fireEvent.click(screen.getByRole('button', { name: 'Dodaj uwagi' }))
-  const dialog = await screen.findByRole('dialog')
-  fireEvent.keyDown(dialog, { key: 'Escape' })
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect(respond).not.toHaveBeenCalled()
-})
-
-test.each(['ctrlKey', 'metaKey'])('%s + Enter sends the comments once', async (modifier) => {
-  const respond = mount()
-  fireEvent.click(screen.getByRole('button', { name: 'Dodaj uwagi' }))
-  const input = await screen.findByRole('textbox', { name: /Twoje uwagi/ })
-  fireEvent.change(input, { target: { value: 'Doprecyzuj odbiorców.' } })
-  fireEvent.keyDown(input, { key: 'Enter', [modifier]: true })
-  await waitFor(() => expect(respond).toHaveBeenCalledTimes(1))
-  expect(respond).toHaveBeenCalledWith('comments', '', 'Doprecyzuj odbiorców.')
+test('shows the side comments panel with an empty hint and a disabled send button', () => {
+  mount()
+  expect(screen.getByText(pl['agency.review.commentsPanelTitle'])).toBeTruthy()
+  expect(screen.getByText(pl['agency.review.commentsEmpty'])).toBeTruthy()
+  expect(screen.getByRole('button', { name: pl['agency.review.sendComments'] })).toBeDisabled()
 })
 
 test.each([{ isCurrent: false }, { status: 'needs_review' as const }])('stale documents remain visible without actions: %j', (override) => {
   mount({ review: { ...review, ...override } })
   expect(screen.getByTitle('Brief — wersja 2')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: 'Akceptuj' })).toBeNull()
-  expect(screen.queryByRole('button', { name: 'Dodaj uwagi' })).toBeNull()
+  expect(screen.queryByRole('button', { name: pl['agency.review.accept'] })).toBeNull()
+  expect(screen.queryByRole('button', { name: pl['agency.review.sendComments'] })).toBeNull()
 })
 
-test('readers and already submitted decisions cannot act', () => {
+test('readers cannot act and see the read-only note', () => {
   mount({ canRespond: false })
   expect(screen.getByTitle('Brief — wersja 2')).toBeTruthy()
-  expect(screen.queryByRole('button', { name: 'Akceptuj' })).toBeNull()
+  expect(screen.queryByRole('button', { name: pl['agency.review.accept'] })).toBeNull()
+  expect(screen.queryByRole('button', { name: pl['agency.review.sendComments'] })).toBeNull()
+  expect(screen.getAllByText(pl['agency.review.readOnly']).length).toBeGreaterThan(0)
 })
