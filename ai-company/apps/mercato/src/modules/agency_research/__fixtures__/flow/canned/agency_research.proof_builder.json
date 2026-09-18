@@ -1,0 +1,76 @@
+{
+  "kind": "research",
+  "data": {
+    "proof_cards": [
+      {
+        "proof_type": "declaration",
+        "problem": "Klient nie wie, jaki zakres opisać dostawcy.",
+        "actual_action": null,
+        "artifact_or_method": "Rozpoznanie czterech obszarów: potrzeby użytkowników, cel biznesowy, organizacja pracy, możliwości techniczne.",
+        "observed_result": null,
+        "fact_ids": [
+          "F03",
+          "F04"
+        ],
+        "limitations": [
+          "Metoda deklarowana; brak udokumentowanego przebiegu.",
+          "Nie obiecywać, że diagnoza zawsze obniża koszt."
+        ]
+      },
+      {
+        "proof_type": "declaration",
+        "problem": "Dobór AI do zadania.",
+        "actual_action": null,
+        "artifact_or_method": "Zasada: AI tylko przy uzasadnieniu biznesowym, rozwiązania bez AI w ofercie.",
+        "observed_result": null,
+        "fact_ids": [
+          "F05",
+          "F12",
+          "F13"
+        ],
+        "limitations": [
+          "Brak pomiaru oszczędności i czasu."
+        ]
+      },
+      {
+        "proof_type": "measured_case",
+        "problem": "Szybkie prototypowanie.",
+        "actual_action": "Prototyp w jeden dzień dla klienta.",
+        "artifact_or_method": "Warsztat AI.",
+        "observed_result": "Skrócenie cyklu o 80%.",
+        "fact_ids": [
+          "F12"
+        ],
+        "limitations": []
+      },
+      {
+        "proof_type": "external_confirmation",
+        "problem": null,
+        "actual_action": null,
+        "artifact_or_method": "Partnerstwo inkubacyjne w HugeTECH Revolution.",
+        "observed_result": null,
+        "fact_ids": [
+          "F08",
+          "F14",
+          "F42"
+        ],
+        "limitations": [
+          "Potwierdza obecność w programie, nie wyniki startupów ani FLOW."
+        ]
+      }
+    ],
+    "business_profile": {
+      "category": "studio badawczo-projektowe rozwiązań cyfrowych (badania, UX, wdrożenia, AI)",
+      "offer_summary": "FLOW łączy diagnozę potrzeb, projektowanie i wdrażanie produktów cyfrowych, z AI tylko przy uzasadnieniu biznesowym; cztery obszary od Data Flow Management po obsługę IT promocji.",
+      "audience_hint": "Hipoteza: właściciele procesów i produktów w firmach, które potrzebują rozwiązania bez gotowej specyfikacji.",
+      "market_hint": "Polska, komunikacja po polsku, B2B.",
+      "fact_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F05",
+        "F99"
+      ]
+    }
+  }
+}

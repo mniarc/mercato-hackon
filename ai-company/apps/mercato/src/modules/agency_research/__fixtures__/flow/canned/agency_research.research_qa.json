@@ -1,0 +1,28 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "to_fix",
+      "summary": "Jedna luka do poprawy przez autora.",
+      "findings": [
+        {
+          "code": "unsourced_claim",
+          "path": "WEW-ZRODLA.content_bank[T06]",
+          "severity": "blocking",
+          "gap": "Ujęcie bez faktu.",
+          "owner": "agent",
+          "fix_step": "3.2",
+          "fix_hint": "Dodaj fact_id albo oznacz blocked."
+        }
+      ]
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "ready",
+      "summary": "Bez blokujących ustaleń.",
+      "findings": []
+    }
+  }
+]

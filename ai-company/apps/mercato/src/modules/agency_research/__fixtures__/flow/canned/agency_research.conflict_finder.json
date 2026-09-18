@@ -1,0 +1,27 @@
+{
+  "kind": "research",
+  "data": {
+    "conflicts": [
+      {
+        "fact_ids": [
+          "F01",
+          "F10"
+        ],
+        "detail": "WWW łączy badania, projektowanie i wdrażanie; LinkedIn akcentuje produkty cyfrowe.",
+        "impact": "Hipoteza: odbiorca może nie odczytać priorytetu oferty.",
+        "question": "Jaka potrzeba ma być obecnym kierunkiem komunikacji?",
+        "state": "framing_difference_not_factual_contradiction"
+      },
+      {
+        "fact_ids": [
+          "F77",
+          "F78"
+        ],
+        "detail": "wymyślony konflikt",
+        "impact": "brak",
+        "question": "brak",
+        "state": "unresolved_real_decision"
+      }
+    ]
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "kind": "research",
+  "data": {
+    "facts": [
+      {
+        "local_ref": "f1",
+        "claim": "Nagłówek LinkedIn akcentuje tworzenie produktów cyfrowych.",
+        "quote": "Tworzymy produkty cyfrowe.",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "oferta",
+          "language"
+        ],
+        "limitation": "Hasło, nie opis zakresu."
+      },
+      {
+        "local_ref": "f2",
+        "claim": "Opis obiecuje szybszą pracę, mniej zbędnych kosztów i lepsze wykorzystanie zasobów dzięki diagnozie i wdrożeniom.",
+        "quote": "nasi klienci pracują szybciej, ponoszą mniej zbędnych kosztów i lepiej wykorzystują zasoby",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "promise"
+        ],
+        "limitation": "Korzyść bez miernika i bez wskazanego klienta."
+      },
+      {
+        "local_ref": "f3",
+        "claim": "Wpis informuje o nagrodzie Lider Inteligentnego Rozwoju 2026 dla Rafała.",
+        "quote": "Rafał odebrał nagrodę Lider Inteligentnego Rozwoju 2026",
+        "kind": "observed",
+        "use_scope": [
+          "proof"
+        ],
+        "limitation": "Nagroda dla osoby, nie wynik projektu klienta."
+      }
+    ],
+    "language_samples": [
+      {
+        "local_ref": "l1",
+        "excerpt": "A dziś inny powód do radości: Rafał odebrał nagrodę",
+        "situation": "gratulacje",
+        "suggested_audience": "społeczność LinkedIn",
+        "linguistic_features": [
+          "potocznie",
+          "emoji",
+          "koleżeńsko"
+        ],
+        "observed_function": "buduje relację"
+      }
+    ],
+    "audience_signals": [],
+    "page_summary": "Wpis gratulacyjny z hasłem firmy i obietnicą korzyści; brak danych o klientach."
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "kind": "research",
+  "data": {
+    "facts": [
+      {
+        "local_ref": "f1",
+        "claim": "Wpis przedstawia AI jako sposób przyspieszania przejścia od pomysłu do działającego rozwiązania.",
+        "quote": "jak AI skraca drogę od pomysłu do działającego rozwiązania",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "mechanizm"
+        ],
+        "limitation": "Argumentacja autora, bez badania efektu."
+      },
+      {
+        "local_ref": "f2",
+        "claim": "Autor łączy krótszy cykl z wcześniejszym sprawdzeniem założeń i poznaniem opinii użytkowników.",
+        "quote": "założenia sprawdzamy wcześniej i szybciej poznajemy opinie użytkowników",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "mechanizm",
+          "promise"
+        ],
+        "limitation": "Tytułu o jednym dniu nie zamieniać w gwarancję realizacji."
+      },
+      {
+        "local_ref": "f3",
+        "claim": "Zakończenie wpisu zachęca pytaniem do sprawdzenia pomysłu, nie prowadzi do oferty zakupowej.",
+        "quote": "Masz pomysł, który chcesz sprawdzić? Napisz.",
+        "kind": "observed",
+        "use_scope": [
+          "cta"
+        ],
+        "limitation": "CTA bez wskazanego celu kontaktu."
+      }
+    ],
+    "language_samples": [
+      {
+        "local_ref": "l1",
+        "excerpt": "nie licząc czasu na całą papierologię",
+        "situation": "żart o formalnościach",
+        "suggested_audience": "founderzy i menedżerowie",
+        "linguistic_features": [
+          "potocznie",
+          "ironia"
+        ],
+        "observed_function": "rozluźnia techniczny temat"
+      },
+      {
+        "local_ref": "l2",
+        "excerpt": "Z olbrzymią ulgą dla budżetu.",
+        "situation": "korzyść kosztowa",
+        "suggested_audience": "decydent budżetowy",
+        "linguistic_features": [
+          "krótkie zdanie",
+          "emocja"
+        ],
+        "observed_function": "podkreśla oszczędność bez liczby"
+      }
+    ],
+    "audience_signals": [
+      {
+        "local_ref": "a1",
+        "role_or_organization": "osoba z pomysłem na produkt",
+        "trigger": "Chce sprawdzić pomysł zanim zainwestuje.",
+        "problem": "Długi cykl od pomysłu do prototypu.",
+        "risk": null,
+        "objection": null,
+        "evidence_status": "supplier_interpretation_not_customer_voice",
+        "fact_refs": [
+          "f1",
+          "f2"
+        ]
+      }
+    ],
+    "page_summary": "Zapowiedź wystąpienia CTO o AI i szybkim prototypowaniu, zakończona pytaniem do odbiorcy."
+  }
+}
