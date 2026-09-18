@@ -80,7 +80,12 @@ Then: add `{ id: '<module>', from: '@app' }` inside the
 6. **Resumable by default.** Every step has a cache key derived from its exact
    input (`fingerprint`), so a crashed 60-batch run resumes where it stopped and a
    prompt change on one agent re-runs only that agent's steps.
-7. **Bounded outputs — in the prompt, not the schema.** Say "≤4 examples, quotes
+7. **Voice ≠ licence to invent.** A post written "as" a person may reuse their
+   patterns, but every personal or factual claim must trace to the corpus or to
+   something we did ourselves. Fill a skeleton's "confession" slot with a verified
+   fact or leave it out — an on-voice fabrication is the most dangerous output this
+   agency can produce. (Lesson from the first sample post, 2026-09-18.)
+8. **Bounded outputs — in the prompt, not the schema.** Say "≤4 examples, quotes
    ≤240 chars" in the instructions; providers ignore JSON-schema `maxItems` /
    `maxLength`, so a hard `.max()` rejects a good answer for one extra bullet.
    Keep numeric bounds (dials 1–5, confidence 0–1) — models respect those.
