@@ -1,36 +1,10 @@
-# T01 — Build the real agency workflow spine
+# T01 - Real agency workflow spine
 
 State: done
-Depends on: none
-Owns: `ai-company/apps/mercato/src/modules/agency_operations/**`, `ai-company/apps/mercato/src/modules.ts`, `ai-company/eslint.ds.config.mjs`, generated module artifacts
-Context: Create the smallest real Open Mercato module behind the slice. See F52,
-F54, and F55 only as context.
+Sources: F52, F54, F55
 
-## Deliver
-- Persist only the agency-owned case, using platform IDs for customer/contact/
-  staff identities and no cross-module ORM relations.
-- Represent the stable agent worker in module code. Reuse Open Mercato attachments
-  for material and workflow instance/step/event records for run evidence; do not
-  duplicate those platform entities.
-- Register `agency_operations` and a real `START -> deterministic agent
-  worker -> END` code workflow using the built-in `EXECUTE_FUNCTION` activity.
-- Start it through `workflowExecutor`, save the workflow instance and run
-  evidence, and make no model or external AI call.
+Delivered scoped agency cases, private platform attachments, a stable deterministic
+worker and a real native workflow in `7235d4130`. The baseline requires no
+Enterprise agent runtime.
 
-## Done when
-- A scoped case assigned to the stable code-defined worker completes the real
-  workflow and has saved input/output evidence in Open Mercato workflow records.
-- `yarn generate && yarn workspace @open-mercato/app test --runInBand apps/mercato/src/modules/agency_operations/__tests__/workflow.test.ts` passes.
-
-## Constraints
-- Only the agent intelligence is stubbed; persistence and workflow are real.
-- Keep Enterprise Agent Orchestrator optional and disabled for this baseline, as
-  required by F54. Do not claim an Enterprise `AgentRun` exists.
-
-## Evidence
-
-Implemented in `7235d4130`: scoped `AgencyCase`, migration, stable no-op worker,
-and native code workflow. Focused workflow tests passed in the delivery handoff;
-the current real-app demo reached a completed workflow with stored evidence.
-The remaining employee/browser proof belongs to T04, not a new workflow build.
-Ownership decision: [ADR-001](../.dev-docs/adr/001-agency-feature-boundaries.md).
+Milestone decision: [ADR-001](../.dev-docs/adr/001-agency-feature-boundaries.md).
