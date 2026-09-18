@@ -36,3 +36,10 @@ automated; escalations and explicitly important-client work go to humans.
 
 Report the reused contracts, changed files, focused proof, and the next missing
 attention-policy seam.
+
+## Current boundary
+
+Not implemented: the current workflow has only START, automated no-op, and END.
+Neither the merged portal scaffold nor the ToV research lane supplies human
+escalation. Keep this as the next independent employee capability; reuse findings
+are in `../.dev-docs/info-foraging/findings-synthesized/employee-escalation-platform-reuse.md`.

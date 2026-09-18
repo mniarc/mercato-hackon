@@ -26,5 +26,11 @@ observe routine agent work and handle later exceptions; they do not approve ever
 - Consume agency use cases and the workflow bridge rather than reaching from UI
   into another module's internals.
 
-## Handoff
-Report changed files, verification result, and any ACL/UI assumption.
+## Remaining proof
+
+The staff case API, list/detail pages, workflow evidence view, and scoped material
+download are implemented (`7235d4130`, `f6aa62636`); focused UI/API/access tests
+passed in the delivery handoff. T04 is the single remaining runtime proof:
+employee login, case display, and material download. The latest headed run stopped
+at login readiness before reaching these pages. Do not create a second UI journey
+or rebuild this feature because its task was previously left active.

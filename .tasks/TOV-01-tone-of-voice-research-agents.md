@@ -46,12 +46,18 @@ Changed files: `ai-company/apps/mercato/src/modules/agency_tov/**` (new),
 `ai-company/apps/mercato/src/modules.ts` (+1 module in the enterprise-agents block),
 `ai-company/apps/mercato/jest.config.cjs` (+ai-assistant source mapper).
 Verification: unit tests, typecheck and eslint green on the `main`-based copy; ported
-to this tree unchanged (SDK identical to `develop@83330e27`). Live run pending an
-API key. Assumption: non-LinkedIn Apify actor ids/field maps are unverified defaults,
+to this tree unchanged (SDK identical to `develop@83330e27`). The direct live run
+is complete as recorded above; orchestrator-runner proof remains open.
+Assumption: non-LinkedIn Apify actor ids/field maps are unverified defaults,
 overridable via `OM_AGENCY_TOV_APIFY_ACTOR_<SOURCE>`.
 Grounding gate added (`lib/tov/grounding.ts`): cite-or-abstain on every result and
 cache read; audit of the first full run: 92% of batch citations grounded, rest dropped.
-Next (agreed 2026-09-18): TOV-02 — persist corpus and outputs in module entities
-(`agency_tov_sources`, `_scrape_runs`, `_research_runs`, `_documents`/`_versions`) so
-citations resolve to stored source rows; that is the durable artifact reference the
-architect asked for before any bridge to `agency_operations` (no force-connect).
+Baseline is integrated on main via `2c0541b8c`. Persistence is no longer a new
+implementation request: the locally known `origin/feat/agency-tov-agents` tip
+`7c659b65d` already contains TOV-02 entities, store, migration, and CLI persistence.
+Fetched and merged into main via `3fec49dba`; its TOV-02 task is now present too.
+The merge did not apply its migration or establish runtime acceptance. Do not
+duplicate that persistence implementation.
+An agency-case/artifact bridge remains unimplemented and must use the teammate's
+durable document-version contract when the product path needs it. See
+[ADR-001](../.dev-docs/adr/001-agency-feature-boundaries.md).

@@ -17,7 +17,8 @@ evidence task, not another validation framework.
   customer-portal caller and content-neutral worker intelligence are substituted;
   employee frontend/API/auth, persistence, attachment storage, and workflow are
   real.
-- `yarn test:integration --grep "agency operations vertical slice"` passes.
+- `yarn test:agency` (or `yarn test:agency:headed`) passes against the persistent
+  app; see the [testing process](../.dev-docs/.processes/current/testing.md).
 
 ## Constraints
 - A minimal trusted portal caller and fixed no-op agent result are the only
@@ -25,5 +26,13 @@ evidence task, not another validation framework.
 - Do not add a runtime dev/test endpoint or any tone-of-voice behavior.
 - Fix product code where the end-to-end seam fails; do not mask it in the test.
 
-## Handoff
-Report changed files, the command result, and the next smallest gap discovered.
+## Remaining proof
+
+The single scenario exists and now has lean assertions and phase logging
+(`d140a7054`, T06/T07). The current persistent-runtime headed run reached real
+fixture creation, private intake, and completed workflow; it failed waiting for
+`form[data-auth-ready="1"]` during employee login. A warm login-page probe also
+failed readiness; the cause is not established. Fix that seam, then finish case
+display and material retrieval on the same app/database. No full-demo pass is
+claimed. This one result also closes T03 and T06 runtime acceptance; do not add
+duplicate browser scenarios.

@@ -1,6 +1,6 @@
 # T01 — Build the real agency workflow spine
 
-State: active
+State: done
 Depends on: none
 Owns: `ai-company/apps/mercato/src/modules/agency_operations/**`, `ai-company/apps/mercato/src/modules.ts`, `ai-company/eslint.ds.config.mjs`, generated module artifacts
 Context: Create the smallest real Open Mercato module behind the slice. See F52,
@@ -27,5 +27,10 @@ F54, and F55 only as context.
 - Keep Enterprise Agent Orchestrator optional and disabled for this baseline, as
   required by F54. Do not claim an Enterprise `AgentRun` exists.
 
-## Handoff
-Report changed files, verification result, generated artifacts, and assumptions.
+## Evidence
+
+Implemented in `7235d4130`: scoped `AgencyCase`, migration, stable no-op worker,
+and native code workflow. Focused workflow tests passed in the delivery handoff;
+the current real-app demo reached a completed workflow with stored evidence.
+The remaining employee/browser proof belongs to T04, not a new workflow build.
+Ownership decision: [ADR-001](../.dev-docs/adr/001-agency-feature-boundaries.md).

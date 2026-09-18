@@ -1,6 +1,6 @@
 # T02 — Define the client-intake handoff
 
-State: active
+State: done
 Depends on: T01
 Owns: `ai-company/apps/mercato/src/modules/agency_operations/lib/contracts/**`, `ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts`, `ai-company/apps/mercato/src/modules/agency_operations/__tests__/client-intake-contract.test.ts`, `ai-company/apps/mercato/src/modules/agency_operations/di.ts`
 Context: Another team member owns customer-portal auth, routes, and UI. Give that
@@ -34,7 +34,14 @@ their surface.
 - Do not accept tone-of-voice input or implement tone processing; another team
   member owns that domain.
 
-## Handoff
+## Evidence and handoff
 
-Report the contract, changed files, verification result, and assumptions the
-portal owner must satisfy.
+Implemented in `7235d4130`; focused contract tests passed in the delivery handoff.
+The current real-app demo stored private material and completed the workflow via
+`clientMaterialIntakeService.submitMaterial`. The caller supplies resolved tenant,
+organization, customer-company and customer-user IDs, title, and file bytes.
+
+The merged teammate `agency` portal is an offer/order-form scaffold, not an
+adapter to this contract. Connecting that authenticated caller is future product
+integration, not unfinished intake implementation. See
+[ADR-001](../.dev-docs/adr/001-agency-feature-boundaries.md).
