@@ -96,6 +96,8 @@ export default defineConfig({
   retries: 1,
   workers: 1,
   use: {
+    actionTimeout: process.env.OM_TEST_ACTION_TIMEOUT_MS ? Number(process.env.OM_TEST_ACTION_TIMEOUT_MS) : undefined,
+    navigationTimeout: process.env.OM_TEST_NAVIGATION_TIMEOUT_MS ? Number(process.env.OM_TEST_NAVIGATION_TIMEOUT_MS) : undefined,
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     headless: true,
     screenshot: captureScreenshots ? 'on' : 'only-on-failure',

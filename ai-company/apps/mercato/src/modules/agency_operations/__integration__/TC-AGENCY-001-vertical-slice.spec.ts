@@ -18,7 +18,7 @@ import {
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
 import { withClient } from '@open-mercato/core/helpers/integration/dbFixtures'
 import { getTokenContext } from '@open-mercato/core/helpers/integration/generalFixtures'
-import { pollWorkflowInstance } from '@open-mercato/core/helpers/integration/workflowsFixtures'
+import { findInstanceUserTask, pollWorkflowInstance } from '@open-mercato/core/helpers/integration/workflowsFixtures'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -34,7 +34,13 @@ export const integrationMeta = {
 const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
 const EMPLOYEE_FEATURES = [
   'agency_operations.cases.view',
+  'agency_operations.cases.escalate',
+  'customers.companies.view',
   'workflows.instances.view',
+  'workflows.view',
+  'workflows.tasks.view',
+  'workflows.tasks.claim',
+  'workflows.tasks.complete',
 ]
 
 type PortalMaterialSubmission = {
@@ -116,8 +122,12 @@ async function deleteCreatedDatabaseRows(
   organizationId: string,
 ): Promise<void> {
   await withClient(async (client) => {
-    if (resources.workflowInstanceId) {
-      const scopedWorkflowParams = [resources.workflowInstanceId, tenantId, organizationId]
+    const workflows = await client.query<{ id: string }>(
+      'SELECT id FROM workflow_instances WHERE tenant_id = $1 AND organization_id = $2 AND (id = $3 OR correlation_key = $4)',
+      [tenantId, organizationId, resources.workflowInstanceId, `agency-attention:${resources.caseId}`],
+    )
+    for (const workflow of workflows.rows) {
+      const scopedWorkflowParams = [workflow.id, tenantId, organizationId]
       await client.query(
         'DELETE FROM workflow_events WHERE workflow_instance_id = $1 AND tenant_id = $2 AND organization_id = $3',
         scopedWorkflowParams,
@@ -136,7 +146,7 @@ async function deleteCreatedDatabaseRows(
       )
       await client.query(
         'DELETE FROM workflow_instances WHERE id = $1 AND tenant_id = $2 AND organization_id = $3',
-        [resources.workflowInstanceId, tenantId, organizationId],
+        scopedWorkflowParams,
       )
     }
     if (resources.caseId) {
@@ -158,7 +168,12 @@ async function loginEmployee(page: Page, email: string, password: string): Promi
   await expect(page.locator('form[data-auth-ready="1"]')).toBeVisible()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password', { exact: true }).fill(password)
-  await page.getByLabel('Password', { exact: true }).press('Enter')
+  const loginResponsePromise = page.waitForResponse((response) =>
+    new URL(response.url()).pathname === '/api/auth/login'
+      && response.request().method() === 'POST',
+  )
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click()
+  expect((await loginResponsePromise).ok(), 'Native employee login should succeed').toBeTruthy()
   await expect(page).toHaveURL(/\/backend(?:\/.*)?$/, { timeout: 20_000 })
 }
 
@@ -221,7 +236,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           email: employeeEmail,
           password: employeePassword,
           organizationId,
-          roles: [employeeRoleId],
+          roles: [employeeRoleId, 'employee'],
           name: `Agency proof employee ${suffix}`,
         })
         return {
@@ -250,16 +265,20 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             sameSite: 'Lax',
           },
         ])
-        const portalPath = `/${intakeIdentity.orgSlug}/portal/agency/materials`
+        const portalPath = `/${intakeIdentity.orgSlug}/portal/agency`
         await page.goto(new URL(portalPath, BASE_URL).toString(), {
           waitUntil: 'domcontentloaded',
         })
+        await expect(page.getByRole('heading', { name: 'START KOMUNIKACJI', exact: true })).toBeVisible()
+        await page.getByRole('link', { name: 'Send materials', exact: true }).click()
+        await expect(page.locator('[data-material-form-ready="1"]')).toBeVisible()
         await page.getByLabel('Title', { exact: true }).fill(title)
         await page.getByLabel('Material file', { exact: true }).setInputFiles({
           name: fileName,
           mimeType,
           buffer: sentinel,
         })
+        await expect(page.getByLabel('Title', { exact: true })).toHaveValue(title)
         const submissionResponsePromise = page.waitForResponse((response) => {
           const url = new URL(response.url())
           return url.pathname === '/api/agency/portal/materials'
@@ -300,6 +319,17 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         })
       })
 
+      await runDemoPhase('Revisit client case', 'Client case revisited', async () => {
+        await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/agency/cases`, BASE_URL).toString(), {
+          waitUntil: 'domcontentloaded',
+        })
+        await page.getByRole('link', { name: title, exact: true }).click()
+        await expect(page).toHaveURL(new RegExp(`/portal/agency/cases/${intakeResult.caseId}$`))
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await expect(page.getByText(title, { exact: true })).toBeVisible()
+        await expect(page.getByRole('status')).toContainText('The requested process is complete')
+      })
+
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
         await loginEmployee(page, employeeEmail, employeePassword)
       })
@@ -327,6 +357,30 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           materialChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
         }
         expect(Buffer.concat(materialChunks)).toEqual(sentinel)
+      })
+
+      await runDemoPhase('Escalate to employee inbox', 'Human attention completed', async () => {
+        await page.getByRole('button', { name: 'Request human attention', exact: true }).click()
+        const dialog = page.getByRole('dialog')
+        await dialog.getByLabel('Reason', { exact: true }).fill(`Review requested for ${title}`)
+        const responsePromise = page.waitForResponse((response) =>
+          new URL(response.url()).pathname === `/api/agency_operations/cases/${intakeResult.caseId}/escalate`
+            && response.request().method() === 'POST',
+        )
+        await dialog.getByRole('button', { name: 'Send to work inbox', exact: true }).click()
+        const response = await responsePromise
+        expect(response.ok(), 'Case escalation should succeed').toBeTruthy()
+        const attention = await response.json() as { workflowInstanceId: string }
+        const task = await findInstanceUserTask(request, adminToken, attention.workflowInstanceId)
+        expect(task?.id, 'Escalation should create a native user task').toBeTruthy()
+        await page.getByRole('link', { name: 'Open work inbox', exact: true }).click()
+        await expect(page.getByText(title, { exact: true }).first()).toBeVisible()
+        await page.goto(new URL(`/backend/tasks/${task!.id}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+        await page.getByTestId('task-claim').click()
+        await page.getByRole('button', { name: 'Complete', exact: true }).click()
+        const completed = await pollWorkflowInstance(request, adminToken, attention.workflowInstanceId,
+          (instance) => instance.status === 'COMPLETED')
+        expect(completed?.status).toBe('COMPLETED')
       })
     } finally {
       await runDemoPhase('Clean up fixtures', 'Cleanup complete', async () => {

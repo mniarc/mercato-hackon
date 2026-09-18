@@ -52,6 +52,8 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     DEMO_MODE: 'false',
     OM_INTEGRATION_EXACT_SPEC: spec,
     OM_INTEGRATION_MODULES: 'agency_operations',
+    OM_TEST_ACTION_TIMEOUT_MS: '20000',
+    OM_TEST_NAVIGATION_TIMEOUT_MS: '60000',
   }
 }
 
