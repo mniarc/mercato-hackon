@@ -3,12 +3,11 @@ import path from 'node:path'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { ModuleCli } from '@open-mercato/shared/modules/registry'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
-import { getAgentEntry } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
-import type { AgentRuntimeService } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/runtime/agentRuntime'
+import { ensureAgentsLoaded, getAgentEntry } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateText, Output } from 'ai'
 import { z } from 'zod'
-import { TOV_BATCH_ANALYST_AGENT_ID, TOV_SOURCE_SCOUT_AGENT_ID } from './ai-agents'
+import { TOV_BATCH_ANALYST_AGENT_ID, TOV_SOURCE_SCOUT_AGENT_ID } from './lib/agentIds'
 import {
   tovOutputLanguages,
   tovSourceScoutResult,
@@ -23,18 +22,15 @@ import { createApifyClient } from './lib/corpus/apify'
 import { normalizeLinkedInPosts } from './lib/corpus/linkedin'
 import { scrapeTargets, tovSourceAdapters, type TovScrapeTarget } from './lib/corpus/sources'
 import {
-  citationsOf,
-  finishResearchRun,
   importCorpus,
   type ImportCorpusInput,
   loadCorpus,
-  saveDocumentVersion,
-  startResearchRun,
   type StoredCorpus,
   type TovScope,
 } from './lib/store'
 import { runTovPipeline, type TovAgentRunner, type TovPipelineCache, type TovPipelineResult } from './lib/tov/pipeline'
 import { linkResolverFor, renderBrandTov, renderProfileVoice, renderRunSummary } from './lib/tov/render'
+import { createTovAgentRunner, runStoredTovResearch, type TovResearchOptions } from './lib/researchService'
 
 /** `--key value` pairs; a `--flag` followed by another option or nothing is `'true'`. */
 function parseArgs(args: string[]): Record<string, string> {
@@ -148,10 +144,9 @@ async function orchestratorRunner(db: Db, scope: TovScope, args: Record<string, 
     userId = Array.isArray(rows) && rows[0] ? String(rows[0].id) : ''
     if (!userId) throw new Error('[internal] no user found in tenant — pass --user')
   }
-  const agentRuntime = db.resolve('agentRuntime') as AgentRuntimeService
   const ctx = { ...scope, userId }
   console.log(`Runner: agent_orchestrator (tenant=${ctx.tenantId} org=${ctx.organizationId} user=${ctx.userId})`)
-  return (agentId, input, opts) => agentRuntime.run(agentId, input, { ...ctx, runTimeoutMs: opts.runTimeoutMs })
+  return createTovAgentRunner(db, ctx)
 }
 
 function directModels(args: Record<string, string>): { analysis: string; synthesis: string } {
@@ -178,6 +173,7 @@ function directRunner(args: Record<string, string>): TovAgentRunner {
   const modelFor = (agentId: string) => (agentId === TOV_BATCH_ANALYST_AGENT_ID ? analysisModel : synthesisModel)
   console.log(`Runner: direct (${openrouterKey ? 'openrouter' : 'openai'}; analysis ${analysisModel}, synthesis ${synthesisModel})`)
   return async (agentId, input, opts) => {
+    await ensureAgentsLoaded()
     const entry = getAgentEntry(agentId)
     if (!entry) throw new Error(`[internal] unknown agent ${agentId}`)
     // Provider-side structured output compiles the schema into a grammar, which
@@ -322,36 +318,6 @@ function writeOutputs(out: string, result: TovPipelineResult, posts: TovPost[], 
   fs.writeFileSync(path.join(out, 'run-summary.txt'), renderRunSummary(result))
 }
 
-/** One `KLI-TOV` version plus one `TOV-PROFILE` version per author, each with its citations resolved to post rows. */
-async function persistOutputs(db: Db, scope: TovScope, brand: string, runId: string, result: TovPipelineResult, corpus: StoredCorpus): Promise<void> {
-  const linkOf = linkResolverFor(corpus.posts)
-  const byProfile = groupByProfile(corpus.posts)
-  for (const profile of result.profiles) {
-    const posts = byProfile.get(profile.profile.profileUrl) ?? []
-    const { version } = await saveDocumentVersion(db.em, scope, {
-      brand,
-      kind: 'TOV-PROFILE',
-      profileUrl: profile.profile.profileUrl,
-      title: `Voice profile — ${profile.profile.displayName}`,
-      researchRunId: runId,
-      body: profile.voice,
-      renderedMd: renderProfileVoice(profile.profile, profile.voice, linkOf),
-      citations: citationsOf(profile.voice, posts, corpus.rowOf),
-    })
-    console.log(`  TOV-PROFILE ${profile.profile.displayName}: version ${version.versionNo} (${version.id})`)
-  }
-  const { version } = await saveDocumentVersion(db.em, scope, {
-    brand,
-    kind: 'KLI-TOV',
-    profileUrl: '',
-    title: `Tone of voice — ${brand}`,
-    researchRunId: runId,
-    body: result.brand,
-    renderedMd: renderBrandTov(result.brand, result.profiles, linkOf),
-    citations: citationsOf(result.brand, corpus.posts, corpus.rowOf),
-  })
-  console.log(`  KLI-TOV: version ${version.versionNo} (${version.id}) — research run ${runId}`)
-}
 
 /**
  * Builds the tone-of-voice document for a brand from what its people publish.
@@ -411,51 +377,29 @@ const run: ModuleCli = {
     if (posts.length === 0) throw new Error('[internal] no posts to analyse — every source came back empty; add another source or check the scrape report')
     fs.writeFileSync(path.join(out, 'corpus.json'), JSON.stringify({ posts }, null, 2))
 
-    const researchRun =
-      stored && db && scope
-        ? await startResearchRun(db.em, scope, {
-            brand,
-            outputLanguage: lang,
-            runner,
-            models: runner === 'direct' ? directModels(args) : null,
-            corpus: stored,
-          })
-        : null
-    if (researchRun && scope) console.log(`Research run ${researchRun.id} (tenant=${scope.tenantId} org=${scope.organizationId})`)
-
-    let result: TovPipelineResult
-    try {
-      result = await runTovPipeline({
-        posts,
-        brand,
-        outputLanguage: lang,
-        runAgent,
-        batchSize: args['batch-size'] ? Number(args['batch-size']) : undefined,
-        concurrency: args.concurrency ? Number(args.concurrency) : undefined,
-        cache: fileCache(path.join(out, 'cache')),
-        onEvent: (event) => {
-          if (event.type === 'grounding' || event.type === 'grounding_rejected') groundingLog.push(event)
-          if (event.type === 'grounding' && event.dropped > 0) console.log(`  grounding ${event.step}: kept ${event.kept}, dropped ${event.dropped} (${event.issues.map((i) => i.reason).join(', ')})`)
-          if (event.type === 'grounding_rejected') console.warn(`  grounding REJECTED ${event.step} (attempt ${event.attempt}): ${event.issues.length} issues — re-requesting`)
-          if (event.type === 'plan') console.log(`Plan: ${event.posts} posts, ${event.profiles} profiles, ${event.batches} batches`)
-          if (event.type === 'batch') console.log(`  batch ${event.index + 1}/${event.total} ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
-          if (event.type === 'profile') console.log(`  profile ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
-          if (event.type === 'brand') console.log(`  brand ${event.cached ? '(cached)' : `${event.ms} ms`}`)
-        },
-      })
-    } catch (err) {
-      if (researchRun && db) {
-        await finishResearchRun(db.em, researchRun, { status: 'failed', error: err instanceof Error ? err.message : String(err), groundingReport: groundingLog })
-        console.error(`Research run ${researchRun.id} marked failed`)
-      }
-      throw err
+    const options: TovResearchOptions = {
+      batchSize: args['batch-size'] ? Number(args['batch-size']) : undefined,
+      concurrency: args.concurrency ? Number(args.concurrency) : undefined,
+      cache: fileCache(path.join(out, 'cache')),
+      onEvent: (event) => {
+        if (event.type === 'grounding' || event.type === 'grounding_rejected') groundingLog.push(event)
+        if (event.type === 'grounding' && event.dropped > 0) console.log(`  grounding ${event.step}: kept ${event.kept}, dropped ${event.dropped} (${event.issues.map((i) => i.reason).join(', ')})`)
+        if (event.type === 'grounding_rejected') console.warn(`  grounding REJECTED ${event.step} (attempt ${event.attempt}): ${event.issues.length} issues — re-requesting`)
+        if (event.type === 'plan') console.log(`Plan: ${event.posts} posts, ${event.profiles} profiles, ${event.batches} batches`)
+        if (event.type === 'batch') console.log(`  batch ${event.index + 1}/${event.total} ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
+        if (event.type === 'profile') console.log(`  profile ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
+        if (event.type === 'brand') console.log(`  brand ${event.cached ? '(cached)' : `${event.ms} ms`}`)
+      },
     }
-
+    const persisted = stored && db && scope
+      ? await runStoredTovResearch({
+          em: db.em, scope, brand, outputLanguage: lang, corpus: stored, runAgent, runner,
+          models: runner === 'direct' ? directModels(args) : null, options,
+        })
+      : null
+    const result = persisted?.result ?? await runTovPipeline({ posts, brand, outputLanguage: lang, runAgent, ...options })
+    if (persisted) console.log(`Research run ${persisted.researchRunId}: document versions ${persisted.documentVersionIds.join(', ')}`)
     writeOutputs(out, result, posts, groundingLog)
-    if (researchRun && db && scope && stored) {
-      await persistOutputs(db, scope, brand, researchRun.id, result, stored)
-      await finishResearchRun(db.em, researchRun, { status: 'done', stats: result.stats, groundingReport: groundingLog })
-    }
     const summary = renderRunSummary(result)
     console.log(summary)
     console.log(`Written to ${path.resolve(out)}`)

@@ -74,10 +74,15 @@ that direct path only, not the native path above.
 
 ## Integration seam
 
-Reuse ToV's `runTovPipeline` with its injected `TovAgentRunner`, backed by DI
-`agentRuntime.run(agentId, input, scopedContext)`. Keep research/prompts/corpus
-and document versions in `agency_tov`; agency operations owns case-to-run links
-and routing. Use `onRunPersisted` to capture run IDs, never a newest-run query.
+Server callers resolve `agencyTovResearchService` from DI and call
+`run({ context, brand, outputLanguage, posts })`. Pass normalized ToV posts and
+an explicit native execution identity (tenant, organization, staff/principal user;
+workflow correlation when applicable). It requires `agency_tov.manage` and
+`agent_orchestrator.agents.run`, persists research/documents and returns exact
+`researchRunId`, `documentVersionIds`, `agentRunIds` plus the pipeline result.
+Types live in `agency_tov/lib/researchService.ts`; no filesystem or provider SDK
+is needed by callers. Identity/text conflicts in immutable corpus fail explicitly.
+Agency operations owns routing/reference links; ToV retains prompts and research.
 
 For durable business execution use the existing workflow/`INVOKE_AGENT` and
 `agent_orchestrator.processes.startExecution` contracts; the synchronous agent

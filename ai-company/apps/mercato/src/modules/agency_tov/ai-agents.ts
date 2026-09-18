@@ -7,10 +7,16 @@ import {
   tovSourceScoutResult,
 } from './data/validators'
 
-export const TOV_SOURCE_SCOUT_AGENT_ID = 'agency_tov.source_scout'
-export const TOV_BATCH_ANALYST_AGENT_ID = 'agency_tov.batch_analyst'
-export const TOV_PROFILE_SYNTHESIZER_AGENT_ID = 'agency_tov.profile_synthesizer'
-export const TOV_BRAND_SYNTHESIZER_AGENT_ID = 'agency_tov.brand_synthesizer'
+import {
+  TOV_SOURCE_SCOUT_AGENT_ID,
+  TOV_BATCH_ANALYST_AGENT_ID,
+  TOV_PROFILE_SYNTHESIZER_AGENT_ID,
+  TOV_BRAND_SYNTHESIZER_AGENT_ID,
+} from './lib/agentIds'
+
+// Preserve the existing public identifier exports without forcing consumers to
+// import this registration entry point.
+export * from './lib/agentIds'
 
 // The three tone-of-voice ANALYSIS agents form a map → reduce that `lib/tov/pipeline.ts`
 // drives in code. Each one is a RESEARCHER with NO tools: it reasons only over the

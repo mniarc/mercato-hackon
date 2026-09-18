@@ -3,7 +3,7 @@ import {
   TOV_BATCH_ANALYST_AGENT_ID,
   TOV_BRAND_SYNTHESIZER_AGENT_ID,
   TOV_PROFILE_SYNTHESIZER_AGENT_ID,
-} from '../../ai-agents'
+} from '../agentIds'
 import {
   tovBatchAnalystResult,
   tovBrandSynthesizerResult,
