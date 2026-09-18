@@ -81,7 +81,8 @@ export const enabledModules: ModuleEntry[] = [
   { id: 'attachments', from: '@open-mercato/core' },
   { id: 'catalog', from: '@open-mercato/core' },
   { id: 'sales', from: '@open-mercato/core' },
-  { id: 'warranty_claims', from: '@open-mercato/core' },
+  // Disabled for the AI agency: removes the customer-portal "Claims" pages (and the whole RMA module, unused here).
+  // { id: 'warranty_claims', from: '@open-mercato/core' },
   { id: 'wms', from: '@open-mercato/core' },
   { id: 'api_keys', from: '@open-mercato/core' },
   { id: 'devices', from: '@open-mercato/core' },
@@ -100,7 +101,8 @@ export const enabledModules: ModuleEntry[] = [
   { id: 'currencies', from: '@open-mercato/core' },
   { id: 'planner', from: '@open-mercato/core' },
   { id: 'resources', from: '@open-mercato/core' },
-  { id: 'staff', from: '@open-mercato/core' },
+  // Disabled for the AI agency: removes the customer-portal "Time reports" pages (and the whole staff module, unused here).
+  // { id: 'staff', from: '@open-mercato/core' },
   { id: 'events', from: '@open-mercato/events' },
   { id: 'notifications', from: '@open-mercato/core' },
   { id: 'progress', from: '@open-mercato/core' },
@@ -178,6 +180,7 @@ export const enabledModules: ModuleEntry[] = [
     },
   },
   { id: 'ratelimit_probe', from: '@app' },
+  { id: 'agency', from: '@app' },
 ]
 
 // Official modules activated via official-modules.json / official-modules.local.json
