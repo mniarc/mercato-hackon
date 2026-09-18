@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from 'react'
+import { useT } from '@open-mercato/shared/lib/i18n/context'
 import Link from 'next/link'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
@@ -26,11 +27,13 @@ const boundaries: string[] = [
 ]
 
 export default function AgencyOfferPage({ params }: Props) {
+  const t = useT()
   const { orgSlug } = params
   const orderHref = `/${orgSlug}/portal/agency/order`
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
+      <Button asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/materials`}>{t('agency.materials.link')}</Link></Button>
       <PortalPageHeader
         label="Oferta"
         title="START KOMUNIKACJI"

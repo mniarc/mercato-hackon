@@ -1,0 +1,13 @@
+{
+  "agency.materials.title": "Materiały",
+  "agency.materials.description": "Prześlij materiały swojej agencji. Nie tworzy to zamówienia ani nie potwierdza płatności.",
+  "agency.materials.caseTitle": "Tytuł",
+  "agency.materials.file": "Plik z materiałem",
+  "agency.materials.submit": "Prześlij materiał",
+  "agency.materials.success": "Materiał został przyjęty i przetworzony. Agencja może teraz zobaczyć sprawę.",
+  "agency.materials.caseId": "Identyfikator sprawy",
+  "agency.materials.invalid": "Podaj tytuł i wybierz niepusty plik z materiałem.",
+  "agency.materials.unauthorized": "Zaloguj się, aby przesłać materiał.",
+  "agency.materials.unlinked": "Przed przesłaniem materiału Twoje konto musi być powiązane z klientem.",
+  "agency.materials.link": "Prześlij materiały"
+}

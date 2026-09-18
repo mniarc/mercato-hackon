@@ -1,9 +1,6 @@
 import { randomUUID } from 'node:crypto'
-import path from 'node:path'
-import { expect, test, type Page } from '@playwright/test'
-import { bootstrapFromAppRoot } from '@open-mercato/shared/lib/bootstrap/dynamicLoader'
-import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
-import { getAuthToken } from '@open-mercato/core/helpers/integration/api'
+import { expect, test, type APIRequestContext, type Page } from '@playwright/test'
+import { apiRequest, getAuthToken } from '@open-mercato/core/helpers/integration/api'
 import {
   createRoleFixture,
   createUserFixture,
@@ -17,14 +14,11 @@ import {
   createCustomerUserFixture,
   deleteCustomerCompanyFixture,
   deleteCustomerUserFixture,
+  portalLogin,
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
 import { withClient } from '@open-mercato/core/helpers/integration/dbFixtures'
 import { getTokenContext } from '@open-mercato/core/helpers/integration/generalFixtures'
 import { pollWorkflowInstance } from '@open-mercato/core/helpers/integration/workflowsFixtures'
-import {
-  CLIENT_MATERIAL_INTAKE_SERVICE,
-  type ClientMaterialIntakeService,
-} from '../lib/contracts'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -37,34 +31,22 @@ export const integrationMeta = {
   ],
 }
 
-const APP_ROOT = path.resolve(
-  process.env.OM_TEST_APP_ROOT?.trim() || path.resolve(process.cwd(), 'apps/mercato'),
-)
+const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
 const EMPLOYEE_FEATURES = [
   'agency_operations.cases.view',
   'workflows.instances.view',
 ]
 
+type PortalMaterialSubmission = {
+  caseId: string
+  workflowInstanceId: string
+  status: 'COMPLETED'
+}
+
 type CreatedResources = {
   caseId: string | null
   attachmentId: string | null
   workflowInstanceId: string | null
-}
-
-let bootstrapPromise: Promise<void> | null = null
-
-async function ensureTargetAppBootstrap(): Promise<void> {
-  bootstrapPromise ??= bootstrapFromAppRoot(APP_ROOT).then(() => undefined)
-  await bootstrapPromise
-}
-
-async function submitThroughProductionIntake(
-  input: Parameters<ClientMaterialIntakeService['submitMaterial']>[0],
-) {
-  await ensureTargetAppBootstrap()
-  const container = await createRequestContainer()
-  const intake = container.resolve<ClientMaterialIntakeService>(CLIENT_MATERIAL_INTAKE_SERVICE)
-  return intake.submitMaterial(input)
 }
 
 async function runDemoPhase<Result>(
@@ -78,6 +60,27 @@ async function runDemoPhase<Result>(
     console.log(`[TC-AGENCY-001] ${completedMessage}`)
     return result
   })
+}
+
+async function readOrganizationSlug(
+  request: APIRequestContext,
+  adminToken: string,
+  tenantId: string,
+  organizationId: string,
+): Promise<string> {
+  const response = await apiRequest(
+    request,
+    'GET',
+    `/api/directory/organizations?view=manage&ids=${encodeURIComponent(organizationId)}&tenantId=${encodeURIComponent(tenantId)}`,
+    { token: adminToken },
+  )
+  expect(response.ok(), 'Organization lookup should succeed').toBeTruthy()
+  const body = (await response.json()) as { items?: Array<{ slug?: unknown }> }
+  const slug = body.items?.[0]?.slug
+  expect(typeof slug === 'string' && slug.length > 0, 'Organization slug should be present').toBe(
+    true,
+  )
+  return slug as string
 }
 
 async function readCaseResourcesByTitle(
@@ -146,13 +149,12 @@ async function deleteCreatedDatabaseRows(
 }
 
 async function loginEmployee(page: Page, email: string, password: string): Promise<void> {
-  const baseUrl = process.env.BASE_URL?.trim() || 'http://localhost:3000'
   await page.context().addCookies([
-    { name: 'om_demo_notice_ack', value: 'ack', url: baseUrl, sameSite: 'Lax' as const },
-    { name: 'om_cookie_notice_ack', value: 'ack', url: baseUrl, sameSite: 'Lax' as const },
-    { name: 'om_feedback_suppress', value: '1', url: baseUrl, sameSite: 'Lax' as const },
+    { name: 'om_demo_notice_ack', value: 'ack', url: BASE_URL, sameSite: 'Lax' as const },
+    { name: 'om_cookie_notice_ack', value: 'ack', url: BASE_URL, sameSite: 'Lax' as const },
+    { name: 'om_feedback_suppress', value: '1', url: BASE_URL, sameSite: 'Lax' as const },
   ])
-  await page.goto('/login', { waitUntil: 'domcontentloaded' })
+  await page.goto(new URL('/login', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
   await expect(page.locator('form[data-auth-ready="1"]')).toBeVisible()
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password', { exact: true }).fill(password)
@@ -189,6 +191,12 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
 
     try {
       const intakeIdentity = await runDemoPhase('Prepare fixtures', 'Fixture ready', async () => {
+        const orgSlug = await readOrganizationSlug(
+          request,
+          adminToken,
+          tenantId,
+          organizationId,
+        )
         const createdCustomerEntityId = await createCustomerCompanyFixture(
           request,
           adminToken,
@@ -217,26 +225,58 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           name: `Agency proof employee ${suffix}`,
         })
         return {
-          customerEntityId: createdCustomerEntityId,
-          customerUserId: customerUser.id,
+          customer: customerUser,
+          orgSlug,
         }
       })
 
       const intakeResult = await runDemoPhase('Store intake', 'Intake stored', async () => {
-        const result = await submitThroughProductionIntake({
-          identity: {
-            tenantId,
-            organizationId,
-            customerEntityId: intakeIdentity.customerEntityId,
-            customerUserId: intakeIdentity.customerUserId,
-          },
-          title,
-          file: {
-            buffer: sentinel,
-            fileName,
-            mimeType,
-          },
+        const portalSession = await portalLogin(request, {
+          email: intakeIdentity.customer.email,
+          password: intakeIdentity.customer.password,
+          tenantId,
         })
+        await page.context().addCookies([
+          {
+            name: 'customer_auth_token',
+            value: portalSession.authToken,
+            url: BASE_URL,
+            sameSite: 'Lax',
+          },
+          {
+            name: 'customer_session_token',
+            value: portalSession.sessionToken,
+            url: BASE_URL,
+            sameSite: 'Lax',
+          },
+        ])
+        const portalPath = `/${intakeIdentity.orgSlug}/portal/agency/materials`
+        await page.goto(new URL(portalPath, BASE_URL).toString(), {
+          waitUntil: 'domcontentloaded',
+        })
+        await page.getByLabel('Title', { exact: true }).fill(title)
+        await page.getByLabel('Material file', { exact: true }).setInputFiles({
+          name: fileName,
+          mimeType,
+          buffer: sentinel,
+        })
+        const submissionResponsePromise = page.waitForResponse((response) => {
+          const url = new URL(response.url())
+          return url.pathname === '/api/agency/portal/materials'
+            && response.request().method() === 'POST'
+        })
+        await page.getByRole('button', { name: 'Submit material', exact: true }).click()
+        const submissionResponse = await submissionResponsePromise
+        expect(submissionResponse.status(), 'Portal material submission should return 201').toBe(
+          201,
+        )
+        const result = (await submissionResponse.json()) as PortalMaterialSubmission
+        expect(result).toMatchObject({
+          caseId: expect.any(String),
+          workflowInstanceId: expect.any(String),
+          status: 'COMPLETED',
+        })
+        await expect(page.getByTestId('agency-material-case-id')).toContainText(result.caseId)
         resources = {
           caseId: result.caseId,
           attachmentId: null,
@@ -265,7 +305,9 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
       })
 
       await runDemoPhase('Open employee case', 'Case visible', async () => {
-        await page.goto('/backend/agency-operations/cases', { waitUntil: 'domcontentloaded' })
+        await page.goto(new URL('/backend/agency-operations/cases', BASE_URL).toString(), {
+          waitUntil: 'domcontentloaded',
+        })
         await expect(page.getByRole('heading', { name: 'Agency cases', exact: true })).toBeVisible()
         const caseLink = page.getByRole('link', { name: title, exact: true })
         await expect(caseLink).toBeVisible()

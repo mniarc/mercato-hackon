@@ -1,0 +1,13 @@
+{
+  "agency.materials.title": "Materials",
+  "agency.materials.description": "Send material to your agency. This does not create an order or confirm payment.",
+  "agency.materials.caseTitle": "Title",
+  "agency.materials.file": "Material file",
+  "agency.materials.submit": "Submit material",
+  "agency.materials.success": "Material received and processed. Your agency can now view the case.",
+  "agency.materials.caseId": "Case ID",
+  "agency.materials.invalid": "Enter a title and choose a non-empty material file.",
+  "agency.materials.unauthorized": "Sign in to submit material.",
+  "agency.materials.unlinked": "Your account must be linked to a customer before submitting material.",
+  "agency.materials.link": "Send materials"
+}
