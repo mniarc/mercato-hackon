@@ -20,6 +20,14 @@ Before adding any functionality:
 4. If a new module is genuinely required, add the smallest app module when that
    need is uncovered and register it through the supported module system.
 
+Treat Open Mercato code, documentation, and skills as the source of truth for
+its contracts and extension points, not as a template for our implementation
+complexity or delivery ceremony. Use a native workflow only when the product
+path needs durable orchestration; keep simple operations simple. Validate at a
+real trust or persistence boundary and rely on established platform guarantees
+inside it. Add another validation layer only for a distinct, demonstrated risk,
+not to re-check the same fact.
+
 Keep each capability collocated inside `agency_operations`. Portal and backend
 UI stay in self-contained feature directories. Domain code does not import UI,
 and integration-specific calls sit behind thin module-local bridges using public
