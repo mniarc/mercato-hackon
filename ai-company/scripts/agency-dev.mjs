@@ -21,7 +21,7 @@ function port(value, fallback) {
 export function agencyEnvironment(sharedEnvironment, overrides = {}) {
   const appPort = port(overrides.AGENCY_APP_PORT, 5002)
   const dbPort = port(overrides.AGENCY_DB_PORT, 5544)
-  const baseUrl = `http://127.0.0.1:${appPort}`
+  const baseUrl = `http://localhost:${appPort}`
   return {
     ...sharedEnvironment,
     NODE_ENV: 'development',
@@ -91,7 +91,7 @@ async function main() {
   if (typeof buildReusableEnvironment !== 'function') {
     throw new Error('Refresh the CLI after pulling this launcher: yarn workspace @open-mercato/cli build')
   }
-  const shared = buildReusableEnvironment('http://127.0.0.1:5002', 'postgres://unused/unused', path.join(runtime, 'queue'), false)
+  const shared = buildReusableEnvironment('http://localhost:5002', 'postgres://unused/unused', path.join(runtime, 'queue'), false)
   const env = agencyEnvironment(shared, process.env)
   const cli = (...args) => run(process.execPath, [path.join(app, 'scripts', 'mercato-cli.mjs'), ...args], env, app)
   const compose = (...args) => run('docker', [

@@ -20,11 +20,13 @@ yarn test:agency           # Run the one demo spec
 yarn test:agency:headed    # Same scenario with a visible browser
 ```
 
-The app is at `http://127.0.0.1:5002`; local demo login is
+The app is at `http://localhost:5002`; local demo login is
 `admin@acme.com` / `secret`. PostgreSQL uses `127.0.0.1:5544`, database `agency_dev`,
 with a workspace-specific Compose project and named volume. Runtime state stays
 under `ai-company/apps/mercato/.mercato/agency-dev/`; the launcher does not rewrite `.env`.
 These are local demo credentials, not production credentials or live model keys.
+Use `localhost` for the browser and runner: this dev-server configuration rejects
+dynamic script requests from `127.0.0.1` with 403, leaving forms unhydrated.
 
 First start initializes only an empty database, with platform defaults but without
 optional example datasets. `Ctrl+C` stops the app while the database remains
@@ -35,6 +37,8 @@ package build; ordinary app-module edits use the existing Open Mercato hot reloa
 The launcher reuses Open Mercato's local integration environment: email/push
 delivery is captured or fake, not sent to real recipients. This is not a
 production configuration.
+
+For explicitly enabled live agent runs, see [OpenRouter and native agent setup](agent-runs.md).
 
 Legacy `test:agency:indev:start`, `:inspect`, and `:run` alias the persistent
 commands. `test:agency:indev:recreate` remains an explicit ephemeral proof command;

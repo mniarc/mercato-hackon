@@ -16,11 +16,12 @@ test('app and fixtures share isolated persistent DB, queue, cache, attachments a
   assert.ok(path.isAbsolute(app.QUEUE_BASE_DIR))
   assert.ok(path.isAbsolute(app.CACHE_SQLITE_PATH))
   assert.equal(app.NODE_ENV, 'development')
+  assert.equal(new URL(app.BASE_URL).hostname, 'localhost')
 })
 
 test('port overrides select the same app and database without changing dev credentials', () => {
   const env = agencyEnvironment({}, { AGENCY_APP_PORT: '5007', AGENCY_DB_PORT: '5547' })
-  assert.equal(env.BASE_URL, 'http://127.0.0.1:5007')
+  assert.equal(env.BASE_URL, 'http://localhost:5007')
   assert.equal(new URL(env.DATABASE_URL).port, '5547')
   assert.throws(() => agencyEnvironment({}, { AGENCY_DB_PORT: 'shared' }), /Invalid agency development port/)
 })
