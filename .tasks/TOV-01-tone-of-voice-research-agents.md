@@ -1,4 +1,4 @@
-# T05 — Build the tone-of-voice research agents (KLI-TOV from a scraped corpus)
+# TOV-01 — Build the tone-of-voice research agents (KLI-TOV from a scraped corpus)
 
 State: active
 Depends on: none
@@ -51,7 +51,7 @@ API key. Assumption: non-LinkedIn Apify actor ids/field maps are unverified defa
 overridable via `OM_AGENCY_TOV_APIFY_ACTOR_<SOURCE>`.
 Grounding gate added (`lib/tov/grounding.ts`): cite-or-abstain on every result and
 cache read; audit of the first full run: 92% of batch citations grounded, rest dropped.
-Next (agreed 2026-09-18): T06 — persist corpus and outputs in module entities
+Next (agreed 2026-09-18): TOV-02 — persist corpus and outputs in module entities
 (`agency_tov_sources`, `_scrape_runs`, `_research_runs`, `_documents`/`_versions`) so
 citations resolve to stored source rows; that is the durable artifact reference the
 architect asked for before any bridge to `agency_operations` (no force-connect).
