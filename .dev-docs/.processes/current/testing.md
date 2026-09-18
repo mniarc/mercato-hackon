@@ -18,6 +18,7 @@ yarn dev:agency            # Leave running in its own terminal
 yarn dev:agency:status     # Inspect from another terminal
 yarn test:agency           # Run the one demo spec
 yarn test:agency:headed    # Same scenario with a visible browser
+node scripts/agency-dev.mjs cli <command> <arguments> # Native CLI, same owned DB/runtime
 ```
 
 The app is at `http://localhost:5002`; local demo login is

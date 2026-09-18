@@ -81,9 +81,9 @@ async function assertPortFree(appPort) {
 
 async function main() {
   const [action = 'start', ...flags] = process.argv.slice(2)
-  if (!['start', 'setup', 'migrate', 'status', 'test'].includes(action)
-    || flags.some((flag) => !['--headed', '--list'].includes(flag))) {
-    throw new Error('Use start | setup | migrate | status | test [--headed] [--list]')
+  if (!['start', 'setup', 'migrate', 'status', 'test', 'cli'].includes(action)
+    || (action === 'cli' ? flags.length === 0 : flags.some((flag) => !['--headed', '--list'].includes(flag)))) {
+    throw new Error('Use start | setup | migrate | status | test [--headed] [--list] | cli <mercato arguments>')
   }
   const cliBuild = path.join(root, 'packages', 'cli', 'dist', 'lib', 'testing', 'integration.js')
   if (!existsSync(cliBuild)) throw new Error('Prepare this checkout once: yarn build:packages && yarn generate && yarn build:packages')
@@ -94,6 +94,10 @@ async function main() {
   const shared = buildReusableEnvironment('http://localhost:5002', 'postgres://unused/unused', path.join(runtime, 'queue'), false)
   const env = agencyEnvironment(shared, process.env)
   const cli = (...args) => run(process.execPath, [path.join(app, 'scripts', 'mercato-cli.mjs'), ...args], env, app)
+  if (action === 'cli') {
+    await cli(...flags)
+    return
+  }
   const compose = (...args) => run('docker', [
     'compose', '--project-directory', root, '--project-name', composeProject,
     '-f', path.join(root, '.ai', 'qa', 'agency-dev.compose.yml'), ...args,

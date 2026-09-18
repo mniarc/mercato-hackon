@@ -1,5 +1,10 @@
 # Agent runs: native runtime and OpenRouter
 
+Team integration point: use Open Mercato's native agent runtime/model factory,
+not separate OpenRouter clients in individual modules. The app's ignored `.env`
+(deployment: injected environment) owns the shared provider, model and key;
+`.env.example` carries only the non-secret defaults for teammates.
+
 The current agency demo remains deterministic. Configuring a key does not switch
 it to live agents. Native agent runs are an explicit next-slice opt-in and incur
 provider charges; do not run them as part of routine tests.
@@ -12,20 +17,25 @@ or inject the same variables through your deployment's secret manager:
 
 ```dotenv
 OPENROUTER_API_KEY=
-OM_AI_AGENCY_TOV_PROVIDER=openrouter
-OM_AI_AGENCY_TOV_MODEL=openrouter/<vendor>/<model-id>
+OM_AI_PROVIDER=openrouter
+OM_AI_MODEL=openrouter/mistralai/mistral-nemo
 ```
 
-Fill the key privately and replace `<vendor>/<model-id>` with an exact model ID
-available to your OpenRouter account. The explicit `openrouter/` prefix pins the
+Fill the key privately. Mistral Nemo is the cheap development smoke candidate,
+not a quality-demo commitment; its compatibility with our output schemas still
+needs a live proof. For the final demo change **only `OM_AI_MODEL`** to an exact
+OpenRouter model ID prefixed with `openrouter/`, then restart app and workers.
+The explicit `openrouter/` prefix pins the
 provider even when its key is missing; the platform strips that prefix before
 sending the model ID. No custom base URL is required. `OPENROUTER_BASE_URL` is
 only for an intentional gateway override.
 
-These module-scoped settings leave other agents unchanged. For a deployment-wide
-default, use `OM_AI_PROVIDER` and `OM_AI_MODEL` instead. Existing tenant/per-agent
-overrides and allowlists can affect the effective selection; inspect the native
-AI settings if a different model is reported. Keys stay server-side: never use
+These are the app-wide defaults. Agency workers must inherit them, not hardcode
+models or supply caller overrides. Leave `OM_AI_AGENCY_TOV_MODEL`/`PROVIDER`
+and other module overrides unset for this shared-default setup (remove them if
+you followed the earlier module-scoped example). Existing tenant/per-agent
+overrides, agent defaults and allowlists can affect the effective selection;
+inspect native AI settings/run metadata if another model is reported. Keys stay server-side: never use
 `NEXT_PUBLIC_*`, commit a filled example, paste keys into tasks/chat, or log them.
 Restart the app and workers after changing their environment.
 
@@ -49,9 +59,10 @@ or model/schema compatibility. Those need one deliberately approved live smoke.
   default, which takes precedence over dotenv. Keep
   `OM_ENABLE_ENTERPRISE_MODULES_SSO=false` and
   `OM_ENABLE_ENTERPRISE_MODULES_SECURITY=false` explicit too.
-- Run CLI work with the same database/runtime environment as the app. A bare
-  `yarn mercato ...` can read another `DATABASE_URL` from `.env`; never assume it
-  targets `dev:agency`. Pass explicit tenant, organization, and user IDs.
+- Run CLI work from `ai-company` with `node scripts/agency-dev.mjs cli ...` to
+  inherit the same owned database/runtime environment. A bare `yarn mercato ...`
+  can read another `DATABASE_URL` from `.env`. Pass explicit tenant, organization,
+  and user IDs.
 
 ToV's existing `agency_tov run --runner orchestrator --persist` is the native
 path. Start with a small supplied corpus (`--file`, `--limit`, `--concurrency 1`)
@@ -77,5 +88,6 @@ links. Targets must return research and cannot delegate again. ToV's bounded
 map/reduce is already parallel; do not replace it with an LLM dispatcher merely
 to demonstrate delegation.
 
-The case-to-ToV bridge remains queued in the task backlog. See
+The case-to-ToV bridge is being integrated separately; provider configuration
+alone does not prove that end-to-end path. See
 [testing](testing.md) for the persistent runtime.
