@@ -257,6 +257,21 @@ export function PortalShell({
 
   const shouldRenderMainNav = isNavLoading || mergedNavItems.length > 0
   const shouldRenderAccountNav = mergedAccountItems.length > 0
+
+  // Highlight only the most-specific matching nav item. A plain `startsWith`
+  // marks a parent active on its children (e.g. `/portal/agency` stays active
+  // on `/portal/agency/materials`), so pick the longest href that matches the
+  // current path — on a boundary — across both nav lists.
+  const activeNavHref = useMemo(() => {
+    const hrefs = [...mergedNavItems, ...mergedAccountItems]
+      .map((item) => item.href)
+      .filter((href): href is string => !!href)
+    const matches = hrefs.filter(
+      (href) => pathname === href || pathname.startsWith(href.endsWith('/') ? href : `${href}/`),
+    )
+    if (matches.length === 0) return null
+    return matches.reduce((longest, href) => (href.length > longest.length ? href : longest))
+  }, [mergedNavItems, mergedAccountItems, pathname])
   const shouldRenderNav = shouldRenderMainNav || shouldRenderAccountNav
 
   /* ---- PUBLIC LAYOUT ---- */
@@ -334,7 +349,7 @@ export function PortalShell({
                     <SidebarNavItem
                       key={item.id}
                       item={item}
-                      active={!!item.href && pathname.startsWith(item.href)}
+                      active={!!item.href && item.href === activeNavHref}
                       t={t}
                       onClick={closeMobile}
                     />
@@ -354,7 +369,7 @@ export function PortalShell({
                   <SidebarNavItem
                     key={item.id}
                     item={item}
-                    active={!!item.href && pathname.startsWith(item.href)}
+                    active={!!item.href && item.href === activeNavHref}
                     t={t}
                     onClick={closeMobile}
                   />
