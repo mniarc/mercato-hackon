@@ -1,12 +1,13 @@
 # Agents Guidelines
 
-Leverage the module system and follow strict naming and coding conventions to keep the system consistent and safe to extend.
+> Team workflow: follow [`../AGENTS.md`](../AGENTS.md) and the team
+> [development/testing process](../.dev-docs/.processes/current/testing.md).
+> Persistent development runtime and proportional checks override upstream
+> workflow defaults below; Open Mercato technical/security contracts still apply.
 
-> **Instruction budget:** this file must stay under **32,768 bytes** (Codex's default
-> `project_doc_max_bytes`, shared with the nested `AGENTS.md` files below it) — anything past
-> that byte offset never reaches the agent. Keep hard rules and routing here, put long-form
-> procedure in `.ai/docs/*`, and run `yarn agents:check-budget`. See
-> [`.ai/docs/agent-instructions.md`](.ai/docs/agent-instructions.md).
+> Keep rules/routing here and procedures in `.ai/docs/*`. Instructions share a
+> 32,768-byte budget; run `yarn agents:check-budget`. See
+> [instruction guidance](.ai/docs/agent-instructions.md).
 
 ## Always
 

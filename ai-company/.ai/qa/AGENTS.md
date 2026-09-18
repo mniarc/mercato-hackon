@@ -1,12 +1,17 @@
 # QA Integration Testing Instructions
 
+> Team development and demo runs follow the
+> [persistent-runtime testing process](../../../.dev-docs/.processes/current/testing.md).
+> Its commands and proportional scope override generic upstream runtime defaults
+> below; the remaining sections provide Open Mercato test/helper references.
+
 ## Always
 
 - Prefer executable Playwright TypeScript tests in module `__integration__` folders.
 - Reuse shared helpers from `@open-mercato/core/helpers/integration/*`.
 - Keep integration tests independent, data-independent, deterministic, and safe across retries.
 - Create required fixtures per test and clean up created data in `finally`/teardown.
-- Check `.ai/qa/ephemeral-env.json` before starting a new manual exploration environment.
+- Inspect the project-owned persistent development environment before starting another app.
 
 ## Ask First
 
@@ -23,42 +28,23 @@
 
 ## Validation Commands
 
-```bash
-yarn test:integration
-yarn test:integration:ephemeral
-npx playwright test --config .ai/qa/tests/playwright.config.ts --list
-```
+Use `yarn test:agency` or `yarn test:agency:headed` for the daily demo. The runner
+supplies matching app, database, queue, and auth environment and selects one spec.
 
 ## Quick Start
 
-```bash
-# Run all integration tests headlessly (zero token cost, CI-ready)
-yarn test:integration
+Run `yarn dev:agency` in its own terminal and `yarn test:agency` or
+`yarn test:agency:headed` from another. Inspect with `yarn dev:agency:status`.
+The app hot-reloads and its database survives app shutdown and test failure.
 
-# Run tests matching a module/category path fragment
-npx playwright test --config .ai/qa/tests/playwright.config.ts sales
+See the team's [testing process](../../../.dev-docs/.processes/current/testing.md)
+for setup/migrations and explicit production proof. Raw Playwright/platform
+commands in the reference sections below require the complete matching fixture
+environment, not merely `BASE_URL`.
 
-# Run all tests in ephemeral containers (no dev server needed, Docker required)
-yarn test:integration:ephemeral
-
-# Run tests from an interactive menu in persisted ephemeral environment
-yarn test:integration:ephemeral:interactive
-
-# Start isolated ephemeral app only (for MCP/manual exploration)
-yarn test:integration:ephemeral:start
-
-# View HTML report
-yarn test:integration:report
-```
-
-Preferred local workflow for short iterations:
-1. Start `yarn test:integration:ephemeral:start`
-2. Reuse the running environment from `.ai/qa/ephemeral-env.json`
-3. Use `/om-integration-tests` against that URL
-
-Discovery troubleshooting:
-- If Playwright reports `No tests found`, run `npx playwright test --config .ai/qa/tests/playwright.config.ts --list` first.
-- Keep `testIgnore` entries in `.ai/qa/tests/playwright.config.ts` scoped to absolute paths under `projectRoot`; avoid loose relative globs such as `.codex/**` that can match parent workspace paths.
+For discovery failures, use the selected runner's listing support first. Keep
+`testIgnore` scoped to absolute project paths; loose globs can match parent
+workspace directories. Do not expand to all platform tests to find one demo spec.
 
 ---
 
@@ -193,7 +179,8 @@ An AI agent reads a scenario or spec and executes it interactively via Playwrigh
 
 ## Interactive Ephemeral Runner
 
-Use interactive mode as the default local workflow when you want one ephemeral app/database session and multiple test runs without repeating full bootstrap.
+Use interactive ephemeral mode only for an explicit isolated proof. Daily
+development uses the persistent environment described above.
 
 ```bash
 yarn test:integration:ephemeral:interactive
@@ -245,7 +232,9 @@ Read one of:
 
 #### Step 2 — Explore via Playwright MCP
 
-Always check `.ai/qa/ephemeral-env.json` first and reuse an existing running environment.
+For daily exploration inspect `yarn dev:agency:status` and reuse that app. The
+following ephemeral steps apply only when isolated proof was explicitly selected.
+In that mode, check `.ai/qa/ephemeral-env.json` and reuse a healthy environment.
 
 If no active environment exists, start interactive mode first:
 

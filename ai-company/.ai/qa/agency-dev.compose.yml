@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg17-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agency_dev
+      POSTGRES_PASSWORD: agency_local_only
+      POSTGRES_DB: agency_dev
+    ports:
+      - "127.0.0.1:${AGENCY_DB_PORT:-5544}:5432"
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U agency_dev -d agency_dev"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+volumes:
+  database:

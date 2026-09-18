@@ -3,6 +3,10 @@
 Read this file after every context compaction, then inspect the active goal and
 the current `App/.tasks/TNN-*.md` task before continuing.
 
+Use [testing.md](testing.md) for the persistent development runtime and focused
+checks, [milestone-integration.md](milestone-integration.md) for Git/review, and
+[ai-company-vertical-slice.md](ai-company-vertical-slice.md) for task format.
+
 ## Non-negotiable boundary
 
 Only the agent worker's intelligence and the teammate-owned customer-portal
@@ -52,15 +56,17 @@ be swapped; do not build speculative layering.
 9. **Commit** — commit a coherent working milestone on `App/main`; push only when
    requested or agreed.
 
-Do not repeatedly poll workers. Start independent work together and wait for a
-completion or integration boundary.
+Start independent direct agents on disjoint paths. Let them complete their tasks
+and review the handoff once; do not repeatedly poll or review each intermediate
+step. The coordinator owns shared/generated files and shared runtime validation.
 
-## Current slice
+## First-slice reference
 
 `T01 -> (T02 client-intake handoff || T03 employee backend) -> T04 proof`
 
-Next attention seam after that proof: `T05 native workflow UserTask ->
-/backend/work-inbox`. Routine agent runs do not create human tasks.
+Select current work from the user's direction and active task, not this historical
+chain. Human escalation can use native workflow UserTask and `/backend/work-inbox`;
+routine agent runs do not create human tasks.
 
 The proof is:
 
@@ -72,5 +78,5 @@ The standard Open Mercato `/backend` is the employee workspace. A teammate owns
 the customer portal, so do not add its UI/auth/API here; mock only its caller at
 the test boundary and provide a narrow trusted intake contract. Another teammate
 owns tone of voice, so add no tone profiles, prompts, rules, fields, UI, or tone
-processing. The planned app module is `agency_operations`; create no additional
+processing. The owned app module is `agency_operations`; create no additional
 module unless the reuse-first search demonstrates a separate domain boundary.

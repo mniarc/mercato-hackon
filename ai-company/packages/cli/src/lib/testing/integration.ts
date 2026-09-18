@@ -2167,7 +2167,7 @@ export async function acquireEphemeralRuntimeLock(
   }
 }
 
-function buildReusableEnvironment(
+export function buildReusableEnvironment(
   baseUrl: string,
   databaseUrl: string,
   queueBaseDir: string,
