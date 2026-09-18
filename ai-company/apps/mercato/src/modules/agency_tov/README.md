@@ -122,11 +122,36 @@ yarn mercato agency_tov run --brand "Acme" --out output/acme \
 
 # prompt iteration without the platform (OPENROUTER_API_KEY or OPENAI_API_KEY; map stage on a cheap model, reduce on a stronger one — `--model` / `--synthesis-model`)
 yarn mercato agency_tov run --brand "Acme" --out output/acme --file corpus.json --runner direct --limit 80
+
+# through the database: store the export as corpus rows, analyse the stored rows,
+# keep the result as document versions whose citations point at post rows
+yarn mercato agency_tov import --brand "Open Mercato" --file ~/Downloads/dataset_….json
+yarn mercato agency_tov run --brand "Open Mercato" --out output/tov --persist --runner direct
 ```
 
 Outputs in `--out`: `discovery.json` (scout result), `corpus.json` (normalised posts), `scrape-report.json`,
 `cache/` (resume store), `profiles/<author>.{json,md}`, `brand.json`,
-`KLI-TOV.md`, `run-summary.txt`.
+`KLI-TOV.md`, `grounding-report.json`, `run-summary.txt`.
+
+### What `--persist` stores (`data/entities.ts`, `lib/store.ts`)
+
+| table | one row per | notes |
+|---|---|---|
+| `agency_tov_sources` | scraped channel (source, profile URL) | the unit a voice profile is built for |
+| `agency_tov_scrape_runs` | file import or Apify scrape | added / already-stored / skipped counts, per-source reports — an empty source is visible here |
+| `agency_tov_posts` | post | `external_id` is the platform id the agents cite; unique per source |
+| `agency_tov_research_runs` | pipeline execution | `post_ids` = the exact evidence set, `stats`, `grounding_report`, `running → done \| failed` |
+| `agency_tov_documents` | (brand, kind, profile) | `KLI-TOV` for the brand, `TOV-PROFILE` per author; `current_version_id` |
+| `agency_tov_document_versions` | synthesis | immutable: `body` (typed JSON), `rendered_md`, `citations[]` → `{ path, postId, postRowId, url, quote }` |
+
+`run --persist` imports whatever `--file` / `--scrape` brought (idempotent on
+platform id), re-reads the corpus from the database so the agents only ever see
+stored rows, and appends one version per document. With no input it re-analyses the
+stored corpus (`--profile <url>` narrows it). Every quote in a version — exemplars by
+cited id, hook examples by verbatim match — resolves to a post row; the rendered
+Markdown links each citation to the post's own URL. Document bodies are not
+encrypted yet (the corpus is public posts); the spec's encryption maps for `body` /
+`rendered_md` are the next step before client material (briefs) lands here.
 
 Sources and actors: `linkedin` (`harvestapi/linkedin-profile-posts`), `x`
 (`apidojo/tweet-scraper`), `facebook` (`apify/facebook-posts-scraper`), `instagram`
@@ -141,6 +166,9 @@ best-effort (`lib/corpus/generic.ts`) and degrade to skipped items, never to a c
 - Output: a `KLI-TOV` document version, linked to the current `KLI-STRATEGIA`
   proposal and the approved brief (F22-1 AC 1), submitted as a pair to QA 5.4.
 - Revision (F22-1 AC 4): rerun with the previous version in the brand
-  synthesizer input — TODO once the document model (OM-04) exists.
+  synthesizer input — the version rows exist now; feeding the previous body into
+  the synthesizer is the next step.
 - Case wiring: a work item in `agency_operations` triggers `runTovPipeline` from a
   queue worker with the orchestrator runner; the CLI is the same call without the case.
+  The durable reference the bridge will hand back is `(research_run_id,
+  document_version_id)` — both exist once `--persist` runs.

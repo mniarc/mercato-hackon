@@ -133,10 +133,16 @@ all deterministic and replayable (no model judges another model):
    were grounded before the gate existed; the rest (paraphrases, misattributed quotes,
    truncated ids) are now caught before synthesis.
 
+5. **Citations resolve to stored rows.** With `--persist` the corpus is
+   `agency_tov_posts` and the agents only ever read stored rows; every exemplar and
+   hook example in a stored document version carries the post row id and URL it
+   came from (`citations` on `agency_tov_document_versions`), and the research run
+   records the exact `post_ids` it analysed. A reviewer — human or the QA 5.4 agent —
+   can open the post behind every quote.
+
 What the gate does *not* check yet: prose claims without a citation (e.g. "he never
 hedges"). Those are covered by the QA step 5.4 in the process — a reviewer agent that
-must cite a post id for every rule it confirms — and, once the corpus lives in the
-database, by resolving every citation against stored source rows instead of a JSON file.
+must cite a post id for every rule it confirms.
 
 ## Integration with `agency_operations` (architect's note, 2026-09-18)
 
@@ -156,6 +162,8 @@ row ids), one thin optional bridge is added. Nothing is force-connected before t
   version never inherits an approval.
 - **Revision** (F22-1 AC 4): rerun the brand synthesis with the previous version and the
   change request as input; unaffected sections are kept, dependent changes are justified.
-- **Not yet wired**: the case/work-item trigger in `agency_operations` and storing the
-  result as a document version. Today the entry point is the CLI
+- **Stored** (`run --persist`): corpus rows, the research run and one immutable
+  version per document, citations resolved to post rows — the durable artifact
+  reference the architect asked for.
+- **Not yet wired**: the case/work-item trigger in `agency_operations`. Today the entry point is the CLI
   (`yarn mercato agency_tov run …`), which is the same call without the case.
