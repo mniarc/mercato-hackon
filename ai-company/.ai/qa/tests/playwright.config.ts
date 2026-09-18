@@ -1,4 +1,5 @@
 import { defineConfig } from '@playwright/test';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { discoverIntegrationSpecFiles } from '../../../packages/cli/src/lib/testing/integration-discovery';
 
@@ -7,6 +8,26 @@ const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
 const projectRoot = path.resolve(__dirname, '..', '..', '..');
 const qaTestResultsRoot = path.join(projectRoot, '.ai', 'qa', 'test-results');
 const normalizePath = (value: string) => value.split(path.sep).join('/');
+const resolveExactIntegrationSpec = (value: string | undefined): string | null => {
+  const requestedPath = value?.trim();
+  if (!requestedPath) return null;
+
+  const absolutePath = path.resolve(projectRoot, requestedPath);
+  const relativePath = path.relative(projectRoot, absolutePath);
+  if (relativePath === '..' || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
+    throw new Error(`OM_INTEGRATION_EXACT_SPEC must stay inside the project root: ${requestedPath}`);
+  }
+
+  const normalizedPath = normalizePath(relativePath);
+  if (!normalizedPath.includes('/__integration__/') || !normalizedPath.endsWith('.spec.ts')) {
+    throw new Error(`OM_INTEGRATION_EXACT_SPEC must name a module-local integration spec: ${requestedPath}`);
+  }
+  if (!existsSync(absolutePath)) {
+    throw new Error(`OM_INTEGRATION_EXACT_SPEC does not exist: ${requestedPath}`);
+  }
+  return normalizedPath;
+};
+const exactIntegrationSpec = resolveExactIntegrationSpec(process.env.OM_INTEGRATION_EXACT_SPEC);
 const STATIC_TEST_IGNORES = [
   `${normalizePath(path.join(projectRoot, '.claude'))}/**`,
   `${normalizePath(path.join(projectRoot, '.codex'))}/**`,
@@ -33,7 +54,9 @@ const STATIC_TEST_IGNORES = [
 // `.ai/qa/tests` is retained for the shared Playwright config only.
 // Executable specs must live in module-local `__integration__` folders.
 const disabledLegacyIntegrationRoot = path.join(projectRoot, '.ai', 'qa', 'tests', '__legacy_disabled__');
-const discoveredSpecs = discoverIntegrationSpecFiles(projectRoot, disabledLegacyIntegrationRoot);
+const discoveredSpecs = exactIntegrationSpec
+  ? []
+  : discoverIntegrationSpecFiles(projectRoot, disabledLegacyIntegrationRoot);
 
 // Affected-only: when OM_INTEGRATION_MODULES is set, restrict to those modules.
 // A spec is included if its moduleName is in the set, or any of its requiredModules is.
@@ -56,7 +79,9 @@ const filteredSpecs =
           })
         : discoveredSpecs;
 
-const filteredSpecPaths = filteredSpecs.map((entry) => entry.path);
+const filteredSpecPaths = exactIntegrationSpec
+  ? [exactIntegrationSpec]
+  : filteredSpecs.map((entry) => entry.path);
 
 export default defineConfig({
   testDir: projectRoot,

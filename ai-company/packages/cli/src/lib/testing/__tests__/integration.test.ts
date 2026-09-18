@@ -168,9 +168,12 @@ describe('integration cache and options', () => {
 
       const state = await readEphemeralEnvironmentState()
       expect(state).toMatchObject({
+        ownerPid: process.pid,
+        projectRoot: projectRootDirectory,
         baseUrl,
         port: 5001,
         databaseUrl: 'postgres://integration:integration@127.0.0.1:5432/open_mercato',
+        databaseName: 'open_mercato',
         queueBaseDir: '/tmp/open-mercato-queue',
         captureScreenshots: true,
       })
@@ -373,6 +376,30 @@ describe('integration cache and options', () => {
     }
   })
 
+  it('refuses state owned by an exited process before attaching to its database', async () => {
+    await writeEphemeralEnvironmentState({
+      baseUrl: 'http://127.0.0.1:5001',
+      port: 5001,
+      databaseUrl: 'postgres://integration:integration@127.0.0.1:5432/open_mercato',
+      queueBaseDir: '/tmp/open-mercato-queue',
+      logPrefix: 'integration',
+      captureScreenshots: false,
+    })
+    const state = JSON.parse(await readFile(ephemeralEnvFilePath, 'utf8')) as Record<string, unknown>
+    state.ownerPid = 999_999
+    await writeFile(ephemeralEnvFilePath, `${JSON.stringify(state, null, 2)}\n`, 'utf8')
+
+    await expect(
+      tryReuseExistingEnvironment({
+        verbose: false,
+        captureScreenshots: false,
+        logPrefix: 'integration',
+        forceRebuild: false,
+      }),
+    ).resolves.toBeNull()
+    await expect(readEphemeralEnvironmentState()).resolves.toBeNull()
+  })
+
   it('does not reuse an existing ephemeral environment when source requirement does not match', async () => {
     const baseUrl = 'http://127.0.0.1:5001'
     const fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({ status: 200 } as unknown as Response)
@@ -409,6 +436,18 @@ describe('integration cache and options', () => {
     expect(parseInteractiveIntegrationOptions(['--no-reuse-env'])).toMatchObject({ reuseExisting: false })
     expect(parseIntegrationCoverageOptions(['--force-rebuild'])).toMatchObject({ forceRebuild: true })
     expect(parseIntegrationCoverageOptions(['--no-reuse-env'])).toMatchObject({ reuseExisting: false })
+  })
+
+  it('parses Playwright retries for filtered integration test commands', () => {
+    expect(parseOptions(['agency_operations', '--retries=0'])).toMatchObject({
+      filter: 'agency_operations',
+      retries: 0,
+    })
+    expect(parseOptions(['--retries', '2', '--filter', 'agency_operations'])).toMatchObject({
+      filter: 'agency_operations',
+      retries: 2,
+    })
+    expect(() => parseOptions(['--retries=-1'])).toThrow('Invalid --retries value')
   })
 
   it('uses isolated port for fresh environment when reuse is disabled or stale state exists', () => {
@@ -593,6 +632,63 @@ describe('integration cache and options', () => {
           artifactPaths: [artifactPath],
           cacheStatePath,
           environmentFingerprint: 'enterprise=on',
+          projectRoot: tempRoot,
+        }),
+      ).resolves.toBe(false)
+    } finally {
+      await rm(tempRoot, { recursive: true, force: true })
+    }
+  })
+
+  it('does not invalidate app build artifacts when only integration specs change', async () => {
+    const tempRoot = await mkdtemp(path.join(os.tmpdir(), 'om-int-cache-spec-test-'))
+    try {
+      const sourceDir = path.join(tempRoot, 'src')
+      const sourceFile = path.join(sourceDir, 'index.ts')
+      const integrationDir = path.join(sourceDir, 'modules', 'example', '__integration__')
+      const integrationSpec = path.join(integrationDir, 'TC-EXAMPLE-001.spec.ts')
+      const artifactPath = path.join(tempRoot, 'artifact.txt')
+      const cacheStatePath = path.join(tempRoot, 'cache.json')
+
+      await mkdir(integrationDir, { recursive: true })
+      await writeFile(sourceFile, 'export const value = 1\n')
+      await writeFile(integrationSpec, 'export const scenario = 1\n')
+      await writeFile(artifactPath, 'artifact output')
+
+      const sourceFingerprint = await resolveBuildCacheFingerprint(tempRoot, sourceFile)
+      await writeFile(
+        cacheStatePath,
+        `${JSON.stringify({
+          version: 2,
+          builtAt: Date.now(),
+          sourceFingerprint,
+          environmentFingerprint: 'enterprise=off',
+          artifactPaths: [artifactPath],
+          projectRoot: tempRoot,
+        }, null, 2)}\n`,
+        'utf8',
+      )
+
+      await writeFile(integrationSpec, 'export const scenario = 2\n')
+
+      await expect(
+        shouldReuseBuildArtifacts(120, 'integration', {
+          inputPaths: [sourceDir],
+          artifactPaths: [artifactPath],
+          cacheStatePath,
+          environmentFingerprint: 'enterprise=off',
+          projectRoot: tempRoot,
+        }),
+      ).resolves.toBe(true)
+
+      await writeFile(sourceFile, 'export const value = 2\n')
+
+      await expect(
+        shouldReuseBuildArtifacts(120, 'integration', {
+          inputPaths: [sourceDir],
+          artifactPaths: [artifactPath],
+          cacheStatePath,
+          environmentFingerprint: 'enterprise=off',
           projectRoot: tempRoot,
         }),
       ).resolves.toBe(false)

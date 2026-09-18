@@ -41,6 +41,7 @@ export type EphemeralEnvironmentHandle = {
 type IntegrationOptions = {
   keep: boolean
   filter: string | null
+  retries: number | null
   captureScreenshots: boolean
   verbose: boolean
   forceRebuild: boolean
@@ -142,9 +143,12 @@ export function shouldUseIsolatedPortForFreshEnvironment(options: {
 
 type EphemeralEnvironmentState = {
   status: 'running'
+  ownerPid: number
+  projectRoot: string
   baseUrl: string
   port: number
   databaseUrl: string
+  databaseName: string
   queueBaseDir: string
   source: string
   captureScreenshots: boolean
@@ -237,6 +241,11 @@ function isLikelyNextAppDirectory(candidate: string): boolean {
     path.join(candidate, 'next.config.mjs'),
     path.join(candidate, 'src', 'modules.ts'),
   ) !== null
+}
+
+function normalizeOwnershipPath(candidate: string): string {
+  const resolvedPath = path.resolve(candidate)
+  return process.platform === 'win32' ? resolvedPath.toLowerCase() : resolvedPath
 }
 
 function resolveDefaultPrivateAttachmentsAppDirectory(): string {
@@ -350,6 +359,7 @@ const IGNORED_EPHEMERAL_BUILD_CACHE_DIRS = new Set([
   'coverage',
   '.git',
   '.ai',
+  '__integration__',
 ])
 
 type BuildCacheState = {
@@ -1304,11 +1314,15 @@ export async function writeEphemeralEnvironmentState(input: {
   logPrefix: string
   captureScreenshots: boolean
 }): Promise<void> {
+  const databaseName = decodeURIComponent(new URL(input.databaseUrl).pathname.replace(/^\//, ''))
   const content: EphemeralEnvironmentState = {
     status: 'running',
+    ownerPid: process.pid,
+    projectRoot: projectRootDirectory,
     baseUrl: input.baseUrl,
     port: input.port,
     databaseUrl: input.databaseUrl,
+    databaseName,
     queueBaseDir: input.queueBaseDir,
     source: input.logPrefix,
     captureScreenshots: input.captureScreenshots,
@@ -1348,6 +1362,12 @@ export async function readEphemeralEnvironmentState(): Promise<EphemeralEnvironm
   if (record.status !== 'running') {
     return null
   }
+  if (typeof record.ownerPid !== 'number' || !Number.isInteger(record.ownerPid) || record.ownerPid < 1) {
+    return null
+  }
+  if (typeof record.projectRoot !== 'string' || record.projectRoot.length === 0) {
+    return null
+  }
   if (typeof record.baseUrl !== 'string' || record.baseUrl.length === 0) {
     return null
   }
@@ -1355,6 +1375,9 @@ export async function readEphemeralEnvironmentState(): Promise<EphemeralEnvironm
     return null
   }
   if (typeof record.databaseUrl !== 'string' || record.databaseUrl.length === 0) {
+    return null
+  }
+  if (typeof record.databaseName !== 'string' || record.databaseName.length === 0) {
     return null
   }
   if (typeof record.queueBaseDir !== 'string' || record.queueBaseDir.length === 0) {
@@ -1372,9 +1395,12 @@ export async function readEphemeralEnvironmentState(): Promise<EphemeralEnvironm
 
   return {
     status: 'running',
+    ownerPid: record.ownerPid,
+    projectRoot: record.projectRoot,
     baseUrl: record.baseUrl,
     port: record.port,
     databaseUrl: record.databaseUrl,
+    databaseName: record.databaseName,
     queueBaseDir: record.queueBaseDir,
     source: record.source,
     captureScreenshots: record.captureScreenshots,
@@ -2255,6 +2281,21 @@ export async function tryReuseExistingEnvironment(options: EphemeralRuntimeOptio
     return null
   }
 
+  if (normalizeOwnershipPath(state.projectRoot) !== normalizeOwnershipPath(projectRootDirectory)) {
+    console.log(
+      `[${options.logPrefix}] Existing ephemeral environment belongs to a different project root: ${state.projectRoot}.`,
+    )
+    return null
+  }
+
+  if (!isProcessRunning(state.ownerPid)) {
+    console.log(
+      `[${options.logPrefix}] Found ephemeral state owned by exited process ${state.ownerPid}. Clearing ${EPHEMERAL_ENV_FILE_PATH}.`,
+    )
+    await clearEphemeralEnvironmentState()
+    return null
+  }
+
   if (options.requiredExistingSource && state.source !== options.requiredExistingSource) {
     console.log(
       `[${options.logPrefix}] Existing ephemeral environment source "${state.source}" does not match required "${options.requiredExistingSource}".`,
@@ -2396,6 +2437,7 @@ export async function waitForApplicationReadiness(
 export function parseOptions(rawArgs: string[]): IntegrationOptions {
   let keep = false
   let filter: string | null = null
+  let retries: number | null = null
   let captureScreenshots: boolean | null = null
   let verbose = false
   let forceRebuild = false
@@ -2444,6 +2486,28 @@ export function parseOptions(rawArgs: string[]): IntegrationOptions {
       filter = filterValue
       continue
     }
+    if (argument === '--retries') {
+      const value = rawArgs[index + 1]
+      if (!value || value.startsWith('--')) {
+        throw new Error('Missing value for --retries')
+      }
+      const parsed = Number.parseInt(value, 10)
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`Invalid --retries value: ${value}`)
+      }
+      retries = parsed
+      index += 1
+      continue
+    }
+    if (argument.startsWith('--retries=')) {
+      const value = argument.slice('--retries='.length)
+      const parsed = Number.parseInt(value, 10)
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`Invalid --retries value: ${value}`)
+      }
+      retries = parsed
+      continue
+    }
     if (!argument.startsWith('--') && !filter) {
       filter = argument
       continue
@@ -2457,6 +2521,7 @@ export function parseOptions(rawArgs: string[]): IntegrationOptions {
   return {
     keep,
     filter,
+    retries,
     captureScreenshots: captureScreenshots ?? defaultCaptureScreenshots,
     verbose,
     forceRebuild,
@@ -3316,6 +3381,9 @@ async function runIntegrationTestSuiteOnce(
   const testArgs = ['test:integration']
   if (options.filter) {
     testArgs.push(options.filter)
+  }
+  if (options.retries !== null) {
+    testArgs.push('--retries', String(options.retries))
   }
   await runYarnCommandWithOutputMonitoring(testArgs, environment.commandEnvironment, {
     detectEnvironmentUnavailable: true,

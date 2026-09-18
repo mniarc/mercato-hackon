@@ -1,5 +1,6 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
+import { AgencyCase } from '../data/entities'
 import {
   createAgencyCaseWorkflowService,
   deterministicAgentWorker,
@@ -68,7 +69,7 @@ describe('agency case workflow', () => {
     ]))
   })
 
-  it('runs the deterministic worker without changing its input or calling fetch', () => {
+  it('runs the deterministic worker only inside its workflow scope without changing input or calling fetch', () => {
     const fetchSpy = jest.spyOn(globalThis, 'fetch')
     const input = completedExecution().context.agentWorkerResult.result.input
 
@@ -78,6 +79,12 @@ describe('agency case workflow', () => {
         organizationId: ORGANIZATION_ID,
       },
     })).toEqual({ kind: 'no_op', unchanged: true, input })
+    expect(() => deterministicAgentWorker(input, {
+      workflowInstance: {
+        tenantId: TENANT_ID,
+        organizationId: '88888888-8888-4888-8888-888888888888',
+      },
+    })).toThrow('Agent worker input is outside the workflow scope')
     expect(fetchSpy).not.toHaveBeenCalled()
 
     fetchSpy.mockRestore()
@@ -124,18 +131,38 @@ describe('agency case workflow', () => {
       customerEntityId: CUSTOMER_ENTITY_ID,
     })
 
-    expect(workflowExecutor.startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({
+    expect(em.findOne).toHaveBeenCalledWith(AgencyCase, {
+      id: CASE_ID,
+      tenantId: TENANT_ID,
+      organizationId: ORGANIZATION_ID,
+      customerEntityId: CUSTOMER_ENTITY_ID,
+      deletedAt: null,
+    }, undefined)
+    expect(workflowExecutor.startWorkflow).toHaveBeenCalledWith(em, {
       workflowId: AGENCY_CASE_WORKFLOW_ID,
       tenantId: TENANT_ID,
       organizationId: ORGANIZATION_ID,
-      initialContext: expect.objectContaining({
+      correlationKey: `agency-case:${CASE_ID}`,
+      metadata: {
+        entityType: 'agency_operations:agency_case',
+        entityId: CASE_ID,
+        labels: { agentWorkerId: AGENCY_AGENT_WORKER_ID },
+      },
+      initialContext: {
         caseId: CASE_ID,
+        tenantId: TENANT_ID,
+        organizationId: ORGANIZATION_ID,
+        customerEntityId: CUSTOMER_ENTITY_ID,
+        submittedByCustomerUserId: CUSTOMER_USER_ID,
+        title: 'Autumn campaign brief',
+        agentWorkerId: AGENCY_AGENT_WORKER_ID,
         materialFileName: 'brief.pdf',
         materialMimeType: 'application/pdf',
         materialFileSize: 2048,
-      }),
-    }))
+      },
+    })
     expect(agencyCase.workflowInstanceId).toBe(WORKFLOW_INSTANCE_ID)
+    expect(em.flush).toHaveBeenCalledTimes(1)
     expect(workflowExecutor.executeWorkflow).toHaveBeenCalledWith(
       em,
       container,

@@ -44,8 +44,11 @@ suites is needed — it changes the app build fingerprint and forces a rebuild).
 - Full suite with managed env: `yarn test:integration:ephemeral` (= `yarn mercato test:integration`).
   It reuses a healthy running ephemeral env from the state file, else provisions one.
 - Filtered run: `yarn mercato test:integration <substring>` — batches all specs whose path matches
-  the substring. The `test:integration` subcommand does NOT accept `--retries`; retries live in
-  `.ai/qa/tests/playwright.config.ts`.
+  the substring. Pass `--retries=<n>` to override Playwright retries for that run.
+- Agency demo loop: run `yarn test:agency:indev:start` in one owner terminal, then use
+  `yarn test:agency:indev:inspect` and `yarn test:agency:indev:run` from another. Stop with
+  `Ctrl+C` in the owner terminal. Use `yarn test:agency:indev:recreate` only after stopping the
+  owner and only when schema, seed, isolation, or final-clean-proof needs justify replacement.
 
 ## Choosing the run mode — prefer ephemeral, ask the user
 
@@ -64,7 +67,12 @@ Two supported run modes:
    `yarn test:integration:ephemeral:start`, then run small filtered batches with
    `yarn mercato test:integration <filter>` against the same env. Best for short
    author/debug loops where re-provisioning per run would dominate wall-clock time. Reuse is
-   still gated by the TTL and source-freshness rules below.
+   still gated by the TTL and product-source freshness rules below. Keep the owner command alive
+   in its own terminal; do not make a failing Playwright command the environment owner.
+
+`yarn mercato test:integration ... --keep` is not a failure-retention mechanism: the keep wait is
+reached only after a passing suite. On failure the owner exits and Testcontainers may remove the
+database. Use the dedicated owner-terminal pattern above instead.
 
 When a user is present and has not already said which mode they want, ASK before the first run
 (one question, two options): fully managed ephemeral per run, or boot-once-and-reuse for
@@ -88,13 +96,15 @@ through `yarn mercato test:integration [filter]`.
 
 - Reuse eligibility is gated by `OM_INTEGRATION_BUILD_CACHE_TTL_SECONDS` (default 600s) AND
   source freshness. An env older than the TTL, or with source files modified after boot, is
-  refused for reuse.
+  refused for reuse. Module-local `__integration__` edits do not invalidate app build reuse.
+- The agency INDEV commands use the same 24-hour TTL and exact-spec discovery; they do not scan
+  or prepare unrelated suites. `test:agency:indev:run` also supplies the complete CLI-owned env
+  block and disables retries.
 - When reuse is refused while the original `test:ephemeral` owner process is still alive, a fresh
   start is also refused ("Another ephemeral environment is already active started by
-  \"ephemeral\" (pid N)") — a deadlock. Resolve it by tearing down the owner: kill the
-  `packages/cli/dist/bin.js test:ephemeral` PID and the `next-server` PID bound to the app port,
-  delete `.ai/qa/ephemeral-env.json`, then boot fresh. The ephemeral Postgres containers are
-  testcontainers-managed (ryuk reaps them).
+  \"ephemeral\" (pid N)"). Stop the foreground owner with `Ctrl+C`, let the CLI complete app,
+  state, and Testcontainers cleanup, then boot again. Do not force-kill the tree or delete the
+  descriptor while its owner is alive.
 - For short diagnose/re-run loops against the SAME env that produced a failure, extend the TTL:
   `OM_INTEGRATION_BUILD_CACHE_TTL_SECONDS=86400 yarn mercato test:integration <filter>` — but only
   when no source file changed since boot; otherwise rebuild (never test stale code).

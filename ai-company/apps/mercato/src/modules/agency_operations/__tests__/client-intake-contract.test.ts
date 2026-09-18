@@ -66,19 +66,16 @@ describe('client material intake contract', () => {
   it('rejects a customer user that is not linked to the asserted company before storage', async () => {
     const createScoped = jest.fn()
     const processCase = jest.fn()
+    const findById = jest.fn(async () => ({
+      id: CUSTOMER_USER_ID,
+      customerEntityId: '77777777-7777-4777-8777-777777777777',
+      isActive: true,
+    }))
     const container = {
       resolve(name: string) {
         if (name === 'attachmentService') return { createScoped }
         if (name === 'agencyCaseWorkflowService') return { processCase }
-        if (name === 'customerUserService') {
-          return {
-            findById: async () => ({
-              id: CUSTOMER_USER_ID,
-              customerEntityId: '77777777-7777-4777-8777-777777777777',
-              isActive: true,
-            }),
-          }
-        }
+        if (name === 'customerUserService') return { findById }
         throw new Error(`[internal] Unexpected DI service: ${name}`)
       },
     } as unknown as AppContainer
@@ -86,6 +83,7 @@ describe('client material intake contract', () => {
     await expect(callAsPortalAdapter(createClientMaterialIntakeService(container))).rejects.toThrow(
       'Customer identity does not own the intake scope',
     )
+    expect(findById).toHaveBeenCalledWith(CUSTOMER_USER_ID, TENANT_ID, ORGANIZATION_ID)
     expect(createScoped).not.toHaveBeenCalled()
     expect(processCase).not.toHaveBeenCalled()
   })
