@@ -12,8 +12,10 @@ import {
   formatAttachmentFileSize,
 } from '@open-mercato/ui/backend/detail'
 import { JsonDisplay } from '@open-mercato/ui/backend/JsonDisplay'
+import { SectionHeader } from '@open-mercato/ui/backend/SectionHeader'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { StatusBadge, type StatusBadgeVariant } from '@open-mercato/ui/primitives/status-badge'
+import { AgencyCaseEscalation } from './AgencyCaseEscalation'
 import {
   loadAgencyCaseDetail,
   type AgencyCaseDetailView,
@@ -75,6 +77,7 @@ export function AgencyCaseDetail({ caseId }: { caseId?: string }) {
   const [isLoading, setIsLoading] = React.useState(true)
   const [notFound, setNotFound] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [refreshVersion, setRefreshVersion] = React.useState(0)
 
   React.useEffect(() => {
     let cancelled = false
@@ -106,7 +109,7 @@ export function AgencyCaseDetail({ caseId }: { caseId?: string }) {
     return () => {
       cancelled = true
     }
-  }, [caseId, scopeVersion, translate])
+  }, [caseId, scopeVersion, translate, refreshVersion])
 
   if (isLoading) {
     return <LoadingMessage label={translate('agencyOperations.cases.detail.loading')} />
@@ -144,6 +147,8 @@ export function AgencyCaseDetail({ caseId }: { caseId?: string }) {
           </StatusBadge>
         )}
       />
+
+      <AgencyCaseEscalation key={`${agencyCase.id}:${scopeVersion}`} caseId={agencyCase.id} updatedAt={agencyCase.updatedAt} />
 
       <section className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">
@@ -230,15 +235,58 @@ export function AgencyCaseDetail({ caseId }: { caseId?: string }) {
               {workflow?.id ?? emptyLabel}
             </p>
           </div>
-          {workflow ? (
-            <Button asChild variant="outline">
-              <Link href={`/backend/instances/${workflow.id}`}>
-                {translate('agencyOperations.cases.detail.workflow.open')}
-              </Link>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => setRefreshVersion((version) => version + 1)}>
+              {translate('agencyOperations.cases.detail.workflow.refresh')}
             </Button>
-          ) : null}
+            {workflow ? (
+              <Button type="button" asChild variant="outline">
+                <Link href={`/backend/instances/${encodeURIComponent(workflow.id)}`}>
+                  {translate('agencyOperations.cases.detail.workflow.open')}
+                </Link>
+              </Button>
+            ) : null}
+          </div>
         </div>
       </section>
+
+      {workflow?.research ? (
+        <section className="space-y-4 rounded-lg border bg-card p-6">
+          <SectionHeader title={translate('agencyOperations.cases.detail.sections.research')} />
+          <dl className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">
+                {translate('agencyOperations.cases.detail.research.run')}
+              </dt>
+              <dd className="mt-1 break-all text-sm">{workflow.research.researchRunId ?? emptyLabel}</dd>
+            </div>
+            <div>
+              <dt className="text-sm font-medium text-muted-foreground">
+                {translate('agencyOperations.cases.detail.research.documents')}
+              </dt>
+              <dd className="mt-1 break-all text-sm">
+                {workflow.research.documentVersionIds.length > 0
+                  ? workflow.research.documentVersionIds.map((id) => <div key={id}>{id}</div>)
+                  : emptyLabel}
+              </dd>
+            </div>
+          </dl>
+          <p className="text-sm text-muted-foreground">
+            {translate('agencyOperations.cases.detail.research.referencesHint')}
+          </p>
+          {workflow.research.agentRunIds.length > 0 ? (
+            <div className="flex flex-wrap gap-2">
+              {workflow.research.agentRunIds.map((id, index) => (
+                <Button key={id} type="button" asChild variant="outline">
+                  <Link href={`/backend/traces/${encodeURIComponent(id)}`}>
+                    {translate('agencyOperations.cases.detail.research.agentRun')} {index + 1}
+                  </Link>
+                </Button>
+              ))}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
 
       {workflow ? (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">

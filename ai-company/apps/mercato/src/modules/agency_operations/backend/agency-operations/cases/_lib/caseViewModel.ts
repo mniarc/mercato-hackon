@@ -40,6 +40,11 @@ export type AgencyCaseDetailView = {
     input: unknown
     output: unknown
     error: unknown
+    research: {
+      researchRunId: string | null
+      documentVersionIds: string[]
+      agentRunIds: string[]
+    } | null
   } | null
 }
 
@@ -55,6 +60,8 @@ type WorkflowInstanceResponse = {
     id: string
     status: string
     context?: unknown
+    errorMessage?: string | null
+    errorDetails?: unknown
   }
 }
 
@@ -82,6 +89,10 @@ function buildCasesQuery(query: AgencyCasesQuery): string {
 function readContextValue(context: unknown, key: string): unknown {
   if (!context || typeof context !== 'object' || Array.isArray(context)) return null
   return (context as Record<string, unknown>)[key] ?? null
+}
+
+function readIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string') : []
 }
 
 export async function loadAgencyCases(query: AgencyCasesQuery): Promise<AgencyCasesPage> {
@@ -132,10 +143,13 @@ export async function loadAgencyCaseDetail(caseId: string): Promise<AgencyCaseDe
     throw new Error('[internal] Failed to load agency case workflow evidence')
   }
 
+  const instance = instanceCall.result.data
   const workerStep = [...(stepsCall.result?.data ?? [])]
     .reverse()
-    .find((step) => step.stepId === 'agent_worker')
-  const activityOutput = readContextValue(instanceCall.result.data.context, 'agentWorkerResult')
+    .find((step) => step.stepId === 'agent_worker' || step.stepId === 'tov_research')
+  const researchOutput = readContextValue(readContextValue(instance.context, 'research_tov_result'), 'result')
+  const researchRunId = readContextValue(researchOutput, 'researchRunId')
+  const activityOutput = readContextValue(instance.context, 'agentWorkerResult')
   const agentOutput = readContextValue(activityOutput, 'result')
   const agentInput = readContextValue(agentOutput, 'input')
 
@@ -143,11 +157,16 @@ export async function loadAgencyCaseDetail(caseId: string): Promise<AgencyCaseDe
     agencyCase,
     materialUrl,
     workflow: {
-      id: instanceCall.result.data.id,
-      status: instanceCall.result.data.status,
+      id: instance.id,
+      status: instance.status,
       input: agentInput ?? workerStep?.inputData ?? null,
-      output: agentOutput ?? activityOutput ?? workerStep?.outputData ?? null,
-      error: workerStep?.errorData ?? null,
+      output: researchOutput ?? agentOutput ?? activityOutput ?? workerStep?.outputData ?? null,
+      error: instance.errorDetails ?? instance.errorMessage ?? workerStep?.errorData ?? null,
+      research: researchOutput ? {
+        researchRunId: typeof researchRunId === 'string' ? researchRunId : null,
+        documentVersionIds: readIds(readContextValue(researchOutput, 'documentVersionIds')),
+        agentRunIds: readIds(readContextValue(researchOutput, 'agentRunIds')),
+      } : null,
     },
   }
 }

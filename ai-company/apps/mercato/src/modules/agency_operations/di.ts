@@ -8,6 +8,7 @@ import {
 import { createClientMaterialIntakeService } from './lib/clientMaterialIntakeService'
 import { createClientCaseQueryService } from './lib/clientCaseQueryService'
 import { CLIENT_CASE_QUERY_SERVICE } from './lib/contracts/clientCaseQuery'
+import { AGENCY_HUMAN_ATTENTION_SERVICE, createAgencyHumanAttentionService } from './lib/humanAttentionService'
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
@@ -26,6 +27,9 @@ export function register(container: AppContainer): void {
       () => createClientCaseQueryService(container),
     ).scoped(),
     [AGENCY_AGENT_FUNCTION_DI_KEY]: asValue(deterministicAgentWorker),
+    [AGENCY_HUMAN_ATTENTION_SERVICE]: asFunction(
+      () => createAgencyHumanAttentionService(container),
+    ).scoped(),
     [`workflowFunction:${AGENCY_TOV_FUNCTION_NAME}`]: asFunction(
       () => createTovWorkflowActivity(container),
     ).scoped(),
