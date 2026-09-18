@@ -1,6 +1,6 @@
 # T03 — Show agency work to a real employee
 
-State: ready
+State: active
 Depends on: T01
 Owns: `ai-company/apps/mercato/src/modules/agency_operations/api/cases/**`, `ai-company/apps/mercato/src/modules/agency_operations/backend/**`, `ai-company/apps/mercato/src/modules/agency_operations/__tests__/employee-case-view.test.tsx`
 Context: The standard Open Mercato `/backend` is the employee portal. Employees
@@ -19,6 +19,12 @@ observe routine agent work and handle later exceptions; they do not approve ever
 ## Constraints
 - Use Open Mercato staff auth, ACL, navigation, and UI extension conventions.
 - Do not add approvals, exception queues, or LLM controls in this task.
+- Do not add tone-of-voice fields, configuration, or UI; that belongs to another
+  team member.
+- Keep the employee feature self-contained under the module backend directory;
+  route files should stay thin and domain code must not import UI code.
+- Consume agency use cases and the workflow bridge rather than reaching from UI
+  into another module's internals.
 
 ## Handoff
 Report changed files, verification result, and any ACL/UI assumption.
