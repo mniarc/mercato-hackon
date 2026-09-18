@@ -112,23 +112,38 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
 
   const handleDocScroll = React.useCallback(() => { setSelRect(null) }, [])
 
-  const handleLoad = React.useCallback(() => {
-    setLoaded(true)
-    const doc = iframeRef.current?.contentDocument
-    if (!doc) return
-    const style = doc.createElement('style')
-    style.textContent = HIGHLIGHT_STYLE
-    doc.head.appendChild(style)
-    doc.addEventListener('mouseup', handleDocMouseUp)
-    doc.addEventListener('scroll', handleDocScroll, true)
-  }, [handleDocMouseUp, handleDocScroll])
-
-  React.useEffect(() => () => {
-    const doc = iframeRef.current?.contentDocument
-    if (!doc) return
-    doc.removeEventListener('mouseup', handleDocMouseUp)
-    doc.removeEventListener('scroll', handleDocScroll, true)
-  }, [handleDocMouseUp, handleDocScroll])
+  // A srcdoc iframe can fire its load event before React wires an onLoad prop,
+  // leaving the first document uninitialised (no `loaded`, no selection listener).
+  // Attach through a ref-driven effect and also cover the already-loaded case.
+  React.useEffect(() => {
+    const iframe = iframeRef.current
+    if (!iframe) return
+    let attachedDoc: Document | null = null
+    const setup = () => {
+      setLoaded(true)
+      const doc = iframe.contentDocument
+      if (!doc || !doc.body || attachedDoc === doc) return
+      attachedDoc = doc
+      if (!doc.getElementById('agency-annotation-style')) {
+        const style = doc.createElement('style')
+        style.id = 'agency-annotation-style'
+        style.textContent = HIGHLIGHT_STYLE
+        doc.head.appendChild(style)
+      }
+      doc.addEventListener('mouseup', handleDocMouseUp)
+      doc.addEventListener('scroll', handleDocScroll, true)
+    }
+    const ready = iframe.contentDocument
+    if (ready?.readyState === 'complete' && ready.body && ready.body.childNodes.length > 0) setup()
+    iframe.addEventListener('load', setup)
+    return () => {
+      iframe.removeEventListener('load', setup)
+      if (attachedDoc) {
+        attachedDoc.removeEventListener('mouseup', handleDocMouseUp)
+        attachedDoc.removeEventListener('scroll', handleDocScroll, true)
+      }
+    }
+  }, [srcDoc, handleDocMouseUp, handleDocScroll])
 
   React.useEffect(() => {
     if (!focusId) return
@@ -202,7 +217,6 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
               sandbox="allow-same-origin"
               referrerPolicy="no-referrer"
               className="h-dvh max-h-192 min-h-96 w-full rounded-lg border border-border bg-white"
-              onLoad={handleLoad}
             />
             {available && selRect ? (
               <div className="absolute z-10" style={{ top: selRect.top + 8, left: selRect.left }}>
