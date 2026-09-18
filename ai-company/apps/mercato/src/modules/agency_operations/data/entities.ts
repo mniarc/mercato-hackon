@@ -1,6 +1,55 @@
 import { OptionalProps } from '@mikro-orm/core'
 import { Entity, Index, PrimaryKey, Property, Unique } from '@mikro-orm/decorators/legacy'
 
+/** Immutable accepted clarification and its native wait-step evidence; not a lifecycle mirror. */
+@Entity({ tableName: 'agency_client_replies' })
+@Unique({ name: 'agency_client_replies_event_unique', properties: ['tenantId', 'organizationId', 'customerEntityId', 'submissionId', 'channel', 'eventId'] })
+export class AgencyClientReply {
+  [OptionalProps]?: 'createdAt' | 'deletedAt'
+
+  @PrimaryKey({ type: 'uuid', defaultRaw: 'gen_random_uuid()' })
+  id!: string
+
+  @Property({ name: 'tenant_id', type: 'uuid' })
+  tenantId!: string
+
+  @Property({ name: 'organization_id', type: 'uuid' })
+  organizationId!: string
+
+  @Property({ name: 'customer_entity_id', type: 'uuid' })
+  customerEntityId!: string
+
+  @Property({ name: 'case_id', type: 'uuid' })
+  caseId!: string
+
+  @Property({ name: 'submission_id', type: 'uuid' })
+  submissionId!: string
+
+  @Property({ name: 'submitted_by_customer_user_id', type: 'uuid' })
+  submittedByCustomerUserId!: string
+
+  @Property({ type: 'text' })
+  channel!: string
+
+  @Property({ name: 'event_id', type: 'text' })
+  eventId!: string
+
+  @Property({ type: 'jsonb' })
+  original!: Record<string, unknown>
+
+  @Property({ name: 'workflow_instance_id', type: 'uuid' })
+  workflowInstanceId!: string
+
+  @Property({ name: 'step_instance_id', type: 'uuid' })
+  stepInstanceId!: string
+
+  @Property({ name: 'created_at', type: Date, onCreate: () => new Date() })
+  createdAt: Date = new Date()
+
+  @Property({ name: 'deleted_at', type: Date, nullable: true })
+  deletedAt: Date | null = null
+}
+
 @Entity({ tableName: 'agency_cases' })
 @Index({
   name: 'agency_cases_scope_idx',

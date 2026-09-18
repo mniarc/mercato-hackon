@@ -6,6 +6,7 @@ import { Button } from '@open-mercato/ui/primitives/button'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { CaseStatus } from '../../materials/_components/CaseStatus'
+import { CaseConversation } from '../_components/CaseConversation'
 
 export default function AgencyCasePage({ params }: { params: { orgSlug: string; id: string } }) {
   const t = useT()
@@ -17,6 +18,7 @@ export default function AgencyCasePage({ params }: { params: { orgSlug: string; 
         </Button>
       )} />
       <PortalCard><CaseStatus caseId={params.id} showMaterial /></PortalCard>
+      <CaseConversation key={params.id} caseId={params.id} />
     </div>
   )
 }
