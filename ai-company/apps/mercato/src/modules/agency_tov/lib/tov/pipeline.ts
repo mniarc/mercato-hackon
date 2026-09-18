@@ -19,6 +19,15 @@ import {
   type TovProfileVoice,
 } from '../../data/validators'
 import { batchPosts, dateRangeOf, mapWithConcurrency } from './batch'
+import {
+  groundBrandVoice,
+  groundObservation,
+  groundProfileVoice,
+  GroundingError,
+  type Grounded,
+  type GroundingIssue,
+  type GroundingRepair,
+} from './grounding'
 import { groupByProfile, profileMetaFor } from '../corpus'
 
 /**
@@ -48,6 +57,8 @@ export type TovPipelineCache = {
 
 export type TovPipelineEvent =
   | { type: 'plan'; profiles: number; batches: number; posts: number }
+  | { type: 'grounding'; step: string; kept: number; dropped: number; issues: GroundingIssue[]; repairs: GroundingRepair[] }
+  | { type: 'grounding_rejected'; step: string; attempt: number; issues: GroundingIssue[] }
   | { type: 'batch'; profileUrl: string; index: number; total: number; cached: boolean; ms: number }
   | { type: 'profile'; profileUrl: string; cached: boolean; ms: number }
   | { type: 'brand'; cached: boolean; ms: number }
@@ -60,6 +71,8 @@ export type TovPipelineOptions = {
   batchSize?: number
   maxBatchChars?: number
   concurrency?: number
+  /** How many times a result rejected by the grounding gate is re-requested. */
+  groundingRetries?: number
   /** Analyst calls read ~7k tokens; synthesizer calls read up to ~60k. */
   batchTimeoutMs?: number
   synthesisTimeoutMs?: number
@@ -85,10 +98,21 @@ export type TovProfileResult = {
 export type TovPipelineResult = {
   brand: TovBrandVoice
   profiles: TovProfileResult[]
-  stats: { posts: number; profiles: number; batches: number; agentCalls: number; cachedSteps: number }
+  stats: {
+    posts: number
+    profiles: number
+    batches: number
+    agentCalls: number
+    cachedSteps: number
+    /** Evidence items the grounding gate removed (unknown post, non-verbatim quote, hook not in corpus). */
+    ungroundedDropped: number
+    /** Whole results the gate rejected and re-requested. */
+    groundingRejections: number
+  }
 }
 
 const DEFAULT_CONCURRENCY = 4
+const DEFAULT_GROUNDING_RETRIES = 2
 const DEFAULT_BATCH_TIMEOUT_MS = 4 * 60_000
 const DEFAULT_SYNTHESIS_TIMEOUT_MS = 10 * 60_000
 
@@ -101,20 +125,62 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
   const batchTimeoutMs = opts.batchTimeoutMs ?? DEFAULT_BATCH_TIMEOUT_MS
   const synthesisTimeoutMs = opts.synthesisTimeoutMs ?? DEFAULT_SYNTHESIS_TIMEOUT_MS
   const emit = opts.onEvent ?? (() => {})
-  const stats = { posts: opts.posts.length, profiles: 0, batches: 0, agentCalls: 0, cachedSteps: 0 }
+  const groundingRetries = opts.groundingRetries ?? DEFAULT_GROUNDING_RETRIES
+  const stats = {
+    posts: opts.posts.length,
+    profiles: 0,
+    batches: 0,
+    agentCalls: 0,
+    cachedSteps: 0,
+    ungroundedDropped: 0,
+    groundingRejections: 0,
+  }
 
-  // A step = (cache key, producer). The cache is consulted first so a crashed run
-  // resumes where it stopped instead of paying for every batch again.
-  const step = async <T>(key: string, schema: { parse: (v: unknown) => T }, produce: () => Promise<unknown>) => {
+  // A step = (cache key, producer, grounding gate). Schema validation proves the
+  // SHAPE; the gate proves the EVIDENCE (every cited post exists, every quote is
+  // verbatim). Only grounded results are cached, so a resume never replays an
+  // invented one; a result with nothing grounded is re-requested up to
+  // `groundingRetries` times and then fails the run — never filled in.
+  const step = async <D>(
+    name: string,
+    key: string,
+    schema: { parse: (v: unknown) => { kind: 'research'; data: D } },
+    ground: (data: D) => Grounded<D>,
+    produce: () => Promise<unknown>,
+  ): Promise<{ value: D; cached: boolean }> => {
     const cached = opts.cache ? await opts.cache.get(key) : null
     if (cached != null) {
       stats.cachedSteps += 1
-      return { value: schema.parse(cached), cached: true }
+      // Cached before the gate existed, or by an older gate: judge it again — it is
+      // deterministic and free. A cached result that cannot be grounded is simply
+      // re-requested below instead of being trusted.
+      try {
+        const grounded = ground(schema.parse(cached).data)
+        stats.ungroundedDropped += grounded.dropped
+        emit({ type: 'grounding', step: name, kept: grounded.kept, dropped: grounded.dropped, issues: grounded.issues, repairs: grounded.repairs })
+        return { value: grounded.value, cached: true }
+      } catch (err) {
+        if (!(err instanceof GroundingError)) throw err
+        stats.groundingRejections += 1
+        emit({ type: 'grounding_rejected', step: name, attempt: 0, issues: err.issues })
+      }
     }
-    stats.agentCalls += 1
-    const value = schema.parse(await produce())
-    if (opts.cache) await opts.cache.set(key, value)
-    return { value, cached: false }
+    for (let attempt = 1; ; attempt += 1) {
+      stats.agentCalls += 1
+      const parsed = schema.parse(await produce())
+      try {
+        const grounded = ground(parsed.data)
+        stats.ungroundedDropped += grounded.dropped
+        emit({ type: 'grounding', step: name, kept: grounded.kept, dropped: grounded.dropped, issues: grounded.issues, repairs: grounded.repairs })
+        if (opts.cache) await opts.cache.set(key, { kind: 'research', data: grounded.value })
+        return { value: grounded.value, cached: false }
+      } catch (err) {
+        if (!(err instanceof GroundingError)) throw err
+        stats.groundingRejections += 1
+        emit({ type: 'grounding_rejected', step: name, attempt, issues: err.issues })
+        if (attempt > groundingRetries) throw err
+      }
+    }
   }
 
   const groups = groupByProfile(opts.posts)
@@ -146,8 +212,10 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
     }
     const started = Date.now()
     const { value, cached } = await step(
+      `batch ${batch.index + 1}/${total} ${profile.displayName}`,
       `batch:${fingerprint([profile.profileUrl, batch.index, postIds, opts.outputLanguage])}`,
       tovBatchAnalystResult,
+      (data) => groundObservation(data, batch.posts),
       () => opts.runAgent(TOV_BATCH_ANALYST_AGENT_ID, input, { runTimeoutMs: batchTimeoutMs }),
     )
     emit({ type: 'batch', profileUrl: profile.profileUrl, index: batch.index, total, cached, ms: Date.now() - started })
@@ -157,7 +225,7 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
       postIds,
       postCount: batch.posts.length,
       dateRange: dateRangeOf(batch.posts),
-      observation: value.data,
+      observation: value,
     }
     return { profileUrl: profile.profileUrl, result }
   })
@@ -179,13 +247,16 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
       })),
     }
     const started = Date.now()
+    const authorPosts = groups.get(profile.profileUrl) ?? []
     const { value, cached } = await step(
+      `profile ${profile.displayName}`,
       `profile:${fingerprint([profile.profileUrl, batches.map((b) => b.observation), opts.outputLanguage])}`,
       tovProfileSynthesizerResult,
+      (data) => groundProfileVoice(data, authorPosts),
       () => opts.runAgent(TOV_PROFILE_SYNTHESIZER_AGENT_ID, input, { runTimeoutMs: synthesisTimeoutMs }),
     )
     emit({ type: 'profile', profileUrl: profile.profileUrl, cached, ms: Date.now() - started })
-    const result: TovProfileResult = { profile, batches, voice: value.data }
+    const result: TovProfileResult = { profile, batches, voice: value }
     return result
   })
 
@@ -197,11 +268,13 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
   }
   const started = Date.now()
   const { value: brand, cached } = await step(
+    'brand',
     `brand:${fingerprint([opts.brand, brandInput.profiles.map((p) => p.voice), opts.outputLanguage])}`,
     tovBrandSynthesizerResult,
+    (data) => groundBrandVoice(data, opts.posts),
     () => opts.runAgent(TOV_BRAND_SYNTHESIZER_AGENT_ID, brandInput, { runTimeoutMs: synthesisTimeoutMs }),
   )
   emit({ type: 'brand', cached, ms: Date.now() - started })
 
-  return { brand: brand.data, profiles, stats }
+  return { brand, profiles, stats }
 }

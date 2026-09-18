@@ -223,6 +223,7 @@ const run: ModuleCli = {
     fs.mkdirSync(out, { recursive: true })
 
     const runAgent = (args.runner ?? 'orchestrator') === 'direct' ? directRunner(args) : await orchestratorRunner(args)
+    const groundingLog: unknown[] = []
 
     const parts: NormalizeResult[] = []
     if (args.file) {
@@ -275,6 +276,9 @@ const run: ModuleCli = {
       concurrency: args.concurrency ? Number(args.concurrency) : undefined,
       cache: fileCache(path.join(out, 'cache')),
       onEvent: (event) => {
+        if (event.type === 'grounding' || event.type === 'grounding_rejected') groundingLog.push(event)
+        if (event.type === 'grounding' && event.dropped > 0) console.log(`  grounding ${event.step}: kept ${event.kept}, dropped ${event.dropped} (${event.issues.map((i) => i.reason).join(', ')})`)
+        if (event.type === 'grounding_rejected') console.warn(`  grounding REJECTED ${event.step} (attempt ${event.attempt}): ${event.issues.length} issues — re-requesting`)
         if (event.type === 'plan') console.log(`Plan: ${event.posts} posts, ${event.profiles} profiles, ${event.batches} batches`)
         if (event.type === 'batch') console.log(`  batch ${event.index + 1}/${event.total} ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
         if (event.type === 'profile') console.log(`  profile ${slug(event.profileUrl)} ${event.cached ? '(cached)' : `${event.ms} ms`}`)
@@ -291,6 +295,7 @@ const run: ModuleCli = {
     }
     fs.writeFileSync(path.join(out, 'brand.json'), JSON.stringify(result.brand, null, 2))
     fs.writeFileSync(path.join(out, 'KLI-TOV.md'), renderBrandTov(result.brand, result.profiles))
+    fs.writeFileSync(path.join(out, 'grounding-report.json'), JSON.stringify(groundingLog, null, 2))
     const summary = renderRunSummary(result)
     fs.writeFileSync(path.join(out, 'run-summary.txt'), summary)
     console.log(summary)

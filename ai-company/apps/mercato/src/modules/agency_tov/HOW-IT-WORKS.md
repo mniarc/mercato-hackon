@@ -107,6 +107,46 @@ on OpenRouter (half price) for offline runs, `--limit N` for prompt iteration.
   never inline", two of five authors open with a disclaimer and one never does — and it
   said which way the brand should lean and why.
 
+## Anti-hallucination guardrails
+
+The agents are told not to invent; the pipeline makes sure they cannot. Four layers,
+all deterministic and replayable (no model judges another model):
+
+1. **Bounded evidence.** An agent only ever sees the posts it is asked about, with their
+   ids. It has no tools (the scout excepted) and no memory of other batches, so there is
+   nothing to "remember" from elsewhere.
+2. **Shape validation.** Every result is parsed against its zod schema; a malformed
+   answer is retried, never patched.
+3. **Grounding gate** (`lib/tov/grounding.ts`, the research-agent counterpart of the
+   orchestrator's cite-or-abstain gate): every cited `postId` must be one of the input
+   posts, every quote must be verbatim in that post (word-run overlap ≥ 75 %, so an
+   honestly stitched or elided quote passes and a paraphrase fails), every hook example
+   must exist in the corpus, and a brand exemplar must belong to the profile it is
+   attributed to. Truncated ids are repaired only when they are the unambiguous prefix
+   of one input post. Ungrounded items are dropped and reported
+   (`grounding-report.json`, run summary); a result with **no** grounded exemplar is
+   rejected and re-requested, and after the retries the run fails — it is never filled in.
+   Cached results are judged again on read, so a resume can never replay an invented one.
+4. **Facts stay in the corpus.** A document rule or a post written in someone's voice
+   may reuse their patterns, but every personal or factual claim must trace to a post
+   id or to our own work. Measured on the first full run: 92 % of batch-level citations
+   were grounded before the gate existed; the rest (paraphrases, misattributed quotes,
+   truncated ids) are now caught before synthesis.
+
+What the gate does *not* check yet: prose claims without a citation (e.g. "he never
+hedges"). Those are covered by the QA step 5.4 in the process — a reviewer agent that
+must cite a post id for every rule it confirms — and, once the corpus lives in the
+database, by resolving every citation against stored source rows instead of a JSON file.
+
+## Integration with `agency_operations` (architect's note, 2026-09-18)
+
+`agency_tov` is an independent lane today: ingestion, agents, pipeline, CLI, tests,
+feature-gated behind the orchestrator flags. It does not yet expose a stable public
+DI/runtime contract or a durable artifact reference, so `agency_operations` must not
+depend on it. The spine keeps its deterministic no-op worker as the proven seam; when
+ToV exposes a request-scoped contract (run for case X → document version id + source
+row ids), one thin optional bridge is added. Nothing is force-connected before that.
+
 ## How it plugs into the agency process
 
 - **Input** comes from the client's channels in the brief / purchase data (P3 audit

@@ -25,7 +25,7 @@ const post = (id: string, profileUrl: string, text: string, postedAt = '2026-01-
   authorName: profileUrl.split('/').filter(Boolean).pop() ?? 'x',
   url: `https://example.com/${id}`,
   postedAt,
-  text,
+  text: `We shipped it. ${text}`,
   likes: 1,
   comments: 0,
   shares: 0,
@@ -50,13 +50,13 @@ const observation = (postId: string): TovBatchObservation => ({
   exemplars: [{ postId, quote: 'We shipped it.', whyTypical: 'short and declarative' }],
   confidence: 0.8,
 })
-const profileVoice = (): TovProfileVoice => ({
-  ...observation('p'),
+const profileVoice = (postId = 'a1'): TovProfileVoice => ({
+  ...observation(postId),
   summary: 'A builder voice',
   voicePillars: [{ name: 'Builder', description: 'ships', evidence: ['ship it'] }],
   evolution: 'stable',
   postSkeletons: ['hook → lesson'],
-  exemplars: [{ postId: 'p', quote: 'We shipped it.', whyTypical: 'typical' }],
+  exemplars: [{ postId, quote: 'We shipped it.', whyTypical: 'typical' }],
 })
 const brandVoice = (brand: string, profileUrl: string): TovBrandVoice => ({
   brand,
@@ -89,7 +89,7 @@ describe('batchPosts', () => {
   it('bounds batches by count and by characters, never splitting a post', () => {
     const posts = [post('1', 'a', 'x'.repeat(50)), post('2', 'a', 'x'.repeat(50)), post('3', 'a', 'x'.repeat(50)), post('4', 'a', 'x'.repeat(500))]
     expect(batchPosts(posts, { batchSize: 2, maxBatchChars: 1000 }).map((b) => b.posts.map((p) => p.id))).toEqual([['1', '2'], ['3', '4']])
-    expect(batchPosts(posts, { batchSize: 10, maxBatchChars: 120 }).map((b) => b.posts.map((p) => p.id))).toEqual([['1', '2'], ['3'], ['4']])
+    expect(batchPosts(posts, { batchSize: 10, maxBatchChars: 150 }).map((b) => b.posts.map((p) => p.id))).toEqual([['1', '2'], ['3'], ['4']])
     expect(batchPosts([], {})).toEqual([])
   })
 })
@@ -135,8 +135,8 @@ describe('runTovPipeline', () => {
           return { kind: 'research', data: observation(parsed.posts[0].id) }
         }
         if (agentId === TOV_PROFILE_SYNTHESIZER_AGENT_ID) {
-          tovProfileSynthesizerInputSchema.parse(input)
-          return { kind: 'research', data: profileVoice() }
+          const parsed = tovProfileSynthesizerInputSchema.parse(input)
+          return { kind: 'research', data: profileVoice(parsed.profile.profileUrl === a ? 'a1' : 'b1') }
         }
         const parsed = tovBrandSynthesizerInputSchema.parse(input)
         return { kind: 'research', data: brandVoice(parsed.brand, parsed.profiles[0].profile.profileUrl) }
@@ -147,7 +147,7 @@ describe('runTovPipeline', () => {
     expect(batchCalls).toHaveLength(3)
     expect(calls.filter((c) => c.agentId === TOV_PROFILE_SYNTHESIZER_AGENT_ID)).toHaveLength(2)
     expect(calls.filter((c) => c.agentId === TOV_BRAND_SYNTHESIZER_AGENT_ID)).toHaveLength(1)
-    expect(result.stats).toEqual({ posts: 4, profiles: 2, batches: 3, agentCalls: 6, cachedSteps: 0 })
+    expect(result.stats).toEqual({ posts: 4, profiles: 2, batches: 3, agentCalls: 6, cachedSteps: 0, ungroundedDropped: 6, groundingRejections: 0 })
 
     const profileA = result.profiles.find((p) => p.profile.profileUrl === a)!
     expect(profileA.batches.map((batch) => batch.postIds)).toEqual([['a1', 'a2'], ['a3']])
@@ -164,12 +164,35 @@ describe('runTovPipeline', () => {
     ).rejects.toThrow()
   })
 
+  it('rejects an invented exemplar, re-requests, and fails the run when the retries are exhausted', async () => {
+    const events: string[] = []
+    const invented = jest.fn(async (agentId: string, input: unknown) => {
+      if (agentId !== TOV_BATCH_ANALYST_AGENT_ID) throw new Error('unreachable')
+      tovBatchAnalystInputSchema.parse(input)
+      return { kind: 'research', data: observation('made-up-id') }
+    })
+    await expect(
+      runTovPipeline({
+        posts: posts.slice(0, 1),
+        brand: 'Acme',
+        outputLanguage: 'en',
+        groundingRetries: 1,
+        runAgent: invented,
+        onEvent: (event) => events.push(event.type),
+      }),
+    ).rejects.toThrow(/no grounded exemplar/)
+    expect(invented).toHaveBeenCalledTimes(2)
+    expect(events.filter((e) => e === 'grounding_rejected')).toHaveLength(2)
+  })
+
   it('reuses cached steps so a rerun costs no agent calls', async () => {
     const store = new Map<string, unknown>()
     const cache: TovPipelineCache = { get: async (key) => store.get(key) ?? null, set: async (key, value) => void store.set(key, value) }
     const runAgent = jest.fn(async (agentId: string, input: unknown) => {
       if (agentId === TOV_BATCH_ANALYST_AGENT_ID) return { kind: 'research', data: observation(tovBatchAnalystInputSchema.parse(input).posts[0].id) }
-      if (agentId === TOV_PROFILE_SYNTHESIZER_AGENT_ID) return { kind: 'research', data: profileVoice() }
+      if (agentId === TOV_PROFILE_SYNTHESIZER_AGENT_ID) {
+        return { kind: 'research', data: profileVoice(tovProfileSynthesizerInputSchema.parse(input).profile.profileUrl === a ? 'a1' : 'b1') }
+      }
       return { kind: 'research', data: brandVoice('Acme', a) }
     })
     const first = await runTovPipeline({ posts, brand: 'Acme', outputLanguage: 'en', batchSize: 2, runAgent, cache })
