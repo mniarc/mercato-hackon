@@ -3,6 +3,10 @@ import { z } from 'zod'
 /**
  * Tone-of-voice (ToV) research — shared shapes.
  *
+ * List and quote lengths are stated in the prompts as targets, not enforced here:
+ * providers do not honour JSON-schema `maxItems`/`maxLength`, so a hard `.max()`
+ * would reject an otherwise good answer for one extra bullet.
+ *
  * The corpus (LinkedIn posts scraped with Apify) is never handed to a model whole:
  * `lib/tov/pipeline.ts` runs a map → reduce over it. Every agent below is a
  * RESEARCHER (`{ kind: 'research', data }`): it reads a bounded slice of evidence and
@@ -75,20 +79,20 @@ export const tovRhythmSchema = z.object({
 })
 
 export const tovHooksSchema = z.object({
-  patterns: z.array(z.string().min(1)).max(6),
+  patterns: z.array(z.string().min(1)),
   /** Verbatim first lines, ≤160 chars each, in the source language. */
-  examples: z.array(z.string().min(1).max(160)).max(4),
+  examples: z.array(z.string().min(1)),
 })
 
 export const tovClosersSchema = z.object({
-  patterns: z.array(z.string().min(1)).max(5),
+  patterns: z.array(z.string().min(1)),
   ctaStyle: z.string().min(1),
 })
 
 export const tovVocabularySchema = z.object({
-  signaturePhrases: z.array(z.string().min(1)).max(10),
-  favouredWords: z.array(z.string().min(1)).max(15),
-  avoided: z.array(z.string().min(1)).max(8),
+  signaturePhrases: z.array(z.string().min(1)),
+  favouredWords: z.array(z.string().min(1)),
+  avoided: z.array(z.string().min(1)),
   jargonLevel: z.string().min(1),
 })
 
@@ -101,9 +105,9 @@ export const tovFormattingSchema = z.object({
 })
 
 export const tovThemesSchema = z.object({
-  topics: z.array(z.string().min(1)).max(8),
-  stances: z.array(z.string().min(1)).max(6),
-  values: z.array(z.string().min(1)).max(6),
+  topics: z.array(z.string().min(1)),
+  stances: z.array(z.string().min(1)),
+  values: z.array(z.string().min(1)),
 })
 
 export const tovLanguageSchema = z.object({
@@ -114,7 +118,7 @@ export const tovLanguageSchema = z.object({
 /** A quoted post the agent points at as typical. `postId` must come from the input. */
 export const tovExemplarSchema = z.object({
   postId: z.string().min(1),
-  quote: z.string().min(1).max(240),
+  quote: z.string().min(1),
   whyTypical: z.string().min(1),
 })
 
@@ -150,15 +154,15 @@ export const tovBatchObservationSchema = z.object({
   pointOfView: z.string().min(1),
   rhythm: tovRhythmSchema,
   hooks: tovHooksSchema,
-  structures: z.array(z.string().min(1)).max(6),
+  structures: z.array(z.string().min(1)),
   closers: tovClosersSchema,
   vocabulary: tovVocabularySchema,
   formatting: tovFormattingSchema,
   themes: tovThemesSchema,
-  engagementInsights: z.array(z.string().min(1)).max(5),
-  doList: z.array(z.string().min(1)).max(8),
-  dontList: z.array(z.string().min(1)).max(8),
-  exemplars: z.array(tovExemplarSchema).max(4),
+  engagementInsights: z.array(z.string().min(1)),
+  doList: z.array(z.string().min(1)),
+  dontList: z.array(z.string().min(1)),
+  exemplars: z.array(tovExemplarSchema),
   confidence,
 })
 export type TovBatchObservation = z.infer<typeof tovBatchObservationSchema>
@@ -192,30 +196,30 @@ export type TovProfileSynthesizerInput = z.infer<typeof tovProfileSynthesizerInp
 export const tovVoicePillarSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
-  evidence: z.array(z.string().min(1)).max(3),
+  evidence: z.array(z.string().min(1)),
 })
 
 export const tovProfileVoiceSchema = z.object({
   summary: z.string().min(1),
-  voicePillars: z.array(tovVoicePillarSchema).min(1).max(5),
+  voicePillars: z.array(tovVoicePillarSchema).min(1),
   language: tovLanguageSchema,
   register: tovRegisterSchema,
   pointOfView: z.string().min(1),
   rhythm: tovRhythmSchema,
   hooks: tovHooksSchema,
-  structures: z.array(z.string().min(1)).max(6),
+  structures: z.array(z.string().min(1)),
   closers: tovClosersSchema,
   vocabulary: tovVocabularySchema,
   formatting: tovFormattingSchema,
   themes: tovThemesSchema,
   /** How the voice moved across the observed date range. */
   evolution: z.string().min(1),
-  engagementInsights: z.array(z.string().min(1)).max(6),
-  doList: z.array(z.string().min(1)).max(10),
-  dontList: z.array(z.string().min(1)).max(10),
-  exemplars: z.array(tovExemplarSchema).max(6),
+  engagementInsights: z.array(z.string().min(1)),
+  doList: z.array(z.string().min(1)),
+  dontList: z.array(z.string().min(1)),
+  exemplars: z.array(tovExemplarSchema),
   /** Reusable post skeletons ("hook → story → lesson → question"), ≤3. */
-  postSkeletons: z.array(z.string().min(1)).max(3),
+  postSkeletons: z.array(z.string().min(1)),
   confidence,
 })
 export type TovProfileVoice = z.infer<typeof tovProfileVoiceSchema>
@@ -267,15 +271,15 @@ export const tovPersonaVariantSchema = z.object({
 export const tovBrandExemplarSchema = z.object({
   postId: z.string().min(1),
   profileUrl: z.string().min(1),
-  quote: z.string().min(1).max(240),
+  quote: z.string().min(1),
   whyItWorks: z.string().min(1),
 })
 
 /** "Niewskazany" vs "zalecany" example for one rule (F22-1 AC 2). */
 export const tovCounterExampleSchema = z.object({
   rule: z.string().min(1),
-  wrong: z.string().min(1).max(400),
-  right: z.string().min(1).max(400),
+  wrong: z.string().min(1),
+  right: z.string().min(1),
 })
 
 /**
@@ -289,30 +293,30 @@ export const tovBrandVoiceSchema = z.object({
   positioning: z.string().min(1),
   /** Personality in a few sentences — who is speaking, as a character. */
   personality: z.string().min(1),
-  voicePillars: z.array(tovBrandPillarSchema).min(1).max(5),
-  sharedTraits: z.array(z.string().min(1)).max(10),
+  voicePillars: z.array(tovBrandPillarSchema).min(1),
+  sharedTraits: z.array(z.string().min(1)),
   /** Where the people genuinely differ — a brand ToV must not paper over them. */
-  tensions: z.array(z.string().min(1)).max(5),
+  tensions: z.array(z.string().min(1)),
   register: tovRegisterSchema,
   /** Forms of address: "you"/"Ty"/"Państwo", first person singular vs plural, etc. */
   addressingTheReader: z.string().min(1),
   /** Emotional range the brand allows itself (and what it never does). */
   emotions: z.string().min(1),
   /** Hard limits: topics, tones and devices the brand never uses. */
-  boundaries: z.array(z.string().min(1)).max(8),
+  boundaries: z.array(z.string().min(1)),
   languagePolicy: z.string().min(1),
   vocabulary: tovVocabularySchema,
-  postFormats: z.array(tovPostFormatSchema).min(1).max(6),
+  postFormats: z.array(tovPostFormatSchema).min(1),
   hooks: tovHooksSchema,
   closers: tovClosersSchema,
   formatting: tovFormattingSchema,
-  personaVariants: z.array(tovPersonaVariantSchema).max(8),
-  doList: z.array(z.string().min(1)).max(12),
-  dontList: z.array(z.string().min(1)).max(12),
-  exemplars: z.array(tovBrandExemplarSchema).max(8),
-  counterExamples: z.array(tovCounterExampleSchema).min(1).max(6),
+  personaVariants: z.array(tovPersonaVariantSchema),
+  doList: z.array(z.string().min(1)),
+  dontList: z.array(z.string().min(1)),
+  exemplars: z.array(tovBrandExemplarSchema),
+  counterExamples: z.array(tovCounterExampleSchema).min(1),
   /** Checks a QA agent (or a human) runs against a draft written in this voice. */
-  qaChecklist: z.array(z.string().min(1)).max(10),
+  qaChecklist: z.array(z.string().min(1)),
   confidence,
 })
 export type TovBrandVoice = z.infer<typeof tovBrandVoiceSchema>
@@ -330,7 +334,7 @@ export type TovBrandSynthesizerResult = z.infer<typeof tovBrandSynthesizerResult
 export const tovSourceScoutInputSchema = z.object({
   brand: z.string().min(1),
   /** Public identifiers only (names, known profile URLs, website) — never client data. */
-  people: z.array(z.object({ name: z.string().min(1), knownUrls: z.array(z.string()).max(10) })).max(10),
+  people: z.array(z.object({ name: z.string().min(1), knownUrls: z.array(z.string()).max(10) })),
   websiteUrl: z.string().nullable(),
   outputLanguage: z.enum(tovOutputLanguages),
 })
@@ -343,14 +347,14 @@ export const tovDiscoveredTargetSchema = z.object({
   owner: z.string().min(1),
   /** What kind of material lives there (posts, blog, podcast notes, talks…). */
   material: z.string().min(1),
-  confidence: z.number().min(0).max(1),
+  confidence: z.number().min(0),
   evidenceUrl: z.string().min(1),
 })
 
 export const tovSourceScoutResult = z.object({
   kind: z.literal('research'),
   data: z.object({
-    targets: z.array(tovDiscoveredTargetSchema).max(20),
+    targets: z.array(tovDiscoveredTargetSchema),
     notes: z.string().min(1),
   }),
 })

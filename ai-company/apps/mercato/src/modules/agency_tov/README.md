@@ -80,8 +80,10 @@ Then: add `{ id: '<module>', from: '@app' }` inside the
 6. **Resumable by default.** Every step has a cache key derived from its exact
    input (`fingerprint`), so a crashed 60-batch run resumes where it stopped and a
    prompt change on one agent re-runs only that agent's steps.
-7. **Bounded outputs.** Arrays carry `.max()`, quotes carry `.max(240)`. Keeps
-   reduce inputs predictable and the document readable.
+7. **Bounded outputs — in the prompt, not the schema.** Say "≤4 examples, quotes
+   ≤240 chars" in the instructions; providers ignore JSON-schema `maxItems` /
+   `maxLength`, so a hard `.max()` rejects a good answer for one extra bullet.
+   Keep numeric bounds (dials 1–5, confidence 0–1) — models respect those.
 
 ## This module's agents
 
@@ -113,7 +115,7 @@ yarn mercato agency_tov run --brand "Acme" --out output/acme \
 yarn mercato agency_tov run --brand "Acme" --out output/acme \
   --discover "Jane Doe;John Roe" --website https://acme.com --min-confidence 0.6
 
-# prompt iteration without the platform (OPENROUTER_API_KEY or OPENAI_API_KEY)
+# prompt iteration without the platform (OPENROUTER_API_KEY or OPENAI_API_KEY; map stage on a cheap model, reduce on a stronger one — `--model` / `--synthesis-model`)
 yarn mercato agency_tov run --brand "Acme" --out output/acme --file corpus.json --runner direct --limit 80
 ```
 

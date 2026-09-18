@@ -6,8 +6,9 @@ import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { getAgentEntry } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import type { AgentRuntimeService } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/runtime/agentRuntime'
 import { createOpenAI } from '@ai-sdk/openai'
-import { generateText, Output } from 'ai'
-import { TOV_SOURCE_SCOUT_AGENT_ID } from './ai-agents'
+import { generateText } from 'ai'
+import { z } from 'zod'
+import { TOV_BATCH_ANALYST_AGENT_ID, TOV_SOURCE_SCOUT_AGENT_ID } from './ai-agents'
 import {
   tovOutputLanguages,
   tovSourceScoutResult,
@@ -134,20 +135,43 @@ function directRunner(args: Record<string, string>): TovAgentRunner {
   const provider = openrouterKey
     ? createOpenAI({ apiKey: openrouterKey, baseURL: process.env.OPENROUTER_BASE_URL ?? 'https://openrouter.ai/api/v1' })
     : createOpenAI({ apiKey: openaiKey })
-  const modelId = args.model ?? process.env.OM_AGENCY_TOV_MODEL ?? (openrouterKey ? 'anthropic/claude-sonnet-5' : 'gpt-5')
-  console.log(`Runner: direct (${openrouterKey ? 'openrouter' : 'openai'} / ${modelId})`)
+  const analysisModel = args.model ?? process.env.OM_AGENCY_TOV_MODEL ?? (openrouterKey ? 'anthropic/claude-haiku-4.5' : 'gpt-5-mini')
+  const synthesisModel =
+    args['synthesis-model'] ?? process.env.OM_AGENCY_TOV_SYNTHESIS_MODEL ?? (openrouterKey ? 'anthropic/claude-sonnet-5' : 'gpt-5')
+  const modelFor = (agentId: string) => (agentId === TOV_BATCH_ANALYST_AGENT_ID ? analysisModel : synthesisModel)
+  console.log(`Runner: direct (${openrouterKey ? 'openrouter' : 'openai'}; analysis ${analysisModel}, synthesis ${synthesisModel})`)
   return async (agentId, input, opts) => {
     const entry = getAgentEntry(agentId)
     if (!entry) throw new Error(`[internal] unknown agent ${agentId}`)
-    const result = await generateText({
-      model: provider.chat(modelId),
-      system: entry.instructions,
-      prompt: JSON.stringify(input),
-      output: Output.object({ schema: entry.schema }),
-      timeout: opts.runTimeoutMs,
-      maxRetries: 2,
-    })
-    return result.output
+    // Provider-side structured output compiles the schema into a grammar; Anthropic
+    // rejects the larger synthesis schemas as "too large". Asking for JSON in the
+    // prompt and validating with zod works for every schema and every provider.
+    const schemaJson = JSON.stringify(z.toJSONSchema(entry.schema))
+    let text = ''
+    try {
+      const result = await generateText({
+        model: provider.chat(modelFor(agentId)),
+        system: `${entry.instructions}
+
+Respond with ONLY one JSON object (no prose, no code fences) that validates against this JSON Schema:
+${schemaJson}`,
+        prompt: JSON.stringify(input),
+        timeout: opts.runTimeoutMs,
+        maxRetries: 2,
+      })
+      text = result.text
+      const parsed = entry.schema.safeParse(JSON.parse(text.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')))
+      if (!parsed.success) throw new Error(`[internal] ${agentId}: output does not match schema — ${parsed.error.message}`)
+      return parsed.data
+    } catch (err) {
+      const body = err && typeof err === 'object' && 'responseBody' in err ? String((err as { responseBody?: unknown }).responseBody ?? '') : ''
+      const file = path.join(args.out, `failed-${agentId}-${Date.now()}.txt`)
+      fs.writeFileSync(file, `${err instanceof Error ? err.message : String(err)}
+
+${text || body}`)
+      console.error(`${agentId}: failed — details in ${file}`)
+      throw err
+    }
   }
 }
 
@@ -158,7 +182,7 @@ function directRunner(args: Record<string, string>): TovAgentRunner {
  *     [--file <apify-export.json> [--source linkedin]] \
  *     [--scrape linkedin=https://www.linkedin.com/in/x/,website=https://example.com] \
  *     [--max-posts 500] [--lang en|pl] [--batch-size 40] [--concurrency 4] [--limit N] \
- *     [--runner orchestrator|direct] [--model <id>] [--tenant <id> --org <id> --user <id>]
+ *     [--runner orchestrator|direct] [--model <analysis id>] [--synthesis-model <id>] [--tenant <id> --org <id> --user <id>]
  *
  * `--file` reads a corpus already scraped (an Apify dataset export, or a
  * `corpus.json` this command wrote); `--scrape` runs Apify live (`APIFY_TOKEN`);
