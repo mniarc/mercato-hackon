@@ -112,3 +112,92 @@ The main spec chose (Q5) a **backend "client actions panel"** for the demo and d
 - One case per order (yes) — can a client hold multiple concurrent cases in the portal list?
 - Attachment size/type limits for client uploads (reuse `attachments` defaults).
 - Do we show the internal audit (competitor analysis) in the portal delivery, or only the purchased results? (brief: client receives the purchased results.)
+
+## 10. Document task frontend (2026-09-18)
+
+The app-local `agency` module overrides the existing portal task list/detail loaders through
+`modules.ts` route overrides. The original `portal.tasks.view` customer guard and navigation
+metadata remain in force. Standard tasks without `formSchema.agencyReview` retain their original
+renderer. No workflow engine, API, database, or approval entity is changed by this frontend slice.
+
+One document is one task: brief, strategy, Tone of Voice, plan, post. Publication consent is a
+sixth task for the exact post version and destination. Strategy and ToV remain a joint process
+gate: the backend must combine their decisions against the current pair; the browser never
+advances the case. This separate-task UI is the explicit product decision for this implementation.
+
+### Frontend data handoff
+
+The existing authorized `GET /api/workflows/portal/tasks/{id}` response supplies the immutable
+client-facing HTML snapshot in `task.formSchema.agencyReview`:
+
+```ts
+{
+  caseId: string, documentId: string, versionId: string, version: string,
+  templateId: 'WZR-BRIEF' | 'WZR-STRATEGIA' | 'WZR-TOV' | 'WZR-PLAN' | 'WZR-POST',
+  title: string, html: string,
+  status: 'ready_for_review' | 'approved' | 'needs_review' | 'blocked' | 'draft',
+  isCurrent: boolean,
+  mode: 'content' | 'topic_choice' | 'publication',
+  topics?: Array<{ id: string, title: string, readiness: 'ready' | 'blocked' }>,
+  target?: { id: string, ref: string, label: string, platform: string },
+  contentApproved?: boolean
+}
+```
+
+`status` is the state of this review invitation; a publication invitation may be ready for review
+while `contentApproved` confirms that its underlying post version already passed content approval.
+HTML is rendered in a sandboxed iframe without script, same-origin, form, popup, or parent-navigation
+permissions. Its CSP permits inline document styling and embedded data images/fonts, not external
+resources. The producer must supply a self-contained client rendering of the WZR template: no
+internal envelope, evidence IDs, QA payloads, or secrets. HTML replaces the older `rendered_md`
+presentation requirement at the user's explicit request.
+
+Below the document are exactly two decisions: Accept and Add comments. The latter opens an
+embedded CrudForm dialog (required, trimmed comments; Escape cancels; Ctrl/Cmd+Enter submits).
+The plan requires exactly 12 ready, uniquely identified topics and one selection. Publication
+requires previously approved content and a readable destination. Historical, blocked, malformed,
+closed, and read-only tasks cannot be accepted. A version change resets the UI; a late response
+for a previous version must not mark the new one as submitted.
+
+### Request contract and integration boundary
+
+Actions call the reviewed spec's `POST /api/agency/cases/{caseId}/requests` with `channel: 'portal'`,
+`documentId`, `versionId`, and a retry-stable `externalEventId`. Content accepts use `kind: 'approval'`
+with no body; plans use `kind: 'topic_choice'` plus `topicId`; publication uses `kind: 'consent'`
+plus `targetId` and `targetRef`. Comments use `kind: 'message'` and `body`. Success requires a
+successful response containing `requestId` and `status`; it means received, not yet approved by G.
+Failures retain the comment text and allow retry. There is no direct task completion or case-stage
+mutation in this renderer.
+
+Backend implementation is still required on this branch: creation of review tasks with this HTML
+projection, request intake, server-side owner/current-version validation, idempotency, G routing,
+the strategy/ToV pair gate, and durable approvals. Frontend flags are UX, never authorization.
+
+### Test preview and validation
+
+The Tasks screen links to `/[orgSlug]/portal/agency/tasks-demo`, an authenticated, explicitly marked
+preview of six FLOW document tasks. Decisions are held in component state only; reset/reload clears
+them. It does not create database rows or send production approvals.
+
+Local validation includes parser/request tests and rendered iframe/dialog tests. Key coverage:
+exact version and body-free approval, nonempty comments, stale versions, plan topic cardinality,
+separate publication consent, iframe isolation, dialog cancellation, and failed-submit text retention.
+Live end-to-end request processing remains blocked on the agency backend described above.
+
+Validation result (local runner): 41 Jest tests passed, app typecheck and scoped ESLint passed,
+and the Next.js production build completed with the project's 8 GB Node heap setting. The
+generator completed using its existing static OpenAPI fallback (upstream JSON import-attribute
+warning). Browser inspection was unavailable because the computer-use runtime failed to start.
+
+### Risks and compliance
+
+- Stale or cross-customer submissions: server must enforce scope/version checks; UI prevents known
+  stale decisions but cannot replace that check.
+- Untrusted HTML: sandbox and CSP isolate the document from portal identity and script execution.
+- Duplicate clicks/retries: in-flight lock and stable event IDs; durable deduplication belongs to G.
+- Compatibility: original task routes, guards and generic renderer preserved; app-local override only.
+
+### Changelog
+
+- 2026-09-18: Added HTML document review frontend, separate comments dialog, version-bound request
+  handoff and six-task preview. Production agency backend remains outside this frontend slice.
