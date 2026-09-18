@@ -22,5 +22,6 @@ for a release or demonstrated setup problem, not as an automatic merge gate.
 Fixture cleanup owns only its own rows/files, leaving manual demo data intact.
 
 Commands, target identity, and teardown rules belong in the
-[testing process](../.processes/current/testing.md). Implementation and remaining
-restart/reuse acceptance stay in the task backlog, not in a growing ADR progress log.
+[testing process](../.processes/current/testing.md). Restart/reuse and the baseline
+headed journey are demonstrated; later feature failures do not reopen environment
+construction by default. Task records own new acceptance, not this ADR.
