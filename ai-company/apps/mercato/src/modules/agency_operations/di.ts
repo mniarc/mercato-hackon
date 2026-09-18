@@ -6,6 +6,8 @@ import {
   deterministicAgentWorker,
 } from './lib/agencyCaseWorkflowService'
 import { createClientMaterialIntakeService } from './lib/clientMaterialIntakeService'
+import { createClientCaseQueryService } from './lib/clientCaseQueryService'
+import { CLIENT_CASE_QUERY_SERVICE } from './lib/contracts/clientCaseQuery'
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 
@@ -18,6 +20,9 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [CLIENT_MATERIAL_INTAKE_SERVICE]: asFunction(
       () => createClientMaterialIntakeService(container),
+    ).scoped(),
+    [CLIENT_CASE_QUERY_SERVICE]: asFunction(
+      () => createClientCaseQueryService(container),
     ).scoped(),
     [AGENCY_AGENT_FUNCTION_DI_KEY]: asValue(deterministicAgentWorker),
   })
