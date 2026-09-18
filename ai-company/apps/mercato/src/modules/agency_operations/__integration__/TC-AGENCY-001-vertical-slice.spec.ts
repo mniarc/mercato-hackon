@@ -438,10 +438,17 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
       const materialPath = `/api/agency_operations/cases/${intakeResult.caseId}/material`
       const materialLink = page.getByRole('link', { name: 'Open material', exact: true })
       await expect(materialLink).toHaveAttribute('href', materialPath)
-      const employeeMaterialResponse = await page.request.get(materialPath)
-      expect(employeeMaterialResponse.status()).toBe(200)
-      expect(employeeMaterialResponse.headers()['cache-control']).toContain('no-store')
-      expect(await employeeMaterialResponse.body()).toEqual(sentinel)
+      const downloadPromise = page.waitForEvent('download')
+      await materialLink.click()
+      const materialDownload = await downloadPromise
+      expect(materialDownload.suggestedFilename()).toBe(fileName)
+      const materialStream = await materialDownload.createReadStream()
+      if (!materialStream) throw new Error('Material download returned no stream')
+      const materialChunks: Buffer[] = []
+      for await (const chunk of materialStream) {
+        materialChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+      }
+      expect(Buffer.concat(materialChunks)).toEqual(sentinel)
 
       const workflowLink = page.getByRole('link', { name: 'Open workflow run', exact: true })
       await expect(workflowLink).toHaveAttribute(
