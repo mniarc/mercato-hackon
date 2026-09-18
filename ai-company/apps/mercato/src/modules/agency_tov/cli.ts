@@ -6,7 +6,7 @@ import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { getAgentEntry } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import type { AgentRuntimeService } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/runtime/agentRuntime'
 import { createOpenAI } from '@ai-sdk/openai'
-import { generateText } from 'ai'
+import { generateText, Output } from 'ai'
 import { z } from 'zod'
 import { TOV_BATCH_ANALYST_AGENT_ID, TOV_SOURCE_SCOUT_AGENT_ID } from './ai-agents'
 import {
@@ -143,35 +143,56 @@ function directRunner(args: Record<string, string>): TovAgentRunner {
   return async (agentId, input, opts) => {
     const entry = getAgentEntry(agentId)
     if (!entry) throw new Error(`[internal] unknown agent ${agentId}`)
-    // Provider-side structured output compiles the schema into a grammar; Anthropic
-    // rejects the larger synthesis schemas as "too large". Asking for JSON in the
-    // prompt and validating with zod works for every schema and every provider.
-    const schemaJson = JSON.stringify(z.toJSONSchema(entry.schema))
+    // Provider-side structured output compiles the schema into a grammar, which
+    // Anthropic rejects for the large synthesis schemas ("too large"). The small
+    // analyst schema uses it (exact JSON every time); the synthesizers get the
+    // schema in the prompt instead and are retried when a small model emits
+    // malformed JSON.
+    const structured = agentId === TOV_BATCH_ANALYST_AGENT_ID
+    const schemaJson = structured ? '' : JSON.stringify(z.toJSONSchema(entry.schema))
+    const attempts = 3
     let text = ''
-    try {
-      const result = await generateText({
-        model: provider.chat(modelFor(agentId)),
-        system: `${entry.instructions}
+    let lastError: unknown
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        if (structured) {
+          const result = await generateText({
+            model: provider.chat(modelFor(agentId)),
+            system: entry.instructions,
+            prompt: JSON.stringify(input),
+            output: Output.object({ schema: entry.schema }),
+            timeout: opts.runTimeoutMs,
+            maxRetries: 2,
+          })
+          return result.output
+        }
+        const result = await generateText({
+          model: provider.chat(modelFor(agentId)),
+          system: `${entry.instructions}
 
-Respond with ONLY one JSON object (no prose, no code fences) that validates against this JSON Schema:
+Respond with ONLY one JSON object (no prose, no code fences; escape every double quote inside strings) that validates against this JSON Schema:
 ${schemaJson}`,
-        prompt: JSON.stringify(input),
-        timeout: opts.runTimeoutMs,
-        maxRetries: 2,
-      })
-      text = result.text
-      const parsed = entry.schema.safeParse(JSON.parse(text.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')))
-      if (!parsed.success) throw new Error(`[internal] ${agentId}: output does not match schema — ${parsed.error.message}`)
-      return parsed.data
-    } catch (err) {
-      const body = err && typeof err === 'object' && 'responseBody' in err ? String((err as { responseBody?: unknown }).responseBody ?? '') : ''
-      const file = path.join(args.out, `failed-${agentId}-${Date.now()}.txt`)
-      fs.writeFileSync(file, `${err instanceof Error ? err.message : String(err)}
+          prompt: JSON.stringify(input),
+          timeout: opts.runTimeoutMs,
+          maxRetries: 2,
+        })
+        text = result.text
+        const parsed = entry.schema.safeParse(JSON.parse(text.replace(/^\s*```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '')))
+        if (!parsed.success) throw new Error(`[internal] ${agentId}: output does not match schema — ${parsed.error.message}`)
+        return parsed.data
+      } catch (err) {
+        lastError = err
+        const details = err && typeof err === 'object' ? (err as { responseBody?: unknown; text?: unknown; cause?: { message?: string } }) : {}
+        const raw = text || String(details.text ?? details.responseBody ?? '')
+        const file = path.join(args.out, `failed-${agentId}-${Date.now()}.txt`)
+        fs.writeFileSync(file, `${err instanceof Error ? err.message : String(err)}
+${details.cause?.message ?? ''}
 
-${text || body}`)
-      console.error(`${agentId}: failed — details in ${file}`)
-      throw err
+${raw}`)
+        console.error(`${agentId}: attempt ${attempt}/${attempts} failed — details in ${file}`)
+      }
     }
+    throw lastError
   }
 }
 
