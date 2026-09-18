@@ -3,6 +3,7 @@ import {
   defineWorkflow,
 } from '@open-mercato/shared/modules/workflows'
 import { createAgencyHumanAttentionWorkflow } from './lib/humanAttentionWorkflow'
+import { createClientSubmissionWorkflow } from './lib/clientSubmissionWorkflow'
 
 export const AGENCY_CASE_WORKFLOW_ID = 'agency_operations.process-case' as const
 export const AGENCY_AGENT_WORKER_ID = 'agency_operations.agent-worker.noop.v1' as const
@@ -83,6 +84,7 @@ export const workflowsConfig = createWorkflowsModuleConfig({
   workflows: [
     agencyCaseWorkflow,
     createAgencyHumanAttentionWorkflow({ functionName: AGENCY_AGENT_FUNCTION_NAME, workerId: AGENCY_AGENT_WORKER_ID }),
+    createClientSubmissionWorkflow(),
   ],
 })
 

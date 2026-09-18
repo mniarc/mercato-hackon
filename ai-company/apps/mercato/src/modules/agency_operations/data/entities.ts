@@ -1,5 +1,5 @@
 import { OptionalProps } from '@mikro-orm/core'
-import { Entity, Index, PrimaryKey, Property } from '@mikro-orm/decorators/legacy'
+import { Entity, Index, PrimaryKey, Property, Unique } from '@mikro-orm/decorators/legacy'
 
 @Entity({ tableName: 'agency_cases' })
 @Index({
@@ -68,6 +68,49 @@ export class AgencyCase {
     nullable: true,
   })
   updatedAt?: Date | null
+
+  @Property({ name: 'deleted_at', type: Date, nullable: true })
+  deletedAt: Date | null = null
+}
+
+/** Append-only client input. Execution and decisions live in the linked native workflow. */
+@Entity({ tableName: 'agency_client_submissions' })
+@Unique({ name: 'agency_client_submissions_event_unique', properties: ['tenantId', 'organizationId', 'customerEntityId', 'caseId', 'channel', 'eventId'] })
+export class AgencyClientSubmission {
+  [OptionalProps]?: 'workflowInstanceId' | 'createdAt' | 'deletedAt'
+
+  @PrimaryKey({ type: 'uuid', defaultRaw: 'gen_random_uuid()' })
+  id!: string
+
+  @Property({ name: 'tenant_id', type: 'uuid' })
+  tenantId!: string
+
+  @Property({ name: 'organization_id', type: 'uuid' })
+  organizationId!: string
+
+  @Property({ name: 'customer_entity_id', type: 'uuid' })
+  customerEntityId!: string
+
+  @Property({ name: 'case_id', type: 'uuid' })
+  caseId!: string
+
+  @Property({ name: 'submitted_by_customer_user_id', type: 'uuid' })
+  submittedByCustomerUserId!: string
+
+  @Property({ type: 'text' })
+  channel!: string
+
+  @Property({ name: 'event_id', type: 'text' })
+  eventId!: string
+
+  @Property({ type: 'jsonb' })
+  original!: Record<string, unknown>
+
+  @Property({ name: 'workflow_instance_id', type: 'uuid', nullable: true })
+  workflowInstanceId: string | null = null
+
+  @Property({ name: 'created_at', type: Date, onCreate: () => new Date() })
+  createdAt: Date = new Date()
 
   @Property({ name: 'deleted_at', type: Date, nullable: true })
   deletedAt: Date | null = null

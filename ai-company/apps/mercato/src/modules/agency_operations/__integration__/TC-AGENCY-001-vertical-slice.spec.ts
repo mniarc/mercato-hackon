@@ -123,8 +123,12 @@ async function deleteCreatedDatabaseRows(
 ): Promise<void> {
   await withClient(async (client) => {
     const workflows = await client.query<{ id: string }>(
-      'SELECT id FROM workflow_instances WHERE tenant_id = $1 AND organization_id = $2 AND (id = $3 OR correlation_key = $4)',
-      [tenantId, organizationId, resources.workflowInstanceId, `agency-attention:${resources.caseId}`],
+      `SELECT id FROM workflow_instances WHERE tenant_id = $1 AND organization_id = $2
+       AND (id = $3 OR correlation_key = $4 OR id IN (
+         SELECT workflow_instance_id FROM agency_client_submissions
+         WHERE tenant_id = $1 AND organization_id = $2 AND case_id = $5
+       ))`,
+      [tenantId, organizationId, resources.workflowInstanceId, `agency-attention:${resources.caseId}`, resources.caseId],
     )
     for (const workflow of workflows.rows) {
       const scopedWorkflowParams = [workflow.id, tenantId, organizationId]
@@ -150,6 +154,10 @@ async function deleteCreatedDatabaseRows(
       )
     }
     if (resources.caseId) {
+      await client.query(
+        'DELETE FROM agency_client_submissions WHERE case_id = $1 AND tenant_id = $2 AND organization_id = $3',
+        [resources.caseId, tenantId, organizationId],
+      )
       await client.query(
         'DELETE FROM agency_cases WHERE id = $1 AND tenant_id = $2 AND organization_id = $3',
         [resources.caseId, tenantId, organizationId],
@@ -328,6 +336,22 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await page.reload({ waitUntil: 'domcontentloaded' })
         await expect(page.getByText(title, { exact: true })).toBeVisible()
         await expect(page.getByRole('status')).toContainText('The requested process is complete')
+      })
+
+      await runDemoPhase('Route client submission', 'Clarification saved once', async () => {
+        const endpoint = new URL(`/api/agency/portal/cases/${intakeResult.caseId}/submissions`, BASE_URL).toString()
+        const original = { eventId: `demo-message-${suffix}`, text: 'Please help me clarify the next step.', scaffoldScenario: 'clarify' }
+        const response = await page.request.post(endpoint, { data: original })
+        expect(response.status(), 'Client submission should be persisted').toBe(201)
+        const result = await response.json() as { replayed: boolean; item: { submissionId: string; original: unknown; workflow: unknown; disposition: unknown } }
+        expect(result).toMatchObject({ replayed: false, item: {
+          original,
+          workflow: { status: 'PAUSED', currentStep: 'client_reply' },
+          disposition: { kind: 'clarify', source: 'deterministic_scaffold', effectsApplied: false },
+        } })
+        const replayResponse = await page.request.post(endpoint, { data: original })
+        expect(replayResponse.status()).toBe(200)
+        expect(await replayResponse.json()).toMatchObject({ replayed: true, item: { submissionId: result.item.submissionId } })
       })
 
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
