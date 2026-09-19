@@ -3,6 +3,7 @@
  */
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import PortalLoginPage from '../login/page'
 import PortalSignupPage from '../signup/page'
 
@@ -52,6 +53,18 @@ jest.mock('@open-mercato/ui/backend/injection/spotIds', () => ({
 describe('portal auth pages', () => {
   beforeEach(() => {
     mockApiCall.mockReset()
+  })
+
+  it('keeps signup submission disabled in server HTML until the client form is ready', () => {
+    const server = document.createElement('div')
+    server.innerHTML = renderToStaticMarkup(<PortalSignupPage params={{ orgSlug: 'acme-corp' }} />)
+    expect(server.querySelector('form')).toHaveAttribute('data-auth-ready', '0')
+    expect(server.querySelector('button[type="submit"]')).toBeDisabled()
+
+    const { container, getByRole } = render(<PortalSignupPage params={{ orgSlug: 'acme-corp' }} />)
+    expect(container.querySelector('form')).toHaveAttribute('data-auth-ready', '1')
+    expect(getByRole('button', { name: 'Create Account' })).toBeEnabled()
+    expect(mockApiCall).not.toHaveBeenCalled()
   })
 
   it('shows a neutral post-signup message instead of promising immediate login', async () => {

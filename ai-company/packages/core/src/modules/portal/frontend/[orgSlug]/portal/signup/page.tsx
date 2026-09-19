@@ -1,5 +1,5 @@
 "use client"
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { extensionPoints } from '@open-mercato/core/modules/portal/extension-points'
 import Link from 'next/link'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
@@ -31,10 +31,16 @@ export default function PortalSignupPage({ params }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [success, setSuccess] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [clientReady, setClientReady] = useState(false)
+
+  useEffect(() => {
+    setClientReady(true)
+  }, [])
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent) => {
       event.preventDefault()
+      if (!clientReady) return
       setError(null)
       setFieldErrors({})
 
@@ -84,7 +90,7 @@ export default function PortalSignupPage({ params }: Props) {
         setSubmitting(false)
       }
     },
-    [displayName, email, password, tenant.organizationId, t],
+    [clientReady, displayName, email, password, tenant.organizationId, t],
   )
 
   const injectionContext = useMemo(
@@ -136,7 +142,7 @@ export default function PortalSignupPage({ params }: Props) {
 
       <InjectionSpot spotId={extensionPoints.hosts.signupBefore.spotId} context={injectionContext} />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" data-auth-ready={clientReady ? '1' : '0'}>
         {error ? (
           <Alert status="error">
             <AlertDescription>{error}</AlertDescription>
@@ -161,7 +167,7 @@ export default function PortalSignupPage({ params }: Props) {
           {fieldErrors.password && <p id="signup-password-error" role="alert" className="text-sm text-destructive">{fieldErrors.password}</p>}
         </div>
 
-        <Button type="submit" disabled={submitting} className="mt-1 w-full rounded-lg">
+        <Button type="submit" disabled={!clientReady || submitting} className="mt-1 w-full rounded-lg">
           {submitting ? t('portal.signup.submitting', 'Creating account...') : t('portal.signup.submit', 'Create Account')}
         </Button>
 

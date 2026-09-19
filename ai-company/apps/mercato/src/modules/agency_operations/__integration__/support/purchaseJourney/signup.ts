@@ -17,6 +17,7 @@ export async function signUpPurchaseCustomer(page: Page, input: { baseUrl: strin
     throw new Error('[internal] Signup proof requires the app and runner OM_TEST_EMAIL_CAPTURE_PATH from the persistent agency launcher; no verification bypass is permitted.')
   }
   await page.goto(new URL(`/${input.orgSlug}/portal/signup`, input.baseUrl).toString(), { waitUntil: 'domcontentloaded' })
+  await expect(page.locator('form[data-auth-ready="1"]')).toBeVisible({ timeout: 30_000 })
   await page.locator('#signup-name').fill(input.displayName)
   await page.locator('#signup-email').fill(input.email)
   await page.locator('#signup-password').fill(input.password)
