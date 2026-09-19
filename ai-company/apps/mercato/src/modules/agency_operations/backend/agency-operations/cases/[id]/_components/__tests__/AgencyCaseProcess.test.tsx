@@ -32,6 +32,22 @@ const process = {
 
 beforeEach(() => jest.clearAllMocks())
 
+test('keeps a late-material impact hold visible without suggesting approved documents were replaced', async () => {
+  const materialRevision = { status: 'not_ready', orderRef: 'case-id', reason: 'impact_review_required' }
+  const materialRevisionHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'impact_review_required', nextAction: 'review_impact', revision: materialRevision }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: { ...process,
+    submissions: [{ ...process.submissions[0], materialRevision, materialRevisionHandoff }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.materialRevision.blocked')).toBeTruthy()
+  expect(screen.getByText('impact_review_required')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.materialRevision.nextAction.review_impact')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.materialRevision.noApprovalOrResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.materialRevision.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
 test('shows the saved initial post hold with its next step without inventing resume', async () => {
   const postReviewHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
     reason: 'missing_post_authorization', nextAction: 'review_configuration',

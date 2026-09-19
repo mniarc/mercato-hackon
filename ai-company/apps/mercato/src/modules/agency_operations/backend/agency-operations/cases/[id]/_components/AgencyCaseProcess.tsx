@@ -261,6 +261,34 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.postReviewHandoff} title={translate(`${key}.postReviewHandoff.title`)} />
               </div>
             ) : null}
+            {submission.materialRevision ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.materialRevision.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.materialRevision.${submission.materialRevision.status}`)}</p>
+                {submission.materialRevisionHandoff ? (
+                  <>
+                    <StatusBadge variant={submission.materialRevisionHandoff.status === 'blocked' ? 'warning' : 'neutral'}>
+                      {translate(`${key}.materialRevision.${submission.materialRevisionHandoff.status}`)}
+                    </StatusBadge>
+                    {submission.materialRevisionHandoff.status === 'blocked' ? (
+                      <>
+                        <p className="text-sm"><code>{submission.materialRevisionHandoff.reason}</code></p>
+                        <p className="text-sm">{translate(`${key}.materialRevision.nextAction.${submission.materialRevisionHandoff.nextAction}`)}</p>
+                      </>
+                    ) : null}
+                  </>
+                ) : 'reason' in submission.materialRevision ? <p className="text-sm text-muted-foreground">{submission.materialRevision.reason}</p> : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.materialRevision.noApprovalOrResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${submission.materialRevisionHandoff?.status === 'invited' ? submission.materialRevisionHandoff.invitation.workflowInstanceId : submission.workflow.id}`}>
+                      {translate(`${key}.materialRevision.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.materialRevisionHandoff ?? submission.materialRevision} title={translate(`${key}.materialRevision.title`)} />
+              </div>
+            ) : null}
             {submission.postRevision ? (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">{translate(`${key}.postRevision.title`)}</h3>

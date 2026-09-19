@@ -14,6 +14,7 @@ import { createResearchExceptionFragment, RESEARCH_EXCEPTION_STEP_ID } from '../
 import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../../lib/researchException/contracts'
 import { BRIEF_REVISION_FUNCTION, BRIEF_REVISION_STEP_ID, BRIEF_REVISION_RESULT_KEY, BRIEF_REVISION_REVIEW_FUNCTION, BRIEF_REVISION_EXCEPTION_FUNCTION } from '../../lib/briefRevision/contracts'
 import { POST_REVISION_FUNCTION, POST_REVISION_STEP_ID, POST_REVISION_RESULT_KEY, POST_REVISION_REVIEW_FUNCTION, POST_REVISION_EXCEPTION_FUNCTION } from '../../lib/postRevision/contracts'
+import { MATERIAL_REVISION_FUNCTION, MATERIAL_REVISION_STEP_ID, MATERIAL_REVISION_RESULT_KEY, MATERIAL_REVISION_REVIEW_FUNCTION, MATERIAL_REVISION_EXCEPTION_FUNCTION } from '../../lib/materialRevision/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -41,7 +42,8 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
         activityId: 'native_triage', activityName: 'native_triage', activityType: 'INVOKE_AGENT',
         config: {
           agentId: CLIENT_TRIAGE_AGENT_ID,
-          input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}` },
+          input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}`,
+            materialContext: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.materialContext | default(null)}}` },
           onResult: { alwaysAsk: true },
           outputMapping: { [CLIENT_TRIAGE_INTERPRETATION_KEY]: 'data' },
         },
@@ -52,6 +54,12 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'client_reply', stepName: 'Waiting for client clarification', stepType: 'WAIT_FOR_SIGNAL', signalConfig: { signalName: CLIENT_REPLY_SIGNAL } },
     { stepId: 'answered', stepName: 'Answer available', stepType: 'END' },
     { stepId: 'brief_accepted', stepName: 'Exact brief acceptance recorded', stepType: 'AUTOMATED' },
+    { stepId: MATERIAL_REVISION_STEP_ID, stepName: 'Late material evidence applied to brief', stepType: 'AUTOMATED' },
+    { stepId: 'material_revision_exception_checked', stepName: 'Saved material revision escalation checked', stepType: 'AUTOMATED' },
+    { stepId: 'material_revision_review', stepName: 'Material follow-up handoff recorded', stepType: 'AUTOMATED' },
+    { stepId: 'material_revision_invited', stepName: 'Fresh brief review available', stepType: 'END' },
+    { stepId: 'material_revision_waiting', stepName: 'Material revision needs attention', stepType: 'WAIT_FOR_SIGNAL',
+      signalConfig: { signalName: 'agency.brief-revision.follow-up' } },
     { stepId: BRIEF_REVISION_STEP_ID, stepName: 'Client answers applied to brief', stepType: 'AUTOMATED' },
     { stepId: 'brief_revision_exception_checked', stepName: 'Saved brief revision escalation checked', stepType: 'AUTOMATED' },
     { stepId: 'brief_revision_review', stepName: 'Brief follow-up handoff recorded', stepType: 'AUTOMATED' },
@@ -112,6 +120,24 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { transitionId: 'approve_brief', fromStepId: 'routed', toStepId: 'brief_accepted', trigger: 'auto', priority: 100,
       condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: 'brief_accepted' },
       activities: [{ activityId: 'accept_brief', activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_BRIEF_FUNCTION, args: {} } }] },
+    { transitionId: 'revise_material', fromStepId: 'routed', toStepId: MATERIAL_REVISION_STEP_ID, trigger: 'auto', priority: 100,
+      condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: MATERIAL_REVISION_STEP_ID },
+      activities: [{ activityId: 'execute_material_revision', activityName: MATERIAL_REVISION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
+        retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
+        config: { functionName: MATERIAL_REVISION_FUNCTION, args: {} } }] },
+    { transitionId: 'check_material_revision_exception', fromStepId: MATERIAL_REVISION_STEP_ID, toStepId: 'material_revision_exception_checked', trigger: 'auto',
+      activities: [{ activityId: 'material_revision_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: MATERIAL_REVISION_EXCEPTION_FUNCTION, args: {} } }] },
+    { transitionId: 'assign_material_revision_exception', fromStepId: 'material_revision_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    { transitionId: 'review_material_brief', fromStepId: 'material_revision_exception_checked', toStepId: 'material_revision_review', trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
+      activities: [{ activityId: 'invite_material_brief', activityName: 'agencyMaterialRevisionInvitation', activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: MATERIAL_REVISION_REVIEW_FUNCTION, args: {} } }] },
+    { transitionId: 'material_revision_invitation_available', fromStepId: 'material_revision_review', toStepId: 'material_revision_invited', trigger: 'auto',
+      condition: { field: 'agencyMaterialRevisionInvitation.result.status', operator: '=', value: 'invited' } },
+    { transitionId: 'hold_material_revision', fromStepId: 'material_revision_review', toStepId: 'material_revision_waiting', trigger: 'auto',
+      condition: { field: 'agencyMaterialRevisionInvitation.result.status', operator: '=', value: 'blocked' } },
     { transitionId: 'revise_brief', fromStepId: 'routed', toStepId: BRIEF_REVISION_STEP_ID, trigger: 'auto', priority: 100,
       condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: BRIEF_REVISION_STEP_ID },
       activities: [{ activityId: 'execute_brief_revision', activityName: BRIEF_REVISION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,

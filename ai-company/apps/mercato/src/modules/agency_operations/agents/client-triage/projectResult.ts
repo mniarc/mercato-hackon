@@ -26,13 +26,14 @@ export function projectClientTriageResult(
     unappliedReason = 'uncertainty_not_clarified'
   } else if (recommendation === 'approve' && interpretation.parts.some((part) => part.intent !== 'approval')) {
     unappliedReason = 'mixed_dispositions'
-  } else if (recommendation === 'change' && interpretation.parts.some((part) => part.intent !== 'change')) {
+  } else if (recommendation === 'change' && interpretation.parts.some((part) => part.intent !== 'change'
+    && !(part.intent === 'material' && allowedTargets.includes('material_revision')))) {
     unappliedReason = 'mixed_dispositions'
   } else if (recommendation !== 'approve' && recommendation !== 'change' && !interpretation.responseMessage) {
     unappliedReason = 'missing_response'
   } else {
     const approvalTargets = allowedTargets.filter((target) => target === 'brief_accepted' || target === 'strategy_pair_decision' || target === 'plan_topic_decision' || target === 'post_content_decision')
-    const changeTargets = allowedTargets.filter((target) => target === 'brief_revision' || target === 'post_revision')
+    const changeTargets = allowedTargets.filter((target) => target === 'brief_revision' || target === 'post_revision' || target === 'material_revision')
     const targetStepId = recommendation === 'answer' ? 'answered' : recommendation === 'clarify' ? 'client_reply' : recommendation === 'change' ? (changeTargets.length === 1 ? changeTargets[0] : null) : approvalTargets.length === 1 ? approvalTargets[0] : null
     if (!targetStepId || !allowedTargets.includes(targetStepId)) {
       unappliedReason = 'target_not_authorized'
@@ -40,7 +41,7 @@ export function projectClientTriageResult(
       disposition = recommendation === 'approve'
         ? { kind: 'approve', targetStepId: targetStepId as 'brief_accepted' | 'strategy_pair_decision' | 'plan_topic_decision' | 'post_content_decision' }
         : recommendation === 'change'
-        ? { kind: 'change', targetStepId: targetStepId as 'brief_revision' | 'post_revision' }
+        ? { kind: 'change', targetStepId: targetStepId as 'brief_revision' | 'post_revision' | 'material_revision' }
         : recommendation === 'answer'
         ? { kind: 'answer', targetStepId: 'answered' }
         : { kind: 'clarify', targetStepId: 'client_reply' }

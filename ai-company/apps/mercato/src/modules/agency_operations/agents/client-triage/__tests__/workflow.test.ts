@@ -33,6 +33,7 @@ test('continues after saved readiness through one asynchronous native activity w
 test.each([
   ['planning_execution', 'planning_exception_checked', 'agency_operations.handoffPlanningResearchException', 'plan_review'],
   ['post_production', 'post_exception_checked', 'agency_operations.handoffPostResearchException', 'post_review'],
+  ['material_revision', 'material_revision_exception_checked', 'agency_operations.handoffMaterialRevisionException', 'material_revision_review'],
 ])('routes exhausted %s to the existing employee task before considering client review', (executionStep, checkedStep, handoffFunction, reviewStep) => {
   expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === executionStep))
     .toMatchObject({ toStepId: checkedStep, activities: [{ config: { functionName: handoffFunction } }] })
@@ -48,6 +49,7 @@ test.each([
   ['plan_review', 'agencyPlanInvitation', 'plan_invited', 'planning_waiting'],
   ['post_review', 'agencyPostInvitation', 'post_review_invited', 'post_review_waiting'],
   ['post_revision_review', 'agencyPostRevisionInvitation', 'post_revision_invited', 'post_revision_waiting'],
+  ['material_revision_review', 'agencyMaterialRevisionInvitation', 'material_revision_invited', 'material_revision_waiting'],
 ])('keeps blocked %s waiting without automatic replay or a false completed review', (reviewStep, resultKey, invitedStep, waitingStep) => {
   expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === reviewStep)?.stepType).toBe('AUTOMATED')
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === reviewStep))
@@ -64,7 +66,8 @@ test('passes the stored original through native input mapping and projects the s
   const triage = nativeClientSubmissionDefinition.steps.find((step) => step.stepId === 'triage')
   expect(triage?.activities).toEqual([expect.objectContaining({ activityType: 'INVOKE_AGENT', config: {
     agentId: CLIENT_TRIAGE_AGENT_ID,
-    input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}` },
+    input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}`,
+      materialContext: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.materialContext | default(null)}}` },
     onResult: { alwaysAsk: true }, outputMapping: { [CLIENT_TRIAGE_INTERPRETATION_KEY]: 'data' },
   } })])
   expect(nativeClientSubmissionDefinition.transitions).toEqual(expect.arrayContaining([
@@ -79,9 +82,9 @@ test('passes the stored original through native input mapping and projects the s
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
-    .toEqual(['answered', 'client_reply', 'brief_accepted', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
+    .toEqual(['answered', 'client_reply', 'brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
       toStepId: target,
-      condition: ['brief_accepted', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
+      condition: ['brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
         ? { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: target }
         : { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: target === 'answered' ? 'answer' : target === 'client_reply' ? 'clarify' : 'unapplied' },
     })))

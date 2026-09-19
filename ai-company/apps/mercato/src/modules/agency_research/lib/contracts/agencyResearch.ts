@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { MaterialRevisionRequest, MaterialRevisionResult } from '../materialRevision/contracts'
 import { orderDataSchema } from '../../data/schemas/zamowienie'
 import type { AcceptBriefInput, BriefAcceptanceReceipt, BriefAcceptanceProjection } from '../briefAcceptance/contracts'
 import type { ResearchExceptionProjection } from '../exceptionReview/read'
@@ -151,6 +152,7 @@ export type BriefReviewProjection = {
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
   runBriefRevision(input: { context: ResearchExecutionContext; request: BriefRevisionRequest }): Promise<BriefRevisionResult>
+  runMaterialRevision(input: { context: ResearchExecutionContext; request: MaterialRevisionRequest }): Promise<MaterialRevisionResult>
   /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
   runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>

@@ -1,4 +1,5 @@
 export * from './agencyResearch'
+export * from '../materialRevision/contracts'
 export { publicationTargetSchema, publicationConsentRecordSchema, samePublicationDestination } from '../publicationConsent/contracts'
 export type { PublicationTarget, PublicationConsent, PublicationConsentRecord, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
 export { acceptBriefInputSchema, briefAcceptanceReceiptSchema, briefAcceptanceRecordSchema, briefAcceptanceSourceSchema } from '../briefAcceptance/contracts'

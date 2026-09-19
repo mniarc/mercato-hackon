@@ -12,6 +12,7 @@ import { PLANNING_EXECUTION_RESULT_KEY } from '../../planningExecution/contracts
 import { POST_EXECUTION_RESULT_KEY, POST_EXECUTION_FUNCTION } from '../../postExecution/contracts'
 import { BRIEF_REVISION_RESULT_KEY } from '../../briefRevision/contracts'
 import { POST_REVISION_RESULT_KEY } from '../../postRevision/contracts'
+import { MATERIAL_REVISION_RESULT_KEY } from '../../materialRevision/contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('@open-mercato/core/modules/workflows/lib/task-visibility-request', () => ({
@@ -40,6 +41,21 @@ function workflow(step: string, context: Record<string, unknown> = {}, status = 
 }
 
 beforeEach(() => jest.clearAllMocks())
+
+test('projects material holds only for the exact saved attachment and submission', () => {
+  const materialSubmission = Object.assign(new AgencyClientSubmission(), submission, {
+    original: { ...submission.original, materialAttachmentId: tenantId },
+  })
+  const revision = { status: 'not_ready', orderRef: caseId, reason: 'impact_review_required' }
+  const handoff = { status: 'blocked', orderRef: caseId, invitation: null, reason: revision.reason, nextAction: 'review_impact', revision }
+  const materialContext = { material: { attachmentId: tenantId, submissionId, fileName: 'evidence.txt', text: 'Evidence', submittedAt: '2026-09-19T10:00:00.000Z' },
+    brief: { versionId: organizationId, clientViewMd: 'Approved brief' }, state: 'impact_review_required' }
+  const saved = workflow('material_revision_waiting', { nativeClientTriageInput: { result: { materialContext } },
+    [MATERIAL_REVISION_RESULT_KEY]: { result: revision }, agencyMaterialRevisionInvitation: { result: handoff } })
+  expect(projectSubmissionProcess(materialSubmission, saved, []).materialRevisionHandoff).toEqual(handoff)
+  materialContext.material.attachmentId = customerEntityId
+  expect(projectSubmissionProcess(materialSubmission, saved, []).materialRevisionHandoff).toBeNull()
+})
 
 test('projects a saved initial post hold only with its case-scoped production outcome', () => {
   const execution = { status: 'not_configured', orderRef: caseId, reason: 'missing_post_authorization' }

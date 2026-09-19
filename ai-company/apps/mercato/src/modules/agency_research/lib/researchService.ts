@@ -1,4 +1,6 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import { runMaterialRevision } from './materialRevision/run'
+import { materialRevisionRequestSchema } from './materialRevision/contracts'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
@@ -384,6 +386,18 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       })
       const { versionsByStep: _versionsByStep, ...result } = outcome
       return result
+    },
+    async runMaterialRevision({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] material revision requires an explicit tenant, organization and execution user')
+      const parsed = materialRevisionRequestSchema.parse(request)
+      if (context.workflowInstanceId !== parsed.source.workflowInstanceId) throw new Error('[internal] material revision source must belong to the executing workflow')
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) throw new Error('[internal] material revision execution is not authorized')
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runMaterialRevision({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds })
     },
     async runBriefRevision({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] brief revision requires an explicit tenant, organization and execution user')

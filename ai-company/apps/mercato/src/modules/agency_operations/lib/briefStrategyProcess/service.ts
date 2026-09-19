@@ -13,7 +13,7 @@ import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacS
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
-import { AGENCY_RESEARCH_SERVICE, briefRevisionOutcomeSchema, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
+import { AGENCY_RESEARCH_SERVICE, briefRevisionOutcomeSchema, materialRevisionOutcomeSchema, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { CLIENT_SUBMISSION_SERVICE, type ClientSubmissionService } from '../contracts/clientSubmission'
 import {
@@ -22,6 +22,7 @@ import {
 } from './contracts'
 import { briefReviewStatus, renderBriefReview } from './review'
 import { BRIEF_REVISION_RESULT_KEY } from '../briefRevision/contracts'
+import { MATERIAL_REVISION_RESULT_KEY } from '../materialRevision/contracts'
 
 type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
 type Scope = { tenantId: string; organizationId: string }
@@ -141,6 +142,7 @@ export function createBriefReviewService(container: AppContainer): BriefReviewSe
         const agencyCase = await findOneWithDecryption(tx, AgencyCase, { id: input.caseId, ...scope, deletedAt: null }, { lockMode: LockMode.PESSIMISTIC_WRITE }, scope)
         if (!agencyCase) notFound()
         await contact(agencyCase.submittedByCustomerUserId, agencyCase.customerEntityId, scope)
+        let materialQuestions: Array<{ questionId: string; question: string }> | undefined
         if (input.sourceSubmissionId) {
           const source = await findOneWithDecryption(tx, AgencyClientSubmission, {
             ...scope, id: input.sourceSubmissionId, caseId: agencyCase.id, customerEntityId: agencyCase.customerEntityId,
@@ -151,14 +153,26 @@ export function createBriefReviewService(container: AppContainer): BriefReviewSe
           }, undefined, scope) : null
           const outcome = z.object({ result: briefRevisionOutcomeSchema }).safeParse(sourceWorkflow?.context[BRIEF_REVISION_RESULT_KEY])
           const original = record(record(source?.original).reviewResponse)
-          if (!source || !outcome.success || outcome.data.result.status !== 'needs_client_data'
-            || outcome.data.result.orderRef !== agencyCase.id || outcome.data.result.submissionId !== source.id
-            || outcome.data.result.previousBriefVersionId !== input.versionId || outcome.data.result.briefVersionId !== null
-            || original.kind !== 'message' || original.versionId !== input.versionId) conflict()
+          const briefFollowUp = source && outcome.success && outcome.data.result.status === 'needs_client_data'
+            && outcome.data.result.orderRef === agencyCase.id && outcome.data.result.submissionId === source.id
+            && outcome.data.result.previousBriefVersionId === input.versionId && outcome.data.result.briefVersionId === null
+            && original.kind === 'message' && original.versionId === input.versionId
+          if (!briefFollowUp) {
+            const material = z.object({ result: materialRevisionOutcomeSchema }).safeParse(sourceWorkflow?.context[MATERIAL_REVISION_RESULT_KEY])
+            if (!source || !material.success || material.data.result.status !== 'needs_client_data'
+              || material.data.result.orderRef !== agencyCase.id || material.data.result.submissionId !== source.id
+              || material.data.result.previousBriefVersionId !== input.versionId || material.data.result.briefVersionId !== null
+              || material.data.result.sourcesVersionId !== null || material.data.result.findingsVersionId !== null
+              || material.data.result.documentVersionIds.length || material.data.result.escalationVersionId
+              || !material.data.result.questions.length || !z.uuid().safeParse(source.original.materialAttachmentId).success) conflict()
+            materialQuestions = material.data.result.questions
+          }
         }
         const projection = await research.getBriefReview(scope, agencyCase.id, input.versionId)
         const review = projection ? await renderBriefReview(projection, agencyCase.id) : null
         if (!review) conflict()
+        if (materialQuestions && (review.status !== 'needs_review' || !isDeepStrictEqual(materialQuestions,
+          projection?.questions.map((question) => ({ questionId: question.question_id, question: question.question }))))) conflict()
         const correlationKey = `agency-brief:${agencyCase.id}:${input.versionId}${input.sourceSubmissionId ? `:reply:${input.sourceSubmissionId}` : ''}`
         const existing = await findOneWithDecryption(tx, WorkflowInstance, { workflowId: BRIEF_REVIEW_WORKFLOW_ID, correlationKey, ...scope, deletedAt: null }, undefined, scope)
         if (existing) return { workflowInstanceId: existing.id, replayed: true }

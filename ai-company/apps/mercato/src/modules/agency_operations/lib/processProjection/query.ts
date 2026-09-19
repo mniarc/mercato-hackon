@@ -27,6 +27,8 @@ import { PUBLICATION_PREPARATION_RESULT_KEY } from '../publicationPreparation/co
 import { POST_EXECUTION_RESULT_KEY, postExecutionActivityResultSchema, postReviewHandoffResultSchema } from '../postExecution/contracts'
 import { BRIEF_REVISION_RESULT_KEY, briefRevisionActivityResultSchema } from '../briefRevision/contracts'
 import { POST_REVISION_RESULT_KEY, postRevisionActivityResultSchema, postRevisionReviewHandoffResultSchema } from '../postRevision/contracts'
+import { MATERIAL_REVISION_RESULT_KEY, materialRevisionActivityResultSchema, materialRevisionHandoffSchema } from '../materialRevision/contracts'
+import { materialContextSchema } from '../materialRevision/input'
 import { caseBriefRevisionHandoffSchema, caseStrategyHandoffSchema, caseStrategyPairContinuationSchema, type CaseAnalysisProcess, type CaseProcessResponse, type CaseProcessSubmission } from './contract'
 
 type EmployeeScope = { tenantId: string; organizationId: string; userId: string; roleNames: string[] }
@@ -42,6 +44,20 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const interpretation = clientTriageInterpretationSchema.safeParse(context[CLIENT_TRIAGE_INTERPRETATION_KEY])
   const native = workflow?.workflowId === NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
   const original = clientSubmissionRequestSchema.parse(submission.original)
+  const materialInput = materialContextSchema.safeParse(record(record(context.nativeClientTriageInput).result).materialContext)
+  const materialRevision = materialRevisionActivityResultSchema.safeParse(record(context[MATERIAL_REVISION_RESULT_KEY]).result)
+  const materialHandoff = materialRevisionHandoffSchema.safeParse(record(context.agencyMaterialRevisionInvitation).result)
+  const scopedMaterialRevision = native && materialInput.success && materialRevision.success
+    && materialInput.data.material.attachmentId === original.materialAttachmentId && materialInput.data.material.submissionId === submission.id
+    && materialRevision.data.orderRef === submission.caseId
+    && (!('submissionId' in materialRevision.data) || (materialRevision.data.submissionId === submission.id
+      && materialRevision.data.previousBriefVersionId === materialInput.data.brief?.versionId))
+    ? materialRevision.data : null
+  const scopedMaterialHandoff = scopedMaterialRevision && materialHandoff.success && materialHandoff.data.orderRef === submission.caseId
+    && (materialHandoff.data.status === 'blocked' ? isDeepStrictEqual(materialHandoff.data.revision, scopedMaterialRevision)
+      : (scopedMaterialRevision.status === 'completed' || scopedMaterialRevision.status === 'needs_client_data')
+        && materialHandoff.data.versionId === (scopedMaterialRevision.briefVersionId ?? scopedMaterialRevision.previousBriefVersionId))
+    ? materialHandoff.data : null
   const postRevision = postRevisionActivityResultSchema.safeParse(record(context[POST_REVISION_RESULT_KEY]).result)
   const postRevisionHandoff = postRevisionReviewHandoffResultSchema.safeParse(record(context.agencyPostRevisionInvitation).result)
   const scopedPostRevision = native && original.postReviewResponse?.kind === 'message'
@@ -136,6 +152,8 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
       ? publicationPreparation.data : null,
     postRevision: scopedPostRevision,
     postRevisionHandoff: scopedPostRevisionHandoff,
+    materialRevision: scopedMaterialRevision,
+    materialRevisionHandoff: scopedMaterialHandoff,
     tasks: tasks.map((task) => ({
       id: task.id, status: task.status, assignedTo: task.assignedTo ?? null,
       assignedToRoles: task.assignedToRoles ?? [], claimedBy: task.claimedBy ?? null,

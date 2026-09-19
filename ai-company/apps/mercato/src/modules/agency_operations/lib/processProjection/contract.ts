@@ -8,6 +8,7 @@ import { planningExecutionActivityResultSchema, planningReviewHandoffResultSchem
 import { postExecutionActivityResultSchema, postReviewHandoffResultSchema } from '../postExecution/contracts'
 import { briefRevisionActivityResultSchema } from '../briefRevision/contracts'
 import { postRevisionActivityResultSchema, postRevisionReviewHandoffResultSchema } from '../postRevision/contracts'
+import { materialRevisionActivityResultSchema, materialRevisionHandoffSchema } from '../materialRevision/contracts'
 
 export const caseBriefRevisionHandoffSchema = z.discriminatedUnion('status', [
   z.object({
@@ -95,6 +96,8 @@ export const caseProcessSubmissionSchema = z.object({
   postReviewHandoff: postReviewHandoffResultSchema.nullable().optional(),
   postRevision: postRevisionActivityResultSchema.nullable().optional(),
   postRevisionHandoff: postRevisionReviewHandoffResultSchema.nullable().optional(),
+  materialRevision: materialRevisionActivityResultSchema.nullable().optional(),
+  materialRevisionHandoff: materialRevisionHandoffSchema.nullable().optional(),
   publicationPreparation: publicationPreparationResultSchema.nullable().optional(),
   tasks: z.array(z.object({
     id: z.uuid(),

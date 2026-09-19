@@ -59,6 +59,18 @@ test('uncertainty cannot become an answer, while a grounded clarification can us
 
 test('keeps original client input but strips deterministic routing hints', () => {
   expect(inputSchema.parse({ original: { eventId: 'event-1', text: 'What happens next?', scaffoldScenario: 'clarify' } })).toEqual({ original: { eventId: 'event-1', text: 'What happens next?' } })
+  expect(inputSchema.parse({ original: { eventId: 'event-1', text: 'What happens next?' }, materialContext: null })).toEqual({ original: { eventId: 'event-1', text: 'What happens next?' } })
+})
+
+test('routes material evidence only with a server-bound material target, never client approval or answer revision', () => {
+  const material: ClientTriageInterpretation = { ...interpretation, responseMessage: null, recommendedDisposition: 'change',
+    parts: [{ ...interpretation.parts[0], intent: 'material', recommendedDisposition: 'change' }],
+    materialDirective: { question: 'Which supplied facts support the offer?', briefField: 'priority_offer' } }
+  expect(projectClientTriageResult(scope, material, ['material_revision'])).toMatchObject({
+    disposition: { kind: 'change', targetStepId: 'material_revision' }, effectsApplied: false,
+  })
+  expect(projectClientTriageResult(scope, material, ['brief_revision']).disposition).toBeNull()
+  expect(projectClientTriageResult(scope, { ...material, recommendedDisposition: 'approve' }, ['brief_accepted']).disposition).toBeNull()
 })
 
 test('routes supplied brief answers only with a server-bound revision target, without granting approval', () => {
