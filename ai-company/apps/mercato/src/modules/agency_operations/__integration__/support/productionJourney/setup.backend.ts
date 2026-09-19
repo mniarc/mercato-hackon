@@ -21,6 +21,7 @@ import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchTaskRun } from '../../../../agency_research/data/entities'
 import { readJourneyMode } from './mode'
 import { STAFF_TOV_INTAKE_SERVICE, type StaffTovIntakeService } from '../../../lib/tovIntake/contracts'
+import { clientTriageDefinitionWithTovRevision } from '../../../agents/client-triage/configureWorkflow'
 
 async function open() {
   await bootstrapFromAppRoot(path.resolve(process.env.OM_TEST_APP_ROOT ?? path.resolve(process.cwd(), 'apps/mercato')))
@@ -29,23 +30,25 @@ async function open() {
 
 async function configureCurrentTriageDefinition(
   container: Awaited<ReturnType<typeof open>>, em: EntityManager,
-  input: { tenantId: string; organizationId: string; userId: string },
+  input: { tenantId: string; organizationId: string; userId: string; tovCorrection?: boolean },
 ): Promise<string[]> {
   const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
   const triage = await em.findOne(WorkflowDefinition, { workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, ...scope, enabled: true, lifecycle: 'published' }, { orderBy: { version: 'DESC' } })
   if (!triage || triage.metadata?.generatedBy?.ownerId !== 'client_triage') throw new Error('Configure the owned native client triage definition before this journey')
   if (!triage.grantedFeatures?.includes('agent_orchestrator.agents.run')) throw new Error('Native triage requires its existing authorized execution grant')
-  if (JSON.stringify(workflowDefinitionDataSchema.parse(triage.definition)) !== JSON.stringify(workflowDefinitionDataSchema.parse(nativeClientSubmissionDefinition))) {
+  const desired = input.tovCorrection ? clientTriageDefinitionWithTovRevision({ enabled: true, maxAgentCalls: 1, runTimeoutMs: 30000, pairQaMaxCostPln: 20 }) : nativeClientSubmissionDefinition
+  const grantedFeatures = [...new Set([...(triage.grantedFeatures ?? []), ...(input.tovCorrection ? ['agency_tov.manage'] : [])])]
+  if (JSON.stringify(workflowDefinitionDataSchema.parse(triage.definition)) !== JSON.stringify(workflowDefinitionDataSchema.parse(desired))) {
     const grantFailure = await authorizeWorkflowGrantChange(container.resolve('rbacService'), {
-      userId: input.userId, scope, requested: triage.grantedFeatures ?? [], current: [],
+      userId: input.userId, scope, requested: grantedFeatures, current: [],
     })
     if (grantFailure) throw new Error(`Cannot publish the native triage execution grant: ${grantFailure.status}`)
     const latestTriage = await em.findOne(WorkflowDefinition, { workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, tenantId: input.tenantId }, { orderBy: { version: 'DESC' } })
     const nextTriage = em.create(WorkflowDefinition, {
       id: randomUUID(), ...scope, workflowId: triage.workflowId, workflowName: triage.workflowName,
       description: triage.description, version: (latestTriage?.version ?? 0) + 1,
-      definition: workflowDefinitionDataSchema.parse(nativeClientSubmissionDefinition),
-      enabled: true, lifecycle: 'published', grantedFeatures: triage.grantedFeatures ?? [],
+      definition: workflowDefinitionDataSchema.parse(desired),
+      enabled: true, lifecycle: 'published', grantedFeatures,
       metadata: { ...triage.metadata, tags: [...(triage.metadata?.tags ?? []), 'fixture:agency-journey'] },
       createdBy: input.userId, updatedBy: input.userId, createdAt: new Date(), updatedAt: new Date(),
     })
@@ -70,9 +73,10 @@ export async function configureCurrentTriageJourney(input: { tenantId: string; o
 }
 
 export async function configureProductionJourney(input: {
-  tenantId: string; organizationId: string; userId: string; productSelection: unknown; includePost?: boolean;
+  tenantId: string; organizationId: string; userId: string; productSelection: unknown; includePost?: boolean; tovCorrection?: boolean;
 }): Promise<string[]> {
   const mode = readJourneyMode()
+  if (input.tovCorrection && mode !== 'fixture') throw new Error('The bounded ToV correction alternative is fixture-only; it does not authorize paid calls')
   if (!process.env.AGENCY_TEST_RESEARCH_FIXTURE_DIR) throw new Error('Select the source-material fixture directory independently of intelligence mode')
   const container = await open()
   try {

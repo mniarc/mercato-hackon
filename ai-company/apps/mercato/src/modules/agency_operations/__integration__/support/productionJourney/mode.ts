@@ -50,7 +50,7 @@ export async function startJourneyIntelligence(appRoot: string, mode: JourneyMod
   const ignore = () => undefined
   const intelligence: Omit<ReturnType<typeof createProductionJourneyIntelligence>, 'resolveStructured'> = {
     calls: [], allowMaterial: ignore, allowAnswers: ignore, allowBriefApproval: ignore,
-    allowPairApproval: ignore, allowPlanApproval: ignore, allowPostProduction: ignore, allowPostApproval: ignore,
+    allowPairApproval: ignore, allowPairCorrection: ignore, allowPlanApproval: ignore, allowPostProduction: ignore, allowPostApproval: ignore,
   }
   return { mode, intelligence, baseUrl: null, close: async () => undefined }
 }

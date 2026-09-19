@@ -4,6 +4,8 @@ import {
   tovBrandSynthesizerInputSchema, tovBrandSynthesizerResult,
 } from '../../../../agency_tov/data/validators'
 
+export const TOV_CORRECTION_TEXT = 'Please address the reader directly as you. Keep the strategy and all other tone-of-voice rules unchanged. This is a correction, not approval.'
+
 export function resolveTovIntelligence(formatName: string, raw: unknown): unknown | undefined {
   if (formatName === 'agency_tov_batch_analyst') {
     const input = tovBatchAnalystInputSchema.parse(raw)
@@ -35,6 +37,13 @@ export function resolveTovIntelligence(formatName: string, raw: unknown): unknow
   }
   if (formatName === 'agency_tov_brand_synthesizer') {
     const input = tovBrandSynthesizerInputSchema.parse(raw)
+    if (input.correction) {
+      if (input.correction.instructions !== TOV_CORRECTION_TEXT || input.correction.affectedFields.length !== 1
+        || input.correction.affectedFields[0] !== 'addressingTheReader') throw new Error('The correction fixture requires the registered client request and exact specialist field')
+      return tovBrandSynthesizerResult.parse({ kind: 'research', data: {
+        ...input.correction.previous, addressingTheReader: 'Address the reader directly as you.',
+      } })
+    }
     const { voice } = input.profiles[0]
     return tovBrandSynthesizerResult.parse({ kind: 'research', data: {
       brand: input.brand, summary: 'Fixture synthesis of actual native profile observations.',

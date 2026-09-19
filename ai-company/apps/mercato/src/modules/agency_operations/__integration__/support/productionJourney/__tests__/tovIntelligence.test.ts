@@ -1,4 +1,4 @@
-import { resolveTovIntelligence } from '../tovIntelligence'
+import { resolveTovIntelligence, TOV_CORRECTION_TEXT } from '../tovIntelligence'
 import { tovBatchAnalystResult, tovProfileSynthesizerResult, tovBrandSynthesizerResult } from '../../../../../agency_tov/data/validators'
 
 it('returns typed intelligence with the supplied source identity and verbatim quotes through every specialist stage', () => {
@@ -18,4 +18,10 @@ it('returns typed intelligence with the supplied source identity and verbatim qu
   expect(brand.data.exemplars).toEqual([expect.objectContaining({ postId: 'actual-post', profileUrl: profile.profileUrl, quote: text })])
   expect(brand.data.qaChecklist.length).toBeGreaterThan(0)
   expect(resolveTovIntelligence('agency_research_tov_writer', {})).toBeUndefined()
+  const corrected = tovBrandSynthesizerResult.parse(resolveTovIntelligence('agency_tov_brand_synthesizer', {
+    brand: 'Actual fixture brand', outputLanguage: 'en', profiles: [{ profile, voice: voice.data }],
+    correction: { previousVersion: '1.0', previous: brand.data, instructions: TOV_CORRECTION_TEXT, affectedFields: ['addressingTheReader'] },
+  }))
+  expect(corrected.data.addressingTheReader).not.toBe(brand.data.addressingTheReader)
+  expect({ ...corrected.data, addressingTheReader: brand.data.addressingTheReader }).toEqual(brand.data)
 })

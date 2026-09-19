@@ -27,6 +27,7 @@ import { readSignedUpPurchaseCustomer, signUpPurchaseCustomer, verifyCapturedPur
 import { completeProducedPostJourney } from './support/productionJourney/downstream'
 import { configureDiscordDestinationFixture, cleanupDiscordDestinationFixture, type DiscordDestinationFixture } from './support/discordDestinationFixture'
 import type { PublicationDestinationResult } from '../../agency_research/lib/publicationDestination/contracts'
+import { completeTovCorrection } from './support/productionJourney/tovCorrection'
 
 export const integrationMeta = {
   dependsOnModules: ['agency', 'agency_operations', 'agency_research', 'agency_tov', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows', 'agent_orchestrator', 'communication_channels', 'channel_discord', 'integrations'],
@@ -59,6 +60,8 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
   test('signup, purchase, materials and genuine client decisions reach configured publication preparation', async ({ page, request }, info) => {
     test.setTimeout(600_000)
     const mode = readJourneyMode()
+    const tovCorrection = process.env.AGENCY_JOURNEY_TOV_CORRECTION === '1'
+    if (tovCorrection && mode !== 'fixture') throw new Error('The ToV correction proof is a fixture-only alternative, not paid execution authority')
     const clientInput = readClientJourneyInput(mode)
     expect(process.env.AGENCY_TOV_EXECUTION_ENABLED, 'Enable the authoritative specialist for the same intelligence mode').toMatch(/^(1|true)$/)
     expect(process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED, 'Enable the zero-charge purchase in app and runner').toMatch(/^(1|true)$/)
@@ -109,7 +112,7 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
       console.log('[TC-AGENCY-002] Configure new native versions and local source/model fixtures')
       if (provider.baseUrl) await assertLoopbackOverrides({ tenantId, organizationId }, provider.baseUrl)
       await configurePurchaseJourney({ tenantId, organizationId, userId })
-      definitions = await configureFullProductionJourney({ tenantId, organizationId, userId, productSelection: {
+      definitions = await configureFullProductionJourney({ tenantId, organizationId, userId, tovCorrection, productSelection: {
         sku: demoOffer.sku, offer_version: demoOffer.offerVersion, price_net: demoOffer.amount, currency: demoOffer.currency,
         result_limits: order.product_selection.result_limits,
       } })
@@ -275,6 +278,14 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
     const pairInvitation = await readInvitation(scope!, caseId, STRATEGY_PAIR_REVIEW_WORKFLOW_ID)
     const pair = strategyPairInvitationSchema.parse(pairInvitation.context[STRATEGY_PAIR_REVIEW_CONTEXT_KEY]).review
     expect(pair.tov.versionId).toBe(specialist.versionId)
+    if (tovCorrection) {
+      await test.step('Client requests a real specialist correction and receives the newly assessed exact pair', async () => {
+        await completeTovCorrection({ page, scope: scope!, caseId, invitation: pairInvitation, intelligence, openTask, continueNativeResponse })
+        await checkpoint(page, info, '03-specialist-correction-fresh-pair-review')
+      })
+      console.log('[TC-AGENCY-002] Correction alternative reached a fresh unapproved pair review; no planning, publication or approval was inferred.')
+      return
+    }
     await test.step('Client reviews and approves both actually produced paired versions', async () => {
       intelligence.allowPairApproval({ taskId: pairInvitation.taskId, strategy: pair.strategy, tov: pair.tov })
       await openTask(pairInvitation.taskId)
