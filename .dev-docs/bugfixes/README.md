@@ -74,3 +74,4 @@ transformer, so specs import module code with the same `@/…` and
 | Date | Branch | Leaf (bug) | Doc |
 |------|--------|------------|-----|
 | 2026-09-19 | `bugfixes/tov-corpus-date-normalization` | LinkedIn `postedAt.date` kept un-normalised, breaking chronological order | [2026-09-19-tov-corpus-date-normalization.md](2026-09-19-tov-corpus-date-normalization.md) |
+| 2026-09-19 | `bugfixes/generic-epoch-timestamp` | Generic normaliser dropped string epoch `postedAt` to the 1970 sentinel | [2026-09-19-generic-epoch-timestamp.md](2026-09-19-generic-epoch-timestamp.md) |
