@@ -116,6 +116,8 @@ export function createStepRunner(opts: {
         stats.dropped += gated.dropped
         onEvent({ type: 'gate', step, section: label, kept: gated.kept, dropped: gated.dropped, issues: gated.issues })
         if (cache) await cache.set(key, result)
+        // Why a rerun paid for this call: the input behind a miss is kept next to the cache when asked for.
+        if (cache && process.env.OM_AGENCY_RESEARCH_DEBUG_INPUTS === '1') await cache.set(`${key}.input`, { agentId, label, model, input })
         return { value: gated.value, issues: gated.issues, cached: false }
       } catch (error) {
         if (!(error instanceof GateError)) throw error
