@@ -32,6 +32,7 @@ export const tovDiscoveryInputSchema = tovDiscoveryRequestSchema.extend({
 }).strict()
 
 export const tovDiscoveryTargetSchema = tovDiscoveredTargetSchema.extend({
+  targetId: z.string().regex(/^[a-f0-9]{24}$/),
   collectorSupported: z.boolean(),
   meetsMinimumConfidence: z.boolean(),
 }).strict()
@@ -43,6 +44,8 @@ export const tovDiscoveryStatusSchema = z.object({
   runStatus: z.enum(['running', 'ok', 'error', 'cancelled']),
   state: z.enum(['running', 'completed', 'attention_required']),
   replayed: z.boolean(),
+  brand: z.string().min(1),
+  outputLanguage: z.enum(tovOutputLanguages),
   minimumConfidence: z.literal(TOV_DISCOVERY_MIN_CONFIDENCE),
   notes: z.string().min(1).nullable(),
   targets: z.array(tovDiscoveryTargetSchema),

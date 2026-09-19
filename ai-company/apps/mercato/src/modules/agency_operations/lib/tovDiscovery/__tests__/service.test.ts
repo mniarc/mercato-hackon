@@ -50,7 +50,8 @@ function fixture(outcome: 'ok' | 'error' = 'ok') {
   })
   const run = jest.fn(async (_agentId: string, _input: unknown, context: Record<string, any>) => {
     savedRun = Object.assign(new AgentRun(), {
-      id: runId, ...scope, agentId: TOV_SOURCE_SCOUT_AGENT_ID, status: outcome, output: outcome === 'ok' ? scoutResult : null,
+      id: runId, ...scope, agentId: TOV_SOURCE_SCOUT_AGENT_ID, status: outcome, input: _input,
+      output: outcome === 'ok' ? scoutResult : null,
       workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId,
     })
     context.onRunPersisted(runId)

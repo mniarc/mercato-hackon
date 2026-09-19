@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
@@ -24,7 +25,7 @@ import {
   type TovDiscoveryStatus,
 } from './contracts'
 
-const WRITE_FEATURES = [
+export const TOV_DISCOVERY_WRITE_FEATURES = [
   'agency_operations.cases.view',
   'customers.companies.view',
   'agency_tov.manage',
@@ -51,11 +52,11 @@ function conflict(): never {
 
 async function authorize(container: AppContainer, userId: string, scope: Scope, write: boolean): Promise<void> {
   const allowed = await container.resolve<Pick<RbacService, 'userHasAllFeatures'>>('rbacService')
-    .userHasAllFeatures(userId, write ? WRITE_FEATURES : READ_FEATURES, scope)
+    .userHasAllFeatures(userId, write ? TOV_DISCOVERY_WRITE_FEATURES : READ_FEATURES, scope)
   if (!allowed) forbidden()
 }
 
-async function paidCase(em: EntityManager, scope: Scope, caseId: string): Promise<AgencyCase> {
+export async function readPaidDiscoveryCase(em: EntityManager, scope: Scope, caseId: string): Promise<AgencyCase> {
   const agencyCase = await findOneWithDecryption(em, AgencyCase, {
     ...scope,
     id: caseId,
@@ -77,6 +78,17 @@ async function paidCase(em: EntityManager, scope: Scope, caseId: string): Promis
 
 function invocationId(eventId: string): string {
   return eventId
+}
+
+export function tovDiscoveryTargetId(target: {
+  source: string
+  url: string
+  owner: string
+  evidenceUrl: string
+}): string {
+  return createHash('sha256').update(JSON.stringify([
+    target.source, target.url, target.owner, target.evidenceUrl,
+  ])).digest('hex').slice(0, 24)
 }
 
 async function findRunByInvocation(em: EntityManager, scope: Scope, workflowInstanceId: string, eventId: string) {
@@ -110,9 +122,11 @@ function handoff(run: AgentRun, hasValidOutput: boolean) {
 }
 
 function project(run: AgentRun, agencyCase: AgencyCase, replayed: boolean, scraper: CorpusScraper | null): TovDiscoveryStatus {
+  const input = tovSourceScoutInputSchema.parse(run.input)
   const parsed = run.status === 'ok' ? tovSourceScoutResult.safeParse(run.output) : null
   const targets = parsed?.success ? parsed.data.data.targets.map((target) => ({
     ...target,
+    targetId: tovDiscoveryTargetId(target),
     collectorSupported: scraper?.sourceOf(target.url) === target.source,
     meetsMinimumConfidence: target.confidence >= TOV_DISCOVERY_MIN_CONFIDENCE,
   })) : []
@@ -123,6 +137,8 @@ function project(run: AgentRun, agencyCase: AgencyCase, replayed: boolean, scrap
     runStatus: run.status,
     state: run.status === 'running' ? 'running' : run.status === 'ok' && parsed?.success ? 'completed' : 'attention_required',
     replayed,
+    brand: input.brand,
+    outputLanguage: input.outputLanguage,
     minimumConfidence: TOV_DISCOVERY_MIN_CONFIDENCE,
     notes: parsed?.success ? parsed.data.data.notes : null,
     targets,
@@ -142,7 +158,7 @@ export function createTovDiscoveryService(container: AppContainer): TovDiscovery
       const input = tovDiscoveryInputSchema.parse(rawInput)
       const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
       await authorize(container, input.userId, scope, true)
-      const agencyCase = await paidCase(em, scope, input.caseId)
+      const agencyCase = await readPaidDiscoveryCase(em, scope, input.caseId)
       const workflowInstanceId = agencyCase.workflowInstanceId
       if (!workflowInstanceId) conflict()
       const existing = await findRunByInvocation(em, scope, workflowInstanceId, input.eventId)
@@ -198,7 +214,7 @@ export function createTovDiscoveryService(container: AppContainer): TovDiscovery
         deletedAt: null,
       }, undefined, scope)
       if (!agencyCase) missing()
-      const scopedCase = await paidCase(em, scope, agencyCase.id)
+      const scopedCase = await readPaidDiscoveryCase(em, scope, agencyCase.id)
       if (scopedCase.workflowInstanceId !== run.workflowInstanceId) missing()
       return project(run, scopedCase, true, scraper)
     },
