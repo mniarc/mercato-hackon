@@ -1,0 +1,162 @@
+{
+  "document_id": "KLI-POST",
+  "template_id": "WZR-POST",
+  "schema_version": "1.1",
+  "status": "simulated_draft",
+  "simulation_flag": true,
+  "input_versions": [
+    {
+      "document_id": "WEW-ZLECENIE-POSTU",
+      "version": "1.1"
+    },
+    {
+      "document_id": "KLI-TOV",
+      "version": "1.1"
+    }
+  ],
+  "generated_by": {
+    "skill": "deslop",
+    "skill_version": "0.3",
+    "mode": "write",
+    "output": "record",
+    "voice": "KLI-TOV@1.1",
+    "voice_status": "simulated_draft",
+    "draft_authorised_by": "WEW-ZLECENIE-POSTU.completion[5]"
+  },
+  "data": {
+    "text": "„Potrzebujemy nowego narzędzia do obsługi zamówień. Które wybrać?” Od tego pytania łatwo zacząć. Trudniej odpowiedzieć na wcześniejsze: co dokładnie ma się zmienić?\n\nWyobraźmy sobie firmę, w której zamówienie utyka, a nikt nie potrafi wskazać, na którym etapie. Zanim ktoś obejrzy pierwszą aplikację, warto opisać to miejsce: kto tam czeka, na co i jak długo.\n\nNa początek proponujemy cztery pytania. Zapisz odpowiedzi, zanim zaczniesz porównywać narzędzia.\n\n1. Jaką konkretną sytuację chcesz zmienić?\n2. Kto korzysta z tego procesu i co próbuje zrobić?\n3. Jakiej zmiany biznesowej oczekujesz?\n4. Jakie ograniczenia organizacji pracy i technologii trzeba uwzględnić?\n\nTo nasza propozycja do tego tekstu, nie formularz. Odpowiada jednak temu, od czego zaczynamy projekty w FLOW: od potrzeb użytkowników, celu biznesowego, organizacji pracy i możliwości technicznych. O technologii rozmawiamy dopiero potem. Z AI jest tak samo: wdrażamy je tylko wtedy, gdy ma uzasadnienie biznesowe, a część rozwiązań powstaje bez niego.\n\nMasz konkretną trudność w procesie lub produkcie? Opisz ją nam. Kontakt znajdziesz na https://makeitflow.pl/index.php.",
+    "target": {
+      "channel": "LinkedIn firmy FLOW",
+      "language": "pl-PL",
+      "format": "text",
+      "adapter_version": null,
+      "platform_limit_status": "unverified",
+      "publication_status": "blocked",
+      "word_count": 160,
+      "char_count": 1140
+    },
+    "claims_map": [
+      {
+        "fragment": "Wyobraźmy sobie firmę, w której zamówienie utyka, a nikt nie potrafi wskazać, na którym etapie.",
+        "claim_id": "CR-T01",
+        "fact_id": null,
+        "kind": "creative_example",
+        "within_evidence": true,
+        "note": "oznaczony 'Wyobraźmy sobie'; bez wyniku i przyczyny"
+      },
+      {
+        "fragment": "Na początek proponujemy cztery pytania. [...] To nasza propozycja do tego tekstu, nie formularz.",
+        "claim_id": "CR-T01",
+        "seed_id": "T01",
+        "kind": "creative_proposal",
+        "within_evidence": true,
+        "note": "status propozycji nazwany w tekście"
+      },
+      {
+        "fragment": "od czego zaczynamy projekty w FLOW: od potrzeb użytkowników, celu biznesowego, organizacji pracy i możliwości technicznych",
+        "claim_id": "CL-DIAG",
+        "fact_id": "F03",
+        "kind": "own_declaration",
+        "within_evidence": true
+      },
+      {
+        "fragment": "O technologii rozmawiamy dopiero potem.",
+        "claim_id": "CL-DIAG",
+        "fact_id": "F03",
+        "kind": "own_declaration",
+        "within_evidence": "borderline",
+        "note": "kolejność wynika z F03, nie jest zapisana wprost; do decyzji redaktora"
+      },
+      {
+        "fragment": "wdrażamy je tylko wtedy, gdy ma uzasadnienie biznesowe, a część rozwiązań powstaje bez niego",
+        "claim_id": "CL-AI",
+        "fact_id": "F07",
+        "kind": "own_declaration",
+        "within_evidence": true
+      },
+      {
+        "fragment": "Kontakt znajdziesz na https://makeitflow.pl/index.php.",
+        "claim_id": "CL-CONTACT",
+        "fact_id": "F10",
+        "kind": "fact",
+        "within_evidence": true
+      },
+      {
+        "fragment": "Od tego pytania łatwo zacząć. Trudniej odpowiedzieć na wcześniejsze",
+        "claim_id": null,
+        "kind": "author_opinion",
+        "within_evidence": "borderline",
+        "note": "opinia autorska, nie claim o świecie; można zawęzić"
+      }
+    ],
+    "links_and_mentions": [
+      {
+        "url": "https://makeitflow.pl/index.php",
+        "reason": "istniejący kontakt FLOW",
+        "owner": "FLOW",
+        "verification": "observed_in_frozen_input_2026-09-17; operational_status not_tested"
+      }
+    ],
+    "client_note": "Post odpowiada na pytanie odbiorcy „od czego zacząć, gdy chcemy nowego narzędzia” i prowadzi do czterech pytań, które czytelnik może zapisać przed wyborem technologii. Cztery pytania są naszą propozycją do tego tekstu, nie Waszą oficjalną metodą; jeśli chcecie, żeby brzmiały jak Wasz standard, potrzebujemy potwierdzenia. Sprawdźcie, czy zdanie o AI oddaje Waszą zasadę.",
+    "qa": {
+      "author_self_check": {
+        "deslop_generic": "pass",
+        "copy_checks": [
+          {
+            "q": 1,
+            "result": "pass"
+          },
+          {
+            "q": 2,
+            "result": "pass"
+          },
+          {
+            "q": 3,
+            "result": "pass"
+          },
+          {
+            "q": 4,
+            "result": "pass",
+            "note": "brak terminów wymagających wyjaśnienia"
+          },
+          {
+            "q": 5,
+            "result": "pass"
+          },
+          {
+            "q": 6,
+            "result": "pass"
+          },
+          {
+            "q": 7,
+            "result": "pass"
+          },
+          {
+            "q": 8,
+            "result": "pass"
+          }
+        ],
+        "excluded_respected": true,
+        "profile": {
+          "id": "KLI-TOV",
+          "version": "1.1",
+          "status": "simulated_draft",
+          "form": "full+voice_extract"
+        },
+        "generic_vs_profile_conflicts": [
+          {
+            "where": "hook (cytat + pytanie) i CTA (pytanie + polecenie)",
+            "generic_rule": "rhetorical priming / self-answered question",
+            "applied": "profile: short_pattern, voice_extract.rules[0]"
+          }
+        ],
+        "for_editor": [
+          "claims_map[3] 'O technologii rozmawiamy dopiero potem'",
+          "claims_map[6] opinia otwierająca"
+        ]
+      },
+      "independent_review": "pending"
+    }
+  },
+  "approval_records": []
+}

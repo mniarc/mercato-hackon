@@ -1,0 +1,356 @@
+{
+  "document_id": "WEW-ZLECENIE-POSTU",
+  "template_id": "WZR-ZLECENIE-POSTU",
+  "schema_version": "1.1",
+  "order_id": null,
+  "version": "1.1",
+  "status": "simulated_draft",
+  "input_versions": [
+    {
+      "document_id": "KLI-PLAN",
+      "version": "1.1"
+    },
+    {
+      "document_id": "KLI-STRATEGIA",
+      "version": "1.1"
+    },
+    {
+      "document_id": "KLI-TOV",
+      "version": "1.1"
+    },
+    {
+      "document_id": "WEW-ZRODLA",
+      "version": "1.1"
+    },
+    {
+      "document_id": "KLI-BRIEF",
+      "version": "1.1"
+    },
+    {
+      "document_id": "standards_v1.json",
+      "version": "1.0"
+    },
+    {
+      "document_id": "SIM-CLIENT-FLOW-CREATIVE-CHECKPOINT-01",
+      "version": "checkpoint_v1"
+    }
+  ],
+  "field_evidence": {
+    "selected_item": [
+      "TOP-01",
+      "SIM02",
+      "SIM-DEC-TOPIC-01-v1.1"
+    ],
+    "evidence_payload": [
+      "F03",
+      "F07",
+      "F10",
+      "T01",
+      "S-F01"
+    ],
+    "reader_value": [
+      "T01",
+      "F03"
+    ],
+    "voice_extract": [
+      "KLI-TOV@1.1",
+      "SIM06"
+    ],
+    "delivery_constraints": [
+      "SIM07",
+      "F10",
+      "STD-OFERTA",
+      "STD-LIMITY"
+    ],
+    "completion": [
+      "WZR-POST",
+      "STD-PROCES",
+      "KLI-TOV@1.1"
+    ]
+  },
+  "approval_records": [],
+  "simulation_flag": true,
+  "data": {
+    "selected_item": {
+      "topic_id": "TOP-01",
+      "seed_id": "T01",
+      "plan_id": "KLI-PLAN",
+      "plan_version": "1.1",
+      "selection_status": "simulated",
+      "decision_id": "SIM-DEC-TOPIC-01-v1.1",
+      "audience": "Właściciele procesów, COO i liderzy rozwoju produktu w istniejących polskich firmach B2B.",
+      "audience_question": "Od czego zacząć, gdy chcemy nowego narzędzia?",
+      "goal": "Nazwać problem przed specyfikacją.",
+      "main_message": "Przed wyborem technologii opisz sytuację, użytkownika, cel i ograniczenia.",
+      "angle": "Cztery pytania do przygotowania decyzji o technologii. To autorska propozycja dla czytelnika, nie zatwierdzony formularz FLOW.",
+      "task": "Napisz jeden post w głosie firmy FLOW. Zacznij od konkretnego pytania odbiorcy o nowe narzędzie. Pokaż, że przed wyborem warto nazwać sytuację do zmiany. Przejdź do czterech pytań i powiąż je z opisanym sposobem pracy FLOW. Na końcu zaproś do rozmowy o konkretnej trudności. Nie twórz dodatkowego wątku o osiągnięciach, cenie ani partnerstwach."
+    },
+    "evidence_payload": [
+      {
+        "claim_id": "CL-DIAG",
+        "fact_id": "F03",
+        "text": "Punktem wyjścia projektu mają być potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne.",
+        "kind": "first_party_claim",
+        "source_ids": [
+          "S-F01"
+        ],
+        "source_payload": [
+          {
+            "source_id": "S-F01",
+            "publisher": "FLOW",
+            "title": "Centrum Badawcze Flow — opis i FAQ",
+            "url": "https://makeitflow.pl/index.php",
+            "access": "partial",
+            "read_scope": "Odczyt z zamrożonego handoffu; nie otwierano ponownie WWW."
+          }
+        ],
+        "limitations": [
+          "Nie ma przykładowego artefaktu diagnozy ani pomiaru jej wpływu."
+        ],
+        "permitted_copy": "W głosie firmy wolno opisać deklarowany sposób pracy w pierwszej osobie; nie zamieniać go w obietnicę rezultatu.",
+        "is_new_independent_source": false,
+        "rights_and_limits": {
+          "source_visibility": "public",
+          "allowed_use": "Wewnętrzna analiza i projekt parafrazy publicznej deklaracji; bez cytatu klienta lub przypisania wyniku.",
+          "use_basis_ref": [
+            "S-F01"
+          ],
+          "client_name_permission": "not_applicable_no_client_case",
+          "quote_permission": "not_provided_no_customer_quote_used",
+          "publication_approval": "missing"
+        }
+      },
+      {
+        "claim_id": "CL-AI",
+        "fact_id": "F07",
+        "text": "FLOW deklaruje wdrażanie AI tylko przy uzasadnieniu biznesowym; oferta obejmuje również rozwiązania bez AI.",
+        "kind": "first_party_claim",
+        "source_ids": [
+          "S-F01"
+        ],
+        "source_payload": [
+          {
+            "source_id": "S-F01",
+            "publisher": "FLOW",
+            "title": "Centrum Badawcze Flow — opis i FAQ",
+            "url": "https://makeitflow.pl/index.php",
+            "access": "partial",
+            "read_scope": "Odczyt z zamrożonego handoffu; nie otwierano ponownie WWW."
+          }
+        ],
+        "limitations": [
+          "Nie jest to dowód unikalności na rynku."
+        ],
+        "permitted_copy": "W głosie firmy wolno opisać deklarowany sposób pracy w pierwszej osobie; nie zamieniać go w obietnicę rezultatu.",
+        "is_new_independent_source": false,
+        "rights_and_limits": {
+          "source_visibility": "public",
+          "allowed_use": "Wewnętrzna analiza i projekt parafrazy publicznej deklaracji; bez cytatu klienta lub przypisania wyniku.",
+          "use_basis_ref": [
+            "S-F01"
+          ],
+          "client_name_permission": "not_applicable_no_client_case",
+          "quote_permission": "not_provided_no_customer_quote_used",
+          "publication_approval": "missing"
+        }
+      },
+      {
+        "claim_id": "CL-CONTACT",
+        "fact_id": "F10",
+        "text": "Odczytana strona udostępnia firmowy adres e-mail i telefon kontaktowy.",
+        "kind": "observed",
+        "source_ids": [
+          "S-F01"
+        ],
+        "source_payload": [
+          {
+            "source_id": "S-F01",
+            "publisher": "FLOW",
+            "title": "Centrum Badawcze Flow — opis i FAQ",
+            "url": "https://makeitflow.pl/index.php",
+            "access": "partial",
+            "read_scope": "Odczyt z zamrożonego handoffu; nie otwierano ponownie WWW."
+          }
+        ],
+        "limitations": [
+          "Nie sprawdzono działania formularza, obsługi zapytań ani mierzenia konwersji."
+        ],
+        "permitted_copy": "Wolno skierować do kontaktu na istniejącej stronie; brak gwarancji reakcji.",
+        "is_new_independent_source": false,
+        "rights_and_limits": {
+          "source_visibility": "public",
+          "allowed_use": "Wewnętrzna analiza i projekt parafrazy publicznej deklaracji; bez cytatu klienta lub przypisania wyniku.",
+          "use_basis_ref": [
+            "S-F01"
+          ],
+          "client_name_permission": "not_applicable_no_client_case",
+          "quote_permission": "not_provided_no_customer_quote_used",
+          "publication_approval": "missing"
+        }
+      },
+      {
+        "claim_id": "CR-T01",
+        "seed_id": "T01",
+        "text": "Autorska propozycja czterech pytań: nazwij sytuację do zmiany; określ użytkownika i jego zadanie; opisz oczekiwaną zmianę biznesową; wypisz ograniczenia organizacji pracy i technologii.",
+        "kind": "creative_proposal",
+        "fact_ids": [
+          "F03",
+          "F07"
+        ],
+        "source_ids": [
+          "S-F01"
+        ],
+        "limitations": [
+          "To propozycja agencji do tego tekstu, nie zaobserwowany proces ani oficjalny artefakt FLOW."
+        ],
+        "example": {
+          "text": "Hipotetycznie: firma chce aplikacji, lecz najpierw opisuje, gdzie zatrzymuje się obsługa zamówienia.",
+          "status": "hypothetical_not_customer_case"
+        },
+        "is_new_independent_source": false,
+        "rights_and_limits": {
+          "source_visibility": "public",
+          "allowed_use": "Wewnętrzna analiza i projekt parafrazy publicznej deklaracji; bez cytatu klienta lub przypisania wyniku.",
+          "use_basis_ref": [
+            "S-F01"
+          ],
+          "client_name_permission": "not_applicable_no_client_case",
+          "quote_permission": "not_provided_no_customer_quote_used",
+          "publication_approval": "missing"
+        },
+        "provenance": "creative_proposal",
+        "reuse_of_evidence": {
+          "fact_ids": [
+            "F03",
+            "F07"
+          ],
+          "purpose": "Cztery pytania dla odbiorcy, nie nowa udokumentowana praktyka FLOW."
+        }
+      }
+    ],
+    "reader_value": {
+      "type": "mini_checklist",
+      "title": "Cztery pytania przed wyborem technologii",
+      "items": [
+        "Jaką konkretną sytuację chcesz zmienić?",
+        "Kto korzysta z tego procesu lub produktu i co próbuje zrobić?",
+        "Jakiej zmiany biznesowej oczekujesz?",
+        "Jakie ograniczenia organizacji pracy i technologii trzeba uwzględnić?"
+      ],
+      "status": "creative_proposal_from_T01_not_observed_FLOW_artifact",
+      "usage": "Użyj sformułowania „Na początek proponujemy cztery pytania” lub równoważnego. Odbiorca ma móc zapisać odpowiedzi. Nie zapowiadaj PDF-a, warsztatu ani darmowej analizy.",
+      "example_option": "Możesz użyć jednej krótkiej hipotetycznej sytuacji zamówienia, które utknęło. Rozpocznij ją od „Wyobraźmy sobie…” i nie podawaj wyniku ani przyczyny, której nie znamy."
+    },
+    "voice_extract": {
+      "tov_id": "KLI-TOV",
+      "tov_version": "1.1",
+      "rules": [
+        "Otwórz konkretną trudnością odbiorcy, nie listą kompetencji.",
+        "Pisz partnersko i spokojnie; nazwij niewiadome zamiast pouczać.",
+        "Wyjaśnij termin techniczny przez czynność lub pytanie, jeśli musisz go użyć.",
+        "Opisuj sposób pracy bez gwarancji wyniku; połącz wzmiankę o AI z uzasadnieniem biznesowym.",
+        "Wymyślony przykład oznacz w samym tekście; checklistę przedstaw jako propozycję."
+      ],
+      "forbidden_cliches": [
+        "rewolucyjny",
+        "game changer",
+        "gwarancja sukcesu"
+      ],
+      "short_pattern": "„Chcesz zmienić proces? Zacznij od opisania sytuacji, która wymaga zmiany”. To wzór kreatywny, nie fakt badawczy."
+    },
+    "delivery_constraints": {
+      "channel": "LinkedIn firmy FLOW",
+      "language": "pl-PL",
+      "market": "Polska",
+      "format": "text",
+      "finished_post_count": 1,
+      "words_target": [
+        120,
+        220
+      ],
+      "word_count_rule": "Słowa liczone rozdzieleniem po białych znakach; URL jest jednym słowem.",
+      "adapter_version": null,
+      "platform_character_limit": null,
+      "platform_limit_status": "unverified; brak konfiguracji adaptera LinkedIn, nie zgaduj limitu z pamięci",
+      "target_account_id": null,
+      "publication_status": "blocked; w tym teście przygotowujemy dokumenty, bez wysyłki",
+      "allowed_links": [
+        {
+          "url": "https://makeitflow.pl/index.php",
+          "purpose": "Istniejący w pakiecie kontakt FLOW",
+          "owner": "FLOW",
+          "visibility_status": "observed_in_frozen_input_2026-09-17",
+          "operational_status": "not_tested",
+          "contact_owner": null
+        }
+      ],
+      "allowed_mentions": [],
+      "cta": "Masz konkretną trudność w procesie lub produkcie? Opisz ją nam — kontakt znajdziesz na https://makeitflow.pl/index.php.",
+      "cta_flexibility": "Możesz poprawić brzmienie przy zachowaniu celu i granic.",
+      "excluded": [
+        "Grafika, karuzela i video.",
+        "Nowe URL, oznaczenia osób i firm.",
+        "Darmowy audyt, PDF, konkretny termin rozmowy lub odpowiedzi.",
+        "Procentowe oszczędności, gwarancja czasu, liczba klientów i wyniki partnerów.",
+        "Jedyność na rynku oraz twierdzenie, że inni dostawcy pomijają diagnozę.",
+        "Przypisanie checkliście statusu oficjalnej metody FLOW.",
+        "Fakty spoza dopuszczonego evidence_payload, nawet jeśli przykład języka w ToV zawiera inny fakt."
+      ],
+      "adapter_id": null,
+      "max_text_length": null,
+      "length_unit": "characters",
+      "product_length_target": {
+        "unit": "words",
+        "range": [
+          120,
+          220
+        ]
+      },
+      "links": [
+        {
+          "url": "https://makeitflow.pl/index.php",
+          "purpose": "Istniejący w pakiecie kontakt FLOW",
+          "owner": "FLOW",
+          "visibility_status": "observed_in_frozen_input_2026-09-17",
+          "operational_status": "not_tested",
+          "contact_owner": null
+        }
+      ],
+      "mentions": [],
+      "cta_destination": "https://makeitflow.pl/index.php",
+      "cta_draft_readiness": "ready",
+      "cta_publication_readiness": "blocked",
+      "prohibited_claims": [
+        "Grafika, karuzela i video.",
+        "Nowe URL, oznaczenia osób i firm.",
+        "Darmowy audyt, PDF, konkretny termin rozmowy lub odpowiedzi.",
+        "Procentowe oszczędności, gwarancja czasu, liczba klientów i wyniki partnerów.",
+        "Jedyność na rynku oraz twierdzenie, że inni dostawcy pomijają diagnozę.",
+        "Przypisanie checkliście statusu oficjalnej metody FLOW.",
+        "Fakty spoza dopuszczonego evidence_payload, nawet jeśli przykład języka w ToV zawiera inny fakt."
+      ]
+    },
+    "completion": [
+      "Gotowy tekst ma hook, krótkie rozwinięcie, cztery użyteczne pytania i jedno CTA. Nie rozbudowuj pytań do obietnicy nowej usługi.",
+      "Zachowaj 120–220 słów; policz słowa i znaki informacyjnie. Status zgodności z adapterem pozostaje niezweryfikowany.",
+      "W claims_map pokryj każdy opis firmy i osobno oznacz checklistę oraz ewentualny hipotetyczny przykład jako creative_example. Dopuszczone są wyłącznie CL-DIAG/F03, CL-AI/F07 i CL-CONTACT/F10 oraz propozycja T01.",
+      "Zwróć wszystkie pola WZR-POST, w tym dokładny link i krótką notę klienta do 80 słów. Pełne źródła i ograniczenia pozostają w części wewnętrznej.",
+      "Przeprowadź samoocenę według ośmiu pytań ToV; oznacz ją jako author_self_check. Niezależny redaktor wykonuje osobne QA.",
+      "Post to draft w symulacji. Pozostaw approval_records puste; nie twórz prawdziwej akceptacji, zlecenia publikacji ani dowodu wysyłki.",
+      "Nie używaj sieci. Czytaj wyłącznie WEW-ZLECENIE-POSTU i wskazaną wersję KLI-TOV. Jeśli brakuje faktu, pomiń lub zawęź twierdzenie, a gdy to niemożliwe, zgłoś konkretne pole kompilatorowi; nie szukaj nowych źródeł."
+    ]
+  },
+  "issues": [
+    {
+      "code": "SIMULATION_ONLY",
+      "severity": "blocking_real_approval",
+      "detail": "Syntetyczne decyzje dopuszczają jedynie test; brak realnego klienta i akceptacji."
+    },
+    {
+      "code": "PUBLISH_CONFIGURATION_UNKNOWN",
+      "severity": "blocking_publication_only",
+      "detail": "Brak limitu i wersji adaptera, konta docelowego, potwierdzenia obsługi kontaktu oraz zgody publikacyjnej; draft tekstu możliwy."
+    }
+  ],
+  "assembly_note": "Wersja pakietu 1.1 po jawnych korektach i scaleniu. Przebieg izolowanego autora zapisano osobno na wejściu v1; nie twierdzitmy, że ponownie uruchomiono całą orkiestrację."
+}

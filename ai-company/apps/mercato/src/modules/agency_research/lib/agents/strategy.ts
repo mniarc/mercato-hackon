@@ -3,6 +3,7 @@ import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator
 import { renderContractFields } from '../../data/contracts'
 import { strategyChoiceSectionResult, strategyPillarsSectionResult, strategyProofSectionResult, strategyQaAgentResult, tovWriterResult } from '../../data/agents/strategy'
 import { RESEARCH_STRATEGY_CHOICE_AGENT_ID, RESEARCH_STRATEGY_PILLARS_AGENT_ID, RESEARCH_STRATEGY_PROOF_AGENT_ID, RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
+import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // P5 — strategy writer (5.2), ToV writer (5.3) and the Q-S pair QA (5.4). The
@@ -30,6 +31,7 @@ const STRATEGY_RULES = [
   'already written in this run are in `draft` — stay consistent with them. On a revision',
   '`previous_strategy` is given: keep what the findings do not touch. When `repair_findings`',
   'is non-empty, fix exactly those findings and keep everything else.',
+  DESLOP_PROSE_RULES,
 ].join(' ')
 
 const TOV_RULES = [
@@ -45,6 +47,7 @@ const TOV_RULES = [
   'match the strategy\'s claim strengths and prohibited promises. Sections already written',
   'in this run are in `draft`. On a revision `previous_tov` is given: keep what the findings',
   'do not touch. When `repair_findings` is non-empty, fix exactly those findings.',
+  DESLOP_PROSE_RULES,
 ].join(' ')
 
 export const strategyAgents: AiAgentDefinition[] = [

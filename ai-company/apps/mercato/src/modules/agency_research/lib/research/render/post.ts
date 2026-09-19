@@ -108,6 +108,7 @@ export function renderPost(args: { outputLanguage: 'pl' | 'en'; brand: string; d
     `- tone: ${data.qa.tone_of_voice}`,
     `- format: ${data.qa.format}`,
     `- links: ${data.qa.links}`,
+    `- style (deslop): ${data.qa.style_hygiene}`,
     ...(data.qa.corrections_applied.length ? [`- corrections: ${data.qa.corrections_applied.join(', ')} — ${data.qa.corrections_note ?? ''}`] : []),
     '',
     `### ${t.metrics}`,

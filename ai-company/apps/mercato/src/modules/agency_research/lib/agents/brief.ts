@@ -3,6 +3,7 @@ import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator
 import { renderContractFields } from '../../data/contracts'
 import { briefChannelSectionResult, briefOfferSectionResult, briefPromiseVoiceSectionResult, briefQaAgentResult } from '../../data/agents/brief'
 import { RESEARCH_BRIEF_CHANNEL_AGENT_ID, RESEARCH_BRIEF_OFFER_AGENT_ID, RESEARCH_BRIEF_PROMISE_VOICE_AGENT_ID, RESEARCH_BRIEF_QA_AGENT_ID } from './ids.brief'
+import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // F09 — brief writer (4.1) and brief QA (4.2). The writer is three agents, one per
@@ -23,6 +24,7 @@ const BRIEF_RULES = [
   'inventing. Cite `fact_ids` / `evidence_ids` / `sample_ids` / `allowed_proof_ids` only from',
   'the input. Do not ask the client for company data or the purchased scope. When',
   '`repair_findings` is non-empty, fix exactly those findings and keep everything else.',
+  DESLOP_PROSE_RULES,
 ].join(' ')
 
 export const briefAgents: AiAgentDefinition[] = [

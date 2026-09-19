@@ -326,6 +326,7 @@ export function assemblePost(args: {
       tone_of_voice: draft.self_check.tone_of_voice,
       format: draft.self_check.format,
       links: draft.self_check.links,
+      style_hygiene: draft.self_check.style_hygiene,
       unsupported_facts_added: unsupported,
       additional_sources_used: 0,
       additional_research_performed: 0,

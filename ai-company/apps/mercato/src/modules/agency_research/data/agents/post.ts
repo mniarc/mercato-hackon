@@ -89,6 +89,8 @@ export const postSelfCheckSchema = z.object({
   format: z.string().min(1),
   links: z.string().min(1),
   evidence_limitations: z.array(z.string().min(1)),
+  /** deslop report: profile id/version/status written against, patterns removed, profile-vs-generic conflicts and how resolved. */
+  style_hygiene: z.string().min(1).default('—'),
 })
 
 export const postDraftSchema = z.object({

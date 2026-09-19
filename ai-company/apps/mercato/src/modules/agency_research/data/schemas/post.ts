@@ -110,6 +110,8 @@ export const postQaSchema = z.object({
   tone_of_voice: z.string().min(1),
   format: z.string().min(1),
   links: z.string().min(1),
+  /** The author's deslop report (skill `.ai/skills/deslop`): profile written against, patterns removed, conflicts resolved. */
+  style_hygiene: z.string().min(1).default('—'),
   unsupported_facts_added: z.number().int().min(0),
   additional_sources_used: z.literal(0),
   additional_research_performed: z.literal(0),

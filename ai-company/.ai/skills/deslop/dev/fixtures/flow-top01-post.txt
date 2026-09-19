@@ -1,0 +1,14 @@
+„Potrzebujemy nowego narzędzia do obsługi zamówień. Które wybrać?” Od tego pytania łatwo zacząć. Trudniej odpowiedzieć na wcześniejsze: co dokładnie ma się zmienić?
+
+Wyobraźmy sobie firmę, w której zamówienie utyka, a nikt nie potrafi wskazać, na którym etapie. Zanim ktoś obejrzy pierwszą aplikację, warto opisać to miejsce: kto tam czeka, na co i jak długo.
+
+Na początek proponujemy cztery pytania. Zapisz odpowiedzi, zanim zaczniesz porównywać narzędzia.
+
+1. Jaką konkretną sytuację chcesz zmienić?
+2. Kto korzysta z tego procesu i co próbuje zrobić?
+3. Jakiej zmiany biznesowej oczekujesz?
+4. Jakie ograniczenia organizacji pracy i technologii trzeba uwzględnić?
+
+To nasza propozycja do tego tekstu, nie formularz. Odpowiada jednak temu, od czego zaczynamy projekty w FLOW: od potrzeb użytkowników, celu biznesowego, organizacji pracy i możliwości technicznych. O technologii rozmawiamy dopiero potem. Z AI jest tak samo: wdrażamy je tylko wtedy, gdy ma uzasadnienie biznesowe, a część rozwiązań powstaje bez niego.
+
+Masz konkretną trudność w procesie lub produkcie? Opisz ją nam. Kontakt znajdziesz na https://makeitflow.pl/index.php.
