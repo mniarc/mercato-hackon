@@ -1,14 +1,20 @@
 # T88 - Read the purchased offer and terms after catalogue changes
 
-State: ready
+State: done
 Depends on: delivered T25 native purchase; coordinate orderBootstrap edits with T87
 Sources: F02-2 AC3; preserve F02-2 AC1/4/5
 Owns: `agency_operations/lib/orderBootstrap` purchase snapshot/read seam and its
-focused checks; coordinator assigns shared contract/API edits before implementation.
+focused checks; existing `agency/components/purchase/DemoPurchaseStatus` read-only
+history section and necessary EN/PL labels (coordinator approved).
+Existing purchase hook retains the acknowledged order ID in the URL and reloads
+through the same scoped GET; no additional page or browser data store.
 
-## Confirmed gap
+Verification: snapshot, purchase-service and existing portal suites passed (3
+suites, 31 checks). No new native headed or live-model proof is claimed.
 
-`nativeSales.ts` stores version IDs and buyer values in `agencyPurchase`, but not
+## Original gap
+
+`nativeSales.ts` previously stored version IDs and buyer values in `agencyPurchase`, but not
 the accepted terms/offer content. `demoOffer.ts` only exposes current text. The
 paid-case attachment captures an offer later at activation, not the terms at
 purchase; it cannot preserve an unpaid order's original version after edits.

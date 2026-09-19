@@ -8,9 +8,9 @@
     "criteria": 489,
     "tasks": 93,
     "tasksByState": {
-      "active": 17,
+      "active": 16,
       "blocked": 3,
-      "done": 67,
+      "done": 68,
       "implemented": 3,
       "legacy": 1,
       "queued": 1,
@@ -426,19 +426,13 @@
               ],
               "doneTaskIds": [
                 "T25",
-                "T59"
+                "T59",
+                "T88"
               ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
-                {
-                  "kind": "task-source",
-                  "id": "T88",
-                  "source": ".tasks/T88-preserve-purchased-offer-and-terms-content.md",
-                  "line": 5,
-                  "text": "F02-2 AC3; preserve F02-2 AC1/4/5"
-                },
                 {
                   "kind": "task-source",
                   "id": "T25",
@@ -454,6 +448,13 @@
                   "text": "F01-1, F02-1, F02-2; teammate frontend2 copy contract"
                 },
                 {
+                  "kind": "task-source",
+                  "id": "T88",
+                  "source": ".tasks/tasks-done/T88-preserve-purchased-offer-and-terms-content.md",
+                  "line": 5,
+                  "text": "F02-2 AC3; preserve F02-2 AC1/4/5"
+                },
+                {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
@@ -462,17 +463,6 @@
                 }
               ],
               "taskEvidence": [
-                {
-                  "id": "T88",
-                  "title": "T88 - Read the purchased offer and terms after catalogue changes",
-                  "source": ".tasks/T88-preserve-purchased-offer-and-terms-content.md",
-                  "state": "active",
-                  "stateLabel": "active",
-                  "stateLine": 3,
-                  "owns": "`agency_operations/lib/orderBootstrap` purchase snapshot/read seam and its focused checks; existing `agency/components/purchase/DemoPurchaseStatus` read-only history section and necessary EN/PL labels (coordinator approved).",
-                  "taskGroup": "T",
-                  "mappingBasis": "sources"
-                },
                 {
                   "id": "T25",
                   "title": "T25 - Start one agency process from a confirmed paid order",
@@ -492,6 +482,17 @@
                   "stateLabel": "done (bounded teammate-copy extraction)",
                   "stateLine": 3,
                   "owns": "agency offer/order pages and their existing EN/PL locale keys; coordinate purchase components with T25, no other portal redesign",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T88",
+                  "title": "T88 - Read the purchased offer and terms after catalogue changes",
+                  "source": ".tasks/tasks-done/T88-preserve-purchased-offer-and-terms-content.md",
+                  "state": "done",
+                  "stateLabel": "done",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/orderBootstrap` purchase snapshot/read seam and its focused checks; existing `agency/components/purchase/DemoPurchaseStatus` read-only history section and necessary EN/PL labels (coordinator approved). Existing purchase hook retains the acknowledged order ID in the URL and reloads through the same scoped GET; no additional page or browser data store.",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 }
@@ -13581,21 +13582,6 @@
       "adrIds": []
     },
     {
-      "id": "T88",
-      "title": "T88 - Read the purchased offer and terms after catalogue changes",
-      "source": ".tasks/T88-preserve-purchased-offer-and-terms-content.md",
-      "state": "active",
-      "stateLabel": "active",
-      "stateLine": 3,
-      "owns": "`agency_operations/lib/orderBootstrap` purchase snapshot/read seam and its focused checks; existing `agency/components/purchase/DemoPurchaseStatus` read-only history section and necessary EN/PL labels (coordinator approved).",
-      "taskGroup": "T",
-      "mappingBasis": "sources",
-      "storyIds": [
-        "F02-2"
-      ],
-      "adrIds": []
-    },
-    {
       "id": "T89",
       "title": "T89 - Answer a customer's fixed-offer question before purchase",
       "source": ".tasks/T89-answer-prepurchase-questions-from-fixed-offer.md",
@@ -14738,6 +14724,21 @@
       "storyIds": [
         "F03-2",
         "F04-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T88",
+      "title": "T88 - Read the purchased offer and terms after catalogue changes",
+      "source": ".tasks/tasks-done/T88-preserve-purchased-offer-and-terms-content.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`agency_operations/lib/orderBootstrap` purchase snapshot/read seam and its focused checks; existing `agency/components/purchase/DemoPurchaseStatus` read-only history section and necessary EN/PL labels (coordinator approved). Existing purchase hook retains the acknowledged order ID in the URL and reloads through the same scoped GET; no additional page or browser data store.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F02-2"
       ],
       "adrIds": []
     },

@@ -274,5 +274,12 @@
   "agency.materials.status.PAUSED": "Materiał został przyjęty. Przetwarzanie jest wstrzymane; agencja może sprawdzić sprawę.",
   "agency.materials.status.FAILED": "Materiał został przyjęty, ale przetwarzanie nie powiodło się. Agencja może sprawdzić sprawę.",
   "agency.materials.status.CANCELLED": "Materiał został przyjęty, ale przetwarzanie zostało anulowane. Agencja może sprawdzić sprawę.",
-  "agency.review.clarificationOnly": "Uzupełnij brakujące informacje w komentarzach. Akceptacja będzie dostępna dopiero po sprawdzeniu briefu."
+  "agency.review.clarificationOnly": "Uzupełnij brakujące informacje w komentarzach. Akceptacja będzie dostępna dopiero po sprawdzeniu briefu.",
+  "agency.purchase.history.title": "Kupiona oferta i przyjęte warunki",
+  "agency.purchase.history.offerVersion": "Wersja oferty",
+  "agency.purchase.history.termsVersion": "Wersja warunków",
+  "agency.purchase.history.acceptedAt": "Data przyjęcia warunków",
+  "agency.purchase.history.amount": "Zapisana kwota demonstracyjna",
+  "agency.purchase.history.loadError": "To zapisane zamówienie jest niedostępne dla bieżącego konta. Sprawdź link lub zaloguj się na konto, z którego złożono zamówienie.",
+  "agency.purchase.history.unavailable": "Dla tego starszego zamówienia nie zapisano historycznej treści oferty i warunków. Dzisiejsze warunki nie zastępują tych, które zostały przyjęte."
 }

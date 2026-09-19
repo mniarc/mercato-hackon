@@ -139,18 +139,32 @@
         },
         {
           "id": "AC3",
-          "implementation": "partial",
+          "implementation": "implemented",
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
-              "note": "Metadata preserves version IDs and purchase values."
+              "note": "T88 captures exact server-owned demo offer and EN/PL terms once in native Sales metadata; conversion and payment retry retain the purchased snapshot and version IDs."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Customer-scoped reads return stored purchaseHistory; legacy orders explicitly report unavailable historical text rather than today's terms."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/components/purchase/useDemoPurchase.ts",
+              "note": "Acknowledged order URL reloads through the existing ownership-checked GET; invalid or foreign links expose no receipt."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/components/purchase/DemoPurchaseStatus.tsx",
+              "note": "Existing portal displays saved offer, exact stored terms, versions and acceptance time, including explicit legacy unavailability."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/__tests__/purchaseSnapshot.test.ts",
+              "note": "T88 snapshot, service and portal suites passed: 3 suites/31 checks, including catalogue change, scoped read/retry, preserved Polish text and reload. Focused proof only; no new native-app or live-model run."
             }
           ],
-          "missing": [
-            "Retain immutable historical terms/catalogue text or a resolvable version archive, not only IDs/current demo constants."
-          ],
+          "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "not_run",
             "liveModel": "not_run"
           }

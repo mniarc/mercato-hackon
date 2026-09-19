@@ -12,6 +12,7 @@ import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/
 import { demoPurchaseRequestSchema, type DemoPurchaseRequest, type PurchaseIdentity } from './contracts'
 import type { DemoPurchaseConfiguration } from './configure'
 import { demoOffer } from './demoOffer'
+import { purchasedOfferSchema } from './purchaseSnapshot'
 
 export const purchaseBindingSchema = z.object({
   requestId: z.uuid(), requestHash: z.string(), customerUserId: z.uuid(),
@@ -19,6 +20,7 @@ export const purchaseBindingSchema = z.object({
   termsAcceptedAt: z.iso.datetime(), offerVersion: z.string(), termsVersion: z.string(),
   amount: z.number(), currencyCode: z.string(), provider: z.string(),
   caseId: z.uuid().optional(), workflowInstanceId: z.uuid().optional(),
+  acceptedOffer: purchasedOfferSchema.optional(),
 })
 export type PurchaseBinding = z.infer<typeof purchaseBindingSchema>
 
@@ -83,6 +85,7 @@ export function createNativeDemoSales(container: AwilixContainer, config: DemoPu
         reservedCaseId: randomUUID(), originalPurchase: input, termsAcceptedAt: new Date().toISOString(),
         offerVersion: demoOffer.offerVersion, termsVersion: demoOffer.termsVersion,
         amount: demoOffer.amount, currencyCode: demoOffer.currency, provider: demoOffer.provider,
+        acceptedOffer: purchasedOfferSchema.parse(demoOffer),
       }
       const created = await command<{ quoteId: string }>('sales.quotes.create', {
         ...scope, customerEntityId: identity.customerEntityId, channelId: config.channelId,

@@ -16,6 +16,7 @@ import { demoOffer, isDemoPurchaseEnabled } from './demoOffer'
 import { createNativeDemoSales, purchaseRequestHash, readPurchaseBinding } from './nativeSales'
 import { createDemoPaymentGateway, isRetryableDemoPayment, isVerifiedDemoCapture, matchesDemoPayment } from './payment'
 import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../paidCaseAnalysis/bootstrap'
+import { readPurchaseHistory } from './purchaseSnapshot'
 
 function requireEnabled(): void {
   if (!isDemoPurchaseEnabled()) throw new CrudHttpError(403, { error: 'Demo purchases are disabled.' })
@@ -32,7 +33,8 @@ export function assertPurchaseOwner(order: SalesOrder, identity: PurchaseIdentit
 export function purchaseReceipt(order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction | null): DemoPurchaseReceipt {
   const binding = readPurchaseBinding(order)
   const base = { orderId: order.id, paymentId: payment.id, providerSessionId: transaction?.providerSessionId ?? null,
-    caseId: binding.caseId ?? null, workflowInstanceId: binding.workflowInstanceId ?? null, canConfirmPayment: false }
+    caseId: binding.caseId ?? null, workflowInstanceId: binding.workflowInstanceId ?? null, canConfirmPayment: false,
+    purchaseHistory: readPurchaseHistory(binding) }
   if (!transaction) return { ...base, status: 'pending_payment' }
   if (!matchesDemoPayment(order, payment, transaction)) {
     return { ...base, status: 'blocked', reason: 'Native payment does not match this demo purchase.' }

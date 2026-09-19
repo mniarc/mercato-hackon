@@ -1,16 +1,18 @@
 'use client'
 
 import Link from 'next/link'
-import { useT } from '@open-mercato/shared/lib/i18n/context'
+import { useLocale, useT } from '@open-mercato/shared/lib/i18n/context'
 import { ErrorMessage } from '@open-mercato/ui/backend/detail'
 import { Button } from '@open-mercato/ui/primitives/button'
-import { PortalCard, PortalCardHeader } from '@open-mercato/ui/portal/components/PortalCard'
+import { PortalCard, PortalCardHeader, PortalStatRow } from '@open-mercato/ui/portal/components/PortalCard'
 import type { DemoPurchaseReceipt } from './useDemoPurchase'
 
 export function DemoPurchaseStatus({ receipt, orgSlug, enabled, busy, error, confirm, refresh, retryPayment }: {
   receipt: DemoPurchaseReceipt; orgSlug: string; enabled: boolean; busy: boolean; error: string | null; confirm: () => Promise<void>; refresh: () => Promise<void>; retryPayment: () => Promise<void>;
 }) {
   const t = useT()
+  const locale = useLocale()
+  const history = receipt.purchaseHistory
   const completed = receipt.status === 'paid' && receipt.caseId !== null
   return <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
     <PortalCard>
@@ -27,6 +29,17 @@ export function DemoPurchaseStatus({ receipt, orgSlug, enabled, busy, error, con
         {'nativeStatus' in receipt.processing ? <p className="text-muted-foreground">{t('agency.purchase.processing.nativeStatus')}: {receipt.processing.nativeStatus}</p> : null}
       </div> : null}
     </PortalCard>
+    {history ? <PortalCard>
+      <PortalCardHeader title={t('agency.purchase.history.title')} />
+      <PortalStatRow label={t('agency.purchase.history.offerVersion')} value={history.offerVersion} />
+      <PortalStatRow label={t('agency.purchase.history.termsVersion')} value={history.termsVersion} />
+      <PortalStatRow label={t('agency.purchase.history.acceptedAt')} value={<time dateTime={history.acceptedAt}>{new Date(history.acceptedAt).toLocaleString(locale)}</time>} />
+      {history.state === 'available' ? <>
+        <p className="mt-4 text-sm font-medium">{history.offer.name} ({history.offer.sku})</p>
+        <PortalStatRow label={t('agency.purchase.history.amount')} value={`${history.offer.amount} ${history.offer.currency}`} />
+        <p className="mt-4 whitespace-pre-wrap text-sm">{history.offer.terms[locale === 'pl' ? 'pl' : 'en']}</p>
+      </> : <p className="mt-4 text-sm text-muted-foreground">{t('agency.purchase.history.unavailable')}</p>}
+    </PortalCard> : null}
     {error ? <ErrorMessage label={error} /> : null}
     <div className="flex flex-wrap gap-3">
       {completed ? <Button asChild><Link href={`/${orgSlug}/portal/agency/cases/${encodeURIComponent(receipt.caseId!)}`}>{t('agency.purchase.openCase', 'Open your agency case')}</Link></Button> : null}

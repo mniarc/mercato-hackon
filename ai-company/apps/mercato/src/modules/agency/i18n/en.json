@@ -274,5 +274,12 @@
   "agency.materials.status.PAUSED": "Material received. Processing is paused; your agency can review the case.",
   "agency.materials.status.FAILED": "Material received, but processing failed. Your agency can review the case.",
   "agency.materials.status.CANCELLED": "Material received, but processing was cancelled. Your agency can review the case.",
-  "agency.review.clarificationOnly": "Add the missing information in comments. Acceptance is available only after the brief passes review."
+  "agency.review.clarificationOnly": "Add the missing information in comments. Acceptance is available only after the brief passes review.",
+  "agency.purchase.history.title": "Purchased offer and accepted terms",
+  "agency.purchase.history.offerVersion": "Offer version",
+  "agency.purchase.history.termsVersion": "Terms version",
+  "agency.purchase.history.acceptedAt": "Terms accepted at",
+  "agency.purchase.history.amount": "Recorded demo amount",
+  "agency.purchase.history.loadError": "This saved order is unavailable for your current account. Check the link or sign in with the account that placed the order.",
+  "agency.purchase.history.unavailable": "The historical offer and terms text was not recorded for this older order. Today's terms are not a substitute for what you accepted."
 }

@@ -76,12 +76,15 @@ test('starts a pending native payment, never activating on initiation', async ()
 
 test('failed-payment retry keeps the purchase identity and never activates before capture', async () => {
   const service = createDemoPurchaseService(container, activate)
+  const acceptedOffer = { ...structuredClone(demoOffer), terms: { en: 'Original accepted terms', pl: 'Pierwotnie przyjęte warunki' } }
+  order.metadata = { agencyPurchase: { ...order.metadata?.agencyPurchase as object, acceptedOffer } }
   transaction.unifiedStatus = 'failed'
   expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canRetryPayment: true, canConfirmPayment: false })
   const replacement = Object.assign(new GatewayTransaction(), transaction, { id: uuid(30), providerSessionId: 'replacement_session', unifiedStatus: 'pending' })
   retrySession.mockResolvedValue(replacement)
   expect(await service.retryPayment(identity, order.id, { providerSessionId: 'mock_session' })).toMatchObject({
     orderId: order.id, paymentId: payment.id, status: 'pending_payment', providerSessionId: 'replacement_session', caseId: null,
+    purchaseHistory: { state: 'available', offer: acceptedOffer },
   })
   expect(retrySession).toHaveBeenCalledWith(order, payment, 'mock_session')
   expect(ensureOrder).not.toHaveBeenCalled()
@@ -92,6 +95,14 @@ test('failed-payment retry keeps the purchase identity and never activates befor
   order.metadata = { agencyPurchase: { ...order.metadata?.agencyPurchase as object, caseId: uuid(9), workflowInstanceId: uuid(10) } }
   await expect(service.retryPayment(identity, order.id, { providerSessionId: 'mock_session' })).rejects.toMatchObject({ status: 409 })
   expect(retrySession).toHaveBeenCalledTimes(1)
+})
+
+test('scoped purchase read returns saved terms even unpaid, while a foreign customer cannot read them', async () => {
+  const acceptedOffer = { ...structuredClone(demoOffer), name: 'Purchased name', terms: { en: 'Historical English terms', pl: 'Historyczne polskie warunki' } }
+  order.metadata = { agencyPurchase: { ...order.metadata?.agencyPurchase as object, acceptedOffer } }
+  const service = createDemoPurchaseService(container, activate)
+  expect(await service.read(identity, order.id)).toMatchObject({ status: 'pending_payment', purchaseHistory: { state: 'available', offer: acceptedOffer } })
+  await expect(service.read({ ...identity, customerUserId: uuid(90) }, order.id)).rejects.toMatchObject({ status: 404 })
 })
 
 test('native pending payment leaves its amount unallocated until verified capture reconciliation', async () => {

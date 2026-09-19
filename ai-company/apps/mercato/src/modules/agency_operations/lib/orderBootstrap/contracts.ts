@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { paidCaseProcessingSchema } from '../paidCaseAnalysis/status'
+import { purchaseHistorySchema } from './purchaseSnapshot'
 
 export const DEMO_PURCHASE_SERVICE = 'agencyDemoPurchaseService' as const
 
@@ -43,6 +44,7 @@ export const demoPurchaseReceiptSchema = z.object({
   reason: z.string().optional(),
   canRetryPayment: z.boolean().optional(),
   canConfirmPayment: z.boolean().optional(),
+  purchaseHistory: purchaseHistorySchema.optional(),
   processing: paidCaseProcessingSchema.optional(),
 })
 

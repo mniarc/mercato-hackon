@@ -31,22 +31,40 @@ export function useDemoPurchase(orgSlug: string) {
 
   React.useEffect(() => {
     let cancelled = false
-    void apiCall<unknown>(endpoint).then((response) => {
-      if (cancelled) return
+    const orderId = new URL(window.location.href).searchParams.get('orderId')
+    setReceipt(null)
+    setOffer(null)
+    setLoading(true)
+    setError(null)
+    void (async () => {
+      if (orderId !== null && !z.uuid().safeParse(orderId).success) throw new Error('[internal] Invalid purchase link')
+      const response = await apiCall<unknown>(endpoint)
       const parsed = offerSchema.safeParse(response.result)
       if (!response.ok || !parsed.success) throw new Error('[internal] Demo offer unavailable')
+      let savedReceipt: DemoPurchaseReceipt | null = null
+      if (orderId) {
+        const saved = await apiCall<unknown>(`${endpoint}/${encodeURIComponent(orderId)}`)
+        const history = receiptSchema.safeParse(saved.result)
+        if (!saved.ok || !history.success || history.data.orderId !== orderId) throw new Error('[internal] Saved purchase unavailable')
+        savedReceipt = history.data
+      }
+      if (cancelled) return
       setOffer(parsed.data)
-    }).catch(() => {
-      if (!cancelled) setError(t('agency.purchase.loadError', 'The demo offer is unavailable. Reload this page to try again.'))
+      setReceipt(savedReceipt)
+    })().catch(() => {
+      if (!cancelled) setError(orderId !== null ? t('agency.purchase.history.loadError') : t('agency.purchase.loadError', 'The demo offer is unavailable. Reload this page to try again.'))
     }).finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [t])
+  }, [orgSlug, t])
 
   async function requestReceipt(url: string, body?: Record<string, unknown>) {
     const response = await apiCall<unknown>(url, body ? { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) } : undefined)
     const parsed = receiptSchema.safeParse(response.result)
     if (!response.ok || !parsed.success) throw new Error('[internal] Demo purchase was not acknowledged')
     setReceipt(parsed.data)
+    const purchaseUrl = new URL(window.location.href)
+    purchaseUrl.searchParams.set('orderId', parsed.data.orderId)
+    window.history.replaceState(window.history.state, '', purchaseUrl)
     return parsed.data
   }
 
