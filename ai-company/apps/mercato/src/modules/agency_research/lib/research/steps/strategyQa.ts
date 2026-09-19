@@ -166,6 +166,9 @@ export function reclassifyStrategyFindings(findings: QaFinding[]): QaFinding[] {
     if (NON_PUBLIC_EVIDENCE.test(f.gap) || /decision_criterion|empirical_buyer_evidence/.test(f.path)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence public sources cannot provide (buyer criteria, interviews, benchmarks); a question for the client, not a rewrite' }
     }
+    // Length is governed by the contract's client-view budget, which the validator measures; a per-section
+    // word count the QA agent invents is advice, never a blocker.
+    if (f.code === 'limit_exceeded' && f.severity === 'blocking') return { ...f, severity: 'major' }
     return f
   })
 }
