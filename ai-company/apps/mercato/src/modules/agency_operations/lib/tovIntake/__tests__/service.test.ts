@@ -1,7 +1,6 @@
 import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyCase } from '../../../data/entities'
-import { PAID_CASE_ANALYSIS_CONTEXT } from '../../paidCaseAnalysis/contracts'
 import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../../analysisProcess/workflow'
 import { AGENCY_TOV_WORKFLOW_ID } from '../../tovProcess'
 import { createStaffTovIntakeService } from '../service'
@@ -20,8 +19,10 @@ function fixture() {
   const agencyCase = Object.assign(new AgencyCase(), { id: caseId, ...scope, customerEntityId,
     agentWorkerId: 'agency_operations.agent-worker.analysis.v1', workflowInstanceId: analysisId })
   const analysis = Object.assign(new WorkflowInstance(), { id: analysisId, ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
-    context: { caseId, customerEntityId, [PAID_CASE_ANALYSIS_CONTEXT]: {
-      orderId: uuid(20), paymentId: uuid(21), purchaseWorkflowInstanceId: uuid(22), materialHash: 'a'.repeat(64),
+    metadata: { entityType: 'agency_operations:agency_case', entityId: caseId },
+    context: { caseId, customerEntityId, purchase: {
+      orderId: uuid(20), paymentId: uuid(21), demoOnly: true, materialHash: 'a'.repeat(64),
+      receiptAttachmentId: uuid(23), receiptHash: 'b'.repeat(64),
     } } })
   jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity, where) => {
     if (entity === AgencyCase) return agencyCase as never
@@ -47,7 +48,7 @@ function fixture() {
     agencyTovResearchService: {},
   }
   const container = { resolve: jest.fn((name: string) => services[name]), hasRegistration: jest.fn((name: string) => name in services) }
-  return { container, startWorkflow, executeWorkflow, createScoped, specialist: () => specialist }
+  return { container, startWorkflow, executeWorkflow, createScoped, analysis, specialist: () => specialist }
 }
 
 describe('staff ToV intake', () => {
@@ -55,7 +56,7 @@ describe('staff ToV intake', () => {
   beforeEach(() => { jest.clearAllMocks(); process.env.AGENCY_TOV_EXECUTION_ENABLED = 'true' })
   afterAll(() => { if (previous === undefined) delete process.env.AGENCY_TOV_EXECUTION_ENABLED; else process.env.AGENCY_TOV_EXECUTION_ENABLED = previous })
 
-  it('starts the existing workflow from a paid case without replacing or impersonating its customer', async () => {
+  it('starts the existing workflow from the authoritative paid case without replacing or impersonating its customer', async () => {
     const test = fixture()
     const result = await createStaffTovIntakeService(test.container as never).start({ ...scope, userId, caseId,
       eventId: 'staff-event-1', brand: 'Demo', outputLanguage: 'pl',
@@ -67,6 +68,23 @@ describe('staff ToV intake', () => {
       initialContext: expect.objectContaining({ caseId, customerEntityId, [STAFF_TOV_INTAKE_CONTEXT_KEY]: expect.objectContaining({ initiatedByUserId: userId, corpusAttachmentId: attachmentId }) }),
     }))
     expect(test.specialist()).not.toBeNull()
+  })
+
+  it.each(['missing-origin', 'legacy-only', 'wrong-case'] as const)('refuses invalid direct purchase linkage: %s', async (invalid) => {
+    const test = fixture()
+    if (invalid === 'wrong-case') test.analysis.metadata = { entityType: 'agency_operations:agency_case', entityId: uuid(99) }
+    else {
+      delete test.analysis.context.purchase
+      if (invalid === 'legacy-only') test.analysis.context.paidPurchaseOrigin = {
+        orderId: uuid(20), paymentId: uuid(21), purchaseWorkflowInstanceId: uuid(22), materialHash: 'a'.repeat(64),
+      }
+    }
+    await expect(createStaffTovIntakeService(test.container as never).start({ ...scope, userId, caseId,
+      eventId: 'staff-event-1', brand: 'Demo', outputLanguage: 'pl',
+      file: { buffer: Buffer.from(JSON.stringify([post])), fileName: 'corpus.json', mimeType: 'application/json' },
+    })).rejects.toMatchObject({ status: 409 })
+    expect(test.startWorkflow).not.toHaveBeenCalled()
+    expect(test.executeWorkflow).not.toHaveBeenCalled()
   })
 
   it('replays the exact event without another attachment, workflow or dispatch', async () => {

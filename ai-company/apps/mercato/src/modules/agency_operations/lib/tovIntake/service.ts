@@ -13,7 +13,7 @@ import { AgencyCase } from '../../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from '../contracts'
 import { AGENCY_ANALYSIS_WORKER_ID } from '../analysisProcess'
 import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../analysisProcess/workflow'
-import { PAID_CASE_ANALYSIS_CONTEXT, paidPurchaseOriginSchema } from '../paidCaseAnalysis/contracts'
+import { directPaidPurchaseOriginSchema } from '../paidCaseAnalysis/contracts'
 import { AGENCY_TOV_RESULT_CONTEXT_KEY, AGENCY_TOV_WORKFLOW_ID, assertTovProcessConfigured, parseTovMaterial } from '../tovProcess'
 import {
   STAFF_TOV_INTAKE_ATTACHMENT_ENTITY_ID,
@@ -91,8 +91,11 @@ async function paidCase(em: EntityManager, scope: { tenantId: string; organizati
   const analysis = await findOneWithDecryption(em, WorkflowInstance, {
     id: agencyCase.workflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, ...scope, deletedAt: null,
   }, undefined, scope)
-  const origin = paidPurchaseOriginSchema.safeParse(analysis?.context?.[PAID_CASE_ANALYSIS_CONTEXT])
-  if (!analysis || analysis.context?.caseId !== agencyCase.id || analysis.context?.customerEntityId !== agencyCase.customerEntityId || !origin.success) conflict()
+  const directOrigin = directPaidPurchaseOriginSchema.safeParse(analysis?.context?.purchase)
+  const directCase = directOrigin.success && analysis?.metadata?.entityType === 'agency_operations:agency_case'
+    && analysis.metadata.entityId === agencyCase.id
+  if (!analysis || analysis.context?.caseId !== agencyCase.id || analysis.context?.customerEntityId !== agencyCase.customerEntityId
+    || !directCase) conflict()
   return agencyCase
 }
 

@@ -4,7 +4,6 @@ import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { TOV_SOURCE_SCOUT_AGENT_ID } from '@/modules/agency_tov/lib/agentIds'
 import { AgencyCase } from '../../../data/entities'
 import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../../analysisProcess/workflow'
-import { PAID_CASE_ANALYSIS_CONTEXT } from '../../paidCaseAnalysis/contracts'
 import { TOV_DISCOVERY_STEP_ID } from '../contracts'
 import { createTovDiscoveryService } from '../service'
 
@@ -33,8 +32,10 @@ function fixture(outcome: 'ok' | 'error' = 'ok') {
   })
   const analysis = Object.assign(new WorkflowInstance(), {
     id: analysisId, ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
-    context: { caseId, customerEntityId, [PAID_CASE_ANALYSIS_CONTEXT]: {
-      orderId: uuid(20), paymentId: uuid(21), purchaseWorkflowInstanceId: uuid(22), materialHash: 'a'.repeat(64),
+    metadata: { entityType: 'agency_operations:agency_case', entityId: caseId },
+    context: { caseId, customerEntityId, purchase: {
+      orderId: uuid(20), paymentId: uuid(21), demoOnly: true, materialHash: 'a'.repeat(64),
+      receiptAttachmentId: uuid(23), receiptHash: 'b'.repeat(64),
     } },
   })
   let savedRun: AgentRun | null = null
@@ -68,7 +69,7 @@ function fixture(outcome: 'ok' | 'error' = 'ok') {
     resolve: jest.fn((name: string) => services[name]),
     hasRegistration: jest.fn((name: string) => name in services),
   }
-  return { container, run, userHasAllFeatures }
+  return { container, run, userHasAllFeatures, analysis }
 }
 
 const request = {
@@ -85,7 +86,7 @@ const request = {
 describe('case-scoped ToV source discovery', () => {
   beforeEach(() => jest.clearAllMocks())
 
-  it('runs the native source scout against the paid case and keeps targets separate from corpus acceptance', async () => {
+  it('runs the native source scout against the authoritative paid case and keeps targets separate from corpus acceptance', async () => {
     const test = fixture()
     const result = await createTovDiscoveryService(test.container as never).start(request)
 
@@ -113,6 +114,14 @@ describe('case-scoped ToV source discovery', () => {
       expect.objectContaining({ source: 'youtube', collectorSupported: false, meetsMinimumConfidence: true }),
       expect.objectContaining({ source: 'x', collectorSupported: true, meetsMinimumConfidence: false }),
     ])
+  })
+
+  it.each(['missing-origin', 'wrong-customer'] as const)('refuses invalid direct purchase linkage: %s', async (invalid) => {
+    const test = fixture()
+    if (invalid === 'missing-origin') delete test.analysis.context.purchase
+    else test.analysis.context.customerEntityId = uuid(99)
+    await expect(createTovDiscoveryService(test.container as never).start(request)).rejects.toMatchObject({ status: 409 })
+    expect(test.run).not.toHaveBeenCalled()
   })
 
   it('returns the exact saved case invocation without paying for an implicit retry', async () => {

@@ -1,6 +1,5 @@
 import { isDeepStrictEqual } from 'node:util'
 import { createHash } from 'node:crypto'
-import { z } from 'zod'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
@@ -20,7 +19,7 @@ import { purchaseIdentitySchema, type PurchaseIdentity } from '../orderBootstrap
 import { createNativeDemoSales, readPurchaseBinding } from '../orderBootstrap/nativeSales'
 import { createDemoPaymentGateway, isVerifiedDemoCapture } from '../orderBootstrap/payment'
 import { DEMO_PURCHASE_WORKFLOW_ID, DEMO_PURCHASE_WORKER_ID } from '../orderBootstrap/workflow'
-import { PAID_CASE_ANALYSIS_CONTEXT, paidPurchaseMaterialSchema, paidPurchaseOriginSchema, type PaidCaseProcessing } from './contracts'
+import { PAID_CASE_ANALYSIS_CONTEXT, directPaidPurchaseOriginSchema, paidPurchaseMaterialSchema, paidPurchaseOriginSchema, type PaidCaseProcessing } from './contracts'
 import { mapPaidPurchaseMaterial, purchaseMatchesAnalysisProduct } from './material'
 
 type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
@@ -52,9 +51,7 @@ function createPaidCaseAnalysisAccess(container: AppContainer, dispatch: boolean
       if (purchaseWorkflow?.workflowId === AGENCY_ANALYSIS_WORKFLOW_ID) {
         // New teammate activation uses the analysis workflow itself; do not
         // run the legacy awaiting-execution bootstrap a second time.
-        const origin = z.object({ orderId: z.uuid(), paymentId: z.uuid(), demoOnly: z.literal(true),
-          materialHash: z.string().min(1), receiptAttachmentId: z.uuid().optional(), receiptHash: z.string().optional() })
-          .safeParse(purchaseWorkflow.context.purchase)
+        const origin = directPaidPurchaseOriginSchema.safeParse(purchaseWorkflow.context.purchase)
         if (!origin.success || origin.data.orderId !== order.id || origin.data.paymentId !== payment.id
           || purchaseWorkflow.context.caseId !== agencyCase.id || agencyCase.agentWorkerId !== AGENCY_ANALYSIS_WORKER_ID
           || purchaseWorkflow.metadata?.entityType !== 'agency_operations:agency_case' || purchaseWorkflow.metadata.entityId !== agencyCase.id) conflict()

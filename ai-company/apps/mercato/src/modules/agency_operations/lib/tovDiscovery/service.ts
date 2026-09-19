@@ -15,7 +15,7 @@ import {
 import { AgencyCase } from '../../data/entities'
 import { AGENCY_ANALYSIS_WORKER_ID } from '../analysisProcess'
 import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../analysisProcess/workflow'
-import { PAID_CASE_ANALYSIS_CONTEXT, paidPurchaseOriginSchema } from '../paidCaseAnalysis/contracts'
+import { directPaidPurchaseOriginSchema } from '../paidCaseAnalysis/contracts'
 import {
   TOV_DISCOVERY_MIN_CONFIDENCE,
   TOV_DISCOVERY_STEP_ID,
@@ -70,9 +70,11 @@ export async function readPaidDiscoveryCase(em: EntityManager, scope: Scope, cas
     workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
     deletedAt: null,
   }, undefined, scope)
-  const origin = paidPurchaseOriginSchema.safeParse(analysis?.context?.[PAID_CASE_ANALYSIS_CONTEXT])
+  const directOrigin = directPaidPurchaseOriginSchema.safeParse(analysis?.context?.purchase)
+  const directCase = directOrigin.success && analysis?.metadata?.entityType === 'agency_operations:agency_case'
+    && analysis.metadata.entityId === agencyCase.id
   if (!analysis || analysis.context?.caseId !== agencyCase.id
-    || analysis.context?.customerEntityId !== agencyCase.customerEntityId || !origin.success) conflict()
+    || analysis.context?.customerEntityId !== agencyCase.customerEntityId || !directCase) conflict()
   return agencyCase
 }
 
