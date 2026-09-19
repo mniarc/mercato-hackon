@@ -1,0 +1,128 @@
+{
+  "kind": "research",
+  "data": {
+    "questions": [
+      {
+        "question": "Którą potrzebę klienta mamy teraz obsługiwać w komunikacji?",
+        "hint": "Portfolio jest szerokie; z materiałów wynika diagnoza problemu i rozwiązanie cyfrowe.",
+        "reason": "Priorytetu nie da się wyczytać ze strony.",
+        "brief_field": "priority_offer",
+        "priority": "must",
+        "if_unanswered": "Brak priorytetu blokuje strategię."
+      },
+      {
+        "question": "Jaki jest adres strony WWW firmy?",
+        "hint": "—",
+        "reason": "—",
+        "brief_field": "channel_and_cta",
+        "priority": "should",
+        "if_unanswered": "—"
+      },
+      {
+        "question": "Do kogo przede wszystkim kierujemy komunikację?",
+        "hint": "Materiały sugerują właścicieli procesów w firmach B2B.",
+        "reason": "Wybór grupy jest decyzją, nie wnioskiem z WWW.",
+        "brief_field": "priority_audience",
+        "priority": "must",
+        "if_unanswered": "Strategia nie ma odbiorcy."
+      },
+      {
+        "question": "Jaką zmianę w postrzeganiu firmy chcemy osiągnąć w 30 dni?",
+        "hint": "Np. skojarzenie z dojściem od problemu do rozwiązania.",
+        "reason": "Kierunek to decyzja klienta.",
+        "brief_field": "business_direction",
+        "priority": "must",
+        "if_unanswered": "Nie wiadomo, po czym poznać sukces."
+      },
+      {
+        "question": "Który z dwóch sposobów mówienia o tym samym jest bliższy firmie?",
+        "hint": "Dwa równorzędne warianty na tych samych faktach.",
+        "reason": "Preferencja głosu nie wynika z próbki.",
+        "brief_field": "voice_preferences",
+        "priority": "must",
+        "if_unanswered": "ToV pozostaje propozycją.",
+        "options": [
+          {
+            "variant_id": "VOICE-A",
+            "label": "Rzeczowo",
+            "text": "Rozpoznanie obejmuje potrzeby, cel, organizację i technikę.",
+            "fact_ids": [
+              "F03"
+            ]
+          },
+          {
+            "variant_id": "VOICE-B",
+            "label": "Pytaniami",
+            "text": "Czego potrzebują użytkownicy? Jaki jest cel? Od tego zaczynamy.",
+            "fact_ids": [
+              "F03"
+            ]
+          }
+        ]
+      },
+      {
+        "question": "Kto odbiera kontakt po CTA i czy ta ścieżka działa?",
+        "hint": "Kontakt jest widoczny na stronie; obsługi nie sprawdzono.",
+        "reason": "CTA do nieobsługiwanego celu jest niedozwolone.",
+        "brief_field": "channel_and_cta",
+        "priority": "must",
+        "if_unanswered": "Publikacja jest zablokowana."
+      },
+      {
+        "question": "Czy mamy zgodę na nazwanie klienta lub cytat z projektu?",
+        "hint": "Domyślnie nieznane.",
+        "reason": "Prawa do dowodów blokują tylko ich użycie.",
+        "brief_field": "assets_and_permissions",
+        "priority": "should",
+        "if_unanswered": "Case pozostaje anonimowy."
+      },
+      {
+        "question": "Czy są 2–3 prawdziwe sytuacje zakupowe, które możemy opisać?",
+        "hint": "Nie mamy głosu klientów.",
+        "reason": "Bez tego obietnice pozostają wąskie.",
+        "brief_field": "buyer_reality",
+        "priority": "should",
+        "if_unanswered": "Hipotezy zamiast przykładów."
+      },
+      {
+        "question": "Jaka miara powodzenia i jakie ograniczenia budżetu?",
+        "hint": "Brak baseline; proponujemy miarę zrozumienia roli.",
+        "reason": "Cel liczbowy nie może być wymyślony.",
+        "brief_field": "success_and_limits",
+        "priority": "should",
+        "if_unanswered": "Brak miary."
+      },
+      {
+        "question": "Którą potrzebę klienta mamy teraz obsługiwać w komunikacji?",
+        "hint": "dup",
+        "reason": "dup",
+        "brief_field": "priority_offer",
+        "priority": "must",
+        "if_unanswered": "dup"
+      }
+    ],
+    "evidence_requests": [
+      {
+        "needed": "Jedna zanonimizowana karta case: sytuacja, działanie, artefakt, obserwowany wynik, ograniczenia.",
+        "claim_supported": "Wykazanie konkretnego efektu.",
+        "without_it": "Opisujemy deklarowaną metodę; brak case nie blokuje testu.",
+        "owner": "klient",
+        "priority": "optional_conditional",
+        "evidence_ids": [
+          "P01",
+          "F42"
+        ]
+      },
+      {
+        "needed": "Jedna prawdziwa obiekcja z rozmowy sprzedażowej.",
+        "claim_supported": "Rzeczywista sytuacja zakupowa.",
+        "without_it": "Obiekcje pozostają hipotezą.",
+        "owner": "klient",
+        "priority": "optional",
+        "evidence_ids": [
+          "A01"
+        ]
+      }
+    ]
+  }
+}

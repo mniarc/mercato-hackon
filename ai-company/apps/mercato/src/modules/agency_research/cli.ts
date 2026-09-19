@@ -13,7 +13,7 @@ import { createFirecrawlFetcher, createFirecrawlSearch, type SearchHit, type Sea
 import { formatLedger } from './lib/research/ledger'
 import type { PipelineCache, ResearchAgentRunner } from './lib/research/pipeline'
 import { createFixtureRunner, createOrchestratorRunner } from './lib/runners'
-import { orderStatus, type ResearchScope } from './lib/store'
+import { currentInputVersion, orderStatus, type ResearchScope } from './lib/store'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion } from './data/entities'
 import { researchSteps, type ResearchStep } from './lib/contracts'
 
@@ -104,7 +104,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  * Runs the audit process for one order and stores every document version.
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
- *     [--through 3.2|3.5] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
+ *     [--through 3.2|3.5|3.8] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
  *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] \
  *     [--tenant <id> --org <id> --user <id>]
  *
@@ -204,7 +204,7 @@ const run: ModuleCli = {
     const status = await orderStatus(db.em, scope, orderRef)
     const last = status.taskRuns[status.taskRuns.length - 1]
     if (last?.status === 'paused_budget') console.error(`Paused on budget: ${outcome.spentPln.toFixed(2)} PLN spent; task run ${last.id}`)
-    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}`)
+    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}${outcome.qaVerdict ? ` · QA ${outcome.qaVerdict}` : ''}${outcome.escalationVersionId ? ` · E.1 opened (${outcome.escalationVersionId})` : ''}`)
     console.log(`Spend this run: ${outcome.spentPln.toFixed(2)} PLN · order total ${status.totalPln.toFixed(2)} PLN`)
     console.log(`Written to ${path.resolve(out)}`)
   },
@@ -247,6 +247,26 @@ const status: ModuleCli = {
   },
 }
 
-const agencyResearchCliCommands: ModuleCli[] = [run, status]
+/** yarn mercato agency_research escalations --order-ref <ref> — the E.1 records of an order. */
+const escalations: ModuleCli = {
+  command: 'escalations',
+  async run(rest: string[]) {
+    const args = parseArgs(rest ?? [])
+    if (!args['order-ref']) throw new Error('[internal] --order-ref is required')
+    const db = await connectDb()
+    const scope = await resolveScope(db, args)
+    const status = await orderStatus(db.em, scope, args['order-ref'])
+    const runs = status.taskRuns.filter((r) => r.stepId === 'E.1')
+    console.log(`Order ${args['order-ref']}: ${runs.length} escalation(s)`)
+    for (const r of runs) console.log(`  ${r.createdAt.toISOString()} ${r.status} run ${r.id}${r.error ? ` · ${r.error}` : ''}`)
+    const current = await currentInputVersion(db.em, scope, args['order-ref'], 'WZR-ESKALACJA')
+    if (current) {
+      const version = await db.em.findOne(AgencyResearchDocumentVersion, { id: current.versionId })
+      if (version) console.log(`\n${version.renderedMd}`)
+    }
+  },
+}
+
+const agencyResearchCliCommands: ModuleCli[] = [run, status, escalations]
 
 export default agencyResearchCliCommands

@@ -1,0 +1,234 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "field_map": [
+        {
+          "field_key": "priority_offer",
+          "proposed_value": "Diagnoza problemu biznesowego i przełożenie go na rozwiązanie cyfrowe.",
+          "evidence_ids": [
+            "F01",
+            "F03"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Portfolio jest szerokie; priorytet wymaga decyzji klienta.",
+          "status": "fact"
+        },
+        {
+          "field_key": "priority_audience",
+          "proposed_value": "Właściciele procesów i produktów w firmach B2B bez gotowej specyfikacji.",
+          "evidence_ids": [
+            "A01",
+            "F04",
+            "F99"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Rola odbiorcy jest interpretacją dostawcy.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "business_direction",
+          "proposed_value": null,
+          "evidence_ids": [],
+          "provenance": "inferred",
+          "readiness": "blocked",
+          "decision_state": "awaiting_client",
+          "reason": "Kierunku nie da się wyczytać ze strony.",
+          "status": "unknown"
+        },
+        {
+          "field_key": "buyer_reality",
+          "proposed_value": "Hipoteza: obiekcja 'najpierw musimy mieć specyfikację'.",
+          "evidence_ids": [
+            "A01"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "not_required",
+          "reason": "Brak głosu klientów.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "promise_constraints",
+          "proposed_value": "Deklaracje metody bez dowodu wyniku; nie obiecywać efektów.",
+          "evidence_ids": [
+            "P01",
+            "F02"
+          ],
+          "provenance": "observed",
+          "readiness": "ready",
+          "decision_state": "not_required",
+          "reason": "Karty dowodów są deklaracjami.",
+          "status": "fact"
+        },
+        {
+          "field_key": "voice_preferences",
+          "proposed_value": "Konkretnie, krótko, bez hype.",
+          "evidence_ids": [
+            "L01"
+          ],
+          "provenance": "client_answer",
+          "readiness": "conditional",
+          "decision_state": "client_selected",
+          "reason": "Obecny głos z próbki; przyszły wymaga decyzji.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "channel_and_cta",
+          "proposed_value": "LinkedIn firmy; CTA do kontaktu na stronie.",
+          "evidence_ids": [
+            "F02",
+            "G01"
+          ],
+          "provenance": "observed",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Cel kontaktu i właściciel nieznani.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "success_and_limits",
+          "proposed_value": null,
+          "evidence_ids": [],
+          "provenance": "inferred",
+          "readiness": "blocked",
+          "decision_state": "awaiting_client",
+          "reason": "Brak baseline.",
+          "status": "unknown"
+        },
+        {
+          "field_key": "assets_and_permissions",
+          "proposed_value": "Publiczne parafrazy; prawa do cytatu nieznane.",
+          "evidence_ids": [
+            "P01"
+          ],
+          "provenance": "observed",
+          "readiness": "ready",
+          "decision_state": "not_required",
+          "reason": "Tylko publiczne materiały.",
+          "status": "fact"
+        }
+      ]
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "field_map": [
+        {
+          "field_key": "priority_offer",
+          "proposed_value": "Diagnoza problemu biznesowego i przełożenie go na rozwiązanie cyfrowe.",
+          "evidence_ids": [
+            "F01",
+            "F03"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Priorytet oferty to hipoteza z portfolio; decyzja należy do klienta (poprawka po QA).",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "priority_audience",
+          "proposed_value": "Właściciele procesów i produktów w firmach B2B bez gotowej specyfikacji.",
+          "evidence_ids": [
+            "A01",
+            "F04",
+            "F99"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Rola odbiorcy jest interpretacją dostawcy.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "business_direction",
+          "proposed_value": null,
+          "evidence_ids": [],
+          "provenance": "inferred",
+          "readiness": "blocked",
+          "decision_state": "awaiting_client",
+          "reason": "Kierunku nie da się wyczytać ze strony.",
+          "status": "unknown"
+        },
+        {
+          "field_key": "buyer_reality",
+          "proposed_value": "Hipoteza: obiekcja 'najpierw musimy mieć specyfikację'.",
+          "evidence_ids": [
+            "A01"
+          ],
+          "provenance": "inferred",
+          "readiness": "conditional",
+          "decision_state": "not_required",
+          "reason": "Brak głosu klientów.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "promise_constraints",
+          "proposed_value": "Deklaracje metody bez dowodu wyniku; nie obiecywać efektów.",
+          "evidence_ids": [
+            "P01",
+            "F02"
+          ],
+          "provenance": "observed",
+          "readiness": "ready",
+          "decision_state": "not_required",
+          "reason": "Karty dowodów są deklaracjami.",
+          "status": "fact"
+        },
+        {
+          "field_key": "voice_preferences",
+          "proposed_value": "Konkretnie, krótko, bez hype.",
+          "evidence_ids": [
+            "L01"
+          ],
+          "provenance": "client_answer",
+          "readiness": "conditional",
+          "decision_state": "client_selected",
+          "reason": "Obecny głos z próbki; przyszły wymaga decyzji.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "channel_and_cta",
+          "proposed_value": "LinkedIn firmy; CTA do kontaktu na stronie.",
+          "evidence_ids": [
+            "F02",
+            "G01"
+          ],
+          "provenance": "observed",
+          "readiness": "conditional",
+          "decision_state": "awaiting_client",
+          "reason": "Cel kontaktu i właściciel nieznani.",
+          "status": "hypothesis"
+        },
+        {
+          "field_key": "success_and_limits",
+          "proposed_value": null,
+          "evidence_ids": [],
+          "provenance": "inferred",
+          "readiness": "blocked",
+          "decision_state": "awaiting_client",
+          "reason": "Brak baseline.",
+          "status": "unknown"
+        },
+        {
+          "field_key": "assets_and_permissions",
+          "proposed_value": "Publiczne parafrazy; prawa do cytatu nieznane.",
+          "evidence_ids": [
+            "P01"
+          ],
+          "provenance": "observed",
+          "readiness": "ready",
+          "decision_state": "not_required",
+          "reason": "Tylko publiczne materiały.",
+          "status": "fact"
+        }
+      ]
+    }
+  }
+]

@@ -10,7 +10,7 @@ import { orderDataSchema } from '../../data/schemas/zamowienie'
 
 export const AGENCY_RESEARCH_SERVICE = 'agencyResearchService' as const
 
-export const researchSteps = ['3.2', '3.5'] as const
+export const researchSteps = ['3.2', '3.5', '3.8'] as const
 export type ResearchStep = (typeof researchSteps)[number]
 
 export const researchRunRequestSchema = z.object({
@@ -50,6 +50,10 @@ export type ResearchRunResult = {
   spentPln: number
   /** The last step completed; `paused_budget` / `failed` runs end before `through`. */
   completedThrough: ResearchStep | null
+  /** 3.7 verdict when QA ran: ready | to_fix | exception. */
+  qaVerdict?: 'ready' | 'to_fix' | 'exception'
+  /** The WEW-ESKALACJA version opened by E.1 (QA exhausted, exception or budget), when any. */
+  escalationVersionId?: string
 }
 
 export type ResearchExecutionContext = {

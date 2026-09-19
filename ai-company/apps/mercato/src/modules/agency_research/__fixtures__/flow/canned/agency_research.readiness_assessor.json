@@ -1,0 +1,59 @@
+{
+  "kind": "research",
+  "data": {
+    "readiness": [
+      {
+        "output": "UVP",
+        "input_fields": [
+          "priority_offer",
+          "priority_audience",
+          "promise_constraints"
+        ],
+        "state": "blocked",
+        "missing": "Brak rzeczywistego wyboru oferty i odbiorcy.",
+        "owner": "klient"
+      },
+      {
+        "output": "strategia",
+        "input_fields": [
+          "priority_offer",
+          "priority_audience",
+          "business_direction"
+        ],
+        "state": "blocked",
+        "missing": "Kierunek i priorytet.",
+        "owner": "klient"
+      },
+      {
+        "output": "ToV",
+        "input_fields": [
+          "voice_preferences",
+          "język"
+        ],
+        "state": "conditional",
+        "missing": "Wybór wariantu głosu.",
+        "owner": "klient"
+      },
+      {
+        "output": "post",
+        "input_fields": [
+          "channel_and_cta",
+          "promise_constraints"
+        ],
+        "state": "conditional",
+        "missing": "Właściciel CTA.",
+        "owner": "klient"
+      }
+    ],
+    "research_return": [
+      {
+        "question": "Czy strona kontaktowa działa i kto odbiera?",
+        "source_to_check": "Formularz kontaktowy na stronie klienta.",
+        "expected_result": "Potwierdzony cel kontaktu.",
+        "owner_step": "3.2",
+        "limit": "1 odczyt",
+        "stop_condition": "Brak odpowiedzi → pytanie do klienta."
+      }
+    ]
+  }
+}

@@ -8,9 +8,13 @@ import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from '.
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
+import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { runAuditStep } from './research/steps/audit'
 import { runCompetitorsStep } from './research/steps/competitors'
 import type { StepContext, StepOutcome } from './research/steps/context'
+import { runFindingsStep } from './research/steps/findings'
+import { runFreezeStep } from './research/steps/freeze'
+import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
 import { createOrchestratorRunner } from './runners'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
@@ -153,7 +157,9 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     attempt: 1,
   }
 
-  const chain: { step: ResearchStep; run: (ctx: StepContext) => Promise<StepOutcome> }[] = [
+  let qaVerdict: 'ready' | 'to_fix' | 'exception' | undefined
+  let escalationVersionId: string | undefined
+  const chain: { step: ResearchStep; run: (ctx: StepContext) => Promise<StepOutcome | null> }[] = [
     { step: '3.2', run: runSourcesStepDb },
     {
       step: '3.5',
@@ -162,20 +168,47 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         return runCompetitorsStep(c)
       },
     },
+    {
+      // 3.6 findings map → 3.7 QA (repairs through the author steps, E.1 on exhaustion) → 3.8 freeze.
+      step: '3.8',
+      run: async (c) => {
+        await runFindingsStep(c)
+        const qa = await runQaLoop(c, { authorSteps: { '3.2': runSourcesStepDb, '3.3': runAuditStep, '3.4': runCompetitorsStep, '3.5': runCompetitorsStep, '3.6': runFindingsStep } })
+        qaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId
+        if (qa.verdict !== 'ready') return null
+        return runFreezeStep(c)
+      },
+    },
   ]
   let completedThrough: ResearchStep | null = null
+  let currentStep: ResearchStep = '3.2'
   try {
     for (const { step, run } of chain) {
       if (!reaches(opts.through, step)) break
+      currentStep = step
       const outcome = await run(ctx)
+      if (!outcome) break
       versionsByStep[step] = outcome.versionId
       completedThrough = step
     }
   } catch (error) {
     if (!(error instanceof BudgetPausedError)) throw error
-    log(`budget paused after ${completedThrough ?? 'no step'}: ${ledger.snapshot().total.toFixed(2)} PLN`)
+    log(`budget paused during ${currentStep}: ${ledger.snapshot().total.toFixed(2)} PLN`)
+    const failedRun = taskRunIds[taskRunIds.length - 1]
+    const escalation = await openEscalation(ctx, {
+      code: 'budget_exhausted',
+      summary: `Research paused at ${ledger.snapshot().total.toFixed(2)} PLN of a ${ledger.snapshot().cap} PLN cap during step ${currentStep}`,
+      triggerStep: currentStep,
+      evidence: [{ ref: failedRun, fact: `task run paused on budget; next call estimated ${error.nextEstimatePln.toFixed(2)} PLN` }],
+      blockedSteps: stepOrder.filter((step) => stepOrder.indexOf(step) >= stepOrder.indexOf(currentStep)),
+      decisionQuestion: `Raise the per-run cap or narrow the scope (fewer pages / competitors) and resume step ${currentStep}?`,
+      allowedResolutions: budgetExhaustedResolutions(currentStep),
+      resumeStep: currentStep,
+    })
+    escalationVersionId = escalation.versionId
   }
-  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep }
+  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, escalationVersionId }
 }
 
 type Container = { resolve(name: string): unknown }
@@ -210,7 +243,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         maxCostPln: parsed.maxCostPln,
         agentRunIds,
       })
-      return { taskRunIds: outcome.taskRunIds, documentVersionIds: outcome.documentVersionIds, agentRunIds: outcome.agentRunIds, spentPln: outcome.spentPln, completedThrough: outcome.completedThrough }
+      return { taskRunIds: outcome.taskRunIds, documentVersionIds: outcome.documentVersionIds, agentRunIds: outcome.agentRunIds, spentPln: outcome.spentPln, completedThrough: outcome.completedThrough, qaVerdict: outcome.qaVerdict, escalationVersionId: outcome.escalationVersionId }
     },
     async status(scope, orderRef) {
       const em = (container.resolve('em') as EntityManager).fork()
