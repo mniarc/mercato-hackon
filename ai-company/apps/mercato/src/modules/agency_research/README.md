@@ -73,7 +73,7 @@ The whole chain 3.1 → 9.3 completed live the same night (order `demo-open-merc
 output tokens): most of it went to regenerations across reruns before the inputs were made cache-stable (page cache, stored
 competitor selection, no previous-version input on plain reruns, day-precision dates, no fetch timestamps in QA inputs) and
 to QA loops that treated the client's gaps as agent faults before the reclassification rules. A rerun now replays every
-unchanged step at 0 PLN.
+unchanged step at 0 PLN: the next full pass through 9.3 cost **1.33 PLN** (four agent runs).
 
 ## Environment
 
