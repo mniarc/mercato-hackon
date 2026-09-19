@@ -6,7 +6,7 @@ export const agentDefinition = {
   id: 'agency_operations.quality_reviewer',
   moduleId: 'agency_operations',
   label: 'Agency quality reviewer',
-  description: 'Disabled stage-specific review scaffold; no approval or release authority.',
+  description: 'Disabled strategy-pair, plan and delivery review scaffold; no approval or release authority.',
   instructions: systemPrompt,
   agentType: 'researcher',
   tools: [],

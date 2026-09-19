@@ -4,13 +4,13 @@ import * as definitions from '..'
 import { aiAgents } from '../../ai-agents'
 import { outputSchema as qualityOutput } from '../quality-reviewer/contract'
 
-test('exports the fifteen mapped worker roles without activating unfinished processes', () => {
+test('exports only the ten agency-owned worker roles without competing research scaffolds', () => {
   const ids = Object.values(definitions).map((definition) => definition.id).sort()
-  expect(new Set(ids).size).toBe(15)
+  expect(new Set(ids).size).toBe(10)
   expect(ids).toEqual([
-    'brand_auditor', 'brief_author', 'change_impact', 'client_communication', 'client_triage',
-    'content_planner', 'findings_analyst', 'market_researcher', 'post_copywriter', 'post_editor',
-    'quality_reviewer', 'sales_advisor', 'scope_assessment', 'source_researcher', 'strategy_author',
+    'change_impact', 'client_communication', 'client_triage', 'content_planner',
+    'post_copywriter', 'post_editor', 'quality_reviewer', 'sales_advisor',
+    'scope_assessment', 'strategy_author',
   ].map((name) => `agency_operations.${name}`).sort())
   expect(aiAgents).toEqual([])
 })
@@ -33,12 +33,16 @@ test.each(Object.values(definitions).map((definition) => [definition.id, definit
   },
 )
 
-test('quality review preserves stage-specific outcomes rather than a universal approval result', () => {
+test('quality review keeps future agency stages and rejects teammate-owned audit and brief review', () => {
   const review = {
-    reviewedRefs: [{ documentId: 'brief', version: 'v1' }], criteriaVersion: 'criteria-v1',
-    findings: [], rationale: 'A client goal is still missing.',
+    reviewedRefs: [{ documentId: 'strategy', version: 'v1' }], criteriaVersion: 'criteria-v1',
+    findings: [], rationale: 'The strategy matches the supplied criteria.',
   }
-  expect(qualityOutput.safeParse({ ...review, stage: 'brief', recommendation: 'needs_client_data' }).success).toBe(true)
+  expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'pass' }).success).toBe(true)
+  expect(qualityOutput.safeParse({ ...review, stage: 'plan', recommendation: 'rework' }).success).toBe(true)
+  expect(qualityOutput.safeParse({ ...review, stage: 'delivery', recommendation: 'ready', clientSafeConclusions: [] }).success).toBe(true)
+  expect(qualityOutput.safeParse({ ...review, stage: 'audit', recommendation: 'ready' }).success).toBe(false)
+  expect(qualityOutput.safeParse({ ...review, stage: 'brief', recommendation: 'needs_client_data' }).success).toBe(false)
   expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'needs_client_data' }).success).toBe(false)
-  expect(qualityOutput.safeParse({ ...review, stage: 'brief', recommendation: 'approved' }).success).toBe(false)
+  expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'approved' }).success).toBe(false)
 })

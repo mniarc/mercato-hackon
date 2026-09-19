@@ -23,6 +23,9 @@ Domain terms remain in [the domain vocabulary](../.processes/current/ai-company-
   versioned documents. Connect through a small artifact/run reference seam,
   not imports into research internals or copied tone logic. Enterprise agents
   are optional for the core no-op slice and explicitly gated for this lane.
+- **Teammate audit/research (`agency_research`):** source collection and its
+  versioned evidence pipeline. Agency operations owns the case/workflow handoff
+  through `agencyResearchService`, not duplicate research agents or storage.
 
 ## Integrated feature boundaries
 

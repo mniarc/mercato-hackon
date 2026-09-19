@@ -1,10 +1,5 @@
 /** Side-effect-free native orchestrator inputs, not registration or activation. */
 export { agentDefinition as salesAdvisor } from './sales-advisor/definition'
-export { agentDefinition as sourceResearcher } from './source-researcher/definition'
-export { agentDefinition as brandAuditor } from './brand-auditor/definition'
-export { agentDefinition as marketResearcher } from './market-researcher/definition'
-export { agentDefinition as findingsAnalyst } from './findings-analyst/definition'
-export { agentDefinition as briefAuthor } from './brief-author/definition'
 export { agentDefinition as strategyAuthor } from './strategy-author/definition'
 export { agentDefinition as qualityReviewer } from './quality-reviewer/definition'
 export { agentDefinition as contentPlanner } from './content-planner/definition'
