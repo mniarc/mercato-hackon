@@ -1,8 +1,8 @@
-export * from './agency-spec-progress/index.mjs'
+export * from '../../.dev-docs/coverage/src/index.mjs'
 
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { runCli } from './agency-spec-progress/cli.mjs'
+import { runCli } from '../../.dev-docs/coverage/src/cli.mjs'
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   runCli(process.argv.slice(2)).catch((error) => {

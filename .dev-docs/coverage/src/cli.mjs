@@ -22,8 +22,8 @@ export function parseOptions(args) {
 }
 
 function printHelp(output) {
-  output.log('Manual assessments: .dev-docs/coverage/*.json, version 1. Each stories[] entry has id and criteria[] with numbered AC IDs, implementation (implemented/partial/missing/unassessed), evidence [{path: App-relative, note}], missing[], externalDecision[], and verification {focused,nativeApp,liveModel}: passed/not_run/unknown. AC text comes from canonical specs. The scanner never changes these files, calls AI, infers proof, or completes tasks.\n')
-  output.log('Usage: node scripts/agency-spec-progress.mjs [--json] [--details | --feature Fnn | --story Fnn-n]\n       node scripts/agency-spec-progress.mjs --html [output-path]\n       node scripts/agency-spec-progress.mjs --refresh\n\n--refresh performs one scan and writes both deterministic machine inventory (.dev-docs/coverage/generated/inventory.json) and the self-contained report (.dev-docs/coverage/report.html). --html writes only the report and otherwise preserves existing behavior. Relative custom HTML paths resolve from the current directory.\n\nDone task evidence is not story completion. Implementation, focused proof, native-app/fixture proof and live-model proof remain separate. Exact assessment inputs are edited manually; routine refresh needs no model.')
+  output.log('Manual assessments: .dev-docs/coverage/assessments/FNN.json, version 1, one feature per file. Edit these files for reviewed implementation/evidence/missing/proof/external-decision claims. Each stories[] entry has id and criteria[] with numbered AC IDs, implementation (implemented/partial/missing/unassessed), evidence [{path: App-relative, note}], missing[], externalDecision[], and verification {focused,nativeApp,liveModel}: passed/not_run/unknown. AC text comes from canonical specs. The scanner never changes assessments, calls AI, infers proof, or completes tasks.\n')
+  output.log('Usage: node scripts/agency-spec-progress.mjs [--json] [--details | --feature Fnn | --story Fnn-n]\n       node scripts/agency-spec-progress.mjs --html [output-path]\n       node scripts/agency-spec-progress.mjs --refresh\n\n--refresh performs one scan and writes both deterministic machine inventory (.dev-docs/coverage/generated/inventory.json) and the self-contained report (.dev-docs/coverage/generated-report.html). --html writes only the report and otherwise preserves existing behavior; its default is generated-report.html. Relative custom HTML paths resolve from the current directory. Generator source and focused tests are colocated in .dev-docs/coverage/src/.\n\nDone task evidence is not story completion. Implementation, focused proof, native-app/fixture proof and live-model proof remain separate. Exact assessment inputs are edited manually; routine refresh needs no model.')
 }
 
 export async function runCli(args, output = console) {
@@ -39,7 +39,7 @@ export async function runCli(args, output = console) {
     output.log(`Wrote ${outputs.inventoryPath}`)
     output.log(`Wrote ${outputs.htmlPath}`)
   } else if (options.html) {
-    const outputPath = options.html === true ? path.join(defaultAppRoot, '.dev-docs', 'coverage', 'report.html') : path.resolve(options.html)
+    const outputPath = options.html === true ? path.join(defaultAppRoot, '.dev-docs', 'coverage', 'generated-report.html') : path.resolve(options.html)
     output.log(`Wrote ${await writeHtmlReport(report, outputPath)}`)
   } else if (options.json) output.log(JSON.stringify(focused ? selectHierarchy(report, options) : report, null, 2))
   else output.log(focused || options.details ? formatDetails(selectHierarchy(report, options)) : formatReport(report))

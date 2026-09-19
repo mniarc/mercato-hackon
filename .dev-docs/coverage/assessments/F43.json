@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F43-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "Purchase offer binding now exists, but clientChangeProcess scope implementation is absent."
+            }
+          ],
+          "missing": [
+            "No G comparison across brand, market, language and deliverable counts against the purchased offer."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Generic change is unsupported except the bound brief-revision seam."
+            }
+          ],
+          "missing": [
+            "Audience/tone/topic changes lack real in-scope qualification."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "T30 calls for model interpretation plus deterministic product boundaries."
+            }
+          ],
+          "missing": [
+            "No connected scope-assessment result or product-rule enforcement."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "No production scope-to-impact service is wired."
+            }
+          ],
+          "missing": [
+            "In-scope changes do not advance to G.4."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/contracts.ts",
+              "note": "Technical attempt limits are separate from review requests and no revision-price rule is implemented."
+            }
+          ],
+          "missing": [
+            "No complete in-scope revision flow yet demonstrates unlimited bought-scope revisions."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F43-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "General scope assessment remains unimplemented."
+            }
+          ],
+          "missing": [
+            "No persisted four-way scope outcome with basis."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Unsupported expansion is not executed or charged by the existing projection."
+            }
+          ],
+          "missing": [
+            "No explicit product-bound refusal response and explanation for each expansion type."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Generic intent clarification is implemented."
+            }
+          ],
+          "missing": [
+            "Missing purchased-scope facts are not yet assessed by a scope-specific question flow."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Submission disposition does not create new sales orders or payments."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Producer QA/budget E.1 exists, but no scope-dispute adapter."
+            }
+          ],
+          "missing": [
+            "Unresolvable scope dispute lacks request-versus-offer evidence and native employee handoff."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

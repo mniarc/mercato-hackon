@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F10-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
+              "note": "Native brief review stores exact immutable snapshot and current QA-backed response permissions."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Portal showed the exact initial brief and its eight actual QA questions. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
+              "note": "Native task+portal review and received response are saved; TC001 proves seeded-brief invitation/response only."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the initial exact brief was needs_client_data with genuine questions and acceptance disabled; the authenticated client answered in the native UI, a different version became ready_for_approval, and that exact version was explicitly accepted without another checkout. Local intelligence fixture, not live-model proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
+              "note": "Portal supports comments, exact approval and ordinary requests; material intake is real."
+            }
+          ],
+          "missing": [
+            "Complete integrated evidence-upload/update and pause outcomes at brief rather than receipt-only or unsupported disposition."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
+              "note": "Original brief response becomes common client submission for native G; revision extractor is not second triage."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Original answer and approval responses each passed through native G. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
+              "note": "Server review/response contracts are channel-independent; chosen portal adapter is real."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F10-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/applyAnswers.ts",
+              "note": "Native answer application stores literal substantive audience answer, not fixed segment enum."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/brief.ts",
+              "note": "Audience writer consumes client-selected field_map value; trusted answer application accepts literal audience text without a fixed-segment enum, so developer and agency-owner choices use the same implemented path. Neither named demo variant has a connected runtime pass."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Exact saved brief response enters G and new revision route."
+            }
+          ],
+          "missing": [
+            "General downstream impact/invalidation from changed audience remains beyond bounded invited-answer revision."
+          ],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/applyAnswers.ts",
+              "note": "Revision request has no product/currency/new-brand fields; no price or scope mutation. "
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/applyAnswers.ts",
+              "note": "G-authorized known-answer update invokes real4.1/4.2."
+            }
+          ],
+          "missing": [
+            "Route evidence-check4.5 and broader audience correction impacts."
+          ],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/applyAnswers.ts",
+              "note": "Answer update creates no acceptance; new current review still requires explicit approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. The supplied audience answer did not approve the revised brief or future strategy. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F10-3",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Binds persisted source submission, native G result, active customer and exact brief invitation."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Acceptance, clarification and scoped answer-revision routes exist."
+            }
+          ],
+          "missing": [
+            "Implement evidence-check4.5 and general directed correction beyond invited answers."
+          ],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "unassessed",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Saved G interpretation/revision result retain rationale and exact versions."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/backend/agency-operations/cases/[id]/_components/researchLineage/ResearchLineage.tsx",
+              "note": "T64 implements exact version/history and approval-record navigation, but this inspection does not establish a unified view of one G decision, rationale and chosen path. Presentation implementation remains unassessed, not asserted missing; no native UI proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Mapper extracts quoted answers only; routing remains saved G decision and no round accounting."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Saved G change drove revision without another local triage or revision counter. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
+              "note": "Actual QA outcomes return unanswered questions or exact new review; no routine staff approval gate."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. The resulting QA-ready brief was invited for a separate explicit approval. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

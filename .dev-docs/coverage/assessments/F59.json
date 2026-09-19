@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F59-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "Task guidance calls for honest fallback, not an implemented presentation artifact."
+            }
+          ],
+          "missing": [
+            "No labeled prior-run recording or fallback switch prepared."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Current workflow record stays available with persisted status/error/exception evidence."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Reading existing process state has no success/publication write."
+            }
+          ],
+          "missing": [
+            "No implemented presentation switch to verify separately."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Real exception/question branch can be shown from headed proof; basic clarification exists."
+            }
+          ],
+          "missing": [
+            "Full exception-decision-resume and outside-scope branches are not implemented and must not be presented as ready."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "Documentation explicitly distinguishes unsupported publisher and other missing branches."
+            }
+          ],
+          "missing": [
+            "Working complete baseline plus finalized fallback presentation is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC6",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "No measured five-minute full presentation or three-minute branch rehearsal recorded."
+            }
+          ],
+          "missing": [
+            "Timing threshold and actual fallback activation remain unproved."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

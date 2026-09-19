@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F35-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Consent always missing; no stored exact-target decision reader."
+            }
+          ],
+          "missing": [
+            "Implement exact-version/target consent with actor/time/source."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No valid consent can be returned by current consent reader."
+            }
+          ],
+          "missing": [
+            "Reuse persisted valid consent and verified integration to permit preflight."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Consent missing makes preflight fail independently of valid content approval."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No outbound consent request task or reply bridge exists."
+            }
+          ],
+          "missing": [
+            "Create exact-target client request and route actual reply via G."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No consent inheritance is fabricated."
+            }
+          ],
+          "missing": [
+            "Implement G hold/revocation and binding-specific invalidation of real consent."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

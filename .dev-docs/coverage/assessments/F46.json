@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F46-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Publication module explicitly stops before reservation and send."
+            }
+          ],
+          "missing": [
+            "A new post comment cannot revoke/hold a real pending publication attempt."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Hold disposition is currently unsupported."
+            }
+          ],
+          "missing": [
+            "No saved actionable publication/dependency hold."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No reservation is taken by the existing publication lane."
+            }
+          ],
+          "missing": [
+            "No atomic invalidation of a reserved unsent attempt."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "No-send preparation checks exact content acceptance and reports missing destination consent."
+            }
+          ],
+          "missing": [
+            "No actual sender enforces current consent/version/hold immediately before sending."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T31: confirm publication policy, actual provider/target and exact-version destination-bound client consent; no external send authority assumed."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F46-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Unknown-send semantics are documented in the teammate seam, not executed."
+            }
+          ],
+          "missing": [
+            "No send-in-progress reconciliation route8.6."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Document contracts distinguish unknown from confirmation and prohibit blind retry in their stated contract."
+            }
+          ],
+          "missing": [
+            "No real provider attempt or reconciliation implements those states."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Current confirmation lane cannot supply provider evidence from a real send."
+            }
+          ],
+          "missing": [
+            "No actual sent version/target/message proof."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "QA/budget exception adapter exists, not unknown-publication adapter."
+            }
+          ],
+          "missing": [
+            "No unresolved-send evidence-bound employee decision."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No live publication/resume/closure pipeline exists."
+            }
+          ],
+          "missing": [
+            "Exactly-once publication recovery and closure gating remain unimplemented."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

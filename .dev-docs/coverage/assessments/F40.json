@@ -1,0 +1,202 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F40-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Persists scoped original input, sender, event identity, time and attachment/version references."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "Supplement upload saves immutable original text, attachment, authenticated sender, portal channel and event identity on the existing owned case."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 passed authenticated paid-case upload and asserted the exact private source text and identity before the later 3.4 fixture mismatch."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "Supplement intake accepts only an existing customer-owned case, preserving the paid order case rather than creating another case."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/binding.ts",
+              "note": "When the material concerns the current brief, the saved native disposition binds the submission to that exact brief version reference before effects run."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the authenticated private-material submission was saved on the same paid case/order, preserved its real attachment ID and client_private/full source identity, and entered native triage."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Case lock and scoped event-key lookup replay immutable original submission without creating a second workflow."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/__tests__/supplementaryMaterial.test.ts",
+              "note": "Focused replay coverage returns the immutable first submission/attachment for the same event and performs no second upload."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Submission intake has no completed-stage exclusion; receipt does not apply approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/source.ts",
+              "note": "Late material is accepted against the current unapproved brief; downstream or approved work becomes an explicit impact-review hold and receipt itself is not approval."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/contracts/clientSubmission.ts",
+              "note": "One typed intake boundary exists, but current external channel is explicitly portal."
+            }
+          ],
+          "missing": [
+            "Channel-neutral transport mapping beyond the selected portal is not implemented; no claim of email support."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F40-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Current service requires caseId and a customer-linked agency case."
+            }
+          ],
+          "missing": [
+            "No prepurchase contact/product submission without an order/case."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Native routing targets existing case processing, not sales step1.2."
+            }
+          ],
+          "missing": [
+            "No prepurchase question-to-sales disposition."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Immutable originals exist only in the case-bound submission flow."
+            }
+          ],
+          "missing": [
+            "No separate pre-order submission lifecycle."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "No public question route starts free analysis."
+            }
+          ],
+          "missing": [
+            "The required prepurchase question path itself is absent; lack of that path is not full behavior coverage."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

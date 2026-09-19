@@ -3,7 +3,7 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { readdir } from 'node:fs/promises'
 import path from 'node:path'
-import { buildInventorySnapshot, buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot, renderHtmlReport } from '../../agency-spec-progress.mjs'
+import { buildInventorySnapshot, buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot, renderHtmlReport } from '../index.mjs'
 
 const story = (id, domain = 'domain') => ({ path: `.specs/user-stories/${domain}/${id}.md`, text: `# ${id}` })
 const task = (id, text) => ({ path: `.tasks/${id}-task.md`, text })
@@ -74,6 +74,8 @@ test('repository discovery is script-relative and reads the actual inventory wit
   const report = await loadReport()
   assert.ok(report.totals.stories > 0)
   assert.ok(report.tasks.length > 0)
+  assert.equal(report.assessmentSources.length, 53)
+  assert.ok(report.assessmentSources.every((source) => /^\.dev-docs\/coverage\/assessments\/F\d{2}\.json$/.test(source)))
   assert.ok(report.stories.every((item) => item.source.startsWith('.specs/user-stories/')))
   const taskFiles = await readdir(path.join(defaultAppRoot, '.tasks'), { recursive: true })
   assert.deepEqual(report.tasks.map((item) => item.source).sort(), taskFiles
@@ -166,7 +168,7 @@ test('filters keep exact feature boundaries, reject unknown IDs and conflicting 
 })
 
 const criteriaStory = (id) => ({ ...story(id), text: `# ${id}\n\n### Kryteria akceptacji\n\n1. Authorized input.\n2. Preserve the exact result.\n\n### Other section\n1. Not an acceptance criterion.` })
-const coverage = (stories) => ({ path: '.dev-docs/coverage/test.json', text: JSON.stringify({ version: 1, stories }) })
+const coverage = (stories) => ({ path: `.dev-docs/coverage/assessments/${stories[0].id.split('-')[0]}.json`, text: JSON.stringify({ version: 1, stories }) })
 const assessed = (id, implementation = 'implemented', overrides = {}) => ({
   id, implementation, evidence: [{ path: 'ai-company/actual-service.ts', note: 'Scoped implementation; focused check recorded passed.' }],
   missing: [], verification: { focused: 'passed', nativeApp: 'not_run', liveModel: 'not_run' }, externalDecision: [], ...overrides,
@@ -210,7 +212,7 @@ test('invalid, duplicate or absent AC evidence cannot become implementation clai
   const report = buildReport({
     storyFiles: [criteriaStory('F20-1')], taskFiles: [], adrFiles: [],
     coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC1'), assessed('AC2', 'implemented', { evidence: [] }), assessed('AC99')] },
-      { id: 'F99-1', criteria: [] }]), { path: '.dev-docs/coverage/bad.json', text: '{' }],
+      { id: 'F99-1', criteria: [] }]), { path: '.dev-docs/coverage/assessments/bad.json', text: '{' }],
   })
   assert.equal(report.stories[0].implementation, 'unassessed')
   assert.equal(report.totals.coverage.verification.focused.passed, 0)
@@ -219,13 +221,24 @@ test('invalid, duplicate or absent AC evidence cannot become implementation clai
   }
 })
 
+test('assessment files own exactly one matching feature', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1'), criteriaStory('F34-1')], taskFiles: [], adrFiles: [],
+    coverageFiles: [{ path: '.dev-docs/coverage/assessments/F20.json', text: JSON.stringify({ version: 1, stories: [
+      { id: 'F34-1', criteria: [assessed('AC1'), assessed('AC2')] },
+    ] }) }],
+  })
+  assert.equal(report.stories.find((story) => story.id === 'F34-1').implementation, 'unassessed')
+  assert.ok(report.assessmentDiagnostics.some((item) => item.kind === 'misplaced-coverage-story' && item.anchor === 'F34-1'))
+})
+
 test('HTML report escapes repository content and never embeds raw report data in script', () => {
   const hostile = '</script><img src=x onerror="alert(1)"> & content'
   const report = buildReport({
     storyFiles: [{ ...criteriaStory('F20-1'), text: `# ${hostile}\n\n### User story\n\n${hostile}\n\n### Kryteria akceptacji\n\n1. ${hostile}` }],
     taskFiles: [], adrFiles: [], coverageFiles: [],
   })
-  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/report.html' })
+  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/generated-report.html' })
   assert.doesNotMatch(html, /<img src=x/)
   assert.doesNotMatch(html, /<\/script><img/)
   assert.match(html, /&lt;\/script&gt;&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; &amp; content/)
@@ -237,12 +250,13 @@ test('HTML summary keeps settled and proposed source counts separate from proof 
     taskFiles: [task('T01', 'State: done\nSources: F20-1, F34-1')], adrFiles: [],
     coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC2', 'partial')] }])],
   })
-  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/report.html' })
+  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/generated-report.html' })
   assert.match(html, /Settled scope[\s\S]*?1 <small>stories<\/small>[\s\S]*?Implemented <strong data-count="0">0<\/strong>[\s\S]*?Partial <strong data-count="1">1<\/strong>/)
   assert.match(html, /Proposed scope[\s\S]*?not automatically missing work[\s\S]*?1 <small>stories<\/small>[\s\S]*?Unassessed <strong data-count="1">1<\/strong>/)
   assert.match(html, /linked or done task is not story completeness/i)
   assert.doesNotMatch(html, /product completion percentage/i)
-  assert.match(html, /Manual assessment inputs:[\s\S]*?\.dev-docs\/coverage\/test\.json/)
+  assert.match(html, /Manual assessment inputs:[\s\S]*?\.dev-docs\/coverage\/assessments\/FNN\.json[\s\S]*?1 feature files; edit these/)
+  assert.match(html, /\.dev-docs\/coverage\/generated-report\.html[\s\S]*?refresh; do not edit/)
   assert.match(html, /node scripts\/agency-spec-progress\.mjs --refresh/)
 })
 

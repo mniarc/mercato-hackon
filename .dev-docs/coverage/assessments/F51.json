@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F51-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/contracts.ts",
+              "note": "Explicit phase budgets and selected repair limits are captured before execution."
+            }
+          ],
+          "missing": [
+            "Complete immutable STD-LIMITY/template policy and recovery-wide accounting are unfinished."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Budget pause persists E.1; bounded strategy/planning/post/brief QA exhaustion now produces employee evidence."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/escalate.ts",
+              "note": "Concrete task/version/reason and employee queue are persisted and surfaced."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/contracts.ts",
+              "note": "Technical phase/repair limits are separate from client requests and payment flows; no customer revision counter or surcharge is derived from those limits."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No-send preflight and unknown-outcome contract avoid pretending success."
+            }
+          ],
+          "missing": [
+            "Actual external-send reconciliation is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T31: confirm publication policy, actual provider/target and exact-version destination-bound client consent; no external send authority assumed."
+          ]
+        }
+      ]
+    }
+  ]
+}

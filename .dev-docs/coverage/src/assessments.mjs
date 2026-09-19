@@ -28,10 +28,19 @@ export function applyAssessments(storiesById, assessmentFiles, diagnostics, norm
       diagnostics.push({ kind: 'invalid-coverage-schema', source })
       continue
     }
+    const assessmentFeature = path.posix.basename(source, '.json')
+    if (!/^F\d{2}$/.test(assessmentFeature)) {
+      diagnostics.push({ kind: 'invalid-coverage-feature-file', source })
+      continue
+    }
     for (const entry of data.stories) {
       const story = storiesById.get(entry?.id)
       if (!story || !Array.isArray(entry.criteria)) {
         diagnostics.push({ kind: 'invalid-coverage-story', source, anchor: entry?.id })
+        continue
+      }
+      if (!entry.id.startsWith(`${assessmentFeature}-`)) {
+        diagnostics.push({ kind: 'misplaced-coverage-story', source, anchor: entry.id })
         continue
       }
       for (const criterion of entry.criteria) {
@@ -78,7 +87,7 @@ export function applyAssessments(storiesById, assessmentFiles, diagnostics, norm
 }
 
 export async function loadAssessmentFiles(root, normalizedPath) {
-  const directory = path.join(root, '.dev-docs', 'coverage')
+  const directory = path.join(root, '.dev-docs', 'coverage', 'assessments')
   let entries
   try { entries = await readdir(directory, { withFileTypes: true }) } catch (error) {
     if (error.code === 'ENOENT') return []

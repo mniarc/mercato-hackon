@@ -1,0 +1,188 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F47-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Case-bound intake is not closed when an earlier stage finishes."
+            }
+          ],
+          "missing": [
+            "No real delivered-case lifecycle/version binding has been connected."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Postdelivery error-versus-new-need disposition is absent."
+            }
+          ],
+          "missing": [
+            "No persisted postdelivery qualification."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "T30/T32 reserve postdelivery handling; current routing is pre-delivery scoped."
+            }
+          ],
+          "missing": [
+            "No agency-error repair continuation after delivery."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "No automatic checkout occurs, but no implemented postdelivery qualification exists."
+            }
+          ],
+          "missing": [
+            "Distinguish new need from agency error using approved delivery boundary policy."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Submission itself does not overwrite previous approval records."
+            }
+          ],
+          "missing": [
+            "Publication/delivery histories and their postdelivery immutability are not yet exercised by an actual delivery flow."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F47-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No real publication provider evidence exists in the application path."
+            }
+          ],
+          "missing": [
+            "Cannot bind a correction to actual sent version/target/proof or reconcile unknown first."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Preparation never sends or creates another sale."
+            }
+          ],
+          "missing": [
+            "No actual post-publication revision pathway."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Adapter capability catalog records unsupported/unknown capabilities."
+            }
+          ],
+          "missing": [
+            "No live published-content repair adapter or capability-gated execution."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Existing E.1 route is producer QA/budget-specific."
+            }
+          ],
+          "missing": [
+            "No infeasible published-message-repair exception with actual external evidence."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T31: confirm publication policy, actual provider/target and exact-version destination-bound client consent; no external send authority assumed."
+          ]
+        }
+      ]
+    }
+  ]
+}

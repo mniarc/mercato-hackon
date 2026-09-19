@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F28-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+              "note": "Approval plus topic reaches plan decision/instruction; original messages go to G."
+            }
+          ],
+          "missing": [
+            "Connect plan/strategy/brief correction routes and exact review follow-up."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Saved G rationale and exact plan selection are visible."
+            }
+          ],
+          "missing": [
+            "Impact propagation to an already-created post instruction is not an applied G capability."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/postInstructionExecution/run.ts",
+              "note": "Compiler detects superseded selection and can build current selection-specific instruction."
+            }
+          ],
+          "missing": [
+            "Atomic single-post replacement/invalidation after a later topic change is not wired; do not claim a safe full reselection loop."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "No automatic extra-post production target exists."
+            }
+          ],
+          "missing": [
+            "Explicit scoped refusal/alternative handling is not implemented; unsupported route alone is not the product response."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Only brief client revision currently executes."
+            }
+          ],
+          "missing": [
+            "Implement unlimited in-package plan revisions with fresh QA/review and no checkout."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

@@ -1,0 +1,416 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F38-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/package.ts",
+              "note": "Package builder enumerates expected results and publication proof."
+            }
+          ],
+          "missing": [
+            "Wire scoped producer to real native delivery stage; current lane is document-only."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Manifest pins document versions; approvalStateOf mostly reads status."
+            }
+          ],
+          "missing": [
+            "Require authoritative exact current acceptance receipts and consistency, not status-only package approval."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Completeness names missing/blocked deliverables and unconfirmed publication prevents closure."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Missing items become issues and block package readiness."
+            }
+          ],
+          "missing": [
+            "Create actual E handoff and 9.2 activation from complete result."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Manifest is concrete deliverable evidence; no aggregate percentage or package approval is used as completion."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F38-2",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Client package projection contains audit/competition conclusions, source references, implications and limitations; actual sharing assessed under F38-3."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Hypothesis/limitation labels are retained in projected takeaways."
+            }
+          ],
+          "missing": [
+            "Validate package audit inputs against actual frozen clean QA rather than current document status alone."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Limitations explicitly distinguish public observation from unmeasured business outcomes/analytics."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Client view extracts takeaways instead of exposing full internal research payloads."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Insufficient takeaways become named blocking issues."
+            }
+          ],
+          "missing": [
+            "Execute responsible research return and resume package assembly."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F38-3",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/package.ts",
+              "note": "WZR-PAKIET links existing document versions and publication receipt, with audit takeaways."
+            }
+          ],
+          "missing": [
+            "Connect actual accepted completion package to client delivery; current data may remain simulated/blocked."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/package.ts",
+              "note": "Assembly deterministic, no model call and no new strategic document versions."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Delivery is initialized not_executed."
+            }
+          ],
+          "missing": [
+            "Implement agreed portal/mail sharing with assigned contact."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Delivery schema reserves recipient/channel/time/evidence fields."
+            }
+          ],
+          "missing": [
+            "Write them from actual successful/failed sharing adapter result."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Closure requires technical delivery evidence, not read confirmation."
+            }
+          ],
+          "missing": [
+            "Actual sharing does not exist; cannot claim delivered/closed experience."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F38-4",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "No delivery attempt is executed."
+            }
+          ],
+          "missing": [
+            "Persist scoped real delivery failure and held state."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "No sharing retry implementation."
+            }
+          ],
+          "missing": [
+            "Execute bounded authorized retries with evidence per attempt."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "No delivery-error E handoff."
+            }
+          ],
+          "missing": [
+            "Escalate exhausted sharing failure with 9.2 return point."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/closure.ts",
+              "note": "Gate blocks when delivery evidence missing, independent of read status."
+            }
+          ],
+          "missing": [
+            "Wire actual delivery failure/success lifecycle to native close step."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

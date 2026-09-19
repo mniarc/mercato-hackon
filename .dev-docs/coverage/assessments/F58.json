@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F58-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Publication currently stops at documents/preflight without a provider send."
+            }
+          ],
+          "missing": [
+            "No Discord-bound client consent consumed by real publication."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T31: confirm publication policy, actual provider/target and exact-version destination-bound client consent; no external send authority assumed."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "No routine employee approval is inserted in preparation."
+            }
+          ],
+          "missing": [
+            "Actual consented publication path is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No provider adapter is called by this lane."
+            }
+          ],
+          "missing": [
+            "No real Discord response/message link or unknown-state reconciliation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/package.ts",
+              "note": "Teammate package scaffold can reference existing documents."
+            }
+          ],
+          "missing": [
+            "No delivered package carrying real publication proof and actual share result."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T32: confirm delivery/closure policy and sharing channel; provider publication evidence is prerequisite."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/package.ts",
+              "note": "Package assembly is not case closure or delivery."
+            }
+          ],
+          "missing": [
+            "No connected closure conditioned on proven delivery/publication with existing payment."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC6",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "No complete real publication/delivery demo exists."
+            }
+          ],
+          "missing": [
+            "Publication and closure timing windows plus fallback are unproven."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

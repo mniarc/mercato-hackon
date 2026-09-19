@@ -1,0 +1,122 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F56-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
+              "note": "Real research/brief production code and deterministic intelligence fixtures exist."
+            }
+          ],
+          "missing": [
+            "No recorded proof that both full demo preparations completed through4.2 before presentation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Persisted run timestamps/statuses are visible."
+            }
+          ],
+          "missing": [
+            "No finalized demo script differentiating the actual prepared dataset from live generation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T25-paid-order-process-bootstrap.md",
+              "note": "Headed TC-AGENCY-003 verifies explicitly labeled zero-charge test-provider payment, not production charging."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
+              "note": "TC002 headed passed 2026-09-19 through actual client answers, revised brief, pair acceptance and plan invitation using local intelligence; not a rehearsal of both specified audience branches."
+            }
+          ],
+          "missing": [
+            "Both intended audience branches have not completed rehearsals."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Headed purchase proves one customer/product/order/case and native awaiting-execution process."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC6",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T25-paid-order-process-bootstrap.md",
+              "note": "Test payment is configured and exercised."
+            }
+          ],
+          "missing": [
+            "Target Discord and measured opening window are not configured/proved."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T31: confirm publication policy, actual provider/target and exact-version destination-bound client consent; no external send authority assumed."
+          ]
+        }
+      ]
+    }
+  ]
+}
