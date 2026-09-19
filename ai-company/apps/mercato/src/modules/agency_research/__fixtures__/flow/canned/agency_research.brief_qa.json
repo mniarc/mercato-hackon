@@ -1,0 +1,37 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "needs_agent_fix",
+      "summary": "Jedna luka redakcyjna.",
+      "findings": [
+        {
+          "code": "fact_vs_interpretation",
+          "path": "KLI-BRIEF.business_direction.value",
+          "severity": "blocking",
+          "gap": "Kierunek podany jak fakt.",
+          "owner": "agent",
+          "fix_step": "4.1",
+          "fix_hint": "Oznacz jako propozycję."
+        },
+        {
+          "code": "other",
+          "path": "SOMEWHERE-ELSE.x",
+          "severity": "minor",
+          "gap": "ścieżka spoza dokumentów",
+          "owner": "agent",
+          "fix_step": null,
+          "fix_hint": null
+        }
+      ]
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "ready_for_approval",
+      "summary": "Bez blokujących ustaleń.",
+      "findings": []
+    }
+  }
+]

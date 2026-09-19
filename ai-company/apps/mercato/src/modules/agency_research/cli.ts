@@ -104,7 +104,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  * Runs the audit process for one order and stores every document version.
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
- *     [--through 3.2|3.5|3.8] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
+ *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
  *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] \
  *     [--tenant <id> --org <id> --user <id>]
  *
@@ -204,7 +204,7 @@ const run: ModuleCli = {
     const status = await orderStatus(db.em, scope, orderRef)
     const last = status.taskRuns[status.taskRuns.length - 1]
     if (last?.status === 'paused_budget') console.error(`Paused on budget: ${outcome.spentPln.toFixed(2)} PLN spent; task run ${last.id}`)
-    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}${outcome.qaVerdict ? ` · QA ${outcome.qaVerdict}` : ''}${outcome.escalationVersionId ? ` · E.1 opened (${outcome.escalationVersionId})` : ''}`)
+    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}${outcome.qaVerdict ? ` · QA ${outcome.qaVerdict}` : ''}${outcome.briefQaVerdict ? ` · brief QA ${outcome.briefQaVerdict}` : ''}${outcome.escalationVersionId ? ` · E.1 opened (${outcome.escalationVersionId})` : ''}`)
     console.log(`Spend this run: ${outcome.spentPln.toFixed(2)} PLN · order total ${status.totalPln.toFixed(2)} PLN`)
     console.log(`Written to ${path.resolve(out)}`)
   },

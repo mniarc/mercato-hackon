@@ -1,0 +1,73 @@
+{
+  "kind": "research",
+  "data": {
+    "priority_offer": {
+      "value": "Promujemy pomoc firmom w rozpoznaniu problemu biznesowego i przełożeniu go na uzasadnione rozwiązanie cyfrowe.",
+      "result_for_audience": "Rozpoznanie problemu i podstawa do wyboru rozwiązania; nie gwarancja efektu.",
+      "excluded_from_scope": [
+        "Szkolenie AI w dofinansowaniu",
+        "Obsługa IT promocji konsumenckich"
+      ],
+      "fact_ids": [
+        "F01",
+        "F02",
+        "F03",
+        "F99"
+      ]
+    },
+    "priority_audience": {
+      "value": "Właściciele procesów, COO i osoby prowadzące rozwój produktu w istniejących polskich firmach B2B.",
+      "segment": "istniejące polskie firmy B2B",
+      "target_role": [
+        "właściciele procesów",
+        "COO",
+        "osoby prowadzące rozwój produktu"
+      ],
+      "buyer_claims": [
+        {
+          "component": "purchase_situation",
+          "value": "Wiedzą, że proces wymaga poprawy, ale nie chcą kupować technologii przed rozpoznaniem przyczyny.",
+          "knowledge_status": "hypothesis",
+          "evidence_ids": [
+            "A01"
+          ],
+          "allowed_use": "Scenariusz roboczy, nie zbadana sytuacja nabywcy."
+        },
+        {
+          "component": "selection_criteria",
+          "value": null,
+          "knowledge_status": "unknown",
+          "evidence_ids": [],
+          "allowed_use": "Nie twierdzić, że kryteria są znane."
+        },
+        {
+          "component": "job",
+          "value": "Wyjaśnić przyczynę trudności przed kupnem technologii.",
+          "knowledge_status": "evidence",
+          "evidence_ids": [],
+          "allowed_use": "Zadanie odbiorcy jako hipoteza."
+        }
+      ],
+      "secondary_groups": null,
+      "fact_ids": [
+        "F03",
+        "F04"
+      ]
+    },
+    "business_direction": {
+      "value": "Odbiorca ma kojarzyć FLOW z dojściem od konkretnego problemu do uzasadnionego rozwiązania.",
+      "from_to": "Od szerokiego portfolio usług do jednej rozpoznawalnej drogi: problem → diagnoza → rozwiązanie.",
+      "horizon": "30 dni",
+      "baseline": null,
+      "communication_role": "Ułatwić zrozumienie roli FLOW i rozpoczęcie rozmowy o właściwym problemie.",
+      "not_promised": [
+        "gwarantowana liczba leadów",
+        "konkretny czas realizacji"
+      ],
+      "fact_ids": [
+        "F01",
+        "F05"
+      ]
+    }
+  }
+}

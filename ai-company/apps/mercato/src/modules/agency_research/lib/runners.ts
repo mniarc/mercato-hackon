@@ -58,9 +58,11 @@ export function createFixtureRunner(dir: string, opts: { calls?: { agentId: stri
   const sequence = new Map<string, number>()
   return async (agentId, input) => {
     opts.calls?.push({ agentId, input })
-    const page = (input as { page?: { source_id?: string } }).page
+    const typed = input as { page?: { source_id?: string }; section?: string }
+    // Most specific first: per page (extractor), per section (brief writer), then the agent's default file.
     const candidates = [
-      page?.source_id ? `${agentId}.${page.source_id}.json` : null,
+      typed.page?.source_id ? `${agentId}.${typed.page.source_id}.json` : null,
+      typed.section ? `${agentId}.${typed.section}.json` : null,
       `${agentId}.json`,
     ].filter((name): name is string => name !== null)
     for (const name of candidates) {

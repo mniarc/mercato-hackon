@@ -8,8 +8,12 @@ import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from '.
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
+import type { UstaleniaData } from '../data/schemas/ustalenia'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
+import { firstContactQuestions } from './research/render/brief'
 import { runAuditStep } from './research/steps/audit'
+import { runBriefStep } from './research/steps/brief'
+import { runBriefQaLoop } from './research/steps/briefQa'
 import { runCompetitorsStep } from './research/steps/competitors'
 import type { StepContext, StepOutcome } from './research/steps/context'
 import { runFindingsStep } from './research/steps/findings'
@@ -17,6 +21,7 @@ import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
 import { createOrchestratorRunner } from './runners'
+import { AgencyResearchDocumentVersion } from '../data/entities'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
 
 export { AGENCY_RESEARCH_SERVICE }
@@ -158,6 +163,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
   }
 
   let qaVerdict: 'ready' | 'to_fix' | 'exception' | undefined
+  let briefQaVerdict: 'ready_for_approval' | 'needs_client_data' | 'needs_agent_fix' | undefined
   let escalationVersionId: string | undefined
   const chain: { step: ResearchStep; run: (ctx: StepContext) => Promise<StepOutcome | null> }[] = [
     { step: '3.2', run: runSourcesStepDb },
@@ -178,6 +184,16 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         escalationVersionId = qa.escalationVersionId
         if (qa.verdict !== 'ready') return null
         return runFreezeStep(c)
+      },
+    },
+    {
+      // 4.1 brief draft → 4.2 brief QA (agent errors repaired ≤ 2 times; client gaps become the questions, never a QA failure).
+      step: '4.2',
+      run: async (c) => {
+        await runBriefStep(c)
+        const qa = await runBriefQaLoop(c, { briefStep: runBriefStep })
+        briefQaVerdict = qa.verdict
+        return { taskRunId: qa.taskRunId, versionId: qa.briefVersionId, status: qa.verdict === 'needs_agent_fix' ? 'to_fix' : 'done' }
       },
     },
   ]
@@ -208,7 +224,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     })
     escalationVersionId = escalation.versionId
   }
-  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, escalationVersionId }
+  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, briefQaVerdict, escalationVersionId }
 }
 
 type Container = { resolve(name: string): unknown }
@@ -243,7 +259,21 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         maxCostPln: parsed.maxCostPln,
         agentRunIds,
       })
-      return { taskRunIds: outcome.taskRunIds, documentVersionIds: outcome.documentVersionIds, agentRunIds: outcome.agentRunIds, spentPln: outcome.spentPln, completedThrough: outcome.completedThrough, qaVerdict: outcome.qaVerdict, escalationVersionId: outcome.escalationVersionId }
+      return { taskRunIds: outcome.taskRunIds, documentVersionIds: outcome.documentVersionIds, agentRunIds: outcome.agentRunIds, spentPln: outcome.spentPln, completedThrough: outcome.completedThrough, qaVerdict: outcome.qaVerdict, briefQaVerdict: outcome.briefQaVerdict, escalationVersionId: outcome.escalationVersionId }
+    },
+    async getClientView(scope, orderRef, templateId) {
+      const em = (container.resolve('em') as EntityManager).fork()
+      const brief = await currentInputVersion(em, scope, orderRef, templateId)
+      if (!brief) return { status: 'not_ready' }
+      const version = await em.findOne(AgencyResearchDocumentVersion, { id: brief.versionId })
+      const ustalenia = await currentInputVersion(em, scope, orderRef, 'WZR-USTALENIA')
+      const questions = ustalenia ? firstContactQuestions(ustalenia.data as UstaleniaData) : []
+      return {
+        status: brief.status ?? 'draft',
+        version: brief.version,
+        client_view_md: version?.clientViewMd ?? null,
+        questions: questions.map((q) => ({ question_id: q.question_id, question: q.question, hint: q.hint, reason: q.reason, brief_field: q.brief_field, priority: q.priority })),
+      }
     },
     async status(scope, orderRef) {
       const em = (container.resolve('em') as EntityManager).fork()

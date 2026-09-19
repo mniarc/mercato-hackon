@@ -10,7 +10,7 @@ import { orderDataSchema } from '../../data/schemas/zamowienie'
 
 export const AGENCY_RESEARCH_SERVICE = 'agencyResearchService' as const
 
-export const researchSteps = ['3.2', '3.5', '3.8'] as const
+export const researchSteps = ['3.2', '3.5', '3.8', '4.2'] as const
 export type ResearchStep = (typeof researchSteps)[number]
 
 export const researchRunRequestSchema = z.object({
@@ -52,6 +52,8 @@ export type ResearchRunResult = {
   completedThrough: ResearchStep | null
   /** 3.7 verdict when QA ran: ready | to_fix | exception. */
   qaVerdict?: 'ready' | 'to_fix' | 'exception'
+  /** 4.2 verdict when brief QA ran. */
+  briefQaVerdict?: 'ready_for_approval' | 'needs_client_data' | 'needs_agent_fix'
   /** The WEW-ESKALACJA version opened by E.1 (QA exhausted, exception or budget), when any. */
   escalationVersionId?: string
 }
@@ -66,8 +68,20 @@ export type ResearchExecutionContext = {
   invocationId?: string
 }
 
+/** What the customer portal renders for a brief: the projection, never the internal data. */
+export type ClientView =
+  | { status: 'not_ready' }
+  | {
+      status: string
+      version: string
+      client_view_md: string | null
+      questions: { question_id: string; question: string; hint: string; reason: string; brief_field: string; priority: string }[]
+    }
+
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
+  /** The client projection of the current version of a document (today: `WZR-BRIEF`). */
+  getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: 'WZR-BRIEF'): Promise<ClientView>
   status(scope: { tenantId: string; organizationId: string }, orderRef: string): Promise<{
     documents: { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null }[]
     taskRuns: { id: string; stepId: string; attempt: number; status: string; costPln: number; outputVersionId: string | null; error: string | null }[]

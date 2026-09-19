@@ -1,0 +1,60 @@
+{
+  "kind": "research",
+  "data": {
+    "channel_and_cta": {
+      "channel": "LinkedIn firmy",
+      "audience_context": "Obserwujący profil firmowy; faktyczny skład nieznany.",
+      "cta_goal": "Rozmowa o konkretnej trudności przez istniejący kontakt.",
+      "cta_text": null,
+      "destination": "https://makeitflow.pl/index.php",
+      "destination_visibility": "observed",
+      "destination_functionality": "not_checked",
+      "owner": null,
+      "limits": [
+        "Kontakt widoczny, obsługi nie sprawdzono.",
+        "Właściciel obsługi nieznany."
+      ],
+      "fact_ids": [
+        "F07"
+      ]
+    },
+    "success_and_limits": {
+      "directional_goal": "Odbiorca potrafi własnymi słowami wskazać problem, z którym zwróciłby się do FLOW.",
+      "measurement_proposals": [
+        {
+          "measure": "Dopasowane rozmowy",
+          "definition": "Ręczne oznaczenie rozmów, które zaczęły się od opisu problemu.",
+          "status": "proposal_for_later_validation"
+        }
+      ],
+      "baseline": null,
+      "numerical_target": "5 rozmów miesięcznie",
+      "scope_limit": "Brak baseline i gwarancji leadów; jednorazowe przygotowanie dokumentów."
+    },
+    "assets_and_permissions": [
+      {
+        "source_ref": "P01",
+        "supported_claim_ids": [
+          "F03"
+        ]
+      },
+      {
+        "source_ref": "S-01",
+        "supported_claim_ids": [
+          "F01",
+          "F02"
+        ]
+      }
+    ],
+    "buyer_reality": [
+      {
+        "situation": "Mamy już software house, więc po co kolejny dostawca?",
+        "status": "hypothesis",
+        "relevant_fact_ids": [
+          "F05"
+        ],
+        "need_for_real_evidence": "Brak 2–3 prawdziwych sytuacji; nie uzupełniamy fikcyjnymi."
+      }
+    ]
+  }
+}

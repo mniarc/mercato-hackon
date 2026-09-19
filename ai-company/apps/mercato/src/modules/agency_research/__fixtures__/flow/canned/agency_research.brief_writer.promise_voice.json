@@ -1,0 +1,71 @@
+{
+  "kind": "research",
+  "data": {
+    "promise_constraints": {
+      "capabilities": "Deklaracje oferty i metody: diagnoza czterech obszarów, rozwiązania z AI i bez AI, praca bez specyfikacji.",
+      "result_limits": "Brak case study z miernikiem wyniku; nie obiecujemy efektów procentowych ani czasów realizacji.",
+      "prohibited_claims": [
+        "Procentowe oszczędności",
+        "Gwarantowany czas realizacji",
+        "Jedyność na rynku"
+      ],
+      "allowed_proof_ids": [
+        "P01",
+        "P02",
+        "P77"
+      ],
+      "fact_ids": [
+        "F03",
+        "F05",
+        "F06"
+      ]
+    },
+    "voice_preferences": {
+      "desired_traits": [
+        "konkretny",
+        "ciekawy problemu",
+        "zrozumiały dla biznesu"
+      ],
+      "unwanted_traits": [
+        "nadęcie",
+        "obietnice rewolucji"
+      ],
+      "style_preferences": {
+        "jargon": "Wyjaśniać",
+        "humor": "Lekka metafora dopuszczona",
+        "formalness": null
+      },
+      "proposed_examples": [
+        {
+          "variant_id": "VOICE-A",
+          "label": "Formalny i rzeczowy",
+          "text": "Rozpoznanie projektu obejmuje potrzeby użytkowników, cel biznesowy, organizację pracy i możliwości techniczne.",
+          "fact_ids": [
+            "F03"
+          ]
+        },
+        {
+          "variant_id": "VOICE-B",
+          "label": "Ciekawy problemu, oparty na pytaniach",
+          "text": "Czego potrzebują użytkownicy? Jaki jest cel biznesowy? Od tych pytań zaczynamy rozpoznanie.",
+          "fact_ids": [
+            "F03"
+          ]
+        },
+        {
+          "variant_id": "VOICE-C",
+          "label": "Trzeci, nadmiarowy",
+          "text": "Nadmiarowy wariant do odrzucenia przez kod.",
+          "fact_ids": [
+            "F03"
+          ]
+        }
+      ],
+      "sample_ids": [
+        "L01",
+        "L02"
+      ],
+      "client_selection": "VOICE-A"
+    }
+  }
+}
