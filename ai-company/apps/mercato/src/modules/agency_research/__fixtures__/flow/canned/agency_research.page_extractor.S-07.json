@@ -4,59 +4,88 @@
     "facts": [
       {
         "local_ref": "f1",
-        "claim": "Northlight prowadzi badania, projektuje interfejsy i wdraża produkty dla B2B.",
-        "quote": "prowadzi badania użytkowników, projektuje interfejsy i wdraża produkty cyfrowe dla firm B2B",
+        "claim": "Rafał Muda tłumaczy, że FLOW zaczyna od diagnozy, bo zlecenia z gotową specyfikacją często rozwiązują zły problem.",
+        "quote": "większość zleceń, które do nas trafiały, miała gotową specyfikację i zły problem",
         "kind": "first_party_claim",
         "use_scope": [
-          "oferta"
+          "mechanizm",
+          "promise"
         ],
-        "limitation": "Deklaracja."
+        "limitation": "Obserwacja własna rozmówcy, bez liczby zleceń."
       },
       {
         "local_ref": "f2",
-        "claim": "Northlight zaczyna od warsztatu odkrywczego.",
-        "quote": "Zaczynamy od warsztatu odkrywczego, w którym spisujemy problem, odbiorców i ograniczenia techniczne",
+        "claim": "Diagnoza w FLOW to kilkanaście rozmów z osobami mającymi problem, przegląd istniejących danych i jeden warsztat.",
+        "quote": "kilkanaście rozmów, przegląd danych, które firma już ma, i jeden warsztat",
         "kind": "first_party_claim",
         "use_scope": [
           "mechanizm"
         ],
-        "limitation": null
+        "limitation": "Opis typowego przebiegu, nie zobowiązanie umowne."
       },
       {
         "local_ref": "f3",
-        "claim": "Northlight deklaruje klientów z produkcji maszyn i logistyki.",
-        "quote": "Zaufali nam producenci maszyn i firmy logistyczne",
+        "claim": "FLOW deklaruje, że diagnoza może zakończyć się rekomendacją, aby nie budować rozwiązania.",
+        "quote": "Czasem odpowiedź brzmi: nie budujcie.",
         "kind": "first_party_claim",
         "use_scope": [
+          "promise",
           "proof"
         ],
-        "limitation": "Brak nazwanych klientów."
+        "limitation": "Bez przykładu konkretnego projektu."
       },
       {
         "local_ref": "f4",
-        "claim": "CTA: bezpłatna konsultacja przez formularz.",
-        "quote": "Umów bezpłatną konsultację przez formularz",
-        "kind": "observed",
+        "claim": "Obietnica FLOW według rozmówcy: rozwiązanie sprawdzone przed dużym wydatkiem, nie gwarancja, że zadziała.",
+        "quote": "Nie obiecujemy, że rozwiązanie zadziała, obiecujemy, że będzie sprawdzone zanim wydacie duże pieniądze.",
+        "kind": "first_party_claim",
         "use_scope": [
-          "cta"
+          "promise"
         ],
-        "limitation": null
+        "limitation": "Sformułowanie z wywiadu, nie z oferty."
       }
     ],
     "language_samples": [
       {
         "local_ref": "l1",
-        "excerpt": "Każdy etap kończy się decyzją klienta.",
-        "situation": "opis procesu",
-        "suggested_audience": "decydent",
+        "excerpt": "Wolimy stracić dwa tygodnie na diagnozę niż pół roku na budowanie czegoś, co nikomu nie pomaga.",
+        "situation": "Rafał Muda o tym, dlaczego FLOW zaczyna od badania",
+        "suggested_audience": "właściciele i menedżerowie zlecający produkt cyfrowy",
         "linguistic_features": [
-          "krótko",
-          "rzeczowo"
+          "pierwsza osoba liczby mnogiej",
+          "kontrast liczb",
+          "język potoczny"
         ],
-        "observed_function": "buduje przewidywalność"
+        "observed_function": "uzasadnia koszt diagnozy przez porównanie strat"
+      },
+      {
+        "local_ref": "l2",
+        "excerpt": "Firma przychodzi po portal dla klientów, a okazuje się, że klienci dzwonią, bo faktury są niezrozumiałe.",
+        "situation": "Rafał Muda opisuje typowy wynik diagnozy",
+        "suggested_audience": "decydent, który ma już pomysł na rozwiązanie",
+        "linguistic_features": [
+          "konkretny przykład",
+          "zdanie z odwróceniem",
+          "brak żargonu"
+        ],
+        "observed_function": "pokazuje przesunięcie problemu na przykładzie"
       }
     ],
-    "audience_signals": [],
-    "page_summary": "Strona główna studia badawczo-projektowego."
+    "audience_signals": [
+      {
+        "local_ref": "a1",
+        "role_or_organization": "firma z gotową specyfikacją rozwiązania",
+        "trigger": "Chce zbudować konkretną aplikację lub portal.",
+        "problem": "Nie sprawdziła, czy ktoś potrzebuje tego, co chce zbudować.",
+        "risk": "Pół roku budowania czegoś, co nikomu nie pomaga.",
+        "objection": "Chce po prostu aplikację, nie badanie.",
+        "evidence_status": "supplier_interpretation_not_customer_voice",
+        "fact_refs": [
+          "f1",
+          "f4"
+        ]
+      }
+    ],
+    "page_summary": "Wywiad prasowy z Rafałem Mudą z FLOW o tym, dlaczego projekt zaczyna się od diagnozy; pytania zadaje redakcja, odpowiedzi są własnymi słowami rozmówcy."
   }
 }

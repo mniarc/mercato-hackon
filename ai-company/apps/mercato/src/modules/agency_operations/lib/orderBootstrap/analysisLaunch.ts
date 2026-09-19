@@ -45,9 +45,30 @@ function socialPlatform(url: string): string | null {
   }
 }
 
+/** "Name, role, https://…" per line → the people 3.2a follows; the buyer contact is always one of them. */
+export function parseSpokespeople(text: string, contactName: string): Array<{ name: string; role: string | null; knownUrls: string[] }> {
+  const people = new Map<string, { name: string; role: string | null; knownUrls: string[] }>()
+  for (const raw of text.split(/\r?\n/)) {
+    const line = raw.trim()
+    if (!line) continue
+    const urls = [...line.matchAll(/https?:\/\/\S+/g)].map((match) => match[0].replace(/[),.;]+$/, ''))
+    const withoutUrls = line.replace(/https?:\/\/\S+/g, '').replace(/[,;–—-]\s*$/, '').trim()
+    const [name, ...rest] = withoutUrls.split(/\s*[,;–—|]\s*/).map((part) => part.trim()).filter(Boolean)
+    if (!name || name.length > 120) continue
+    const key = name.toLowerCase()
+    const existing = people.get(key)
+    if (existing) { existing.knownUrls.push(...urls); if (!existing.role && rest[0]) existing.role = rest[0] }
+    else people.set(key, { name, role: rest[0] ?? null, knownUrls: urls })
+  }
+  const contact = contactName.trim()
+  if (contact && !people.has(contact.toLowerCase())) people.set(contact.toLowerCase(), { name: contact, role: null, knownUrls: [] })
+  return [...people.values()].map((person) => ({ ...person, knownUrls: [...new Set(person.knownUrls)].slice(0, 10) })).slice(0, 8)
+}
+
 /** The purchase form as the research order: product selection is the policy's (the purchase authority), everything else is what the client typed. */
 export function buildAnalysisMaterial(purchase: DemoPurchaseRequest, policy: AnalysisExecutionPolicy, args: { orderId: string; termsAcceptedAt: string }) {
   const { buyer } = purchase
+  const people = parseSpokespeople(buyer.spokespeople ?? '', buyer.contactName)
   const social = buyer.officialSocialUrl
     ? { url: buyer.officialSocialUrl, platform: socialPlatform(buyer.officialSocialUrl), provenance: 'client_provided' }
     : { url: null, platform: null, provenance: 'client_provided' }
@@ -65,5 +86,6 @@ export function buildAnalysisMaterial(purchase: DemoPurchaseRequest, policy: Ana
       purchase_goal: buyer.purchaseGoal || null,
       terms_confirmation: { terms_version: purchase.termsVersion, state: 'provided', event_ref: args.orderId, accepted_at: args.termsAcceptedAt },
     },
+    ...(people.length ? { people } : {}),
   })
 }

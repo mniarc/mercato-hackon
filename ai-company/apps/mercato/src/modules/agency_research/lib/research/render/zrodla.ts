@@ -11,6 +11,14 @@ function bullets(items: string[]): string {
   return items.length ? items.map((item) => `- ${item}`).join('\n') : '- —'
 }
 
+/** The official channel's freshness: the newest post's date and whether the register treats the channel as stale (website = the offer). */
+function socialFreshness(sources: ZrodlaData['sources']): string[] {
+  const dated = sources.filter((s) => s.published_at).map((s) => s.published_at!.slice(0, 10)).sort()
+  if (!dated.length) return []
+  const stale = sources.some((s) => s.limitation?.includes('no newer communication'))
+  return ['', `Kanał społecznościowy: ostatni wpis ${dated[dated.length - 1]}${stale ? ' — brak nowszej komunikacji, kanał traktowany jako nieaktualny; o aktualnej ofercie rozstrzyga strona www' : ' — kanał aktualny'}.`]
+}
+
 export function renderZrodla(args: { brand: string; data: ZrodlaData; businessProfile: BusinessProfile; issues: DocumentIssue[]; versionLabel: string }): string {
   const { data, businessProfile, issues } = args
   const sourceById = new Map(data.sources.map((s) => [s.source_id, s]))
@@ -25,10 +33,16 @@ export function renderZrodla(args: { brand: string; data: ZrodlaData; businessPr
     `- **Rynek:** ${businessProfile.market_hint}`,
     `- **Fakty:** ${businessProfile.fact_ids.join(', ') || '—'}`,
     '',
+    ...(data.people?.length ? [
+      `## Osoby wypowiadające się w imieniu marki (${data.people.length})`,
+      ...data.people.map((p) => `- **${p.name}** — ${p.role} · ${p.why} · pewność ${p.confidence} · źródło: ${p.provided_by === 'pages' ? (p.evidence_source_id ?? '—') : p.provided_by === 'client' ? 'klient' : 'osoba kontaktowa'}${p.own_channels.length ? ` · kanały: ${p.own_channels.map((c) => `${c.platform} ${c.url} (${c.posts} wpisów)`).join('; ')}` : ''}${p.mentions.length ? ` · wypowiedzi u innych: ${p.mentions.map((m) => `${m.kind} ${m.url}`).join('; ')}` : ''}`),
+      '',
+    ] : []),
     `## Źródła (${data.sources.length}; ${data.sources.filter((s) => s.access !== 'unavailable').length} przeczytane)`,
     '| id | dostęp | wydawca / rodzaj | adres | zakres |',
     '|---|---|---|---|---|',
-    ...data.sources.map((s) => `| ${s.source_id} | ${s.access} | ${s.publisher} / ${s.kind} | ${s.url_or_file} | ${s.read_scope}${s.duplicate_of ? ` (duplikat ${s.duplicate_of})` : ''} |`),
+    ...data.sources.map((s) => `| ${s.source_id} | ${s.access} | ${s.publisher} / ${s.kind} | ${s.url_or_file} | ${s.read_scope}${s.duplicate_of ? ` (duplikat ${s.duplicate_of})` : ''}${s.limitation?.startsWith('dated post') ? ' · NIEAKTUALNE' : ''} |`),
+    ...socialFreshness(data.sources),
     '',
     `## Fakty (${data.facts.length})`,
     ...data.facts.flatMap((f) => [

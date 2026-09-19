@@ -9,7 +9,8 @@ import { orderDataSchema, orderFactsOf } from './data/schemas/zamowienie'
 import { outputIdByTemplate, type TemplateId } from './data/schemas/envelope'
 import { limits } from './data/templates'
 import { createDirectRunner } from './lib/directRunner'
-import { defaultModels, runResearch } from './lib/researchService'
+import { defaultModels, profileScraperFrom, runResearch } from './lib/researchService'
+import type { KnownPerson } from './lib/research/steps/people'
 import type { FetchPage, SocialPost } from './lib/research/fetch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './lib/research/firecrawl'
 import { fileFetcher, fileSearch } from './lib/research/fixtureSources'
@@ -70,11 +71,20 @@ function fileCache(dir: string): PipelineCache {
   }
 }
 
-type Db = { resolve: (key: string) => unknown; em: EntityManager }
+type Db = { resolve: (key: string) => unknown; hasRegistration?: (key: string) => boolean; em: EntityManager }
 
 async function connectDb(): Promise<Db> {
-  const { resolve } = await createRequestContainer()
-  return { resolve, em: (resolve('em') as EntityManager).fork() }
+  const container = await createRequestContainer()
+  return { resolve: container.resolve, hasRegistration: container.hasRegistration?.bind(container), em: (container.resolve('em') as EntityManager).fork() }
+}
+
+/** `--people "Name, role, https://…; Name2, role2"` → the people 3.2a follows besides those the pages name. */
+function parsePeople(value: string): KnownPerson[] {
+  return value.split(';').map((entry) => entry.trim()).filter(Boolean).map((entry) => {
+    const urls = [...entry.matchAll(/https?:\/\/\S+/g)].map((match) => match[0])
+    const [name, ...rest] = entry.replace(/https?:\/\/\S+/g, '').split(',').map((part) => part.trim()).filter(Boolean)
+    return { name, role: rest[0] ?? null, provided_by: 'client' as const, knownUrls: urls }
+  }).filter((person) => person.name)
 }
 
 /** `--tenant`/`--org`, else the oldest organisation — a CLI has no session to take them from. */
@@ -110,6 +120,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
  *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
+ *     [--people "Name, role, https://…; Name2"] \
  *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] [--refetch] \
  *     [--tenant <id> --org <id> --user <id>]
  *
@@ -168,6 +179,8 @@ const run: ModuleCli = {
       searchWeb,
       socialPosts,
       pages: args.pages ? args.pages.split(',').map((url) => url.trim()).filter(Boolean) : undefined,
+      knownPeople: args.people ? parsePeople(args.people) : undefined,
+      scrapeProfilePosts: runnerName === 'fixture' ? undefined : profileScraperFrom(db),
       through,
       selectedTopicId: args.topic ?? null,
       freshSelection: args.refetch === 'true',

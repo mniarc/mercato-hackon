@@ -338,5 +338,8 @@
   "agencyOperations.tovIntake.state.accepted": "The specialist request was accepted.",
   "agencyOperations.tovIntake.state.running": "The specialist ToV research is running.",
   "agencyOperations.tovIntake.state.completed": "The specialist saved an exact ToV version.",
-  "agencyOperations.tovIntake.state.attention_required": "The specialist workflow needs staff attention."
+  "agencyOperations.tovIntake.state.attention_required": "The specialist workflow needs staff attention.",
+  "agency.order.spokespeople": "People who speak for the brand (optional)",
+  "agency.order.spokespeopleHint": "Founders, owners, experts whose voice the communication should carry. One person per line: name, role, profile link. Their public posts, interviews and articles are read as part of the research.",
+  "agency.order.spokespeoplePlaceholder": "Anna Kowalska, CEO, https://www.linkedin.com/in/…"
 }

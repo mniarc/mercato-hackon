@@ -89,6 +89,7 @@ OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5     # wh
 OM_AGENCY_RESEARCH_MODEL_QA=openrouter/anthropic/claude-haiku-4.5
 OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
 OM_AGENT_RUN_TIMEOUT_MS=600000                   # orchestrator wall clock per agent run (default 300000); a synthesis over a full register can take longer
+APIFY_TOKEN=…                                    # 3.2a: reads the spokespeople's own LinkedIn/X/Facebook/Instagram posts through the ToV lane's scraper seam; unset = channels listed, not read
 ```
 
 `OM_ENABLE_ENTERPRISE_MODULES=true` and `OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true` gate the
@@ -105,7 +106,9 @@ yarn mercato agency_research run --order output/research/open-mercato/order.json
 yarn mercato agency_research run --order src/modules/agency_research/__fixtures__/flow/order.json --order-ref flow-1 \
   --out output/research/flow --runner fixture --fixture src/modules/agency_research/__fixtures__/flow/canned \
   --fixture-pages src/modules/agency_research/__fixtures__/flow --fixture-search src/modules/agency_research/__fixtures__/flow/search.json \
-  --social-corpus src/modules/agency_research/__fixtures__/flow/social.json
+  --social-corpus src/modules/agency_research/__fixtures__/flow/social.json --people "Rafał Muda, osoba kontaktowa zamówienia"
+# --people "Name, role, https://…; Name2" = the spokespeople the client named on the order (the portal form passes them itself);
+# the fixture needs it: its canned people_finder names Rafał Muda, the gate keeps a person only when a page quotes them or the client named them
 
 yarn mercato agency_research status --order-ref demo-open-mercato-1
 ```
@@ -139,7 +142,8 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 
 | step | document | agents | gate highlights |
 |---|---|---|---|
-| 3.2 | `WEW-ZRODLA` | page_extractor (map), proof_builder, content_seeder, conflict_finder, coverage_assessor | verbatim quotes, proof-card variants, plan capacity computed |
+| 3.2a | `WEW-ZRODLA.people` | people_finder, channel_selector (+ web search, Apify profile scrape, Firecrawl fetch) | a person exists only with a verbatim quote from a client page or the client naming them; every channel/mention URL must be a search hit; ≤4 people, 3 queries, 5 hits, 8 posts, 2 pages each |
+| 3.2 | `WEW-ZRODLA` | page_extractor (map), proof_builder, content_seeder, conflict_finder, coverage_assessor | verbatim quotes, proof-card variants, plan capacity computed; a person's own post or interview extracts as that person's voice |
 | 3.3 | `WEW-AUDYT` | audit_mapper, audit_voice, audit_gaps_assets | no evidence without customer voice, no conversion judgement without data, gaps 3–5 |
 | 3.4–3.5 | `WEW-KONKURENCJA` v1/v2 + `WEW-ZRODLA` v2 | competitor_selector, page_extractor (entity = competitor), competitor_card, competitor_channels, competitor_synthesizer | ≤3 companies from real search hits, `unknown` where nothing was read, claim strength ≤ proof, "jedyni" needs a named unknown |
 | 3.6 | `WEW-USTALENIA` | field_mapper, question_writer, readiness_assessor | future vision never a fact, ≤8 questions, five readiness outputs |

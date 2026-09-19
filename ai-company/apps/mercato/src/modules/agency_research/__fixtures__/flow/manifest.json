@@ -35,5 +35,10 @@
   "https://pracownia-ekspres.example/": {
     "access": "unavailable",
     "error": "timeout"
+  },
+  "https://digitalbiznes.example/wywiad-rafal-muda-flow": {
+    "file": "pages/muda-wywiad.md",
+    "access": "full",
+    "title": "„Najpierw diagnoza, potem specyfikacja” — rozmowa z Rafałem Mudą"
   }
 }

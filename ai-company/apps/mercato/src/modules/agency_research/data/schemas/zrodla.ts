@@ -198,6 +198,21 @@ export const zrodlaDataSchema = z.object({
   content_bank: z.array(contentSeedSchema),
   conflicts: z.array(conflictSchema),
   coverage: z.array(coverageItemSchema),
+  /** 3.2a — who speaks for the brand and where their words were read from (additive to WZR-ZRODLA v1.1). */
+  people: z
+    .array(
+      z.object({
+        name: z.string().min(1),
+        role: z.string().min(1),
+        why: z.string().min(1),
+        confidence: z.number().min(0).max(1),
+        provided_by: z.enum(['client', 'contact', 'pages']),
+        evidence_source_id: z.string().nullable(),
+        own_channels: z.array(z.object({ url: z.string(), platform: z.string(), posts: z.number().int(), source_ids: z.array(z.string()) })),
+        mentions: z.array(z.object({ url: z.string(), kind: z.string(), source_id: z.string().nullable() })),
+      }),
+    )
+    .optional(),
 })
 export type ZrodlaData = z.infer<typeof zrodlaDataSchema>
 

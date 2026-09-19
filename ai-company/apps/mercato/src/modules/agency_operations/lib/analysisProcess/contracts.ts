@@ -43,7 +43,7 @@ export const analysisExecutionPolicySchema = z.object({
   }
 })
 
-export const analysisMaterialSchema = researchRunRequestSchema.pick({ order: true, socialPosts: true, pages: true })
+export const analysisMaterialSchema = researchRunRequestSchema.pick({ order: true, socialPosts: true, pages: true, people: true })
   .superRefine((material, context) => {
     const topics = material.order.product_selection.result_limits?.topics
     if (!Number.isInteger(topics) || (topics ?? 0) <= 0) {

@@ -23,6 +23,8 @@ export const purchaseBuyerSchema = z.object({
   billingTaxId: z.string().trim().max(100),
   officialSocialUrl: z.union([z.url().max(2000), z.literal('')]),
   purchaseGoal: z.string().trim().max(240),
+  /** People who speak for the brand, one per line: "Name, role, profile URL" (role and URL optional). */
+  spokespeople: z.string().trim().max(2000).optional(),
 }).strict().refine((buyer) => buyer.billingBuyerType !== 'company' || buyer.billingTaxId.length > 0, {
   path: ['billingTaxId'], message: 'Company tax identifier is required',
 })

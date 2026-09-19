@@ -1,0 +1,18 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "people": [
+        {
+          "name": "Rafał Muda",
+          "role": "osoba kontaktowa zamówienia",
+          "why": "named by the client",
+          "evidence_quote": "provided by client",
+          "source_id": null,
+          "confidence": 1
+        }
+      ],
+      "notes": "Strony FLOW nie wymieniają innych osób z rolą publiczną."
+    }
+  }
+]

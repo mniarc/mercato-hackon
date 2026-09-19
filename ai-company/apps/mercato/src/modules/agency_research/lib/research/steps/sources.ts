@@ -72,7 +72,7 @@ function factBankInput(order: OrderFacts, lang: OutputLanguage, sources: Source[
     order: { brand: order.brand, market: order.market, language: order.language, websiteUrl: order.websiteUrl, purchaseGoal: order.purchaseGoal },
     outputLanguage: lang,
     // No timestamps in agent inputs: the same pages must hit the same cache key on a rerun.
-    sources: sources.filter((s) => s.access !== 'unavailable').map((s) => ({ source_id: s.source_id, publisher: s.publisher, kind: s.kind, url: s.url_or_file, access: s.access, retrieved_at: s.retrieved_at.slice(0, 10) })),
+    sources: sources.filter((s) => s.access !== 'unavailable').map((s) => ({ source_id: s.source_id, publisher: s.publisher, kind: s.kind, url: s.url_or_file, access: s.access, retrieved_at: s.retrieved_at.slice(0, 10), published_at: s.published_at?.slice(0, 10) ?? null, limitation: s.limitation })),
     facts: facts.map((f) => ({ fact_id: f.fact_id, entity: f.entity, claim: f.claim, kind: f.kind, source_ids: f.source_ids, limitation: f.limitation })),
     language_samples: samples.map((s) => ({ sample_id: s.sample_id, source_id: s.source_id, channel: s.channel, excerpt: s.excerpt_or_paraphrase })),
     audience_signals: signals.map((s) => ({ signal_id: s.signal_id, role_or_organization: s.role_or_organization, problem: s.problem, evidence_status: s.evidence_status, fact_ids: s.fact_ids })),
@@ -181,7 +181,8 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
         paraphrase: fact.claim,
         kind: fact.kind,
         use_scope: fact.use_scope,
-        limitation: fact.limitation,
+        // A fact from a dated post carries the channel's staleness: the brief must not read it as the current offer.
+        limitation: page.source.limitation?.startsWith('dated post') ? [fact.limitation, page.source.limitation].filter(Boolean).join('; ') : fact.limitation,
       })
     }
     for (const sample of value.language_samples) {

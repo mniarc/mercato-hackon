@@ -8,6 +8,8 @@ import { countClientWords } from '../lib/research/util'
 import { collectSources, type FetchPage, type SocialPost } from '../lib/research/fetch'
 import type { SearchHit, SearchWeb } from '../lib/research/firecrawl'
 import { createLedger } from '../lib/research/ledger'
+import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS } from '../lib/research/pipeline'
+import { discoverPeople } from '../lib/research/steps/people'
 import { runAuditPipeline } from '../lib/research/steps/audit'
 import { competitorQueries, runCompetitorsPipeline, vetSearchHits } from '../lib/research/steps/competitors'
 import { runSourcesStep } from '../lib/research/steps/sources'
@@ -24,14 +26,30 @@ function fixtureFetcher(): FetchPage {
     return { url, finalUrl: url, status: 'ok', title: entry.title ?? null, markdown: fs.readFileSync(path.join(fixture, entry.file), 'utf8'), error: null }
   }
 }
-const fixtureSearch: SearchWeb = async () => (JSON.parse(fs.readFileSync(path.join(fixture, 'search.json'), 'utf8')) as Record<string, SearchHit[]>)['*']
+const fixtureSearch: SearchWeb = async (query) => {
+  const table = JSON.parse(fs.readFileSync(path.join(fixture, 'search.json'), 'utf8')) as Record<string, SearchHit[]>
+  return table[query] ?? table['*']
+}
 
 const order = orderFactsOf(orderDataSchema.parse(JSON.parse(fs.readFileSync(path.join(fixture, 'order.json'), 'utf8'))))
 const socialPosts = (JSON.parse(fs.readFileSync(path.join(fixture, 'social.json'), 'utf8')) as { posts: SocialPost[] }).posts
 
+/** 3.2 as the chain runs it: client pages + social, then 3.2a (the order's spokesperson, their interview) before the extractors. */
 async function register() {
-  const sources = await collectSources(order, { fetchPage: fixtureFetcher(), socialPosts, now: () => new Date('2026-09-19T10:00:00Z') })
-  const result = await runSourcesStep({ order, sources, runAgent: createFixtureRunner(path.join(fixture, 'canned')), ledger: createLedger({ prices: {} }), models })
+  const collected = await collectSources(order, { fetchPage: fixtureFetcher(), socialPosts, now: () => new Date('2026-09-19T10:00:00Z') })
+  const runAgent = createFixtureRunner(path.join(fixture, 'canned'))
+  const ledger = createLedger({ prices: {} })
+  const step = createStepRunner({
+    runAgent, ledger, models, groundingRetries: 2, onEvent: () => {},
+    timeouts: { extract: DEFAULT_EXTRACT_TIMEOUT_MS, synthesis: DEFAULT_SYNTHESIS_TIMEOUT_MS, qa: DEFAULT_EXTRACT_TIMEOUT_MS },
+    stats: { agentCalls: 0, cachedSteps: 0, dropped: 0, rejected: 0 },
+  })
+  const people = await discoverPeople({
+    order, collected, knownPeople: [{ name: 'Rafał Muda', role: 'osoba kontaktowa zamówienia', provided_by: 'client', knownUrls: [] }],
+    searchWeb: fixtureSearch, fetchPage: fixtureFetcher(), step,
+  })
+  const result = await runSourcesStep({ order, sources: [...collected, ...people.sources], runAgent, ledger, models })
+  result.data.people = people.people
   return result
 }
 
@@ -99,13 +117,13 @@ describe('3.4–3.5 competitors pipeline', () => {
     expect(result.data.selection.map((s) => s.company)).toEqual(['Northlight Studio', 'Kubik Digital'])
     expect(result.stats.competitors).toBe(2)
     expect(result.issues.map((i) => i.code)).toEqual(expect.arrayContaining(['URL_NOT_FROM_SEARCH', 'COMPETITOR_UNREAD']))
-    // Pages: S-07 home + S-08 oferta + S-09 kontakt (unavailable) for Northlight, S-10 Kubik, S-11 Ekspres (unavailable).
+    // S-07 is the spokesperson's interview from 3.2a. Pages: S-08 home + S-09 oferta + S-10 kontakt (unavailable) for Northlight, S-11 Kubik, S-12 Ekspres (unavailable).
     expect(result.appended.sources.map((s) => [s.source_id, s.publisher, s.access])).toEqual([
-      ['S-07', 'Northlight Studio', 'full'],
       ['S-08', 'Northlight Studio', 'full'],
-      ['S-09', 'Northlight Studio', 'unavailable'],
-      ['S-10', 'Kubik Digital', 'full'],
-      ['S-11', 'Pracownia Ekspres', 'unavailable'],
+      ['S-09', 'Northlight Studio', 'full'],
+      ['S-10', 'Northlight Studio', 'unavailable'],
+      ['S-11', 'Kubik Digital', 'full'],
+      ['S-12', 'Pracownia Ekspres', 'unavailable'],
     ])
     expect(calls.filter((c) => c.agentId === 'agency_research.page_extractor').map((c) => (c.input as { entity: string; page: { source_id: string } }).entity)).toEqual(['Northlight Studio', 'Northlight Studio', 'Kubik Digital'])
     const competitorFacts = result.zrodlaV2.facts.filter((f) => f.fact_id.startsWith('C'))

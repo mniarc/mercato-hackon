@@ -21,4 +21,9 @@ export const SHARED_RULES = [
   '(`limitation`, `gap`, `readiness`) instead of filling it in. A first-party declaration is',
   'not proof of a result; public reactions are not proof of effectiveness or ROI; absence of',
   'a claim elsewhere is not proof of uniqueness. Observation and interpretation are separate.',
+  'Source precedence: the company website (`oficjalna strona`) is the closest statement of',
+  'the CURRENT offer, scope and positioning; social posts show voice and history and may be',
+  'stale — a source whose `limitation` says "dated post" or "no newer communication" must not',
+  'be read as the current offer. Where a post and the website disagree about what the company',
+  'does or offers, the website is current unless the post is newer than it.',
 ].join(' ')

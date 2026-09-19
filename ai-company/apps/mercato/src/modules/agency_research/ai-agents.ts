@@ -5,6 +5,7 @@ import { briefAnswerAgent } from './lib/briefRevision/agent'
 import { competitorsAgents } from './lib/agents/competitors'
 import { findingsAgents } from './lib/agents/findings'
 import { sourcesAgents } from './lib/agents/sources'
+import { peopleAgents } from './lib/agents/people'
 import { strategyAgents } from './lib/agents/strategy'
 import { planAgents } from './lib/agents/plan'
 import { postAgents } from './lib/agents/post'
@@ -20,6 +21,6 @@ export * from './lib/agentIds'
 // verbatim against the stored page by the gate. Definitions live per phase under
 // `lib/agents/`; this file is the registration entry point the generator scans.
 
-export const aiAgents: AiAgentDefinition[] = [...sourcesAgents, ...auditAgents, ...competitorsAgents, ...findingsAgents, ...briefAgents, briefAnswerAgent, ...strategyAgents, ...planAgents, ...postAgents]
+export const aiAgents: AiAgentDefinition[] = [...sourcesAgents, ...peopleAgents, ...auditAgents, ...competitorsAgents, ...findingsAgents, ...briefAgents, briefAnswerAgent, ...strategyAgents, ...planAgents, ...postAgents]
 
 export default aiAgents

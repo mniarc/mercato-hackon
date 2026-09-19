@@ -70,6 +70,14 @@ export const limits = {
   research: {
     clientWebPagesMax: 10,
     clientSocialItemsTarget: 8,
+    /** A social channel with no post newer than this is stale: it shows voice and history, the website is the offer (Marcin, 2026-09-19). */
+    socialStaleMonths: 6,
+    /** People who speak for the brand (3.2a): how many are followed, how wide the search goes, what of theirs is read. */
+    peopleMax: 4,
+    personSearchQueries: 3,
+    personSearchHits: 5,
+    personPostsTarget: 8,
+    personPagesMax: 2,
     competitorEntitiesMax: 3,
     competitorPagesEachMax: 4,
     fetchAttemptsPerUrl: 2,

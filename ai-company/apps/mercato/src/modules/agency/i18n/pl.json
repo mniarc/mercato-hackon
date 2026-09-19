@@ -338,5 +338,8 @@
   "agencyOperations.tovIntake.state.accepted": "Zlecenie dla specjalisty zostało przyjęte.",
   "agencyOperations.tovIntake.state.running": "Badanie tonu komunikacji przez specjalistę trwa.",
   "agencyOperations.tovIntake.state.completed": "Specjalista zapisał dokładną wersję ToV.",
-  "agencyOperations.tovIntake.state.attention_required": "Przepływ specjalisty wymaga uwagi pracownika."
+  "agencyOperations.tovIntake.state.attention_required": "Przepływ specjalisty wymaga uwagi pracownika.",
+  "agency.order.spokespeople": "Osoby wypowiadające się w imieniu marki (opcjonalnie)",
+  "agency.order.spokespeopleHint": "Założyciele, właściciele, eksperci, których głos ma nieść komunikację. Jedna osoba w wierszu: imię i nazwisko, rola, link do profilu. Ich publiczne wpisy, wywiady i artykuły są czytane w ramach researchu.",
+  "agency.order.spokespeoplePlaceholder": "Anna Kowalska, CEO, https://www.linkedin.com/in/…"
 }
