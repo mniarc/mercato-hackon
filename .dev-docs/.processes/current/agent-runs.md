@@ -156,6 +156,10 @@ employees can see the selected topic, exact instruction or blocking reason.
 This does not generate a post or grant publication consent. Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
+For an existing installation, initialize the plan-review task definition without
+enabling paid analysis using `node scripts/agency-dev.mjs cli agency_operations
+configure-plan-review --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>`.
+First-time `configure-analysis` with a planning policy already does this.
 
 Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
 existing portal materials API accepts `process: {"kind":"analysis"}` and a private

@@ -73,6 +73,15 @@ export function watchDevEnvFiles(
 ): () => void {
   const debounceMs = options.debounceMs ?? 250
   const envFilePaths = resolveDevEnvFilePaths(appDir)
+  const readSnapshot = (filePath: string): Buffer | null | undefined => {
+    try {
+      return fs.readFileSync(filePath)
+    } catch (error) {
+      // Missing files are a meaningful state; transient read failures are not edits.
+      return (error as NodeJS.ErrnoException).code === 'ENOENT' ? null : undefined
+    }
+  }
+  const snapshots = new Map(envFilePaths.map((filePath) => [filePath, readSnapshot(filePath)]))
   const timers = new Map<string, NodeJS.Timeout>()
   const watchers = envFilePaths.map((envFilePath) => {
     const watchDir = path.dirname(envFilePath)
@@ -92,6 +101,12 @@ export function watchDevEnvFiles(
 
         timers.set(envFilePath, setTimeout(() => {
           timers.delete(envFilePath)
+          // Windows can report a change after a read updates access metadata.
+          const current = readSnapshot(envFilePath)
+          if (current === undefined) return
+          const previous = snapshots.get(envFilePath)
+          if (current === previous || (current !== null && previous != null && current.equals(previous))) return
+          snapshots.set(envFilePath, current)
           onChange(envFilePath)
         }, debounceMs))
       })
