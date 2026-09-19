@@ -11,6 +11,14 @@ TC-AGENCY-001/002/003 and their support helpers; new mode-selection helpers ther
 
 ## Deliver
 
+- Architecture decision: teammate `agency_tov` is the sole producer/owner of
+  ToV. Strategy orchestrates the specialist and consumes its exact saved version;
+  it must not produce, rewrite or fall back to research-owned ToV. The competing
+  `agency_research.tov_writer` path is being retired from active execution by the
+  integration owners. Preserve historical reads, but never invoke a retired
+  writer merely to satisfy an agent-count assertion. The detached worker owns
+  harness adaptation, not this production rewrite; read the current main task
+  and owners' source contracts before wiring its ToV checkpoints.
 - Keep one primary customer -> agency -> employee scenario and its meaningful
   alternative journeys. Both modes use real teammate agent wrappers, native
   orchestration, tools, auth, API, persistence, QA and explicit human decisions.
