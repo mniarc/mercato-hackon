@@ -67,6 +67,7 @@
     },
     "db:migrate": {
       "cache": false,
+      "passThroughEnv": ["DB_SSL", "NODE_EXTRA_CA_CERTS"],
       "outputs": []
     },
     "db:greenfield": {
@@ -79,6 +80,7 @@
     },
     "initialize": {
       "cache": false,
+      "passThroughEnv": ["DB_SSL", "NODE_EXTRA_CA_CERTS"],
       "outputs": []
     },
     "seed:defaults": {
