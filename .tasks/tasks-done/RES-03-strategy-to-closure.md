@@ -1,6 +1,7 @@
 # RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure
 
-State: active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)
+State: done (bounded P5-P9 producer lane merged and re-proven; customer receipts,
+external send and delivery remain outside this task's stated simulated scope)
 Sources: F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39
 Depends on: RES-02
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`

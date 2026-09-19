@@ -1,6 +1,8 @@
 # T106 - Archive genuinely completed tasks without hiding unfinished proof
 
-State: active
+State: done
+Outcome: RES-03 and T45 archived from their recorded bounded completion evidence;
+24 eligible unfinished tasks retained. No source, runtime, spec or coverage edits.
 Priority: immediate detached cleanup
 Owns: `.tasks/*.md` and `.tasks/tasks-done/`, excluding T93-T106 and TOV-02.
 Sources: explicit user request for a bounded PowerShell sol/high task triage.

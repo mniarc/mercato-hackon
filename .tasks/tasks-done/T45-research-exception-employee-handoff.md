@@ -1,6 +1,10 @@
 # T45 - Expose a saved research exception as a native employee task
 
-State: active
+State: done
+Delivered: `f86c5042d` added scoped exact exception reads and `9eb0153c4`
+added the replay-safe native employee handoff. Focused checks reject foreign,
+stale and ordinary-wait inputs. The headed `23bc9e681` T52 journey proved an
+actual saved open post-QA exception reached the employee task and stayed blocked.
 Depends on: T26; coordinate T44 employee questions
 Owns: `agency_operations/lib/researchException/**`, `agency_research/lib/exceptionReview/**`; coordinator owns public service contract, analysis workflow and DI wiring
 Sources: F48-1; teammate exact-version WEW-ESKALACJA contract
