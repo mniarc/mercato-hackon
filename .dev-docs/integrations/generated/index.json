@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T23:13:03.093Z",
+  "generatedAt": "2026-09-19T23:15:13.616Z",
   "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered teammate agents. The native agency_operations.client_triage router is additionally mapped so its journal observations are recognized; it is not a teammate producer. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. Imported teammate live-labelled runs are historical producer evidence, not locally rerun or current connected-app proof; simulated acceptance checkpoints and retired-writer observations do not establish current client approval or producer ownership. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
   "agents": [
     {
@@ -32,18 +32,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 117,
+      "observationCount": 134,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:47:24.191Z",
+        "time": "2026-09-19T21:44:21.308Z",
         "agentId": "agency_research.page_extractor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "19d71c58-99a2-47e4-909c-cb85613169a6",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "28b585f0-cd5d-4409-ae68-84c2c51e2bc0",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -52,7 +52,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -68,18 +69,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 8,
+      "observationCount": 9,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:37:12.537Z",
+        "time": "2026-09-19T21:31:18.591Z",
         "agentId": "agency_research.proof_builder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "68ea108f-c090-4d91-88d3-cf7729a1f8b2",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "39ce37a2-6346-430c-bf20-3875651533c7",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -88,7 +89,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -104,18 +106,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 6,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:39:52.722Z",
+        "time": "2026-09-19T21:34:53.095Z",
         "agentId": "agency_research.content_seeder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "73b2ae4d-6ef2-492e-a21b-065c37a27583",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "d5391f89-ca30-4a6f-aed8-a3752d5f2b4a",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -124,7 +126,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -140,25 +143,26 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 2,
+      "observationCount": 3,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:34:12.600Z",
+        "time": "2026-09-19T21:27:39.474Z",
         "agentId": "agency_research.people_finder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -174,25 +178,26 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 2,
+      "observationCount": 3,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:34:22.182Z",
+        "time": "2026-09-19T21:27:49.645Z",
         "agentId": "agency_research.channel_selector",
         "phase": "completed",
         "refs": {
-          "agentRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "e50c7852-ad3e-4b0f-a677-b2e97a83938c",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -208,18 +213,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 6,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:40:21.888Z",
+        "time": "2026-09-19T21:35:38.860Z",
         "agentId": "agency_research.conflict_finder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "ac6a54c3-f8b6-4fb2-ba9f-ec1518d1149f",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "78f8d698-89e7-4fa7-918b-0b7e38e741c6",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -228,7 +233,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -244,18 +250,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 6,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:40:29.811Z",
+        "time": "2026-09-19T21:35:48.173Z",
         "agentId": "agency_research.coverage_assessor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "e9bc52c7-f3fa-4e96-bd78-ede8bc9e3628",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "df966472-2c19-479f-a2ce-d8c986e5b40b",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -264,7 +270,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -280,18 +287,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 8,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:42:47.704Z",
+        "time": "2026-09-19T21:39:36.501Z",
         "agentId": "agency_research.audit_mapper",
         "phase": "completed",
         "refs": {
-          "agentRunId": "ece639ac-5aed-4ee1-ba23-58e030f0e6cb",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "fb4139f2-abd6-41c8-bb22-b31a9df2f7bf",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -300,7 +307,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -316,18 +324,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 8,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:44:29.307Z",
+        "time": "2026-09-19T21:41:19.256Z",
         "agentId": "agency_research.audit_voice",
         "phase": "completed",
         "refs": {
-          "agentRunId": "7edace3f-d4bb-4113-8b7e-370c67ff809e",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "ad42f978-f044-46b1-9a5e-ac2065d1ddb3",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -336,7 +344,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -352,18 +361,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 8,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:46:25.595Z",
+        "time": "2026-09-19T21:43:23.179Z",
         "agentId": "agency_research.audit_gaps_assets",
         "phase": "completed",
         "refs": {
-          "agentRunId": "b47cc62a-d2d9-401a-ad2f-5cb08d8050d1",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "6f8266f4-3f68-4bf3-9841-63edc61a71ab",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -372,7 +381,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -388,18 +398,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 6,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:46:48.727Z",
+        "time": "2026-09-19T21:43:36.794Z",
         "agentId": "agency_research.competitor_selector",
         "phase": "completed",
         "refs": {
-          "agentRunId": "dca9c815-d862-4e15-93dc-9429453e564f",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "2cd3f536-172e-47ea-b91e-64293ce6f77c",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -408,7 +418,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -424,18 +435,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 27,
+      "observationCount": 28,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:48:36.948Z",
+        "time": "2026-09-19T21:45:44.273Z",
         "agentId": "agency_research.competitor_card",
         "phase": "completed",
         "refs": {
-          "agentRunId": "87a970ce-2ae7-40a1-9b62-d3288203c3f3",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "f6a84668-7a9b-44c7-b6a9-66bf0f963886",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -444,7 +455,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -460,18 +472,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 27,
+      "observationCount": 28,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:49:09.173Z",
+        "time": "2026-09-19T21:46:15.604Z",
         "agentId": "agency_research.competitor_channels",
         "phase": "completed",
         "refs": {
-          "agentRunId": "f6c26a3a-0595-4f17-9554-be9fb9e64fce",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "3e72f38c-fa36-4e97-a170-63c247255f68",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -480,7 +492,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -496,18 +509,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 15,
+      "observationCount": 16,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:51:21.778Z",
+        "time": "2026-09-19T21:48:45.854Z",
         "agentId": "agency_research.competitor_synthesizer",
         "phase": "completed",
         "refs": {
-          "agentRunId": "c255c02d-233e-4eb2-adfc-a850add00b24",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "bee7ed71-6663-4ca3-a844-dfd7dd7f9970",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -516,7 +529,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -532,18 +546,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 14,
+      "observationCount": 15,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:53:43.955Z",
+        "time": "2026-09-19T21:51:34.984Z",
         "agentId": "agency_research.field_mapper",
         "phase": "completed",
         "refs": {
-          "agentRunId": "04b56eeb-9360-4c84-915f-80a85e414300",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "3c2dbf6c-76a0-4b33-b746-55cf7ab4e449",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -552,7 +566,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -568,18 +583,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 12,
+      "observationCount": 13,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:55:14.551Z",
+        "time": "2026-09-19T21:53:35.901Z",
         "agentId": "agency_research.question_writer",
         "phase": "completed",
         "refs": {
-          "agentRunId": "29326040-7396-43ac-a918-2302344f7247",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "1228f331-b202-4a44-a980-4db4721b1a04",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -588,7 +603,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -604,18 +620,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 12,
+      "observationCount": 13,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:55:51.852Z",
+        "time": "2026-09-19T21:53:57.415Z",
         "agentId": "agency_research.readiness_assessor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "17af02cd-8723-49f4-a1a8-1a78d7536f4d",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "agentRunId": "082ba2c9-cd86-4e81-a59c-304aca44f05e",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -624,7 +640,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -640,18 +657,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 28,
+      "observationCount": 29,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:02:15.871Z",
+        "time": "2026-09-19T21:55:06.663Z",
         "agentId": "agency_research.research_qa",
         "phase": "completed",
         "refs": {
-          "agentRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "agentRunId": "d10e9cef-6571-41ad-9560-1ff4bd0deef2",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -660,7 +677,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -676,18 +694,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 12,
+      "observationCount": 13,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:02:46.811Z",
+        "time": "2026-09-19T21:55:56.524Z",
         "agentId": "agency_research.brief_writer.offer_audience_direction",
         "phase": "completed",
         "refs": {
-          "agentRunId": "ad9a91c4-383f-43a8-a2f7-4d3bfb83dbf8",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "agentRunId": "5be915a1-4479-42fc-a51d-5208f7bdafb7",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -696,7 +714,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -712,18 +731,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 12,
+      "observationCount": 13,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:03:26.029Z",
+        "time": "2026-09-19T21:56:43.189Z",
         "agentId": "agency_research.brief_writer.promise_voice",
         "phase": "completed",
         "refs": {
-          "agentRunId": "03abe427-3b65-4aca-b9c5-d3dbb2a7b919",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "agentRunId": "fab203fa-c7cb-4ccc-9d03-fbbaf5c6d79f",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -732,7 +751,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -748,18 +768,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 12,
+      "observationCount": 13,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:04:09.645Z",
+        "time": "2026-09-19T21:57:34.202Z",
         "agentId": "agency_research.brief_writer.channel_success_assets",
         "phase": "completed",
         "refs": {
-          "agentRunId": "4a926131-6787-4847-8d02-8834b16bf99f",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "agentRunId": "0ff0ff91-4f43-44d8-a0d5-d0cb7f297f32",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -768,7 +788,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -784,18 +805,18 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 15,
+      "observationCount": 16,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:04:47.066Z",
+        "time": "2026-09-19T21:58:42.293Z",
         "agentId": "agency_research.brief_qa",
         "phase": "completed",
         "refs": {
-          "agentRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "agentRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
@@ -804,7 +825,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -1264,26 +1286,27 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 2,
+      "observationCount": 3,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:35:14.917Z",
+        "time": "2026-09-19T21:28:39.344Z",
         "integrationId": "research-people-to-sources",
         "phase": "completed",
         "refs": {
-          "producerRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
-          "consumerRunId": "1d57ac42-12f7-4507-8783-341e29638001",
-          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          "producerRunId": "e50c7852-ad3e-4b0f-a677-b2e97a83938c",
+          "consumerRunId": "cfd97c38-f1e6-432e-b76f-1a80ca400449",
+          "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -1296,19 +1319,19 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 21,
+      "observationCount": 22,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T20:46:26.058Z",
+        "time": "2026-09-19T21:43:23.845Z",
         "integrationId": "research-sources-to-audit",
         "phase": "completed",
         "refs": {
-          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
-          "consumerRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
-          "taskRunId": "af2213b7-c1f9-4e92-9bc5-bd01f8d52b83"
+          "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+          "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+          "taskRunId": "94bd670f-bfff-4c8f-9495-c51e7050483e"
         }
       },
       "proofRunIds": {
@@ -1317,7 +1340,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -1330,19 +1354,19 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 24,
+      "observationCount": 25,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:01:19.229Z",
+        "time": "2026-09-19T21:53:57.770Z",
         "integrationId": "research-audit-to-findings",
         "phase": "completed",
         "refs": {
-          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
-          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+          "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+          "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b"
         }
       },
       "proofRunIds": {
@@ -1351,7 +1375,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -1364,19 +1389,19 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 24,
+      "observationCount": 25,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:01:19.229Z",
+        "time": "2026-09-19T21:53:57.770Z",
         "integrationId": "research-competitors-to-findings",
         "phase": "completed",
         "refs": {
-          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
-          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
-          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+          "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+          "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b"
         }
       },
       "proofRunIds": {
@@ -1385,7 +1410,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -1398,19 +1424,19 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 20,
+      "observationCount": 21,
       "last": {
         "schemaVersion": 1,
-        "runId": "demo-open-mercato-4",
+        "runId": "flow-v2-1",
         "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T21:04:10.224Z",
+        "time": "2026-09-19T21:57:34.732Z",
         "integrationId": "research-findings-to-brief",
         "phase": "completed",
         "refs": {
-          "producerRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
-          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
-          "taskRunId": "cd4c7286-e20c-4fdd-853e-4300baa99516"
+          "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+          "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+          "taskRunId": "b53e74ba-719f-4fdf-9f76-0661021795e6"
         }
       },
       "proofRunIds": {
@@ -1419,7 +1445,8 @@
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
           "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-          "demo-open-mercato-4"
+          "demo-open-mercato-4",
+          "flow-v2-1"
         ]
       }
     },
@@ -18283,6 +18310,797 @@
           "refs": {
             "taskRunId": "70eda6ec-8ff7-48fd-a137-d6b898950723",
             "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
+          }
+        }
+      ]
+    },
+    {
+      "runId": "flow-v2-1",
+      "mode": "live",
+      "journey": "agency-research-cli-v2",
+      "lastReached": {
+        "schemaVersion": 1,
+        "runId": "flow-v2-1",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:58:42.773Z",
+        "checkpointId": "research.step.4.2",
+        "phase": "completed",
+        "refs": {
+          "taskRunId": "6c03d6cb-4bdc-4c98-9544-6281197d36f7",
+          "outputVersionId": "8d43bcd5-6f71-4e71-844d-accf2cdd1ccd"
+        }
+      },
+      "failedEventCount": 0,
+      "events": [
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:27:31.114Z",
+          "checkpointId": "research.step.3.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d",
+            "outputVersionId": "9d573902-3ed8-40d3-9d43-0820456c7d00"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:27:39.474Z",
+          "agentId": "agency_research.people_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:27:49.645Z",
+          "agentId": "agency_research.channel_selector",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e50c7852-ad3e-4b0f-a677-b2e97a83938c",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:21.689Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "076cb950-2658-4171-8df4-c740125d2019",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:39.344Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "cfd97c38-f1e6-432e-b76f-1a80ca400449",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:39.344Z",
+          "integrationId": "research-people-to-sources",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "e50c7852-ad3e-4b0f-a677-b2e97a83938c",
+            "consumerRunId": "cfd97c38-f1e6-432e-b76f-1a80ca400449",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:41.795Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "7f95d135-e747-45c8-a922-eb7fc1dc4cef",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:46.031Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "a5dd1a93-7fda-4504-a7e4-d07927ce014d",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:51.161Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "9fea9650-1340-40aa-84d3-8710d980ed60",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:28:57.487Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d05ae4ce-32d1-46c3-8b4a-8af10946535c",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:03.385Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3f8640d2-42cb-42ff-8ed6-e4b381126894",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:03.876Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "dabb38d5-9086-4c45-b12f-71c647a7feb3",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:13.954Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "7fb77a84-e2c9-4bd3-9ced-073ede3f3cfe",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:16.357Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e5bde55f-e655-4778-9785-67e247d18c65",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:16.950Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e90925f8-1616-432b-8215-e4a5ba9f56c0",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:22.821Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f4d147ea-87b3-42cd-adad-ef4f0cefc120",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:29:27.334Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "a168f09f-e17c-402d-ab6d-7f7ae52b6541",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:31:18.591Z",
+          "agentId": "agency_research.proof_builder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "39ce37a2-6346-430c-bf20-3875651533c7",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:34:53.095Z",
+          "agentId": "agency_research.content_seeder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d5391f89-ca30-4a6f-aed8-a3752d5f2b4a",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:35:38.860Z",
+          "agentId": "agency_research.conflict_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "78f8d698-89e7-4fa7-918b-0b7e38e741c6",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:35:48.173Z",
+          "agentId": "agency_research.coverage_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "df966472-2c19-479f-a2ce-d8c986e5b40b",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:35:48.293Z",
+          "checkpointId": "research.step.3.2",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d",
+            "outputVersionId": "9d573902-3ed8-40d3-9d43-0820456c7d00"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:35:48.310Z",
+          "checkpointId": "research.step.3.3",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "94bd670f-bfff-4c8f-9495-c51e7050483e",
+            "outputVersionId": "ab5cbf62-8129-4eb9-baeb-a0de189bfab5"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:39:36.501Z",
+          "agentId": "agency_research.audit_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fb4139f2-abd6-41c8-bb22-b31a9df2f7bf",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:41:19.256Z",
+          "agentId": "agency_research.audit_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ad42f978-f044-46b1-9a5e-ac2065d1ddb3",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:23.179Z",
+          "agentId": "agency_research.audit_gaps_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "6f8266f4-3f68-4bf3-9841-63edc61a71ab",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:23.845Z",
+          "checkpointId": "research.step.3.3",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "94bd670f-bfff-4c8f-9495-c51e7050483e",
+            "outputVersionId": "ab5cbf62-8129-4eb9-baeb-a0de189bfab5"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:23.845Z",
+          "integrationId": "research-sources-to-audit",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+            "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+            "taskRunId": "94bd670f-bfff-4c8f-9495-c51e7050483e"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:23.858Z",
+          "checkpointId": "research.step.3.4",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "1345f798-613b-4d64-a8ad-332d75e7c533",
+            "outputVersionId": "f37e9cb6-ae3f-466c-af98-7e750c451da1"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:36.794Z",
+          "agentId": "agency_research.competitor_selector",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "2cd3f536-172e-47ea-b91e-64293ce6f77c",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:43:58.995Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "cf583072-7e09-49b3-bdda-890951a06f31",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:44:12.712Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4f51203f-4a7e-4137-9db0-c6129e65364f",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:44:19.916Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bfa43bec-0cc9-46a2-86b7-704758a1c722",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:44:21.308Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "28b585f0-cd5d-4409-ae68-84c2c51e2bc0",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:45:44.273Z",
+          "agentId": "agency_research.competitor_card",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f6a84668-7a9b-44c7-b6a9-66bf0f963886",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:46:15.604Z",
+          "agentId": "agency_research.competitor_channels",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3e72f38c-fa36-4e97-a170-63c247255f68",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:48:45.854Z",
+          "agentId": "agency_research.competitor_synthesizer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bee7ed71-6663-4ca3-a844-dfd7dd7f9970",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:48:46.377Z",
+          "checkpointId": "research.step.3.4",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "1345f798-613b-4d64-a8ad-332d75e7c533",
+            "outputVersionId": "f37e9cb6-ae3f-466c-af98-7e750c451da1"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:48:46.387Z",
+          "checkpointId": "research.step.3.5",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "8d2a4f99-0e0f-438b-b77a-c3fcdb16507b",
+            "outputVersionId": "66ce9507-b856-47ed-a87e-4540da713c01"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:48:46.414Z",
+          "checkpointId": "research.step.3.5",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "8d2a4f99-0e0f-438b-b77a-c3fcdb16507b",
+            "outputVersionId": "66ce9507-b856-47ed-a87e-4540da713c01"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:48:46.425Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b",
+            "outputVersionId": "fd1623a7-4754-4923-9c5d-02d4ce3a5136"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:51:34.984Z",
+          "agentId": "agency_research.field_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3c2dbf6c-76a0-4b33-b746-55cf7ab4e449",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:35.901Z",
+          "agentId": "agency_research.question_writer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "1228f331-b202-4a44-a980-4db4721b1a04",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:57.415Z",
+          "agentId": "agency_research.readiness_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "082ba2c9-cd86-4e81-a59c-304aca44f05e",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:57.770Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b",
+            "outputVersionId": "fd1623a7-4754-4923-9c5d-02d4ce3a5136"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:57.770Z",
+          "integrationId": "research-audit-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+            "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+            "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:57.770Z",
+          "integrationId": "research-competitors-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+            "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+            "taskRunId": "c5b231eb-be14-4eda-bc69-1a9caada7f5b"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:53:57.782Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "94f068b8-16f6-4e1f-bf37-3214b7b20039"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:55:06.663Z",
+          "agentId": "agency_research.research_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d10e9cef-6571-41ad-9560-1ff4bd0deef2",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:55:07.079Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "94f068b8-16f6-4e1f-bf37-3214b7b20039"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:55:07.121Z",
+          "checkpointId": "research.step.4.1",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "b53e74ba-719f-4fdf-9f76-0661021795e6",
+            "outputVersionId": "8d43bcd5-6f71-4e71-844d-accf2cdd1ccd"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:55:56.524Z",
+          "agentId": "agency_research.brief_writer.offer_audience_direction",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "5be915a1-4479-42fc-a51d-5208f7bdafb7",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:56:43.189Z",
+          "agentId": "agency_research.brief_writer.promise_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fab203fa-c7cb-4ccc-9d03-fbbaf5c6d79f",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:57:34.202Z",
+          "agentId": "agency_research.brief_writer.channel_success_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "0ff0ff91-4f43-44d8-a0d5-d0cb7f297f32",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:57:34.732Z",
+          "checkpointId": "research.step.4.1",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "b53e74ba-719f-4fdf-9f76-0661021795e6",
+            "outputVersionId": "8d43bcd5-6f71-4e71-844d-accf2cdd1ccd"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:57:34.732Z",
+          "integrationId": "research-findings-to-brief",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+            "consumerRunId": "d6d02479-8a55-4f50-ba0d-fa0aa0d32f63",
+            "taskRunId": "b53e74ba-719f-4fdf-9f76-0661021795e6"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:57:34.758Z",
+          "checkpointId": "research.step.4.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "6c03d6cb-4bdc-4c98-9544-6281197d36f7",
+            "outputVersionId": "8d43bcd5-6f71-4e71-844d-accf2cdd1ccd"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:58:42.293Z",
+          "agentId": "agency_research.brief_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "88312c46-c474-4242-bf66-2330e2b3ce55",
+            "taskRunId": "6ae56273-c716-43e0-8466-4a467f2f172d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "flow-v2-1",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:58:42.773Z",
+          "checkpointId": "research.step.4.2",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "6c03d6cb-4bdc-4c98-9544-6281197d36f7",
+            "outputVersionId": "8d43bcd5-6f71-4e71-844d-accf2cdd1ccd"
           }
         }
       ]
