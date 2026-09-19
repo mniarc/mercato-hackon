@@ -120,7 +120,7 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
 /** A gap the QA agent itself attributes to a pending client decision. */
 export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|decyzj\w* klienta)/i
 
-export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
+export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
 function fixStepForPath(path: string): AuthorStepId | null {
@@ -128,6 +128,13 @@ function fixStepForPath(path: string): AuthorStepId | null {
   if (/^WEW-AUDYT/.test(path)) return '3.3'
   if (/^WEW-KONKURENCJA/.test(path)) return '3.5'
   if (/^WEW-USTALENIA/.test(path)) return '3.6'
+  // A bare id path: the alphabet says which register the item lives in (Rafał's id prefixes).
+  const id = path.match(/^\s*(S-|F|P|L|A|T|X|C|G|D|Q|ER)\d/)?.[1]
+  if (id === 'C') return '3.4'
+  if (id === 'G') return '3.3'
+  if (id === 'D') return '3.5'
+  if (id === 'Q' || id === 'ER') return '3.6'
+  if (id) return '3.2'
   return null
 }
 
