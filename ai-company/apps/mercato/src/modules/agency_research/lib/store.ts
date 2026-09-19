@@ -1,7 +1,7 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchSource, AgencyResearchTaskRun } from '../data/entities'
-import { outputIdByTemplate, type DocumentIssue, type DocumentStatus, type InputVersion, type TemplateId } from '../data/schemas/envelope'
+import { documentIssueSchema, outputIdByTemplate, type DocumentIssue, type DocumentStatus, type InputVersion, type TemplateId } from '../data/schemas/envelope'
 import type { CollectedSource } from './research/fetch'
 import { buildEnvelope, documentIdFor, versionLabel } from './research/envelope'
 import type { LedgerSnapshot } from './research/ledger'
@@ -173,12 +173,12 @@ export async function saveDocumentVersion(
 }
 
 /** The pinned reference of a document's current version, as later steps cite it in `input_versions`. */
-export async function currentInputVersion(em: EntityManager, scope: ResearchScope, orderRef: string, templateId: TemplateId): Promise<(InputVersion & { versionId: string; data: unknown }) | null> {
+export async function currentInputVersion(em: EntityManager, scope: ResearchScope, orderRef: string, templateId: TemplateId): Promise<(InputVersion & { versionId: string; data: unknown; issues?: DocumentIssue[] }) | null> {
   const document = await em.findOne(AgencyResearchDocument, { ...scope, orderRef, templateId, deletedAt: null })
   if (!document?.currentVersionId) return null
   const version = await em.findOne(AgencyResearchDocumentVersion, { id: document.currentVersionId })
   if (!version) return null
-  return { document_id: documentIdFor(templateId, orderRef), version: versionLabel(version.versionNo), status: version.status, versionId: version.id, data: version.data }
+  return { document_id: documentIdFor(templateId, orderRef), version: versionLabel(version.versionNo), status: version.status, versionId: version.id, data: version.data, issues: documentIssueSchema.array().parse(version.issues ?? []) }
 }
 
 export type OrderStatus = {
