@@ -4,12 +4,18 @@ import { briefAgentTiers } from './agents/ids.brief'
 import { competitorsAgentTiers } from './agents/ids.competitors'
 import { findingsAgentTiers } from './agents/ids.findings'
 import { sourcesAgentTiers } from './agents/ids.sources'
+import { strategyAgentTiers } from './agents/ids.strategy'
+import { planAgentTiers } from './agents/ids.plan'
+import { postAgentTiers } from './agents/ids.post'
 
 export * from './agents/ids.sources'
 export * from './agents/ids.audit'
 export * from './agents/ids.competitors'
 export * from './agents/ids.findings'
 export * from './agents/ids.brief'
+export * from './agents/ids.strategy'
+export * from './agents/ids.plan'
+export * from './agents/ids.post'
 
 export type ResearchAgentTier = 'extract' | 'synthesis' | 'qa'
 
@@ -20,4 +26,7 @@ export const RESEARCH_AGENT_TIERS: Record<string, ResearchAgentTier> = {
   ...competitorsAgentTiers,
   ...findingsAgentTiers,
   ...briefAgentTiers,
+  ...strategyAgentTiers,
+  ...planAgentTiers,
+  ...postAgentTiers,
 }

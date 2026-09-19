@@ -1,0 +1,153 @@
+import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
+import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
+import { renderContractFields } from '../../data/contracts'
+import { strategyQaAgentResult, strategyWriterResult, tovWriterResult } from '../../data/agents/strategy'
+import { RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_STRATEGY_WRITER_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
+import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+
+// P5 — strategy writer (5.2), ToV writer (5.3) and the Q-S pair QA (5.4). The
+// writers are called once per section group (`input.section`) so every output
+// stays section-sized; the pipeline mints claim and pillar ids, caps support
+// levels by the cited proofs, sets example statuses and assembles the documents.
+// The agents recommend; the client approves.
+
+const STRATEGY_RULES = [
+  'You write the communication strategy (KLI-STRATEGIA) from the brief (`brief` — the',
+  'client\'s decisions and proposals), the audit (`audit`), the competitor comparison',
+  '(`competitors`) and the frozen evidence (`evidence`: facts, proof cards, content seeds).',
+  'Make justified choices: for whom, in which situation, with which promise and why to',
+  'believe it. A summary of the service list is not a strategy; a choice must give something',
+  'up. Follow the brief\'s decisions where `decision_state` is `client_selected`; where the',
+  'brief still awaits the client, build on its proposal and say so in `status` / `open_assumptions`.',
+  'Every claim about the company or the world cites `fact_ids` / `proof_ids` / `evidence_ids`',
+  'from the input; a declaration is `declared_method`, a shown artifact `documented_capability`,',
+  'only a measured or externally confirmed case `demonstrated_result` — never higher than the',
+  'cited proof. Do not derive uniqueness from a competitor\'s silence; compare against a',
+  'concrete alternative, never "everyone else". No ROI, percentages, timelines or guarantees',
+  'without a fact. Hooks, single-post arguments, CTA wording and schedules belong to the plan',
+  'and the post, not here. Do no new research: everything comes from the input. Sections',
+  'already written in this run are in `draft` — stay consistent with them. On a revision',
+  '`previous_strategy` is given: keep what the findings do not touch. When `repair_findings`',
+  'is non-empty, fix exactly those findings and keep everything else.',
+].join(' ')
+
+const TOV_RULES = [
+  'You write the brand voice rules (KLI-TOV) from the working strategy (`strategy`), the',
+  'brief\'s voice preferences and audience (`brief`), the audit\'s voice findings',
+  '(`voice_audit`) and the client\'s real language samples (`language_samples`, verbatim).',
+  'Translate the direction into repeatable language decisions a copywriter can apply in a',
+  'sentence: "professional and friendly" without an example is not a rule. The recommended',
+  'voice is a proposal for the client\'s approval, not a diagnosis of the current style.',
+  'Examples add no facts: before/after pairs sit on the SAME facts (`fact_ids` from `facts`)',
+  'and change only the language; a pair without a fact is a creative example. Replacements',
+  'keep the meaning; a banned word never changes what is claimed. Evidence language must',
+  'match the strategy\'s claim strengths and prohibited promises. Sections already written',
+  'in this run are in `draft`. On a revision `previous_tov` is given: keep what the findings',
+  'do not touch. When `repair_findings` is non-empty, fix exactly those findings.',
+].join(' ')
+
+export const strategyAgents: AiAgentDefinition[] = [
+  defineAgent({
+    id: RESEARCH_STRATEGY_WRITER_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Strategy writer',
+    description: 'Writes one section group of the communication strategy (KLI-STRATEGIA) from the brief, the audit, the comparison and the frozen evidence; choices with evidence, never promises beyond the proofs.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      STRATEGY_RULES,
+      'The output shape depends on `section`: `choice_tension_uvp` → `strategic_choice` (one',
+      'positioning, the priority audience and situation, the reference category, the brief',
+      '`decision` it rests on, what is deliberately `deprioritized`, `rationale`, `status`',
+      '`fact` | `hypothesis` | `client_decision` | `unknown`, `evidence_ids`), `buyer_tension`',
+      '(desired progress, barrier, an `illustrative_objection` with `objection_status`',
+      '`customer_voice` only when a customer said it, else `illustrative_hypothesis`; the status',
+      'quo risk; `decision_criterion` with its own status and origin; `evidence_ids`), `uvp`',
+      '(`local_ref` = `UVP`; one `working_sentence`; 3–5 sentences of `explanation`; the',
+      '`mechanism`; the concrete `alternative` it is compared with and `alternative_status`;',
+      '`reason_to_believe`; `evidence_ids`; `support_level`; `use_conditions`) and',
+      '`options_considered` (exactly two rejected directions, ≤ 120 words together).',
+      '`proof_messages` → `proof_architecture` (one row per claim the strategy will make; the',
+      'first row has `local_ref` `UVP`, further rows `CL-A`, `CL-B`…; each with the allowed',
+      'claim, its mechanism, `proof_ids` / `fact_ids` / `source_ids`, `status`, `limitations`,',
+      'the `forbidden_claim` and the `confirmation_owner` `client` | `agency` | `none_needed`)',
+      'and `message_hierarchy` (one lasting `main_promise` with `status` and `claim_refs`; 2–3',
+      '`supporting_messages` with `claim_refs` and `fact_ids`; `explanation_order`).',
+      '`pillars_channel_boundaries` → `pillars` (3–4 pillars with `local_ref` `PL-A`…, each',
+      'differing in task, with `audience_question`, `allowed_content`, `exclusions`,',
+      '`claim_refs` and the `seed_ids` from `evidence.content_bank` it can be developed from),',
+      '`channel_role` (one role of the one serviced channel; no multichannel or paid campaigns;',
+      '`contact_owner` null unless known; `evidence_ids`), `measurement_hypothesis` (a',
+      'hypothesis to test, observable signals, measures with definitions, `baseline` null',
+      'unless a fact exists, `numerical_target` null unless a baseline exists, the future',
+      'test and the causality limit) and `creative_boundaries` (what is not promoted, the',
+      'prohibited promises, permitted creativity, rights, `open_assumptions` as short texts,',
+      'the effect on the plan, whether a research return is required).',
+      'Return ONLY the keys of the requested section.',
+      SHARED_RULES,
+      renderContractFields('WZR-STRATEGIA'),
+    ].join(' '),
+    result: { kind: 'research', schema: strategyWriterResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_TOV_WRITER_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Tone of voice writer',
+    description: 'Writes one section group of the brand voice rules (KLI-TOV) from the strategy, the brief preferences, the voice audit and the real language samples; executable rules with examples on the same facts.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      TOV_RULES,
+      'The output shape depends on `section`: `principles_axes_wording` → `voice_principles`',
+      '(EXACTLY four: `trait`, `purpose` for this brand, concrete `author_behavior`,',
+      '`typical_error`), `style_axes` (one row for EACH of `formality`, `directness`,',
+      '`technicality`, `humor`, `claim_strength`: the `position` described by behaviour, an',
+      '`example` sentence, `change_when` — no 7/10 scales) and `wording` (`preferred_in_context`,',
+      'at least five `replacements` {avoid, use}, the `replacement_boundary`, banned `cliches`,',
+      '`expert_terms` and how they are explained, a `sentence_pattern`).',
+      '`evidence_examples_checks` → `evidence_language` (one row for EACH of `fact`,',
+      '`first_party_claim`, `hypothesis`, `illustrative_example`, `limitation`: the `pattern` and',
+      'the `forbidden_upgrade`), `before_after` (exactly three pairs on the same facts: the',
+      'undesired `before`, the recommended `after`, the `changed_principle`, `fact_ids`),',
+      '`context_rules` (explaining the method, inviting contact, answering scepticism, admitting',
+      'missing data: `situation`, `tone_and_example`, `boundary`) and `copy_checks` (6–8',
+      'observable yes/no questions an editor can answer on a post).',
+      'Return ONLY the keys of the requested section.',
+      SHARED_RULES,
+      renderContractFields('WZR-TOV'),
+    ].join(' '),
+    result: { kind: 'research', schema: tovWriterResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_STRATEGY_QA_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Strategy and ToV QA',
+    description: 'Checks the strategy + ToV pair (Q-S) for fit with the goal, scope and evidence, mutual consistency, uncovered promises and tactical detail posing as strategy; routes each fix to its author.',
+    defaultModel: MODEL_QA,
+    instructions: [
+      'You are the quality agent for step 5.4 (gate Q-S). You receive the assembled `strategy`',
+      '(KLI-STRATEGIA data), the `tov` (KLI-TOV data), the compact `brief`, the `proof_cards`',
+      'and the deterministic `validator_findings` already computed. Check against `criteria`:',
+      'the strategy makes a choice and names what it gives up; the UVP explains value and',
+      'mechanism against a concrete alternative and claims no exclusivity without a',
+      'demonstrated proof; every claim status stays within its proofs; three to four pillars',
+      'differ in task and have material; nothing contradicts the brief or the promise',
+      'constraints; hooks, post arguments, CTA wording and schedules are tactical detail that',
+      'does not belong here; the ToV rules are executable, add no facts, and are consistent',
+      'with the strategy and the brief preferences. Return `findings` (≤ 20) with `code`, exact',
+      '`path` starting with `KLI-STRATEGIA.` or `KLI-TOV.` (or `KLI-BRIEF.` for a contradiction',
+      'with the brief), `severity` (`blocking` stops the client handover), `gap`, `owner`',
+      '`agent`, and `fix_step` `5.2` for the strategy writer or `5.3` for the ToV writer. The',
+      '`verdict` is exactly one of `ready_for_approval` (no blocking findings) or',
+      '`needs_agent_fix`. Do not ask the client for anything here; do not rewrite the',
+      'documents. Summarise in `summary`.',
+      SHARED_RULES,
+      renderContractFields('WZR-STRATEGIA', ['strategic_choice', 'uvp', 'proof_architecture', 'message_hierarchy', 'pillars', 'creative_boundaries']),
+      renderContractFields('WZR-TOV', ['voice_principles', 'wording', 'evidence_language', 'before_after', 'copy_checks']),
+    ].join(' '),
+    result: { kind: 'research', schema: strategyQaAgentResult },
+  }),
+]

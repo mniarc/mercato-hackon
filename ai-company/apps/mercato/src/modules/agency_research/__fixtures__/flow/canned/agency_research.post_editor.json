@@ -1,0 +1,116 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "result": "needs_fix",
+      "checked": [
+        "F03: cztery obszary punktu wyjścia zachowane bez obietnicy wyniku.",
+        "F04: brak specyfikacji opisany jako możliwość, nie jako gwarancja."
+      ],
+      "not_verified": [
+        "Działanie kontaktu na stronie",
+        "Limit i dostęp adaptera LinkedIn"
+      ],
+      "findings": [
+        {
+          "code": "other",
+          "severity": "blocker",
+          "fragment": "Kontakt znajdziecie na stronie FLOW.",
+          "issue": "Zdanie odsyła do strony, a w tekście nie ma dozwolonego adresu; czytelnik nie wie, dokąd iść.",
+          "fix_hint": "Wstaw dozwolony adres z delivery_constraints.links albo usuń odesłanie."
+        },
+        {
+          "code": "other",
+          "severity": "minor",
+          "fragment": "Dopiero z tych czterech odpowiedzi wynika, co warto budować.",
+          "issue": "Zdanie brzmi jak wniosek FLOW; karta mówi o punkcie wyjścia, nie o metodzie decyzji.",
+          "fix_hint": "Osłabić do: od tych odpowiedzi FLOW zaczyna."
+        }
+      ],
+      "copy_checks": [
+        {
+          "id": "TOV-01",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-02",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-03",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-04",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-05",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-06",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        }
+      ],
+      "summary": "Tekst trzyma się dowodów i głosu; jedno odesłanie do strony bez adresu wymaga poprawki."
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "result": "pass_for_draft",
+      "checked": [
+        "F03: cztery obszary punktu wyjścia zachowane bez obietnicy wyniku.",
+        "F04: brak specyfikacji opisany jako możliwość.",
+        "Pytania oznaczone jako propozycja redakcyjna.",
+        "Brak liczb, nazw klientów i obietnic efektu."
+      ],
+      "not_verified": [
+        "Działanie kontaktu na stronie",
+        "Limit i dostęp adaptera LinkedIn",
+        "Realna akceptacja klienta"
+      ],
+      "findings": [],
+      "copy_checks": [
+        {
+          "id": "TOV-01",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-02",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-03",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-04",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-05",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        },
+        {
+          "id": "TOV-06",
+          "result": "pass",
+          "evidence": "Sprawdzone względem tekstu i voice_extract."
+        }
+      ],
+      "summary": "Wersja zgodna z instrukcją i ToV; szkic gotowy do przekazania klientowi, publikacja pozostaje zablokowana."
+    }
+  }
+]
