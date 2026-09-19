@@ -7,6 +7,7 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import { PortalShell } from '../PortalShell'
 
 const apiCallMock = jest.fn()
+let mockPathname = '/acme/portal/orders'
 
 jest.mock('@open-mercato/shared/lib/i18n/context', () => ({
   useT: () => (key: string, fallback?: string) => fallback ?? key,
@@ -24,7 +25,7 @@ jest.mock('next/link', () => {
 jest.mock('next/image', () => (props: any) => <img alt={props.alt} {...props} />)
 
 jest.mock('next/navigation', () => ({
-  usePathname: () => '/acme/portal/orders',
+  usePathname: () => mockPathname,
 }))
 
 jest.mock('../../backend/utils/apiCall', () => ({
@@ -56,9 +57,42 @@ function createDeferred<T>() {
 
 beforeEach(() => {
   apiCallMock.mockReset()
+  mockPathname = '/acme/portal/orders'
 })
 
 describe('PortalShell', () => {
+  it.each([
+    ['/acme-corp/portal/agency', 'Oferta'],
+    ['/acme-corp/portal/agency/materials', 'Materials'],
+    ['/acme-corp/portal/agency/materials/file-123', 'Materials'],
+    ['/acme-corp/portal/agency/materials-extra', 'Oferta'],
+  ])('selects only the most-specific boundary match on %s', async (pathname, activeLabel) => {
+    mockPathname = pathname
+    apiCallMock.mockResolvedValueOnce({
+      ok: true,
+      result: {
+        ok: true,
+        groups: [{
+          id: 'main',
+          items: [
+            { id: 'offer', label: 'Oferta', href: '/acme-corp/portal/agency' },
+            { id: 'materials', label: 'Materials', href: '/acme-corp/portal/agency/materials' },
+          ],
+        }],
+      },
+    })
+
+    render(
+      <PortalShell authenticated orgSlug="acme-corp" organizationName="Acme" onLogout={jest.fn()}>
+        <div>Portal content</div>
+      </PortalShell>,
+    )
+
+    expect(await screen.findByRole('link', { name: activeLabel })).toHaveClass('bg-foreground')
+    const inactiveLabel = activeLabel === 'Oferta' ? 'Materials' : 'Oferta'
+    expect(screen.getByRole('link', { name: inactiveLabel })).not.toHaveClass('bg-foreground')
+  })
+
   it('shows a loading skeleton until the portal nav payload arrives', async () => {
     const deferred = createDeferred<{
       ok: boolean
