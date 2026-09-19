@@ -2,6 +2,7 @@
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { resolveWorkflowPrincipalUserId } from '@open-mercato/core/modules/workflows/lib/activity-executor'
 import { createPostReviewHandoff } from '../../postExecution/reviewHandoff'
+import { POST_EXECUTION_RESULT_KEY, POST_EXECUTION_FUNCTION } from '../../postExecution/contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn() }))
 jest.mock('@open-mercato/core/modules/workflows/lib/activity-executor', () => ({ resolveWorkflowPrincipalUserId: jest.fn() }))
@@ -10,13 +11,13 @@ const [tenantId, organizationId, caseId, submissionId, workflowId, customerEntit
 const scope = { tenantId, organizationId }
 const execution = { status: 'completed', orderRef: caseId, instructionVersionId: uuid(9), selectionSubmissionId: submissionId,
   taskRunIds: [uuid(10)], documentVersionIds: [postVersionId], agentRunIds: [], spentPln: 0, postVersionId, qaTaskRunId: uuid(11), qaVerdict: 'pass_for_draft', readyForReview: true }
-const nativeContext = { userId: uuid(99), workflowInstance: { id: workflowId, ...scope, workflowId: 'agency_operations.client-submission.native.v1', context: { agencyPostExecution: { result: 'ignored caller data' } } } }
+const nativeContext = { userId: uuid(99), workflowInstance: { id: workflowId, ...scope, workflowId: 'agency_operations.client-submission.native.v1', context: { [POST_EXECUTION_RESULT_KEY]: { result: 'ignored caller data' } } } }
 const invite = jest.fn()
 const services: Record<string, unknown> = { em: {}, agencyPostReviewService: { invite } }
 const container = { resolve: (name: string) => services[name] }
 
 function arrange(result: unknown = execution, submission: unknown = { id: submissionId, caseId, customerEntityId }, agencyCase: unknown = { id: caseId }) {
-  jest.mocked(findOneWithDecryption).mockReset().mockResolvedValueOnce({ id: workflowId, context: { agencyPostExecution: { result } } } as never)
+  jest.mocked(findOneWithDecryption).mockReset().mockResolvedValueOnce({ id: workflowId, context: { [POST_EXECUTION_RESULT_KEY]: { executed: true, functionName: POST_EXECUTION_FUNCTION, result } } } as never)
     .mockResolvedValueOnce(submission as never).mockResolvedValueOnce(agencyCase as never)
 }
 beforeEach(() => {

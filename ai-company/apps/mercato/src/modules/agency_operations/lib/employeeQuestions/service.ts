@@ -94,7 +94,9 @@ export function createEmployeeQuestionService(container: AppContainer): Employee
         if (!customer || customer.isActive === false || customer.customerEntityId !== agencyCase.customerEntityId) conflict()
         if (request.documentVersionId) {
           if (!container.hasRegistration(AGENCY_RESEARCH_SERVICE)) conflict()
-          const document = await container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).getBriefReview(scope, agencyCase.id, request.documentVersionId)
+          const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+          const document = await research.getBriefReview(scope, agencyCase.id, request.documentVersionId)
+            ?? await research.getPostReview(scope, agencyCase.id, request.documentVersionId)
           if (!document || document.orderRef !== agencyCase.id || document.versionId !== request.documentVersionId) notFound()
         }
         const correlationKey = `agency-question:${parent.id}:${createHash('sha256').update(request.eventId).digest('hex')}`

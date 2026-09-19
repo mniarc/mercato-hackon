@@ -6,14 +6,14 @@ import type { ResearchAgentRunner } from '../../../agency_research/lib/research/
  * The first draft repeats its opening; the real editor/repair loop must remove it.
  * No document, QA result, readiness flag or acceptance record is persisted here.
  */
-export function createSelectedPostIntelligence(): ResearchAgentRunner {
+export function createSelectedPostIntelligence(options: { exhaustRepairs?: boolean } = {}): ResearchAgentRunner {
   return async (agentId, raw) => {
     if (agentId === RESEARCH_POST_AUTHOR_AGENT_ID) {
       const input = postAuthorInputSchema.parse(raw)
       if (input.selected_item.topic_id !== 'TOP02' || input.selected_item.selection_status !== 'client_selected') {
         throw new Error('The post intelligence fixture requires the real explicit TOP02 selection')
       }
-      const repaired = input.repair_findings.length > 0
+      const repaired = !options.exhaustRepairs && input.repair_findings.length > 0
       const opening = input.selected_item.audience_question
       const evidence = input.evidence_payload.filter((card) => card.kind === 'source_claim')
       if (!evidence.length) throw new Error('The selected instruction must carry real source evidence')

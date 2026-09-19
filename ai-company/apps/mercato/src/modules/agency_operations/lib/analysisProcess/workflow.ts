@@ -6,7 +6,7 @@ import { RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } fr
 export const AGENCY_ANALYSIS_WORKFLOW_ID = 'agency_operations.analysis.v1'
 export const AGENCY_ANALYSIS_WORKER_ID = 'agency_operations.agent-worker.analysis.v1'
 export const AGENCY_ANALYSIS_FUNCTION_NAME = 'agency_operations.runAnalysis'
-export const AGENCY_ANALYSIS_RESULT_KEY = 'agencyAnalysisResult'
+export const AGENCY_ANALYSIS_RESULT_KEY = 'research_result'
 export const AGENCY_BRIEF_HANDOFF_FUNCTION = 'agency_operations.handoffAnalysisBrief'
 
 export function createAgencyAnalysisWorkflowDefinition(rawPolicy: AnalysisExecutionPolicy): WorkflowDefinitionData {

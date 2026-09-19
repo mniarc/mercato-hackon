@@ -20,7 +20,7 @@ export function createAnalysisBriefReviewHandoff(container: AppContainer) {
   return async (_input: unknown, rawContext: unknown) => {
     const context = contextSchema.parse(rawContext)
     const saved = z.object({ result: analysisProcessResultSchema })
-      .parse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY]).result
+      .parse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.workflowInstance.context.agencyAnalysisResult).result
     if (saved.requestedThrough !== '4.2' || saved.completedThrough !== '4.2'
       || !['ready_for_approval', 'needs_client_data'].includes(saved.briefQaVerdict ?? '')
       || saved.escalationVersionId) return { invitation: null, reason: 'brief_not_ready' }

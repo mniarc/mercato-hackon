@@ -132,6 +132,8 @@ it('pins staff policy in the native activity and keeps incomplete work away from
   const activity = definition.transitions.find((transition) => transition.transitionId === 'save_research')!.activities![0]
   expect(activity.config.args).toEqual({ caseId: '{{context.caseId}}', policy })
   expect(activity.retryPolicy?.maxAttempts).toBe(1)
+  expect(AGENCY_ANALYSIS_RESULT_KEY).toBe(`${activity.activityId}_result`)
+  expect(activity.activityName).toBe(AGENCY_ANALYSIS_RESULT_KEY)
   expect(definition.transitions.find((transition) => transition.toStepId === 'completed')!.condition).toEqual({ operator: 'AND', rules: [
     { field: 'agencyResearchException.result.kind', operator: '=', value: 'none' },
     { field: `${AGENCY_ANALYSIS_RESULT_KEY}.result.state`, operator: '=', value: 'completed' },

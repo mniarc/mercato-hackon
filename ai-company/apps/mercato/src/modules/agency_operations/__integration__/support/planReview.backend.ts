@@ -6,6 +6,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { withClient } from '@open-mercato/core/helpers/integration/dbFixtures'
 import { bootstrapFromAppRoot } from '@open-mercato/shared/lib/bootstrap/dynamicLoader'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
+import type { WorkflowDefinitionAuthoring } from '@open-mercato/core/modules/workflows/lib/owned-definition'
 import { orderOf, brief, strategia, tov, zrodla } from '../../../agency_research/__fixtures__/planJourney'
 import { orderDataSchema } from '../../../agency_research/data/schemas/zamowienie'
 import { konkurencjaDataSchema } from '../../../agency_research/data/schemas/konkurencja'
@@ -30,6 +31,9 @@ import { saveDocumentVersion, startTaskRun, finishTaskRun } from '../../../agenc
 import { PLAN_REVIEW_SERVICE, PLAN_REVIEW_WORKFLOW_ID, type PlanReviewService } from '../../lib/planReview/contracts'
 import { POST_REVIEW_SERVICE, POST_REVIEW_WORKFLOW_ID, type PostReviewService } from '../../lib/postReview/contracts'
 import { createSelectedPostIntelligence } from './postIntelligence'
+import { AgencyCase } from '../../data/entities'
+import { analysisExecutionPolicySchema } from '../../lib/analysisProcess/contracts'
+import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_FUNCTION_NAME } from '../../lib/analysisProcess/workflow'
 import type { BriefReviewFixture } from './briefReview'
 
 export type PlanReviewFixture = {
@@ -124,6 +128,28 @@ export async function createPlanReviewFixture(input: {
     const selected = plan.topics.find((topic) => topic.topic_id !== fixture.recommendedTopicId && topic.readiness === 'ready')
     if (!selected) throw new Error('Existing plan fixture requires an explicit nonrecommended topic')
     fixture.selectedTopicId = selected.topic_id
+    if (process.env.AGENCY_TEST_NATIVE_POST === '1') {
+      // Explicit fixture foundation: real native process/policy reference only.
+      // Starting without executing does not claim that the original analysis ran.
+      const definition = await container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring')
+        .findOwnedDefinition(em, { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, ...scope })
+      if (!definition?.enabled || definition.metadata?.generatedBy?.module !== 'agency_operations'
+        || definition.metadata.generatedBy.ownerId !== 'analysis') throw new Error('Configure the owned analysis policy before native post proof')
+      const activities = definition.definition.transitions.flatMap((transition) => transition.activities ?? [])
+        .filter((activity) => activity.activityType === 'EXECUTE_FUNCTION' && activity.config.functionName === AGENCY_ANALYSIS_FUNCTION_NAME)
+      const policy = activities.length === 1 ? analysisExecutionPolicySchema.parse(activities[0].config.args?.policy) : null
+      if (!policy?.postExecution) throw new Error('Native post proof requires explicitly configured post execution budget')
+      const executor = container.resolve<Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow'>>('workflowExecutor')
+      const analysis = await executor.startWorkflow(em, { ...scope, workflowId: definition.workflowId, version: definition.version,
+        correlationKey: `agency-demo-post-foundation:${caseId}`,
+        metadata: { entityType: 'agency_operations:agency_case', entityId: caseId, initiatedBy: input.userId,
+          labels: { fixture: 'seeded-accepted-foundations-analysis-not-executed' } },
+        initialContext: { caseId, fixtureFoundation: 'Accepted research documents seeded; analysis has not executed.' },
+      })
+      const agencyCase = await em.findOneOrFail(AgencyCase, { ...scope, id: caseId, deletedAt: null })
+      agencyCase.workflowInstanceId = analysis.id
+      await em.flush()
+    }
     const invitation = await container.resolve<PlanReviewService>(PLAN_REVIEW_SERVICE).invite({ caseId, planVersionId: fixture.versionId, ...scope, userId: input.userId })
     fixture.taskId = invitation.taskId
     fixture.workflowInstanceId = invitation.workflowInstanceId
@@ -186,7 +212,7 @@ export async function deletePlanReviewFixture(fixture: PlanReviewFixture): Promi
     }
     // All rows for this new compiler output belong to this fixture's unique case.
     await client.query("DELETE FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA','WZR-KONFIG-PUBLIKACJI','WZR-ZLECENIE-PUBLIKACJI'))", [...scope, fixture.caseId, fixture.versionIds])
-    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7','7.2','7.3','7.7','E.1'))", [...scope, fixture.caseId, fixture.taskRunIds])
+    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7','7.1','7.2','7.3','7.7','E.1'))", [...scope, fixture.caseId, fixture.taskRunIds])
     await client.query("DELETE FROM agency_research_documents WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA','WZR-KONFIG-PUBLIKACJI','WZR-ZLECENIE-PUBLIKACJI'))", [...scope, fixture.caseId, fixture.documentIds])
   })
 }

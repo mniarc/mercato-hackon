@@ -11,7 +11,8 @@ import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema } from '../contracts/clientSubmission'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from '../clientSubmissionWorkflow'
 import { clientTriageInterpretationSchema } from '../../agents/client-triage/contract'
-import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../agents/client-triage/workflow'
+import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, POST_RESEARCH_EXCEPTION_WAITING_STEP_ID } from '../../agents/client-triage/workflow'
+import { RESEARCH_EXCEPTION_STEP_ID } from '../researchException/workflow'
 import { CLIENT_TRIAGE_EXCEPTION_STEP_ID } from '../clientTriageException/workflow'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from '../analysisProcess/workflow'
 import { analysisProcessResultSchema } from '../analysisProcess/contracts'
@@ -38,11 +39,11 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const interpretation = clientTriageInterpretationSchema.safeParse(context[CLIENT_TRIAGE_INTERPRETATION_KEY])
   const native = workflow?.workflowId === NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
   const strategyHandoff = caseStrategyHandoffSchema.safeParse(record(context[STRATEGY_READINESS_RESULT_KEY]).result)
-  const strategyExecution = strategyExecutionActivityResultSchema.safeParse(record(context[STRATEGY_EXECUTION_RESULT_KEY]).result)
+  const strategyExecution = strategyExecutionActivityResultSchema.safeParse(record(context[STRATEGY_EXECUTION_RESULT_KEY] ?? context.agencyStrategyExecution).result)
   const strategyPairContinuation = caseStrategyPairContinuationSchema.safeParse(record(context[STRATEGY_PAIR_CONTINUATION_RESULT_KEY]).result)
-  const planningExecution = planningExecutionActivityResultSchema.safeParse(record(context[PLANNING_EXECUTION_RESULT_KEY]).result)
+  const planningExecution = planningExecutionActivityResultSchema.safeParse(record(context[PLANNING_EXECUTION_RESULT_KEY] ?? context.agencyPlanningExecution).result)
   const postInstruction = postInstructionExecutionResultSchema.safeParse(record(context[POST_INSTRUCTION_RESULT_KEY]).result)
-  const postExecution = postExecutionActivityResultSchema.safeParse(record(context[POST_EXECUTION_RESULT_KEY]).result)
+  const postExecution = postExecutionActivityResultSchema.safeParse(record(context[POST_EXECUTION_RESULT_KEY] ?? context.agencyPostExecution).result)
   const publicationPreparation = publicationPreparationResultSchema.safeParse(record(context[PUBLICATION_PREPARATION_RESULT_KEY]).result)
   const scaffold = workflow?.workflowId === CLIENT_SUBMISSION_WORKFLOW_ID
   const active = workflow?.status === 'PAUSED' || workflow?.status === 'WAITING_FOR_ACTIVITIES' || workflow?.status === 'RUNNING'
@@ -58,7 +59,7 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
       mode: native ? 'native_agent' : scaffold ? 'deterministic_scaffold' : 'unknown',
       waitingFor: active && (native || scaffold) && workflow.currentStepId === 'client_reply'
         ? 'client'
-        : active && native && workflow.currentStepId === CLIENT_TRIAGE_EXCEPTION_STEP_ID ? 'employee' : null,
+        : active && native && [CLIENT_TRIAGE_EXCEPTION_STEP_ID, RESEARCH_EXCEPTION_STEP_ID, POST_RESEARCH_EXCEPTION_WAITING_STEP_ID].includes(workflow.currentStepId) ? 'employee' : null,
       routeUnapplied: native && workflow.currentStepId === 'unapplied',
       error: typeof error === 'string' ? error : null,
     } : null,
@@ -94,7 +95,8 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
 
 export function projectAnalysisProcess(caseId: string, workflow: WorkflowInstance | null): CaseAnalysisProcess | null {
   if (workflow?.workflowId !== AGENCY_ANALYSIS_WORKFLOW_ID) return null
-  const saved = analysisProcessResultSchema.safeParse(record(record(workflow.context)[AGENCY_ANALYSIS_RESULT_KEY]).result)
+  const context = record(workflow.context)
+  const saved = analysisProcessResultSchema.safeParse(record(context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.agencyAnalysisResult).result)
   return {
     id: workflow.id, workflowId: workflow.workflowId, version: workflow.version,
     status: workflow.status, currentStepId: workflow.currentStepId,

@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { planningExecutionOutcomeSchema } from '@/modules/agency_research/lib/contracts'
 
 export const PLANNING_EXECUTION_FUNCTION = 'agency_operations.runAcceptedPlanning'
-export const PLANNING_EXECUTION_RESULT_KEY = 'agencyPlanningExecution'
+export const PLANNING_EXECUTION_RESULT_KEY = 'execute_planning_result'
 export const PLANNING_EXECUTION_STEP_ID = 'planning_execution'
 export const PLAN_REVIEW_HANDOFF_FUNCTION = 'agency_operations.invitePlanReview'
 

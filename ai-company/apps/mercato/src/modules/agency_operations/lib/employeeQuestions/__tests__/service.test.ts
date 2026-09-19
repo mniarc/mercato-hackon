@@ -17,11 +17,11 @@ const actor = { ...scope, caseId: uuid(3), userId: uuid(4), roleNames: ['employe
 const customerUserId = uuid(5), customerEntityId = uuid(6), parentId = uuid(7), parentWorkflowId = uuid(8), parentStepId = uuid(9), questionId = uuid(10), customerTaskId = uuid(11), submissionId = uuid(12), versionId = uuid(13)
 const request = { parentTaskId: parentId, eventId: 'question-1', question: 'What evidence can you provide?', documentVersionId: versionId }
 const binding = { ...request, caseId: actor.caseId, parentWorkflowInstanceId: parentWorkflowId, employeeUserId: actor.userId, customerUserId, customerEntityId }
-const executeWorkflow = jest.fn(), startWorkflow = jest.fn(), submit = jest.fn(), userHasAllFeatures = jest.fn(), getBriefReview = jest.fn(), findById = jest.fn()
+const executeWorkflow = jest.fn(), startWorkflow = jest.fn(), submit = jest.fn(), userHasAllFeatures = jest.fn(), getBriefReview = jest.fn(), getPostReview = jest.fn(), findById = jest.fn()
 const authoring = { findOwnedDefinition: jest.fn() }
 const em = { transactional: jest.fn(async (fn: (manager: unknown) => Promise<unknown>) => fn(em)) }
 const services: Record<string, unknown> = { em, rbacService: { userHasAllFeatures }, workflowExecutor: { startWorkflow, executeWorkflow }, workflowDefinitionAuthoring: authoring,
-  agencyClientSubmissionService: { submit }, agencyResearchService: { getBriefReview }, customerUserService: { findById } }
+  agencyClientSubmissionService: { submit }, agencyResearchService: { getBriefReview, getPostReview }, customerUserService: { findById } }
 const container = { resolve: (name: string) => services[name], hasRegistration: (name: string) => name in services } as unknown as AppContainer
 let parent: UserTask, parentWorkflow: WorkflowInstance, customerTask: UserTask, question: WorkflowInstance | null, submission: AgencyClientSubmission | null
 const workflowContext = { workflowInstance: { id: questionId, workflowId: EMPLOYEE_QUESTION_WORKFLOW_ID, ...scope } }
@@ -43,6 +43,7 @@ beforeEach(() => {
   submission = null
   userHasAllFeatures.mockResolvedValue(true)
   getBriefReview.mockResolvedValue({ orderRef: actor.caseId, versionId })
+  getPostReview.mockResolvedValue(null)
   findById.mockResolvedValue({ isActive: true, customerEntityId })
   authoring.findOwnedDefinition.mockResolvedValue({ enabled: true, metadata: { generatedBy: { module: 'agency_operations', ownerId: 'employee_question' } } })
   jest.mocked(gateTaskAction).mockResolvedValue({ allowed: true, task: parent, visibility: {} } as never)
@@ -91,8 +92,30 @@ test('native task authority and exact case-owned version are required before ask
   await expect(createEmployeeQuestionService(container).ask({ ...actor, ...request })).rejects.toMatchObject({ status: 403 })
   getBriefReview.mockResolvedValue(null)
   await expect(createEmployeeQuestionService(container).ask({ ...actor, ...request })).rejects.toMatchObject({ status: 404 })
+  getPostReview.mockResolvedValue({ orderRef: uuid(99), versionId })
+  await expect(createEmployeeQuestionService(container).ask({ ...actor, ...request })).rejects.toMatchObject({ status: 404 })
   await expect(createEmployeeQuestionService(container).ask({ ...actor, ...request, caseId: uuid(99) })).rejects.toMatchObject({ status: 404 })
   expect(startWorkflow).not.toHaveBeenCalled()
+})
+
+test('exact post questions preserve version binding into the original client answer without resolving the exception', async () => {
+  getBriefReview.mockResolvedValue(null)
+  getPostReview.mockResolvedValue({ orderRef: actor.caseId, versionId, templateId: 'WZR-POST', isCurrent: false, qa: { state: 'missing' } })
+  const service = createEmployeeQuestionService(container)
+  await service.ask({ ...actor, ...request })
+  expect(getPostReview).toHaveBeenCalledWith(scope, actor.caseId, versionId)
+  expect(JSON.parse(startWorkflow.mock.calls[0][1].metadata.labels[EMPLOYEE_QUESTION_METADATA_KEY])).toEqual(binding)
+  await expect(service.ask({ ...actor, ...request, question: 'A different question' })).rejects.toMatchObject({ status: 409 })
+  customerTask.status = 'COMPLETED'
+  customerTask.completedBy = customerUserId
+  customerTask.formData = { [EMPLOYEE_QUESTION_ANSWER_KEY]: 'The cited post needs the original source.' }
+  await service.receiveResponse({}, workflowContext)
+  expect(submit).toHaveBeenCalledWith({ ...scope, customerUserId, customerEntityId }, actor.caseId, {
+    eventId: employeeQuestionAnswerEventId(customerTaskId), text: 'The cited post needs the original source.', documentVersionReference: versionId,
+  })
+  expect(parent.status).toBe('PENDING')
+  expect(parentWorkflow.status).toBe('PAUSED')
+  expect(executeWorkflow).toHaveBeenCalledTimes(1)
 })
 
 test('only persisted assigned-customer answer enters G, using immutable binding despite forged context', async () => {

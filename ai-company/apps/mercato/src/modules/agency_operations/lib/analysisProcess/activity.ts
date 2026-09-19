@@ -49,7 +49,7 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
       id: input.caseId, ...scope, workflowInstanceId: context.workflowInstance.id, deletedAt: null,
     }, undefined, scope)
     if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
-    const saved = z.object({ result: analysisProcessResultSchema }).safeParse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY])
+    const saved = z.object({ result: analysisProcessResultSchema }).safeParse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.workflowInstance.context.agencyAnalysisResult)
     if (saved.success && saved.data.result.caseId === agencyCase.id && saved.data.result.requestedThrough === input.policy.through) return saved.data.result
     if (['COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATING'].includes(context.workflowInstance.status)) {
       throw new Error('[internal] Analysis cannot restart a terminal workflow')

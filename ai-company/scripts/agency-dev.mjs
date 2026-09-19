@@ -57,6 +57,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     OM_AGENCY_TRIAGE_MODE: overrides.OM_AGENCY_TRIAGE_MODE ?? sharedEnvironment.OM_AGENCY_TRIAGE_MODE ?? 'disabled',
     ...(overrides.AGENCY_TEST_NATIVE_TRIAGE === '1' ? {
       AGENCY_TEST_NATIVE_TRIAGE: '1',
+      AGENCY_TEST_NATIVE_POST: overrides.AGENCY_TEST_NATIVE_POST === '1' ? '1' : '0',
       OM_ENABLE_ENTERPRISE_MODULES: 'true',
       OM_ENABLE_ENTERPRISE_MODULES_AGENTS: 'true',
       OM_ENABLE_ENTERPRISE_MODULES_SSO: 'false',
@@ -64,13 +65,21 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
       OM_AGENCY_TRIAGE_ENABLED: 'true',
       OM_AGENCY_TRIAGE_MODE: 'fixture',
       AGENCY_TOV_EXECUTION_ENABLED: 'false',
-      AGENCY_ANALYSIS_EXECUTION_ENABLED: 'false',
+      AGENCY_ANALYSIS_EXECUTION_ENABLED: overrides.AGENCY_TEST_NATIVE_POST === '1' ? 'true' : 'false',
       OM_AI_PROVIDER: 'openrouter',
       OM_AI_MODEL: 'openrouter/agency-triage-fixture',
       OM_AI_AVAILABLE_PROVIDERS: 'openrouter',
       OM_AI_AVAILABLE_MODELS_OPENROUTER: 'agency-triage-fixture',
       OM_AI_AGENCY_OPERATIONS_PROVIDER: 'openrouter',
       OM_AI_AGENCY_OPERATIONS_MODEL: 'openrouter/agency-triage-fixture',
+      OM_AI_AGENCY_RESEARCH_PROVIDER: 'openrouter',
+      OM_AI_AGENCY_RESEARCH_MODEL: 'openrouter/agency-triage-fixture',
+      AGENCY_RESEARCH_AI_PROVIDER: 'openrouter',
+      AGENCY_RESEARCH_AI_MODEL: 'openrouter/agency-triage-fixture',
+      AGENCY_RESEARCH_AI_BASE_URL: 'http://127.0.0.1:5003/v1',
+      OM_AGENCY_RESEARCH_MODEL_EXTRACT: 'openrouter/agency-triage-fixture',
+      OM_AGENCY_RESEARCH_MODEL_SYNTHESIS: 'openrouter/agency-triage-fixture',
+      OM_AGENCY_RESEARCH_MODEL_QA: 'openrouter/agency-triage-fixture',
       OPENROUTER_API_KEY: 'agency-triage-fixture-only',
       OPENROUTER_BASE_URL: 'http://127.0.0.1:5003/v1',
       AGENCY_OPERATIONS_AI_BASE_URL: 'http://127.0.0.1:5003/v1',
@@ -79,8 +88,18 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
 }
 
 export function assertUnpaidDemoEnvironment(env) {
+  const nativePostFixture = env.AGENCY_TEST_NATIVE_POST === '1' && env.AGENCY_TEST_NATIVE_TRIAGE === '1'
+    && env.OM_AGENCY_TRIAGE_MODE === 'fixture'
+    && env.OM_AI_PROVIDER === 'openrouter' && env.OM_AI_AVAILABLE_PROVIDERS === 'openrouter'
+    && env.OM_AI_MODEL === 'openrouter/agency-triage-fixture'
+    && env.OM_AI_AVAILABLE_MODELS_OPENROUTER === 'agency-triage-fixture'
+    && env.OM_AI_AGENCY_RESEARCH_PROVIDER === 'openrouter'
+    && env.OM_AI_AGENCY_RESEARCH_MODEL === 'openrouter/agency-triage-fixture'
+    && env.OPENROUTER_API_KEY === 'agency-triage-fixture-only'
+    && env.OPENROUTER_BASE_URL === 'http://127.0.0.1:5003/v1'
+    && env.AGENCY_RESEARCH_AI_BASE_URL === 'http://127.0.0.1:5003/v1'
   if (env.OM_AGENCY_TRIAGE_MODE === 'live'
-    || /^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '')
+    || (/^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '') && !nativePostFixture)
     || /^(true|1)$/i.test(env.AGENCY_TOV_EXECUTION_ENABLED ?? '')) {
     throw new Error('Routine agency tests cannot use live execution. Start the app and runner with agency execution disabled, or use the local intelligence fixture.')
   }

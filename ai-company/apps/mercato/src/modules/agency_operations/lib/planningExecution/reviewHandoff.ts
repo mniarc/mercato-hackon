@@ -16,7 +16,7 @@ export function createPlanReviewHandoff(container: AppContainer) {
   return async (_input: unknown, rawContext: unknown) => {
     const context = contextSchema.parse(rawContext)
     const result = z.object({ result: planningExecutionActivityResultSchema })
-      .parse(context.workflowInstance.context[PLANNING_EXECUTION_RESULT_KEY]).result
+      .parse(context.workflowInstance.context[PLANNING_EXECUTION_RESULT_KEY] ?? context.workflowInstance.context.agencyPlanningExecution).result
     if (result.status !== 'completed' || !result.readyForApproval || result.qaVerdict !== 'ready_for_approval' || !result.planVersionId) {
       return { invitation: null, reason: 'plan_not_ready' }
     }

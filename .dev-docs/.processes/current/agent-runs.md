@@ -165,12 +165,18 @@ acceptance grants publication consent. Applied content acceptance also prepares
 the teammate's internal publication instruction deterministically, pinned to that
 post and receipt. Employees see the saved references and missing destination,
 access or consent gates; this continuation never reserves or sends a publication.
+An actual saved strategy/ToV or post-QA escalation instead creates an employee exception task in
+the originating workflow. Employee questions can reference an exact brief or post;
+the answer does not resolve the exception, resume production or grant approval.
 Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
 On Windows, send workflow JSON as UTF-8 (Node `fetch` or explicit UTF-8 bytes);
 PowerShell's default request encoding can corrupt Polish labels. Compare the
 saved definition with the source after native schema normalization.
+Queued `EXECUTE_FUNCTION` outputs use Open Mercato's `<activityId>_result` context
+key, not the synchronous activity-name key. Our phase definitions/readers align
+both names; existing definitions need native version publishing for the update.
 For an existing installation, initialize the plan-review task definition without
 enabling paid analysis using `node scripts/agency-dev.mjs cli agency_operations
 configure-plan-review --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>`.
@@ -241,3 +247,13 @@ above once, then run `yarn test:agency:headed`. The runner pins a dummy credenti
 loopback provider (including the higher-priority `AGENCY_OPERATIONS_AI_BASE_URL`)
 and model allowlist; the test owns that temporary provider server.
 This mode is for the demo run, not unattended manual usage after its provider closes.
+
+To include native post production and its employee/client handoff, also set
+`AGENCY_TEST_NATIVE_POST=1` in both terminals. Configure analysis once with
+`configure-analysis` above and `--policy-file apps/mercato/src/modules/agency_operations/__integration__/support/nativePostPolicy.json`
+(use an absolute path if the CLI changes directory), plus `configure-employee-questions`
+with the same scope arguments. The launcher pins research to the same local provider;
+the demo rejects non-loopback tenant endpoint overrides. Its accepted upstream
+documents and START-only analysis policy reference are explicit fixtures, not proof
+that upstream analysis ran. Post author/editor, saved QA exhaustion and employee
+question/answer use native execution; no paid calls or automatic producer resume.

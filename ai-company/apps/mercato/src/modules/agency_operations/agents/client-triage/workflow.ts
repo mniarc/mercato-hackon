@@ -10,6 +10,8 @@ import { POST_INSTRUCTION_FUNCTION, POST_INSTRUCTION_RESULT_KEY } from '../../li
 import { POST_EXECUTION_FUNCTION, POST_EXECUTION_RESULT_KEY, POST_EXECUTION_STEP_ID } from '../../lib/postExecution/contracts'
 import { POST_REVIEW_HANDOFF_FUNCTION } from '../../lib/postApproval/contracts'
 import { PUBLICATION_PREPARATION_FUNCTION, PUBLICATION_PREPARATION_RESULT_KEY, PUBLICATION_PREPARATION_STEP_ID } from '../../lib/publicationPreparation/contracts'
+import { createResearchExceptionFragment, RESEARCH_EXCEPTION_STEP_ID } from '../../lib/researchException/workflow'
+import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../../lib/researchException/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -20,11 +22,14 @@ export const ACCEPT_PLAN_FUNCTION = 'agency_operations.acceptPlan'
 export const ACCEPT_POST_FUNCTION = 'agency_operations.acceptPostContent'
 export const CLIENT_TRIAGE_INPUT_KEY = 'nativeClientTriageInput'
 export const CLIENT_TRIAGE_INTERPRETATION_KEY = 'nativeClientTriageInterpretation'
+export const POST_RESEARCH_EXCEPTION_WAITING_STEP_ID = 'post_exception_waiting'
 const exception = createClientTriageExceptionFragment()
+const postException = createResearchExceptionFragment({ waitingStepId: POST_RESEARCH_EXCEPTION_WAITING_STEP_ID, neutralWording: true })
 
 export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
   steps: [
     ...exception.steps,
+    ...postException.steps,
     { stepId: 'start', stepName: 'Submission received', stepType: 'START' },
     { stepId: 'prepare', stepName: 'Load original submission', stepType: 'AUTOMATED' },
     {
@@ -53,17 +58,21 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'plan_topic_decision', stepName: 'Plan acceptance and topic choice recorded', stepType: 'AUTOMATED' },
     { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'AUTOMATED' },
     { stepId: POST_EXECUTION_STEP_ID, stepName: 'Post author and editor outcome recorded', stepType: 'AUTOMATED' },
+    { stepId: 'post_exception_checked', stepName: 'Saved post escalation checked', stepType: 'AUTOMATED' },
+    { stepId: POST_RESEARCH_EXCEPTION_WAITING_STEP_ID, stepName: 'Production remains blocked', stepType: 'WAIT_FOR_SIGNAL', signalConfig: { signalName: 'agency.post-production.follow-up' } },
     { stepId: 'post_review', stepName: 'Post content review handoff recorded', stepType: 'END' },
     { stepId: 'post_content_decision', stepName: 'Post content decision recorded', stepType: 'AUTOMATED' },
     { stepId: PUBLICATION_PREPARATION_STEP_ID, stepName: 'Publication instruction prepared; sending not authorized', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
+    { stepId: 'strategy_exception_checked', stepName: 'Saved strategy escalation checked', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'END' },
     { stepId: 'unapplied', stepName: 'Interpretation saved; business route not implemented', stepType: 'END' },
     { stepId: 'reply_received', stepName: 'Client reply received', stepType: 'END' },
   ],
   transitions: [
     ...exception.transitions,
+    ...postException.transitions,
     { transitionId: 'prepare', fromStepId: 'start', toStepId: 'prepare', trigger: 'auto' },
     {
       transitionId: 'invoke', fromStepId: 'prepare', toStepId: 'triage', trigger: 'auto',
@@ -107,7 +116,13 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       activities: [{ activityId: 'execute_strategy', activityName: STRATEGY_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
         retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
         config: { functionName: STRATEGY_EXECUTION_FUNCTION, args: {} } }] },
-    { transitionId: 'invite_strategy_review', fromStepId: STRATEGY_EXECUTION_STEP_ID, toStepId: 'strategy_review', trigger: 'auto',
+    { transitionId: 'check_strategy_exception', fromStepId: STRATEGY_EXECUTION_STEP_ID, toStepId: 'strategy_exception_checked', trigger: 'auto',
+      activities: [{ activityId: 'strategy_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, args: {} } }] },
+    { transitionId: 'assign_strategy_exception', fromStepId: 'strategy_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    { transitionId: 'invite_strategy_review', fromStepId: 'strategy_exception_checked', toStepId: 'strategy_review', trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
       activities: [{ activityId: 'invite_strategy_review', activityName: 'agencyStrategyPairInvitation', activityType: 'EXECUTE_FUNCTION',
         config: { functionName: STRATEGY_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'invite_plan_review', fromStepId: PLANNING_EXECUTION_STEP_ID, toStepId: 'plan_review', trigger: 'auto',
@@ -120,7 +135,13 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       activities: [{ activityId: 'execute_post', activityName: POST_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
         retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
         config: { functionName: POST_EXECUTION_FUNCTION, args: {} } }] },
-    { transitionId: 'invite_post_review', fromStepId: POST_EXECUTION_STEP_ID, toStepId: 'post_review', trigger: 'auto',
+    { transitionId: 'check_post_exception', fromStepId: POST_EXECUTION_STEP_ID, toStepId: 'post_exception_checked', trigger: 'auto',
+      activities: [{ activityId: 'post_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, args: {} } }] },
+    { transitionId: 'assign_post_exception', fromStepId: 'post_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    { transitionId: 'invite_post_review', fromStepId: 'post_exception_checked', toStepId: 'post_review', trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
       activities: [{ activityId: 'invite_post_review', activityName: 'agencyPostInvitation', activityType: 'EXECUTE_FUNCTION',
         config: { functionName: POST_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'prepare_publication', fromStepId: 'post_content_decision', toStepId: PUBLICATION_PREPARATION_STEP_ID, trigger: 'auto',
