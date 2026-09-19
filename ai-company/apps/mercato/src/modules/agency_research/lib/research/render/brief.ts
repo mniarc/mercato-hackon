@@ -26,6 +26,7 @@ const T = {
     success: 'Miara powodzenia i ograniczenia',
     questions: 'Pytania do Ciebie',
     why: 'dlaczego',
+    ourMaterial: 'naszym materiale z researchu',
     hint: 'podpowiedź',
     proposal: 'propozycja do potwierdzenia',
     decided: 'potwierdzone',
@@ -50,6 +51,7 @@ const T = {
     success: 'Measure of success and limits',
     questions: 'Questions for you',
     why: 'why',
+    ourMaterial: 'our research material',
     hint: 'hint',
     proposal: 'proposal to confirm',
     decided: 'confirmed',
@@ -78,6 +80,11 @@ export function firstContactQuestions(ustalenia: UstaleniaData, max = limits.cli
     .sort((a, b) => rank[a.priority] - rank[b.priority])
     .slice(0, max)
 }
+
+const FIELD_LABELS = {
+  pl: { priority_offer: 'co teraz promujemy', priority_audience: 'do kogo kierujemy komunikację', business_direction: 'cel biznesowy i kierunek marki', buyer_reality: 'rzeczywiste sytuacje zakupowe', promise_constraints: 'co możemy wiarygodnie obiecać', voice_preferences: 'preferencje głosu', channel_and_cta: 'kanał i następny krok', success_and_limits: 'miara powodzenia i ograniczenia', assets_and_permissions: 'materiały i uprawnienia', open_assumptions: 'otwarte założenia' },
+  en: { priority_offer: 'what we promote now', priority_audience: 'who we address', business_direction: 'business goal and brand direction', buyer_reality: 'real buying situations', promise_constraints: 'what we can credibly promise', voice_preferences: 'voice preferences', channel_and_cta: 'channel and next step', success_and_limits: 'measure of success and limits', assets_and_permissions: 'materials and permissions', open_assumptions: 'open assumptions' },
+} as const
 
 export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand: string; data: BriefData; ustalenia: UstaleniaData }): ClientView {
   const { data, ustalenia } = args
@@ -119,11 +126,15 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
   // The questions ARE the first contact (Rafał: 6–8 Must questions), so they are reserved
   // first and the prose is fitted around them; evidence ids never reach the client.
   const questions = firstContactQuestions(ustalenia)
-  const questionLines = questions.map((q, index) => `${index + 1}. **${stripEvidenceIds(q.question)}** _(${t.hint}: ${stripEvidenceIds(q.hint)}; ${t.why}: ${stripEvidenceIds(q.reason)})_`)
+  const clientWords = (text: string) => stripEvidenceIds(text)
+    .replace(/\b(priority_offer|priority_audience|business_direction|buyer_reality|promise_constraints|voice_preferences|channel_and_cta|success_and_limits|assets_and_permissions|open_assumptions)\b/g, (key) => `„${FIELD_LABELS[args.outputLanguage][key as keyof typeof FIELD_LABELS['pl']]}”`)
+    .replace(/\b(buyer_map|offer_map|field_map|journey|proof_cards|language_samples)\b/g, t.ourMaterial)
+    .replace(/\s*\((?:gap|hypothesis|hipoteza|luka)\)/gi, '')
+  const questionLines = questions.map((q, index) => `${index + 1}. **${clientWords(q.question)}** _(${t.hint}: ${clientWords(q.hint)})_`)
   const questionBlock = [`## ${t.questions}`, ...(questionLines.length ? questionLines : ['—'])]
   const budget = limits.clientText.briefWordsMax
   const bodyBudget = Math.max(200, budget - countClientWords(questionBlock.join('\n')))
-  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => stripEvidenceIds(line)), args.outputLanguage, bodyBudget)
+  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => stripEvidenceIds(line)), args.outputLanguage, bodyBudget, { keepEveryLine: true })
   const markdown = `${fitted.markdown}\n${questionBlock.join('\n')}\n`
   const view = checkClientView('WZR-BRIEF', markdown)
   const issues: DocumentIssue[] = []

@@ -37,13 +37,15 @@ function firstSentences(line: string, count: number): string {
 /**
  * Fits rendered lines into the template's word budget deterministically, in
  * Rafał's spirit (the view is a projection, never the document): first every
- * body line is cut to two sentences, then to one, then trailing lines are
- * dropped; a note says the full text lives in the internal document. Headings
- * and table rows are never cut.
+ * body line is cut to two sentences, then to one; a note says the full text lives
+ * in the internal document, then trailing lines are dropped unless the caller keeps
+ * every line (a view still over budget then carries the issue). Headings and table
+ * rows are never cut.
  */
+
 /** Evidence ids are internal: the client reads "(…)" groups of ids and bare id runs as nothing at all. */
 export function stripEvidenceIds(text: string): string {
-  const id = '(?:(?:S|F|C|P|L|A|T|X|G|D|Q|ER)-?\\d{2,}|VOICE-[AB])'
+  const id = '(?:(?:S|F|C|P|L|A|B|T|X|G|D|Q|ER|TOP)-?\\d{2,}|VOICE-[AB])'
   const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b)\\s*${id})*`
   return text
     .replace(new RegExp(`\\s*\\(\\s*${run}\\s*\\)`, 'g'), '')
@@ -56,7 +58,7 @@ export function stripEvidenceIds(text: string): string {
     .trim()
 }
 
-export function fitClientView(templateId: TemplateId, lines: string[], language: 'pl' | 'en', budgetWords?: number): ClientView {
+export function fitClientView(templateId: TemplateId, lines: string[], language: 'pl' | 'en', budgetWords?: number, opts: { keepEveryLine?: boolean } = {}): ClientView {
   const limit = budgetWords ?? clientProjectionOf(templateId).word_limit
   const joined = (parts: string[]) => parts.join('\n')
   if (limit === null || countClientWords(joined(lines)) <= limit) return checkClientView(templateId, joined(lines))
@@ -66,8 +68,11 @@ export function fitClientView(templateId: TemplateId, lines: string[], language:
     const cut = lines.map((line) => firstSentences(line, count))
     if (countClientWords(joined(cut)) + noteWords <= limit) return checkClientView(templateId, joined([...cut, '', note]))
   }
+  // Still over after one sentence per line: a long list drops its tail; a document whose every
+  // line is a section () stays complete and carries the over-budget issue instead.
   const cut = lines.map((line) => firstSentences(line, 1))
-  return checkClientView(templateId, joined([...trimToBudget(cut, limit - noteWords), '', note]))
+  const kept = opts.keepEveryLine ? cut : trimToBudget(cut, limit - noteWords)
+  return checkClientView(templateId, joined([...kept, '', note]))
 }
 
 /** Keeps the first items of a list until the budget would be exceeded; used to trim client views deterministically. */
