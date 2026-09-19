@@ -1,4 +1,6 @@
 import { currentInputVersion } from '../../store'
+import type { InputVersion } from '../../../data/schemas/envelope'
+import { simulationIssue } from '../simulation'
 import type { StepContext, StrategyExecutionInput, StrategyExecutionInputs, StrategyExecutionOutputs } from './context'
 
 const templates = {
@@ -27,4 +29,18 @@ export function recordStrategyPairVersion(ctx: StepContext, key: keyof StrategyE
   if (!ctx.strategyInputs) return
   if (!ctx.strategyOutputs) throw new Error('[internal] Pinned strategy execution requires its own output pair')
   ctx.strategyOutputs[key] = version
+}
+
+/** F20/F24: the pair is authored and repaired before the client can approve it.
+ * Only this accepted-brief execution's exact output versions are authoring inputs,
+ * not missing approvals; retain every pinned reference and its actual draft status.
+ */
+export function strategyAuthoringSimulationIssue(
+  ctx: Pick<StepContext, 'strategyInputs' | 'strategyOutputs'>,
+  inputs: InputVersion[],
+) {
+  if (ctx.strategyInputs?.brief.status !== 'approved' || !ctx.strategyOutputs) return simulationIssue(inputs)
+  const ownDrafts = [ctx.strategyOutputs.strategy, ctx.strategyOutputs.tov].filter((version) => version !== null)
+  return simulationIssue(inputs.filter((input) => !ownDrafts.some((version) =>
+    version.document_id === input.document_id && version.version === input.version)))
 }

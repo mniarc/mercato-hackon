@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import type { StepContext, StrategyExecutionInput, StrategyExecutionInputs } from '../context'
-import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion } from '../strategyInputs'
+import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion, strategyAuthoringSimulationIssue } from '../strategyInputs'
 import { currentInputVersion } from '../../../store'
 
 jest.mock('../../../store', () => ({ currentInputVersion: jest.fn() }))
@@ -60,4 +60,29 @@ it('refuses an incomplete phase context instead of silently falling back to late
   await expect(readStrategyFoundation(ctx, 'brief')).rejects.toThrow('requires its own output pair')
   await expect(readStrategyPairVersion(ctx, 'strategy')).rejects.toThrow('requires its own output pair')
   expect(current).not.toHaveBeenCalled()
+})
+
+it('keeps native same-pair authoring and repair drafts non-simulated without claiming their approval', () => {
+  const ctx = context()
+  const brief = snapshot('KLI-BRIEF', '3.0')
+  ctx.strategyInputs = { ...inputs, brief }
+  const strategy = { ...snapshot('KLI-STRATEGIA'), status: 'draft' }
+  const tov = { ...snapshot('KLI-TOV'), status: 'draft' }
+  recordStrategyPairVersion(ctx, 'strategy', strategy)
+  recordStrategyPairVersion(ctx, 'tov', tov)
+  const references = [brief, strategy, tov]
+  const repairContext = { ...ctx, attempt: 2 }
+  expect(strategyAuthoringSimulationIssue(repairContext, references)).toBeNull()
+  expect(references.map((version) => version.status)).toEqual(['approved', 'draft', 'draft'])
+})
+
+it('still flags an unapproved base, another draft version, and legacy full-pipeline simulations', () => {
+  const brief = snapshot('KLI-BRIEF')
+  const strategy = { ...snapshot('KLI-STRATEGIA'), status: 'draft' }
+  const ctx = { strategyInputs: { ...inputs, brief }, strategyOutputs: { strategy, tov: null } }
+  const otherVersion = { ...strategy, version: '2.0' }
+  expect(strategyAuthoringSimulationIssue(ctx, [brief, otherVersion])?.detail).toContain('KLI-STRATEGIA@case v2.0')
+  const unapproved = { ...brief, status: 'draft' }
+  expect(strategyAuthoringSimulationIssue({ ...ctx, strategyInputs: { ...inputs, brief: unapproved } }, [unapproved, strategy])?.detail).toContain('KLI-BRIEF@case')
+  expect(strategyAuthoringSimulationIssue({}, [brief, strategy])?.detail).toContain('KLI-STRATEGIA@case')
 })

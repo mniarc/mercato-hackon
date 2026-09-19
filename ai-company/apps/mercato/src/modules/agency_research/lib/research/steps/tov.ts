@@ -10,13 +10,12 @@ import { tovWriterResult, type TovSection, type TovWriterInput, type TovWriterSe
 import { limits } from '../../../data/templates'
 import { RESEARCH_TOV_WRITER_AGENT_ID } from '../../agents/ids.strategy'
 import { finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
-import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion } from './strategyInputs'
+import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion, strategyAuthoringSimulationIssue } from './strategyInputs'
 import { GateError, type GateIssue } from '../gate'
 import { resolveId } from '../ids'
 import type { Ledger } from '../ledger'
 import { BudgetPausedError, createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
 import { renderTov, renderTovClientView } from '../render/tov'
-import { simulationIssue } from '../simulation'
 import { briefInputOf } from './strategy'
 import type { StepContext, StepOutcome } from './context'
 
@@ -274,7 +273,7 @@ export async function runTovStep(ctx: StepContext): Promise<StepOutcome> {
       cache: ctx.cache,
       onEvent: ctx.onEvent,
     })
-    const simulation = simulationIssue(inputVersions)
+    const simulation = strategyAuthoringSimulationIssue(ctx, inputVersions)
     const issues = simulation ? [...result.issues, simulation] : result.issues
     const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
       orderRef: ctx.orderRef,
