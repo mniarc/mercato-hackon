@@ -1,6 +1,6 @@
 # T104 - Record missing native handoffs from the shared journey
 
-State: active
+State: implemented (source integrated; eight focused unit checks passed; native journey/report proof pending T96)
 Priority: P0-immediate
 Depends on: T94/T95 existing collector and journal
 Owns: `agency_operations/__integration__/support/productionJourney/evidence.ts` and its focused tests; request record-reader changes explicitly.
