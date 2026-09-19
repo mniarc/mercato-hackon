@@ -209,8 +209,8 @@ test('the dev runtime route paths stay in sync with the folders on disk', () => 
 })
 
 test('the dev runtime server config never keys off NODE_ENV', () => {
-  // `mercato dev` spawns Next with NODE_ENV=production
-  // (buildServerProcessEnvironment), so NODE_ENV cannot gate dev diagnostics.
+  // The managed dev processes use different NODE_ENV values, so this flag
+  // cannot gate diagnostics consistently across Next and background services.
   const source = read('packages/shared/src/lib/dev-runtime/server.ts')
   const body = source.slice(source.indexOf('export function resolveDevRuntimeServerConfig'))
   assert.doesNotMatch(body, /env\.NODE_ENV/)
