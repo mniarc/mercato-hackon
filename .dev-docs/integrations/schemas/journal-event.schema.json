@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Agency integration observation",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runId", "time", "journey", "mode", "phase"],
+  "oneOf": [{ "required": ["agentId"] }, { "required": ["integrationId"] }, { "required": ["checkpointId"] }],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "runId": { "$ref": "#/$defs/id" },
+    "time": { "type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d\\d-\\d\\dT\\d\\d:\\d\\d:\\d\\d(?:\\.\\d+)?Z$" },
+    "journey": { "$ref": "#/$defs/id" },
+    "mode": { "enum": ["fixture", "live"] },
+    "agentId": { "$ref": "#/$defs/id" },
+    "integrationId": { "$ref": "#/$defs/id" },
+    "checkpointId": { "$ref": "#/$defs/id" },
+    "phase": { "enum": ["started", "completed", "waiting", "failed"] },
+    "reason": { "enum": ["human", "input", "budget", "configuration", "execution"] },
+    "refs": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "agentRunId": { "$ref": "#/$defs/id" },
+        "workflowInstanceId": { "$ref": "#/$defs/id" },
+        "taskRunId": { "$ref": "#/$defs/id" },
+        "outputVersionId": { "$ref": "#/$defs/id" },
+        "producerRunId": { "$ref": "#/$defs/id" },
+        "consumerRunId": { "$ref": "#/$defs/id" },
+        "userTaskId": { "$ref": "#/$defs/id" }
+      }
+    }
+  },
+  "$defs": { "id": { "type": "string", "pattern": "^[A-Za-z0-9_.:/-]{1,200}$" } }
+}

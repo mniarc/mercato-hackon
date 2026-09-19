@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Expected agency agent integrations (source map, not runtime proof)",
+  "type": "object",
+  "required": ["schemaVersion", "agents", "integrations"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "notes": { "type": "string" },
+    "agents": { "type": "array", "items": { "$ref": "#/$defs/entry" } },
+    "integrations": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["id", "processId", "source", "connection"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "processId": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "connection": { "enum": ["connected", "defined", "gap"] },
+        "entry": { "type": "string" },
+        "handoff": { "type": "string" },
+        "notes": { "type": "string" },
+        "integrationIds": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
