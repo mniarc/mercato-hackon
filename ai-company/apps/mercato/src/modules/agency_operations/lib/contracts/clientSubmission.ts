@@ -1,8 +1,9 @@
 import { z } from 'zod'
 import type { ClientCaseIdentity } from './clientCaseQuery'
-import { briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema, planAcceptanceReceiptSchema } from '@/modules/agency_research/lib/contracts'
+import { briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema, planAcceptanceReceiptSchema, postAcceptanceReceiptSchema } from '@/modules/agency_research/lib/contracts'
 import { strategyPairRequestSchema } from '../strategyPairReview/contracts'
 import { planReviewRequestSchema } from '../planReview/contracts'
+import { postReviewRequestSchema } from '../postReview/contracts'
 
 export const CLIENT_SUBMISSION_SERVICE = 'agencyClientSubmissionService'
 export const clientSubmissionRequestSchema = z.object({
@@ -14,6 +15,8 @@ export const clientSubmissionRequestSchema = z.object({
     .describe('Original response to an exact invited strategy/ToV pair; not acceptance authority.'),
   planReviewResponse: planReviewRequestSchema.safeExtend({ taskId: z.uuid() }).optional()
     .describe('Original exact plan response and explicit topic choice; not acceptance authority.'),
+  postReviewResponse: postReviewRequestSchema.safeExtend({ taskId: z.uuid() }).optional()
+    .describe('Original response to an exact post; not acceptance or publication authority.'),
   reviewResponse: z.object({
     taskId: z.uuid(),
     channel: z.literal('portal'),
@@ -42,7 +45,7 @@ export const clientSubmissionDispositionSchema = z.discriminatedUnion('effectsAp
   clientSubmissionDispositionBaseSchema.extend({
     effectsApplied: z.literal(true), kind: z.literal('approve'), source: z.literal('native_agent'),
     workerId: z.literal('agency_operations.client_triage'),
-    acceptance: z.discriminatedUnion('status', [briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema, planAcceptanceReceiptSchema]),
+    acceptance: z.discriminatedUnion('status', [briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema, planAcceptanceReceiptSchema, postAcceptanceReceiptSchema]),
   }),
 ])
 

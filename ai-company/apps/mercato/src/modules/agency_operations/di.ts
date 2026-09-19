@@ -20,7 +20,7 @@ import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
 import { createClientTriageActivities } from './agents/client-triage/activities'
-import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION } from './agents/client-triage/workflow'
+import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION, ACCEPT_POST_FUNCTION } from './agents/client-triage/workflow'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
 import { BRIEF_RESPONSE_FUNCTION, BRIEF_REVIEW_SERVICE } from './lib/briefStrategyProcess/contracts'
 import { createBriefReviewService } from './lib/briefStrategyProcess/service'
@@ -46,12 +46,22 @@ import { POST_INSTRUCTION_FUNCTION } from './lib/planApproval/contracts'
 import { createPostInstructionHandoff } from './lib/planApproval/handoff'
 import { createPostExecutionActivity } from './lib/postExecution/activity'
 import { POST_EXECUTION_FUNCTION } from './lib/postExecution/contracts'
+import { createPostReviewService } from './lib/postReview/service'
+import { POST_REVIEW_SERVICE, POST_RESPONSE_FUNCTION } from './lib/postReview/contracts'
+import { createPostReviewHandoff } from './lib/postExecution/reviewHandoff'
+import { POST_REVIEW_HANDOFF_FUNCTION } from './lib/postApproval/contracts'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [POST_REVIEW_SERVICE]: asFunction(() => createPostReviewService(container)).scoped(),
+    [`workflowFunction:${POST_RESPONSE_FUNCTION}`]: asFunction(
+      () => container.resolve<ReturnType<typeof createPostReviewService>>(POST_REVIEW_SERVICE).receiveResponse,
+    ).scoped(),
+    [`workflowFunction:${POST_REVIEW_HANDOFF_FUNCTION}`]: asFunction(() => createPostReviewHandoff(container)).scoped(),
+    [`workflowFunction:${ACCEPT_POST_FUNCTION}`]: asValue(clientTriage.acceptPost),
     [PLAN_REVIEW_SERVICE]: asFunction(() => createPlanReviewService(container)).scoped(),
     [`workflowFunction:${PLAN_RESPONSE_FUNCTION}`]: asFunction(
       () => container.resolve<ReturnType<typeof createPlanReviewService>>(PLAN_REVIEW_SERVICE).receiveResponse,
