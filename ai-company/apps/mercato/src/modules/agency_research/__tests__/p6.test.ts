@@ -11,18 +11,18 @@ import { createLedger } from '../lib/research/ledger'
 import { GateError } from '../lib/research/gate'
 import { renderPlan, renderPlanClientView, ROW_WORDS_MAX } from '../lib/research/render/plan'
 import { renderZleceniePostu } from '../lib/research/render/zleceniePostu'
-import { gateTopicsSection, knownPlanIds, planValidatorFindings, runPlanPipeline } from '../lib/research/steps/plan'
+import { gateTopicsSection, knownPlanIds, planValidatorFindings, runPlanPipeline, runPlanStep } from '../lib/research/steps/plan'
 import { mergePlanQaVerdict, planReadyForApproval, runPlanQa, runPlanQaLoop } from '../lib/research/steps/planQa'
 import { applySelection } from '../lib/research/steps/selection'
 import { assemblePostInstruction } from '../lib/research/steps/postInstruction'
-import type { StepContext } from '../lib/research/steps/context'
+import type { StepContext, StrategyExecutionInput } from '../lib/research/steps/context'
 import { countClientWords } from '../lib/research/util'
 import { createFixtureRunner } from '../lib/runners'
 import * as store from '../lib/store'
 
 jest.mock('../lib/store', () => {
   const actual = jest.requireActual('../lib/store')
-  return { ...actual, startTaskRun: jest.fn(), finishTaskRun: jest.fn(), currentInputVersion: jest.fn() }
+  return { ...actual, startTaskRun: jest.fn(), finishTaskRun: jest.fn(), currentInputVersion: jest.fn(), saveDocumentVersion: jest.fn() }
 })
 
 const canned = path.join(__dirname, '..', '__fixtures__', 'flow', 'canned')
@@ -230,7 +230,8 @@ describe('runPlanQa / runPlanQaLoop (6.3)', () => {
     const { data } = await runPipeline()
     const mocked = store as jest.Mocked<typeof store>
     const docs: Record<string, unknown> = { 'WZR-PLAN': data, 'WZR-STRATEGIA': strategia(), 'WZR-ZRODLA': zrodla() }
-    mocked.currentInputVersion.mockImplementation(async (_em, _scope, _orderRef, templateId) => ({ document_id: `${templateId}@o`, version: '1.0', status: 'draft', versionId: `v-${templateId}`, data: docs[templateId] }))
+    let planVersion = '1.0'
+    mocked.currentInputVersion.mockImplementation(async (_em, _scope, _orderRef, templateId) => ({ document_id: `${templateId}@o`, version: templateId === 'WZR-PLAN' ? planVersion : '1.0', status: 'draft', versionId: templateId === 'WZR-PLAN' ? `v-plan-${planVersion}` : `v-${templateId}`, data: docs[templateId] }))
     mocked.startTaskRun.mockResolvedValue({ id: 'run-63' } as never)
     mocked.finishTaskRun.mockResolvedValue(undefined)
     const document = { status: 'draft' }
@@ -238,6 +239,7 @@ describe('runPlanQa / runPlanQaLoop (6.3)', () => {
     const planStep = jest.fn(async (ctx: StepContext) => {
       expect(ctx.repairFindings.length).toBeGreaterThan(0)
       expect(ctx.attempt).toBe(2)
+      planVersion = '2.0'
       return { taskRunId: 'run-62b', versionId: 'v-plan-2', status: 'done' }
     })
     const ctx = {
@@ -249,7 +251,83 @@ describe('runPlanQa / runPlanQaLoop (6.3)', () => {
     expect(planStep).toHaveBeenCalledTimes(1)
     expect(outcome).toMatchObject({ verdict: 'ready_for_approval', repairs: 1, taskRunId: 'run-63', readyForApproval: true })
     expect(document.status).toBe('ready_for_review')
-    expect(mocked.finishTaskRun).toHaveBeenCalledWith(em, { id: 'run-63' }, expect.objectContaining({ status: 'done', qaResult: expect.objectContaining({ verdict: 'ready_for_approval', repairs: 1 }) }))
+    expect(mocked.finishTaskRun).toHaveBeenCalledWith(em, expect.objectContaining({ id: 'run-63', inputVersions: expect.arrayContaining([{ document_id: 'WZR-PLAN@o', version: '2.0', status: 'draft' }]) }), expect.objectContaining({ status: 'done', outputVersionId: 'v-plan-2.0', qaResult: expect.objectContaining({ verdict: 'ready_for_approval', repairs: 1 }) }))
+  })
+})
+
+describe('phase-only planning pins', () => {
+  const snapshot = (name: string, data: unknown, version = '1.0'): StrategyExecutionInput => ({ document_id: `${name}@o`, version, versionId: `${name}-${version}`, status: 'approved', data })
+  const context = (): StepContext => ({
+    em: { findOne: jest.fn(async () => ({ status: 'draft' })), flush: jest.fn() },
+    scope: { tenantId: 't', organizationId: 'o' }, orderRef: 'o', order,
+    orderVersion: { document_id: 'WEW-DANE-ZAMOWIENIA@o', version: '1.0' },
+    runAgent: createFixtureRunner(canned), runner: 'fixture', models, ledger: createLedger({ prices: {} }),
+    onEvent: () => {}, log: () => {}, agentRunIds: [], taskRunIds: [], documentVersionIds: [],
+    fetchPage: async () => { throw new Error('no fetch') }, repairFindings: [], attempt: 1,
+    planningInputs: {
+      strategy: snapshot('KLI-STRATEGIA', strategia()), tov: snapshot('KLI-TOV', tov()), brief: snapshot('KLI-BRIEF', brief()),
+      zrodla: snapshot('WEW-ZRODLA', zrodla()),
+      konkurencja: snapshot('WEW-KONKURENCJA', { selection: [], cards: [], parity_claims: [], alternative_routes: [], difference_candidates: [], channels: [], implications: [] }),
+    },
+    planningOutputs: { plan: null }, planningQaRepairAttempts: 1,
+  }) as unknown as StepContext
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    jest.mocked(store.currentInputVersion).mockRejectedValue(new Error('must not follow latest'))
+    jest.mocked(store.startTaskRun).mockResolvedValue({ id: 'pinned-run' } as never)
+    jest.mocked(store.finishTaskRun).mockResolvedValue(undefined)
+    jest.mocked(store.saveDocumentVersion).mockImplementation(async (_em, _scope, input) => ({
+      version: { id: `plan-${input.inputVersions.some((ref) => ref.document_id === 'KLI-PLAN@o') ? 2 : 1}` },
+      envelope: { document_id: 'KLI-PLAN@o', version: '1.0', status: 'draft' },
+    }) as never)
+  })
+
+  it('writes the configured count from exact foundations and shares its own draft with a repair', async () => {
+    const ctx = context()
+    ctx.order = { ...order, topics: 7 }
+    const calls: { agentId: string; input: unknown }[] = []
+    ctx.runAgent = createFixtureRunner(canned, { calls })
+    await runPlanStep(ctx)
+    expect((ctx.planningOutputs!.plan!.data as PlanData).topics).toHaveLength(7)
+    expect(calls.slice(0, 2).map((call) => (call.input as { topic_count: number }).topic_count)).toEqual([4, 3])
+    await runPlanStep({ ...ctx, attempt: 2 })
+    expect(ctx.planningOutputs!.plan!.versionId).toBe('plan-2')
+    expect(store.currentInputVersion).not.toHaveBeenCalled()
+    const repair = jest.mocked(store.saveDocumentVersion).mock.calls[1][2]
+    expect(repair.inputVersions).toContainEqual({ document_id: 'KLI-PLAN@o', version: '1.0', status: 'draft' })
+    expect(repair.simulation).toBe(false)
+    expect((repair.data as unknown as PlanData).selected_topic.real_approval).toBe(false)
+  })
+
+  it('checks its repaired output against the same accepted inputs and records the final QA version', async () => {
+    const { data } = await runPipeline()
+    const ctx = context()
+    ctx.planningOutputs!.plan = { ...snapshot('KLI-PLAN', data), status: 'draft' }
+    const planStep = jest.fn(async (repair: StepContext) => {
+      expect(repair.planningInputs).toBe(ctx.planningInputs)
+      expect(repair.planningOutputs).toBe(ctx.planningOutputs)
+      repair.planningOutputs!.plan = { ...snapshot('KLI-PLAN', data, '2.0'), status: 'draft' }
+      return { taskRunId: 'repair-run', versionId: 'KLI-PLAN-2.0', status: 'done' }
+    })
+    expect(await runPlanQaLoop(ctx, { planStep })).toMatchObject({ planVersionId: 'KLI-PLAN-2.0', readyForApproval: true, repairs: 1 })
+    expect(store.currentInputVersion).not.toHaveBeenCalled()
+    expect(store.finishTaskRun).toHaveBeenCalledWith(ctx.em, expect.objectContaining({
+      inputVersions: expect.arrayContaining([
+        { document_id: 'KLI-PLAN@o', version: '2.0', status: 'draft' },
+        { document_id: 'KLI-BRIEF@o', version: '1.0', status: 'approved' },
+        { document_id: 'KLI-TOV@o', version: '1.0', status: 'approved' },
+      ]),
+    }), expect.objectContaining({ outputVersionId: 'KLI-PLAN-2.0' }))
+    expect(ctx.em.findOne).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ currentVersionId: 'KLI-PLAN-2.0' }))
+  })
+
+  it('does not substitute a current plan when the phase output is missing', async () => {
+    const ctx = context()
+    await expect(runPlanQaLoop(ctx, { planStep: jest.fn() })).rejects.toThrow('needs current KLI-PLAN')
+    ctx.planningOutputs = undefined
+    await expect(runPlanStep(ctx)).rejects.toThrow('requires its own plan output')
+    expect(store.currentInputVersion).not.toHaveBeenCalled()
   })
 })
 

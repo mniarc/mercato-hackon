@@ -8,6 +8,9 @@ import type { StrategyReviewProjection } from '../strategyReview/types'
 import type { StrategyExecutionRequest, StrategyExecutionResult } from '../strategyExecution/contracts'
 import type { AcceptStrategyPairInput, StrategyPairAcceptanceReceipt, StrategyPairAcceptanceRequest, StrategyPairAcceptanceState } from '../strategyPairAcceptance/contracts'
 import type { PlanningReadinessRequest, PlanningReadiness } from '../planningReadiness/contracts'
+import type { PlanningExecutionRequest, PlanningExecutionResult } from '../planningExecution/contracts'
+import type { PlanReviewRequest, PlanReview, PlanAcceptance, AcceptPlanInput, PlanAcceptanceReceipt } from '../planAcceptance/contracts'
+import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -131,6 +134,7 @@ export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
   /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
+  runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */
@@ -142,6 +146,11 @@ export interface AgencyResearchService {
   /** Trusted caller verifies the saved response and native task/contact binding. */
   acceptBrief(input: AcceptBriefInput): Promise<BriefAcceptanceReceipt>
   acceptStrategyPair(input: AcceptStrategyPairInput): Promise<StrategyPairAcceptanceReceipt>
+  getPlanReview(scope: { tenantId: string; organizationId: string }, input: PlanReviewRequest): Promise<PlanReview>
+  getPlanAcceptance(scope: { tenantId: string; organizationId: string }, input: PlanReviewRequest): Promise<PlanAcceptance>
+  acceptPlan(input: AcceptPlanInput): Promise<PlanAcceptanceReceipt>
+  /** Deterministic compiler only; does not invoke a copywriter or authorize publication. */
+  runPostInstruction(input: { context: ResearchExecutionContext; request: PostInstructionExecutionRequest }): Promise<PostInstructionExecutionResult>
   getStrategyPairAcceptance(scope: { tenantId: string; organizationId: string }, input: StrategyPairAcceptanceRequest): Promise<StrategyPairAcceptanceState>
   getPlanningReadiness(scope: { tenantId: string; organizationId: string }, input: PlanningReadinessRequest): Promise<PlanningReadiness>
   /** Exact stored acceptance receipt, including historical accepted versions. */

@@ -140,3 +140,53 @@ test.each([
   }
   expect(apiCall).toHaveBeenCalledTimes(1)
 })
+
+test.each([
+  { status: 'not_configured', orderRef: 'case-id', reason: 'execution_disabled' },
+  { status: 'not_ready', orderRef: 'case-id', reason: 'pair_acceptance_incomplete' },
+  { status: 'execution_incomplete', orderRef: 'case-id', activationTaskRunId: 'planning-activation', reason: 'in_progress_or_interrupted' },
+  {
+    status: 'completed', orderRef: 'case-id', strategyVersionId: 'strategy-v2', tovVersionId: 'tov-v1',
+    taskRunIds: ['planning-activation', 'plan-writer', 'plan-qa'], documentVersionIds: ['plan-v1'],
+    agentRunIds: ['planning-agent-run', 'planning-qa-run'], spentPln: 0.4,
+    planVersionId: 'plan-v1', qaTaskRunId: 'plan-qa', qaVerdict: 'needs_agent_fix', readyForApproval: false,
+  },
+  {
+    status: 'paused_budget', orderRef: 'case-id', strategyVersionId: 'strategy-v2', tovVersionId: 'tov-v1',
+    taskRunIds: ['planning-activation', 'plan-writer'], documentVersionIds: ['plan-v1'],
+    agentRunIds: ['planning-agent-run'], spentPln: 0.2,
+    planVersionId: 'plan-v1', qaTaskRunId: null, qaVerdict: null, readyForApproval: false,
+  },
+])('shows saved planning $status and exact evidence without claiming client approval', async (planningExecution) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], planningExecution }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.planningExecution.${planningExecution.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.planningExecution.noApproval')).toBeTruthy()
+  expect(screen.getByText(JSON.stringify(planningExecution))).toBeTruthy()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  {
+    status: 'ready', orderRef: 'case-id', planVersionId: 'plan-v2', selectedTopicId: 'topic-3',
+    selectionSubmissionId: 'submission-id', taskRunId: 'compiler-run', instructionDocumentId: 'instruction-document',
+    instructionVersionId: 'instruction-v1', instructionVersion: '1.0', replayed: false,
+  },
+  { status: 'not_ready', orderRef: 'case-id', reason: 'compiler_blocked', issueCodes: ['missing_source'] },
+])('shows the saved post instruction $status without implying a post or publication consent', async (postInstruction) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postInstruction }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.postInstruction.${postInstruction.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postInstruction.noPost')).toBeTruthy()
+  expect(screen.getByText(JSON.stringify(postInstruction))).toBeTruthy()
+  if (postInstruction.status === 'ready') {
+    expect(screen.getByText('agencyOperations.cases.process.postInstruction.selectedTopic: topic-3')).toBeTruthy()
+  } else {
+    expect(screen.getByText('compiler_blocked')).toBeTruthy()
+  }
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})

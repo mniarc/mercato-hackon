@@ -1,0 +1,119 @@
+import { z } from 'zod'
+import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
+import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
+import { inputVersionSchema, type InputVersion } from '../../data/schemas/envelope'
+import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
+import { limits } from '../../data/templates'
+import { documentIdFor, versionLabel } from '../research/envelope'
+import { BudgetPausedError, createLedger } from '../research/ledger'
+import type { StepContext, StrategyExecutionInput } from '../research/steps/context'
+import { runPlanStep } from '../research/steps/plan'
+import { runPlanQaLoop } from '../research/steps/planQa'
+import { finishTaskRun } from '../store'
+import type { RunStrategyExecutionOptions } from '../strategyExecution/run'
+import { readPlanningReadiness } from '../planningReadiness/read'
+import { planningExecutionRequestSchema, type PlanningExecutionRequest, type PlanningExecutionResult, type PlanningExecutionOutcome } from './contracts'
+import { claimPlanningExecution, savedPlanningExecution } from './claim'
+
+export type RunPlanningExecutionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PlanningExecutionRequest }
+const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+
+/** Only 6.1–6.3. Customer choice/acceptance and production are separate continuations. */
+export async function runPlanningExecution(opts: RunPlanningExecutionOptions): Promise<PlanningExecutionResult> {
+  const request = planningExecutionRequestSchema.parse(opts.request)
+  const { em, scope } = opts
+  const { orderRef } = request
+  const saved = await savedPlanningExecution(em, scope, request)
+  if (saved) return saved
+  const { maxCostPln: _budget, ...readinessRequest } = request
+  const readiness = await readPlanningReadiness(em, scope, readinessRequest)
+  if (readiness.status === 'not_ready') return readiness
+  const where = { ...scope, orderRef }
+  const accepted = readiness.accepted
+  const strategyRow = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+    ...where, id: request.strategyVersionId, documentId: accepted.pair.strategy.documentId, templateId: 'WZR-STRATEGIA',
+  }, undefined, scope)
+  const tovRow = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+    ...where, id: request.tovVersionId, documentId: accepted.pair.tov.documentId, templateId: 'WZR-TOV',
+  }, undefined, scope)
+  if (!strategyRow || !tovRow) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing' }
+  const inputs = z.array(inputVersionSchema).safeParse(strategyRow.inputVersions)
+  if (!inputs.success) return { status: 'not_ready', orderRef, reason: 'pinned_input_invalid' }
+  const snapshot = (row: AgencyResearchDocumentVersion): StrategyExecutionInput => ({
+    document_id: documentIdFor(row.templateId as 'WZR-STRATEGIA', orderRef), version: versionLabel(row.versionNo),
+    status: row.status, versionId: row.id, data: row.data,
+  })
+  const loadPinned = async (templateId: 'WZR-BRIEF' | 'WZR-ZRODLA' | 'WZR-KONKURENCJA' | 'WZR-ZAMOWIENIE') => {
+    const matches = inputs.data.filter((input) => input.document_id === documentIdFor(templateId, orderRef))
+    if (matches.length !== 1 || !/^[1-9]\d*\.0$/.test(matches[0].version)) return null
+    const row = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+      ...where, templateId, versionNo: Number(matches[0].version.split('.')[0]),
+    }, undefined, scope)
+    return row && !row.simulationFlag ? snapshot(row) : null
+  }
+  const brief = await loadPinned('WZR-BRIEF')
+  if (!brief || brief.versionId !== accepted.brief.versionId) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing', templateId: 'WZR-BRIEF' }
+  const zrodla = await loadPinned('WZR-ZRODLA')
+  if (!zrodla) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing', templateId: 'WZR-ZRODLA' }
+  const konkurencja = await loadPinned('WZR-KONKURENCJA')
+  if (!konkurencja) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing', templateId: 'WZR-KONKURENCJA' }
+  const orderInput = await loadPinned('WZR-ZAMOWIENIE')
+  if (!orderInput) return { status: 'not_ready', orderRef, reason: 'order_version_missing' }
+  const parsedOrder = orderDataSchema.safeParse(orderInput.data)
+  if (!parsedOrder.success) return { status: 'not_ready', orderRef, reason: 'pinned_input_invalid', templateId: 'WZR-ZAMOWIENIE' }
+  const topicCount = parsedOrder.data.product_selection.result_limits?.topics
+  if (topicCount === undefined || topicCount <= 0) return { status: 'not_ready', orderRef, reason: 'topic_count_missing' }
+  const order = orderFactsOf(parsedOrder.data)
+  const strategy = snapshot(strategyRow)
+  const tov = snapshot(tovRow)
+  const planningInputs = { strategy, tov, brief, zrodla, konkurencja }
+  const planningOutputs: NonNullable<StepContext['planningOutputs']> = { plan: null }
+  const planningQaRepairAttempts = limits.generation.qaRepairAttemptsPerRun
+  const summary = {
+    process: request.process, strategyVersionId: request.strategyVersionId, tovVersionId: request.tovVersionId,
+    briefVersionId: brief.versionId, pairQaTaskRunId: accepted.qaTaskRunId,
+    acceptanceSubmissionIds: [accepted.acceptances.strategy!.source.submissionId, accepted.acceptances.tov!.source.submissionId],
+    limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: planningQaRepairAttempts, topics: topicCount },
+    steps: ['6.2', '6.3'],
+  }
+  const claim = await claimPlanningExecution(em, scope, request, {
+    orderRef, brand: order.brand, stepId: '6.1', attempt: 1, runner: 'system', models: opts.models,
+    inputVersions: [pin(orderInput), ...Object.values(planningInputs).map(pin)],
+  }, summary)
+  if ('existing' in claim) return claim.existing
+  const taskRunIds = [claim.activationTaskRunId]
+  const documentVersionIds: string[] = []
+  const agentRunIds = opts.agentRunIds ?? []
+  const onEvent = opts.onEvent ?? (() => {})
+  const ledger = createLedger({ maxPln: request.maxCostPln, onEvent })
+  const activation = await findOneWithDecryption(em, AgencyResearchTaskRun, { ...where, id: claim.activationTaskRunId, stepId: '6.1' }, undefined, scope)
+  if (!activation) throw new Error('[internal] planning activation record is missing')
+  const persist = async (outcome: PlanningExecutionOutcome) => {
+    await finishTaskRun(em, activation, { status: outcome.status === 'completed' ? 'done' : 'paused_budget',
+      summary: { ...summary, executionResult: outcome }, agentRunIds, cost: ledger.snapshot() })
+    return outcome
+  }
+  const ctx: StepContext = {
+    em, scope, orderRef, order, orderVersion: pin(orderInput), runAgent: opts.runAgent, runner: opts.runner,
+    models: opts.models, ledger, cache: opts.cache, onEvent, log: opts.log ?? (() => {}), agentRunIds, taskRunIds, documentVersionIds,
+    fetchPage: async () => { throw new Error('[internal] planning execution cannot fetch research sources') },
+    repairFindings: [], attempt: 1, planningInputs, planningOutputs, planningQaRepairAttempts,
+  }
+  const result = (status: 'completed' | 'paused_budget'): PlanningExecutionOutcome => ({
+    status, orderRef, strategyVersionId: strategy.versionId, tovVersionId: tov.versionId,
+    taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total,
+    planVersionId: planningOutputs.plan?.versionId ?? null, qaTaskRunId: null, qaVerdict: null, readyForApproval: false,
+  })
+  try {
+    await runPlanStep(ctx)
+    const qa = await runPlanQaLoop(ctx, { planStep: runPlanStep })
+    return await persist({ ...result('completed'), planVersionId: qa.planVersionId, qaTaskRunId: qa.taskRunId,
+      qaVerdict: qa.verdict, readyForApproval: qa.readyForApproval })
+  } catch (error) {
+    getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.planning_execution_failed' })
+    if (error instanceof BudgetPausedError) return persist(result('paused_budget'))
+    await finishTaskRun(em, activation, { status: 'failed', summary, agentRunIds, cost: ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })
+    throw error
+  }
+}

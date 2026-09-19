@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
+import { readdir } from 'node:fs/promises'
+import path from 'node:path'
 import { buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot } from '../agency-spec-progress.mjs'
 
 const story = (id, domain = 'domain') => ({ path: `.specs/user-stories/${domain}/${id}.md`, text: `# ${id}` })
@@ -73,6 +75,23 @@ test('repository discovery is script-relative and reads the actual inventory wit
   assert.ok(report.totals.stories > 0)
   assert.ok(report.tasks.length > 0)
   assert.ok(report.stories.every((item) => item.source.startsWith('.specs/user-stories/')))
+  const taskFiles = await readdir(path.join(defaultAppRoot, '.tasks'), { recursive: true })
+  assert.deepEqual(report.tasks.map((item) => item.source).sort(), taskFiles
+    .filter((filename) => /^[A-Z]+-?\d+(?:-|\.).*\.md$/.test(path.basename(filename)))
+    .map((filename) => `.tasks/${filename.replaceAll('\\', '/')}`).sort())
+})
+
+test('archived done tasks retain feature/story counts and evidence provenance', () => {
+  const done = task('T01', 'State: done (bounded)\nSources: F42-1\nVerified stories: F42-1\nVerification evidence: abc123de')
+  const inputs = { storyFiles: [story('F42-1')], taskFiles: [done, task('T02', 'State: active\nSources: F42-1')], adrFiles: [] }
+  const before = buildReport(inputs)
+  const archivedPath = '.tasks/tasks-done/T01-task.md'
+  const after = buildReport({ ...inputs, taskFiles: [{ ...done, path: archivedPath }, inputs.taskFiles[1]] })
+  assert.deepEqual(after.totals, before.totals)
+  assert.deepEqual(after.scopes, before.scopes)
+  assert.equal(after.tasks.find((item) => item.id === 'T01').source, archivedPath)
+  assert.equal(after.stories[0].verificationClaims[0].source, archivedPath)
+  assert.deepEqual(selectHierarchy(after, { feature: 'F42' }).linkedTasks.map((item) => item.id), ['T01', 'T02'])
 })
 
 test('teammate task prefixes are included when present in the checkout', () => {

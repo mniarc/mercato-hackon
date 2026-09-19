@@ -228,7 +228,7 @@ export function formatReport(report) {
     'Documentation-derived; not product-completion %.',
     `Spec taxonomy: ${report.domains.length} source domains / ${total.features} features / ${total.stories} child stories.`,
     `Story mapping: ${total.mapped}/${total.stories} (${total.mappedPercent ?? 'n/a'}%); task-linked: ${total.taskLinked}/${total.stories}.`,
-    `Done tasks: ${total.doneTasks}/${total.tasks} (${total.doneTasksPercent ?? 'n/a'}% of recorded tasks, including bounded/scaffold work).`,
+    `Done tasks: ${total.doneTasks}/${total.tasks} (${total.doneTasksPercent ?? 'n/a'}% of recorded tasks, including tasks-done archive and bounded/scaffold work).`,
     `Full-story verified claims: ${total.documentedVerified}; unassessed: ${total.unassessed}. Claims are not live-audited.`,
     `Task-level delivery evidence: ${total.storiesWithDoneTaskEvidence}/${total.stories} stories across ${total.featuresWithDoneTaskEvidence}/${total.features} features have a linked done task; not full-story completion.`,
     `Scope: ${report.scopes.settled.stories} settled stories; ${report.scopes.proposal.stories} proposal stories (F34-F39).`,

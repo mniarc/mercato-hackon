@@ -8,11 +8,12 @@ Sources: all 102 stories in [user-stories](../../.specs/user-stories).
 Keep replaceable judgment workers under
 `ai-company/apps/mercato/src/modules/agency_operations/agents/<role>/`, with
 `contract.ts`, `prompt.ts`, and `definition.ts` together. Author native
-`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The five agency-owned role
-folders below are side-effect-free, disabled scaffolds: importing them must not
-call `defineAgent` or register anything. The root `ai-agents.ts` is the sole native
-registration point. It is empty by default; `OM_AGENCY_TRIAGE_ENABLED=true`
-registers only client triage through native `defineAgent`. Other role definitions
+`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The five agency-owned
+role definitions are side-effect-free: importing them must not call `defineAgent`
+or register anything. The module's `ai-agents.ts` is the sole native registration
+point. It is empty by default; explicit `OM_AGENCY_TRIAGE_MODE=fixture|live`
+readiness registers the implemented client-triage worker through native `defineAgent`.
+The legacy enabled flag remains fixture-only. The other four role definitions
 remain inactive until their owning slice wires authorized inputs, persistence,
 bounds, and effects. Activation alone is neither runtime proof nor approval to spend.
 
@@ -57,12 +58,12 @@ fetch websites or read attachments.
 | --- | --- | --- |
 | `sales-advisor` | F01-2 | Approved offer + question → grounded explanation or clarification; purchase action remains deterministic. |
 | Source research — `agency_research` | F06-2, F06-3; F11-1 supplementary handoff | Step 3.2: `page_extractor`, `proof_builder`, `content_seeder`, `conflict_finder`, `coverage_assessor` → persisted source register. |
-| Brand audit — `agency_research` | F07-1; F11-1 supplementary handoff | Step 3.3: `audit_mapper`, `audit_voice_and_gaps` → communication audit. |
-| Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card_extractor`, `competitor_synthesizer` → competitor comparison. |
+| Brand audit — `agency_research` | F07-1; F11-1 supplementary handoff | Step 3.3: `audit_mapper`, `audit_voice`, `audit_gaps_assets` → communication audit. |
+| Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card`, `competitor_channels`, `competitor_synthesizer` → competitor comparison. |
 | Findings and research QA — `agency_research` | F08-1, F08-2, F08-3 | Steps 3.6–3.8: `field_mapper`, `question_writer`, `readiness_assessor`, `research_qa` → findings, QA and code-owned frozen package. |
-| Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: `brief_writer`, `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
-| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: `strategy_writer`, `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |
-| Content plan and QA — `agency_research` | F26-2, F27-1 | Steps 6.2–6.3: `plan_writer`, `plan_qa` → versioned plan and QA; selection/post instruction are code-owned steps, not another agent. |
+| Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: section workers `brief_writer.offer_audience_direction`, `brief_writer.promise_voice`, `brief_writer.channel_success_assets`, then `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
+| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |
+| Content plan and QA — `agency_research` | F26-2, F27-1 | Steps 6.2–6.3: `plan_writer.topics`, `plan_writer.balance_recommendation`, `plan_qa` → versioned plan and QA; selection/post instruction are code-owned steps, not another agent. |
 | Post writing/editing — `agency_research` | F30-2, F31-1, F31-2 | Steps 7.2–7.3: `post_author`, `post_editor` → versioned draft and editorial QA; targeted research, customer changes and exceptions still need their real handoffs. |
 | Package checks — `agency_research` code | F38-1, F38-2 | `research/steps/package.ts` + `research/packaging.ts` assemble existing outputs, project verified takeaways and check completeness/closure; no generic agency QA worker or new customer package approval. |
 | `client-triage` | F42-1, F42-2 | Original submission + scoped context → intents/mixed parts, rationale, and uncertainty; authorized routing is separate. |
@@ -81,7 +82,10 @@ Teammate `agency_research` owns source research, audit, competitor comparison,
 findings/QA, brief drafting/QA, strategy/ToV, planning and post production/QA.
 Its publication documents and package checks are deterministic code, not agents.
 Agent names in its rows above carry the `agency_research.` prefix and are
-registered by that module's `ai-agents.ts`.
+registered by that module's `ai-agents.ts` from `lib/agents/`. See the teammate's
+[workflow reference](../../ai-company/apps/mercato/src/modules/agency_research/WORKFLOW.md)
+for the detailed agent inventory and production chain; definitions remain the
+authority for exact identifiers.
 The overlapping agency research and production role folders are removed, not
 aliased or copied; only sales explanation, client triage, scope assessment, change
 impact and client communication remain in the agency definition catalog.

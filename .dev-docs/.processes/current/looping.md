@@ -41,6 +41,8 @@ be swapped; do not build speculative layering.
 ## Loop
 
 1. **Observe** — choose one user-visible outcome and identify the next real seam.
+   About every 30 minutes of active work, check teammate updates through the
+   integration process; their implementations replace overlapping scaffolds.
 2. **Search** — perform the reuse-first check above and record relevant paths in
    the active task handoff.
 3. **Register** — create only the next small replayable tasks in `App/.tasks`.
@@ -68,6 +70,43 @@ small shared contracts first and serialize only real dependencies. A blocked
 handoff must not stop unrelated ready delivery. Prefer finishing and integrating
 usable work over opening more scaffolds. A goal names an observable product
 outcome and its stopping condition, not a task-count or documentation target.
+
+## Unattended integration watch
+
+Current requested window: 2026-09-19 02:56–08:56 UTC (04:56–10:56 Warsaw).
+Keep the broader delivery goal active; this window is not a promise to finish
+every story or a reason to manufacture more work.
+
+- Prioritize a pull-and-run app using teammate research/ToV/frontend: intake,
+  saved outputs, exact client review, authorized continuation, employee exceptions.
+  Finish the current connected slice before starting another production scaffold.
+- Every 30 minutes fetch known teammate branches and `origin/main`. Merge actual
+  new work at a coherent boundary, preserving ancestry and teammate behavior.
+  Unchanged refs mean no merge, review, generation or test rerun.
+- Coordinator owns Git, shared contracts, registration and runtime. Use two to
+  four direct implementation agents on disjoint missing handoffs when useful,
+  one separate canonical-demo agent, and a task/spec agent only when a concrete
+  queue/mapping gap exists. Keep spare slots for observed defects; do not fill
+  slots with duplicate reviews. No PowerShell fanouts during integration.
+- Review each handoff once. Run focused checks for the changed seam, then one
+  headed canonical journey when integration affects that journey. Preserve the
+  named database. Freeze runtime-affecting edits during that demo; do not run
+  competing builds/generators. Do not rerun a failing journey without a relevant
+  fix or a specific new diagnostic hypothesis. Reuse passing checks until their
+  relevant code/configuration changes.
+- Commit and push coherent verified features to `origin/main`; the user explicitly
+  authorized milestone pushes for this window. Keep task Markdown out of staging.
+  Make no paid model calls during the window: prepare live execution only, with
+  activation disabled. Fixture proof is not live model proof.
+- Keep active tasks concise and move only genuinely done tasks to `tasks-done/`.
+  Update existing milestone ADRs only for actual decisions; no periodic reports,
+  inventories, invented requirements or speculative agent frameworks.
+- When ready work is exhausted, wait for the next scheduled branch check rather
+  than refactor or retest unchanged work. Monitor existing live handles instead
+  of restarting on observation timeouts. A quiet teammate branch is not a blocker.
+- At the end of the window, hand off integrated tips, commits, working journeys,
+  pending runtime/live proofs and concrete blockers. Do not mark the entire
+  product goal complete merely because the six-hour window ended.
 
 ## First-slice reference
 
