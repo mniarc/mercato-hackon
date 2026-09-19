@@ -79,6 +79,7 @@ OM_AGENCY_RESEARCH_MAX_COST_PLN=20
 OM_AGENCY_RESEARCH_MODEL_EXTRACT=openrouter/anthropic/claude-haiku-4.5      # optional overrides
 OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5
 OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
+OM_AGENT_RUN_TIMEOUT_MS=600000                   # orchestrator wall clock per agent run (default 300000); a synthesis over a full register can take longer
 ```
 
 `OM_ENABLE_ENTERPRISE_MODULES=true` and `OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true` gate the

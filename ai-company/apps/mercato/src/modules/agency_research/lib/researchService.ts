@@ -14,7 +14,7 @@ import { firstContactQuestions } from './research/render/brief'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
-import { runCompetitorsStep } from './research/steps/competitors'
+import { runComparisonStep, runCompetitorsStep } from './research/steps/competitors'
 import type { StepContext, StepOutcome } from './research/steps/context'
 import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
@@ -200,7 +200,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
       step: '3.8',
       run: async (c) => {
         await runFindingsStep(c)
-        const qa = await runQaLoop(c, { authorSteps: { '3.2': runSourcesStepDb, '3.3': runAuditStep, '3.4': runCompetitorsStep, '3.5': runCompetitorsStep, '3.6': runFindingsStep } })
+        const qa = await runQaLoop(c, { authorSteps: { '3.2': runSourcesStepDb, '3.3': runAuditStep, '3.4': runCompetitorsStep, '3.5': runComparisonStep, '3.6': runFindingsStep } })
         qaVerdict = qa.verdict
         escalationVersionId = qa.escalationVersionId
         if (qa.verdict !== 'ready') return null

@@ -15,7 +15,7 @@ import type { SearchHit, SearchWeb } from '../firecrawl'
 import { gatePageExtraction, unresolvedCitations, type GateIssue } from '../gate'
 import { canonicalUrl, groupMaterials, resolveId, sourceId } from '../ids'
 import { BudgetPausedError } from '../ledger'
-import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type Ledger, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
+import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type Ledger, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner, type StepFn } from '../pipeline'
 import { renderKonkurencja, renderKonkurencjaClientView } from '../render/konkurencja'
 import { renderZrodla } from '../render/zrodla'
 import { mapWithConcurrency, quoteOffset } from '../util'
@@ -122,6 +122,9 @@ export function gateCandidates(data: Candidates, hits: SearchHit[], max: number)
 }
 
 type Synthesis = ReturnType<typeof competitorSynthesizerResult.parse>['data']
+
+/** Alternates the selector ranks beyond the cap, read only when a chosen company turns out unreadable. */
+const COMPETITOR_ALTERNATES = 2
 
 /** Parity needs two companies that exist; a differentiator never claims more than its proof; implications 3–5. */
 export function gateSynthesis(data: Synthesis, known: Set<string>, companies: string[], proofTypes: Map<string, string>): { value: Synthesis; issues: GateIssue[]; kept: number; dropped: number } {
@@ -239,14 +242,13 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
           offer_map: opts.audyt.offer_map.map((o) => ({ service: o.service, described_audience: o.described_audience, problem: o.problem })),
           buyer_map: opts.audyt.buyer_map.map((b) => ({ status: b.status, job: b.job, purchase_moment: b.purchase_moment })),
           search_hits: vetted,
-          maxCompetitors: limits.research.competitorEntitiesMax,
+          maxCompetitors: limits.research.competitorEntitiesMax + COMPETITOR_ALTERNATES,
         },
         parse: (raw) => competitorSelectorResult.parse(raw).data,
-        gate: (data) => gateCandidates(data, vetted, limits.research.competitorEntitiesMax),
+        gate: (data) => gateCandidates(data, vetted, limits.research.competitorEntitiesMax + COMPETITOR_ALTERNATES),
       })
     : { value: { candidates: [], excluded: [] }, issues: [] as GateIssue[], cached: false }
   issues.push(...selection.issues)
-  stats.competitors = selection.value.candidates.length
 
   // 3.4b — pages of each competitor through the same extractor; appended to the register.
   const retrievedAt = now().toISOString()
@@ -258,7 +260,11 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
   let sourceIndex = opts.zrodla.sources.length
   let factIndex = opts.zrodla.facts.filter((f) => f.fact_id.startsWith('C')).length
   let sampleIndex = opts.zrodla.language_samples.length
+  // Read candidates in the selector's order until STD-LIMITY companies have yielded a grounded fact;
+  // a company whose pages cannot be read is excluded and the next alternate takes its place.
+  const accepted: Candidates['candidates'] = []
   for (const candidate of selection.value.candidates) {
+    if (accepted.length >= limits.research.competitorEntitiesMax) break
     const pages = await fetchCompetitorPages(candidate.url, opts.fetchPage, (m) => log(`${candidate.company}: ${m}`))
     const collected: CollectedSource[] = pages.map((page) => {
       const text = page.markdown ? stripBoilerplate(page.markdown) : null
@@ -334,12 +340,17 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
         })
       }
     }
+    if (companyFacts.length === 0) {
+      issues.push({ code: 'COMPETITOR_UNREAD', severity: 'limitation', detail: `${candidate.company}: no readable page yielded a grounded fact; replaced by the next candidate`, path: `selection.${candidate.company}` })
+      continue
+    }
     factsByCompany.set(candidate.company, companyFacts)
     samplesByCompany.set(candidate.company, companySamples)
     newFacts.push(...companyFacts)
     newSamples.push(...companySamples)
-    if (companyFacts.length === 0) issues.push({ code: 'COMPETITOR_UNREAD', severity: 'limitation', detail: `${candidate.company}: no readable page yielded a grounded fact; its card is unknown throughout`, path: `cards.${candidate.company}` })
+    accepted.push(candidate)
   }
+  stats.competitors = accepted.length
 
   const zrodlaV2: ZrodlaData = zrodlaDataSchema.parse({
     ...opts.zrodla,
@@ -373,7 +384,7 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
   // 3.4c — one card per company.
   const cards: KonkurencjaData['cards'] = []
   const channels: KonkurencjaData['channels'] = []
-  for (const candidate of selection.value.candidates) {
+  for (const candidate of accepted) {
     const facts = factsByCompany.get(candidate.company) ?? []
     const samples = samplesByCompany.get(candidate.company) ?? []
     const companyIds = new Set([...facts.map((f) => f.fact_id), ...samples.map((s) => s.sample_id), ...appendedSources.filter((s) => s.publisher === candidate.company).map((s) => s.source_id)])
@@ -440,7 +451,7 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
     })
   }
   const v1: KonkurencjaData = konkurencjaDataSchema.parse({
-    selection: selection.value.candidates.map((c) => ({ ...c, fact_ids: (factsByCompany.get(c.company) ?? []).slice(0, 3).map((f) => f.fact_id) })),
+    selection: accepted.map((c) => ({ ...c, fact_ids: (factsByCompany.get(c.company) ?? []).slice(0, 3).map((f) => f.fact_id) })),
     cards,
     parity_claims: [],
     alternative_routes: [],
@@ -450,7 +461,31 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
   })
 
   // 3.5 — the comparison on common criteria.
-  const proofTypes = new Map(opts.zrodla.proof_cards.map((p) => [p.proof_id, p.proof_type]))
+  const comparison = await synthesizeComparison({ step, order: opts.order, zrodla: zrodlaV2, audyt: opts.audyt, v1, known, repairFindings: opts.repairFindings ?? [] })
+  const data = comparison.data
+  issues.push(...comparison.issues)
+  return { v1, data, zrodlaV2, appended: { sources: appendedSources, facts: newFacts.length, samples: newSamples.length }, issues, clientView: comparison.clientView, stats }
+}
+
+export type ComparisonArgs = {
+  step: StepFn
+  order: OrderFacts
+  /** The register WITH the competitor material (WEW-ZRODLA v2). */
+  zrodla: ZrodlaData
+  audyt: Pick<AudytData, 'offer_map' | 'buyer_map' | 'message_map'>
+  /** WEW-KONKURENCJA v1: selection, cards, channels. */
+  v1: KonkurencjaData
+  known: Set<string>
+  repairFindings: unknown[]
+}
+
+/** 3.5 alone: the comparison over existing cards. A repair of 3.5 re-runs only this, never the search and the pages. */
+export async function synthesizeComparison(args: ComparisonArgs): Promise<{ data: KonkurencjaData; issues: DocumentIssue[]; clientView: string }> {
+  const { step, order, zrodla, audyt, v1, known } = args
+  const lang = order.outputLanguage
+  const issues: DocumentIssue[] = []
+  const orderCtx = { brand: order.brand, market: order.market, language: order.language, websiteUrl: order.websiteUrl, purchaseGoal: order.purchaseGoal }
+  const proofTypes = new Map(zrodla.proof_cards.map((p) => [p.proof_id, p.proof_type]))
   const synthesis = await step<Synthesis>({
     step: '3.5',
     agentId: RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID,
@@ -459,17 +494,17 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
       order: orderCtx,
       outputLanguage: lang,
       client: {
-        offer_map: opts.audyt.offer_map.map((o) => ({ service: o.service, problem: o.problem, mechanism: o.mechanism, fact_ids: o.fact_ids })),
-        buyer_map: opts.audyt.buyer_map.map((b) => ({ scenario_id: b.scenario_id, status: b.status, job: b.job, objections: b.objections })),
-        message_map: opts.audyt.message_map.map((m) => ({ message: m.message, benefit: m.benefit, mechanism: m.mechanism, proof_ids: m.proof_ids, fact_ids: m.fact_ids })),
-        proof_cards: opts.zrodla.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, artifact_or_method: p.artifact_or_method, observed_result: p.observed_result })),
+        offer_map: audyt.offer_map.map((o) => ({ service: o.service, problem: o.problem, mechanism: o.mechanism, fact_ids: o.fact_ids })),
+        buyer_map: audyt.buyer_map.map((b) => ({ scenario_id: b.scenario_id, status: b.status, job: b.job, objections: b.objections })),
+        message_map: audyt.message_map.map((m) => ({ message: m.message, benefit: m.benefit, mechanism: m.mechanism, proof_ids: m.proof_ids, fact_ids: m.fact_ids })),
+        proof_cards: zrodla.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, artifact_or_method: p.artifact_or_method, observed_result: p.observed_result })),
       },
       selection: v1.selection.map((s) => ({ company: s.company, competition_type: s.competition_type, shared_problem_scope: s.shared_problem_scope })),
       cards: v1.cards,
-      repair_findings: opts.repairFindings ?? [],
+      repair_findings: args.repairFindings,
     },
     parse: (raw) => competitorSynthesizerResult.parse(raw).data,
-    gate: (data) => gateSynthesis(data, known, [opts.order.brand, ...v1.selection.map((s) => s.company)], proofTypes),
+    gate: (data) => gateSynthesis(data, known, [order.brand, ...v1.selection.map((s) => s.company)], proofTypes),
   })
   issues.push(...synthesis.issues)
   const data: KonkurencjaData = konkurencjaDataSchema.parse({ ...v1, ...synthesis.value, implications: synthesis.value.implications })
@@ -477,9 +512,61 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
   for (const request of synthesis.value.return_requests) {
     issues.push({ code: 'RETURN_REQUEST', severity: 'research', detail: `→ ${request.target_step}: ${request.question} (${request.source_to_check})`, path: 'return_requests' })
   }
-  const view = checkClientView('WZR-KONKURENCJA', renderKonkurencjaClientView({ brand: opts.order.brand, data, language: lang }))
+  const view = checkClientView('WZR-KONKURENCJA', renderKonkurencjaClientView({ brand: order.brand, data, language: lang }))
   if (view.issue) issues.push(view.issue)
-  return { v1, data, zrodlaV2, appended: { sources: appendedSources, facts: newFacts.length, samples: newSamples.length }, issues, clientView: view.markdown, stats }
+  return { data, issues, clientView: view.markdown }
+}
+
+/**
+ * 3.5 as its own step over the stored documents: the current WEW-KONKURENCJA
+ * (its selection, cards and channels stay) and WEW-ZRODLA (with the competitor
+ * material) feed one comparison call; the result is a new WEW-KONKURENCJA
+ * version. This is what a QA repair addressed to 3.5 re-runs — not the search,
+ * not the pages, not the cards.
+ */
+export async function runComparisonStep(ctx: StepContext): Promise<StepOutcome> {
+  const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
+  const audyt = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-AUDYT')
+  const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
+  if (!zrodla || !audyt || !previous) throw new Error('[internal] 3.5 needs stored WEW-ZRODLA, WEW-AUDYT and WEW-KONKURENCJA versions — run 3.4 first')
+  const inputVersions = [ctx.orderVersion, { document_id: zrodla.document_id, version: zrodla.version, status: zrodla.status }, { document_id: audyt.document_id, version: audyt.version, status: audyt.status }, { document_id: previous.document_id, version: previous.version, status: previous.status }]
+  const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '3.5', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
+  ctx.taskRunIds.push(run.id)
+  try {
+    const stats = { agentCalls: 0, cachedSteps: 0, dropped: 0, rejected: 0 }
+    const step = createStepRunner({
+      runAgent: ctx.runAgent,
+      ledger: ctx.ledger,
+      models: ctx.models,
+      cache: ctx.cache,
+      groundingRetries: limits.generation.groundingRetries,
+      onEvent: ctx.onEvent,
+      timeouts: { extract: DEFAULT_EXTRACT_TIMEOUT_MS, synthesis: DEFAULT_SYNTHESIS_TIMEOUT_MS, qa: DEFAULT_EXTRACT_TIMEOUT_MS },
+      stats,
+    })
+    const register = zrodlaDataSchema.parse(zrodla.data)
+    const v1 = konkurencjaDataSchema.parse(previous.data)
+    const result = await synthesizeComparison({ step, order: ctx.order, zrodla: register, audyt: audyt.data as AudytData, v1, known: registerIds(register), repairFindings: ctx.repairFindings })
+    const label = Number(previous.version.split('.')[0]) + 1
+    const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
+      orderRef: ctx.orderRef,
+      brand: ctx.order.brand,
+      templateId: 'WZR-KONKURENCJA',
+      status: 'ready_for_review',
+      inputVersions,
+      data: result.data as unknown as Record<string, unknown>,
+      issues: result.issues,
+      renderedMd: renderKonkurencja({ brand: ctx.order.brand, data: result.data, issues: result.issues, versionLabel: String(label) }),
+      clientViewMd: result.clientView,
+      taskRunId: run.id,
+    })
+    ctx.documentVersionIds.push(saved.version.id)
+    await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats, comparisonOnly: true }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
+    return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
+  } catch (error) {
+    await finishTaskRun(ctx.em, run, { status: error instanceof BudgetPausedError ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })
+    throw error
+  }
 }
 
 /** DB wrapper for 3.4 + 3.5: two task runs, WEW-KONKURENCJA v1 and v2, WEW-ZRODLA v2 with the competitor material. */
