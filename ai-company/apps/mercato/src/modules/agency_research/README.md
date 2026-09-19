@@ -76,8 +76,9 @@ OPENROUTER_API_KEY=…                     # the models, through the orchestrato
 OM_AGENT_MODEL_PRICING={"anthropic/claude-haiku-4.5":{"inputPer1M":1,"outputPer1M":5},"anthropic/claude-sonnet-5":{"inputPer1M":3,"outputPer1M":15}}
 OM_AGENCY_RESEARCH_USD_PLN=3.7
 OM_AGENCY_RESEARCH_MAX_COST_PLN=20
-OM_AGENCY_RESEARCH_MODEL_EXTRACT=openrouter/anthropic/claude-haiku-4.5      # optional overrides
-OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5
+OM_AGENCY_RESEARCH_MODEL_EXTRACT=openrouter/anthropic/claude-haiku-4.5      # SET THESE: since main merged the shared default, an unset tier falls back to the team OM_AI_MODEL (gpt-5-mini),
+OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5     # which is unpriced for the ledger (estimate 0) and changes every cache key
+OM_AGENCY_RESEARCH_MODEL_QA=openrouter/anthropic/claude-haiku-4.5
 OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
 OM_AGENT_RUN_TIMEOUT_MS=600000                   # orchestrator wall clock per agent run (default 300000); a synthesis over a full register can take longer
 ```
