@@ -183,6 +183,9 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
         use_scope: fact.use_scope,
         // A fact from a dated post carries the channel's staleness: the brief must not read it as the current offer.
         limitation: page.source.limitation?.startsWith('dated post') ? [fact.limitation, page.source.limitation].filter(Boolean).join('; ') : fact.limitation,
+        ...(fact.subject_entity !== undefined ? { subject_entity: fact.subject_entity } : {}),
+        ...(fact.subject_type ? { subject_type: fact.subject_type } : {}),
+        ...(fact.offer_role ? { offer_role: fact.offer_role } : {}),
       })
     }
     for (const sample of value.language_samples) {

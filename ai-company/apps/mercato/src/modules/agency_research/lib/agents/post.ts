@@ -5,6 +5,7 @@ import { postAuthorResult, postEditorResult } from '../../data/agents/post'
 import { RESEARCH_POST_AUTHOR_AGENT_ID, RESEARCH_POST_EDITOR_AGENT_ID } from './ids.post'
 import { DESLOP_DETECT_FOR_EDITOR, DESLOP_PATTERNS, DESLOP_PROSE_RULES, DESLOP_SOCIAL_FORMAT, DESLOP_WORDS, DESLOP_WRITE_UNDER_PROFILE } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // P7 — post author (7.2) and the independent editor (7.3, Q-T). The author is
 // ISOLATED: its whole world is the post instruction (WEW-ZLECENIE-POSTU) and the
@@ -78,7 +79,7 @@ export const postAgents: AiAgentDefinition[] = [
     label: 'Post author',
     description: 'Writes one post from the isolated post instruction and the tone of voice with deslop as the hygiene layer; every checkable fragment is mapped to its evidence card.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [AUTHOR_RULES, DESLOP_WRITE_UNDER_PROFILE, DESLOP_PROSE_RULES, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['text', 'claims_map', 'links_and_mentions', 'client_note'])].join(' '),
+    instructions: promptFor(RESEARCH_POST_AUTHOR_AGENT_ID, [AUTHOR_RULES, DESLOP_WRITE_UNDER_PROFILE, DESLOP_PROSE_RULES, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['text', 'claims_map', 'links_and_mentions', 'client_note'])]),
     result: { kind: 'research', schema: postAuthorResult },
   }),
 
@@ -89,7 +90,7 @@ export const postAgents: AiAgentDefinition[] = [
     label: 'Post editor (Q-T)',
     description: 'Independent editorial and factual review of one post version against its instruction, the tone of voice and the channel constraints; runs deslop in detect mode.',
     defaultModel: MODEL_QA,
-    instructions: [EDITOR_RULES, DESLOP_DETECT_FOR_EDITOR, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['qa'])].join(' '),
+    instructions: promptFor(RESEARCH_POST_EDITOR_AGENT_ID, [EDITOR_RULES, DESLOP_DETECT_FOR_EDITOR, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['qa'])]),
     result: { kind: 'research', schema: postEditorResult },
   }),
 ]

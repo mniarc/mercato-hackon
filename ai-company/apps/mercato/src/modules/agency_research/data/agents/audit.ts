@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { onboardingContextSchema } from './onboarding'
 import { businessProfileSchema, factKinds } from '../schemas/zrodla'
 import { evidenceStatuses, gapPriorities, offerMapItemSchema, messageMapItemSchema, journeyItemSchema, relationshipItemSchema, reusableAssetSchema, voiceAuditSchema } from '../schemas/audyt'
 
@@ -14,6 +15,7 @@ const orderContext = z.object({ brand: z.string(), market: z.string(), language:
 
 /** The register as the audit agents see it: everything by id, short text only. */
 export const auditRegisterSchema = z.object({
+  onboarding_context: onboardingContextSchema.nullable().optional(),
   order: orderContext,
   outputLanguage: z.enum(['pl', 'en']),
   business_profile: businessProfileSchema,

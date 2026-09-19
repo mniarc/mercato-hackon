@@ -64,6 +64,10 @@ export const factSchema = z.object({
   kind: z.enum(factKinds),
   use_scope: z.array(z.string().min(1)),
   limitation: z.string().nullable(),
+  /** Prompt v2 (3.2): the subject the claim is about and the role of the described thing in the offer; absent on facts extracted before v2. */
+  subject_entity: z.string().nullable().optional(),
+  subject_type: z.enum(['brand', 'person', 'related_organization', 'competitor', 'unknown']).optional(),
+  offer_role: z.enum(['commercial_offer', 'internal_tool', 'project', 'beneficiary', 'not_applicable', 'unknown']).optional(),
 })
 export type Fact = z.infer<typeof factSchema>
 

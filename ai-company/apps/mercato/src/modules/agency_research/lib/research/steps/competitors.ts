@@ -1,4 +1,5 @@
 import { competitorCardResult, competitorChannelsResult, competitorSelectorResult, competitorSynthesizerResult } from '../../../data/agents/competitors'
+import type { OnboardingContext } from '../../../data/agents/onboarding'
 import type { AudytData } from '../../../data/schemas/audyt'
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import { konkurencjaDataSchema, type KonkurencjaData } from '../../../data/schemas/konkurencja'
@@ -33,6 +34,7 @@ import type { StepContext, StepOutcome } from './context'
 
 export type CompetitorsPipelineOptions = {
   order: OrderFacts
+  onboardingContext?: OnboardingContext | null
   zrodla: ZrodlaData
   audyt: Pick<AudytData, 'offer_map' | 'buyer_map' | 'message_map'>
   businessProfile: BusinessProfile
@@ -245,6 +247,7 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
         input: {
           order: orderCtx,
           outputLanguage: lang,
+          onboarding_context: opts.onboardingContext ?? null,
           business_profile: opts.businessProfile,
           offer_map: opts.audyt.offer_map.map((o) => ({ service: o.service, described_audience: o.described_audience, problem: o.problem })),
           buyer_map: opts.audyt.buyer_map.map((b) => ({ status: b.status, job: b.job, purchase_moment: b.purchase_moment })),
@@ -603,6 +606,7 @@ export async function runCompetitorsStep(ctx: StepContext): Promise<StepOutcome>
   try {
     const result = await runCompetitorsPipeline({
       order: ctx.order,
+      onboardingContext: ctx.onboardingContext ?? null,
       zrodla: zrodla.data as ZrodlaData,
       audyt: audyt.data as AudytData,
       businessProfile: summary.businessProfile,

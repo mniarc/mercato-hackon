@@ -1,3 +1,4 @@
+import type { OnboardingContext } from '../../../data/agents/onboarding'
 import type { z } from 'zod'
 import { contractFor, mustKeysOf } from '../../../data/contracts'
 import type { AudytData } from '../../../data/schemas/audyt'
@@ -42,6 +43,7 @@ import type { StepContext, StepOutcome } from './context'
 
 export type FindingsPipelineOptions = {
   order: OrderFacts
+  onboardingContext?: OnboardingContext | null
   outputLanguage: OutputLanguage
   zrodla: ZrodlaData
   audyt: AudytData
@@ -269,7 +271,7 @@ export async function runFindingsPipeline(opts: FindingsPipelineOptions): Promis
     step: '3.6',
     agentId: RESEARCH_FIELD_MAPPER_AGENT_ID,
     label: 'field_map',
-    input: { ...bank, seeded_rows: seeded, repair_findings: repair } satisfies FieldMapperInput,
+    input: { ...bank, seeded_rows: seeded, repair_findings: repair, onboarding_context: opts.onboardingContext ?? null } satisfies FieldMapperInput,
     parse: (raw) => fieldMapperResult.parse(raw).data,
     gate: (data) => {
       const gated = gateFieldMap(data.field_map, knownIds, seeded)
@@ -302,6 +304,7 @@ export async function runFindingsPipeline(opts: FindingsPipelineOptions): Promis
       reusable_assets: bank.audit.reusable_assets.map((r) => ({ asset: r.asset, proof_ids: r.proof_ids, seed_ids: r.seed_ids })),
       proof_cards: bank.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, observed_result: p.observed_result })),
       already_known: alreadyKnown,
+      onboarding_context: opts.onboardingContext ?? null,
       question_batch_max: limits.clientText.questionBatchMax,
       repair_findings: repair,
     } satisfies QuestionWriterInput,
@@ -365,6 +368,7 @@ export async function runFindingsStep(ctx: StepContext): Promise<StepOutcome> {
   try {
     const result = await runFindingsPipeline({
       order: ctx.order,
+      onboardingContext: ctx.onboardingContext ?? null,
       outputLanguage: ctx.order.outputLanguage,
       zrodla: zrodla.data as ZrodlaData,
       audyt: audyt.data as AudytData,

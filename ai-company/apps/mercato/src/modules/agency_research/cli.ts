@@ -11,6 +11,7 @@ import { limits } from './data/templates'
 import { createDirectRunner } from './lib/directRunner'
 import { defaultModels, profileScraperFrom, runResearch } from './lib/researchService'
 import type { KnownPerson } from './lib/research/steps/people'
+import { onboardingContextSchema } from './data/agents/onboarding'
 import type { FetchPage, SocialPost } from './lib/research/fetch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './lib/research/firecrawl'
 import { fileFetcher, fileSearch } from './lib/research/fixtureSources'
@@ -108,7 +109,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
  *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
- *     [--people "Name, role, https://…; Name2"] \
+ *     [--people "Name, role, https://…; Name2"] [--onboarding <answers.json>] \
  *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] [--refetch] \
  *     [--tenant <id> --org <id> --user <id>]
  *
@@ -168,6 +169,7 @@ const run: ModuleCli = {
       socialPosts,
       pages: args.pages ? args.pages.split(',').map((url) => url.trim()).filter(Boolean) : undefined,
       knownPeople: args.people ? parsePeople(args.people) : undefined,
+      onboardingContext: args.onboarding ? onboardingContextSchema.parse(JSON.parse(fs.readFileSync(args.onboarding, 'utf8'))) : null,
       scrapeProfilePosts: runnerName === 'fixture' ? undefined : profileScraperFrom(db),
       through,
       selectedTopicId: args.topic ?? null,

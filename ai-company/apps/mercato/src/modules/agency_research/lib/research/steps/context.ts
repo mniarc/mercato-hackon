@@ -1,3 +1,4 @@
+import type { OnboardingContext } from '../../../data/agents/onboarding'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import type { ResearchMaterialSource } from '../../contracts/agencyResearch'
@@ -65,6 +66,8 @@ export type StepContext = {
   materialSources?: ResearchMaterialSource[]
   /** 3.2a — people the client named; the finder adds those the pages name. */
   knownPeople?: KnownPerson[]
+  /** Prompt v2 — onboarding answers (client or explicitly synthetic) for 3.3, 3.4 and 3.6. */
+  onboardingContext?: OnboardingContext | null
   /** 3.2a — reads a person's own posts (Apify through the ToV lane's seam); absent = their channels are only listed. */
   scrapeProfilePosts?: ScrapeProfilePosts
   /** QA findings addressed to this step on a repair pass (3.7 / 4.2 / 5.4 / 6.3 / 7.3 loops), else empty. */

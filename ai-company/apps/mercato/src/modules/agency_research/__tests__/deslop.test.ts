@@ -4,6 +4,7 @@ import { scanSlop, slopValidatorFindings } from '../lib/research/deslop'
 import { DESLOP_DETECT_FOR_EDITOR, DESLOP_PROSE_RULES, DESLOP_WRITE_UNDER_PROFILE } from '../lib/agents/deslop'
 import { postAgents } from '../lib/agents/post'
 import { adapterFor } from '../data/adapters'
+import { promptFor } from '../lib/agents/prompts'
 
 const cannedPost = (JSON.parse(readFileSync(path.join(__dirname, '../__fixtures__/flow/canned/agency_research.post_author.json'), 'utf8')) as Array<{ data: { text: string } }>)[0].data.text
 
@@ -54,12 +55,16 @@ describe('deslop — deterministic half', () => {
 
 describe('deslop — the agents carry the skill', () => {
   it('the author writes under the profile with deslop underneath; the editor runs detect mode', () => {
+    // The v2 prompt pack carries the skill in Polish; the English constants remain the composed fallback.
     const [author, editor] = postAgents
-    expect(author.systemPrompt).toContain(DESLOP_WRITE_UNDER_PROFILE)
-    expect(author.systemPrompt).toContain(DESLOP_PROSE_RULES)
     expect(author.systemPrompt).toContain('style_hygiene')
-    expect(editor.systemPrompt).toContain(DESLOP_DETECT_FOR_EDITOR)
+    expect(author.systemPrompt).toContain('forbidden_upgrade')
+    expect(author.systemPrompt).toContain('used_within_evidence')
+    expect(author.systemPrompt).toMatch(/Profil rozstrzyga styl/)
     expect(editor.systemPrompt).toContain('slop_pattern')
+    const composed = promptFor('agency_research.not_packed', [DESLOP_WRITE_UNDER_PROFILE, DESLOP_PROSE_RULES, DESLOP_DETECT_FOR_EDITOR])
+    expect(composed).toContain(DESLOP_WRITE_UNDER_PROFILE)
+    expect(composed).toContain(DESLOP_DETECT_FOR_EDITOR)
   })
 
   it('keeps the precedence the skill sets: the profile wins on style, rule 4 holds under any profile', () => {

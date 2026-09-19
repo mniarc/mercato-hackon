@@ -4,6 +4,7 @@ import { renderContractFields } from '../../data/contracts'
 import { auditGapsResult, auditMapperResult, auditVoiceResult } from '../../data/agents/audit'
 import { RESEARCH_AUDIT_GAPS_AGENT_ID, RESEARCH_AUDIT_MAPPER_AGENT_ID, RESEARCH_AUDIT_VOICE_AGENT_ID } from './ids.audit'
 import { MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // F07 — communication audit (3.3): two syntheses over the register, never over
 // page text. "Rozpoznać stan obecny, mocne materiały i luki. Nie wybierać za
@@ -17,7 +18,7 @@ export const auditAgents: AiAgentDefinition[] = [
     label: 'Audit mapper',
     description: 'Maps the actual offer, the buying situations, the current promise with its proof, the contact journey and the visible relationship work — from the fact bank, with citations.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_AUDIT_MAPPER_AGENT_ID, [
       'You audit the CURRENT communication of the company in `order` from its register',
       '(`facts`, `proof_cards`, `audience_signals`, `conflicts`, `business_profile`) — ids and',
       'short text, never pages. Return five sections of WEW-AUDYT. `offer_map`: one row per',
@@ -39,7 +40,7 @@ export const auditAgents: AiAgentDefinition[] = [
       'exactly what they name. Every item cites `fact_ids` / `proof_ids` from the input.',
       SHARED_RULES,
       renderContractFields('WZR-AUDYT', ['offer_map', 'buyer_map', 'message_map', 'journey', 'relationship']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: auditMapperResult },
   }),
 
@@ -50,7 +51,7 @@ export const auditAgents: AiAgentDefinition[] = [
     label: 'Audit voice',
     description: 'Describes how the company writes today from the verbatim language samples: seven dimensions, each with the samples that show it or an explicit "sample insufficient".',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_AUDIT_VOICE_AGENT_ID, [
       'With the audit maps already made (`maps`) and the `language_samples` (verbatim fragments',
       'with their ids), return `voice_audit` of WEW-AUDYT: for formality, directness, technical',
       'level, emotion, claim certainty, recurring phrases and channel differences give a',
@@ -62,7 +63,7 @@ export const auditAgents: AiAgentDefinition[] = [
       '`repair_findings` is non-empty, fix exactly what they name.',
       SHARED_RULES,
       renderContractFields('WZR-AUDYT', ['voice_audit']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: auditVoiceResult },
   }),
 
@@ -73,7 +74,7 @@ export const auditAgents: AiAgentDefinition[] = [
     label: 'Audit gaps and reusable assets',
     description: 'Names the 3–5 gaps that matter for producing strategy, tone and a post, and the materials worth reusing — lack of public knowledge is not a company defect.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_AUDIT_GAPS_AGENT_ID, [
       'With the audit maps already made (`maps`), the `language_samples`, the `coverage` rows,',
       'the `content_bank` and `proof_cards`, return two sections of WEW-AUDYT. `gaps`: 3–5 gaps',
       'that matter for producing strategy, tone and a post — each with the observation, the',
@@ -88,7 +89,7 @@ export const auditAgents: AiAgentDefinition[] = [
       'fixed. If `repair_findings` is non-empty, fix exactly what they name.',
       SHARED_RULES,
       renderContractFields('WZR-AUDYT', ['gaps', 'reusable_assets']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: auditGapsResult },
   }),
 ]

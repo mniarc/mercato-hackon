@@ -5,6 +5,7 @@ import { briefChannelSectionResult, briefOfferSectionResult, briefPromiseVoiceSe
 import { RESEARCH_BRIEF_CHANNEL_AGENT_ID, RESEARCH_BRIEF_OFFER_AGENT_ID, RESEARCH_BRIEF_PROMISE_VOICE_AGENT_ID, RESEARCH_BRIEF_QA_AGENT_ID } from './ids.brief'
 import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // F09 — brief writer (4.1) and brief QA (4.2). The writer is three agents, one per
 // section group (`input.section`), each with its own result schema so every
@@ -43,7 +44,7 @@ export const briefAgents: AiAgentDefinition[] = [
     label: 'Brief writer — offer, audience, direction',
     description: 'Writes the priority offer, priority audience and business direction of the client brief (KLI-BRIEF) from the findings map and the cited evidence; proposals, never client decisions.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_BRIEF_OFFER_AGENT_ID, [
       BRIEF_RULES,
       'Return `priority_offer` (one prioritised offer/problem, the result for the audience, what',
       'is excluded), `priority_audience` (one main group with `segment` + `target_role`;',
@@ -53,7 +54,7 @@ export const briefAgents: AiAgentDefinition[] = [
       'communication, what is NOT promised).',
       SHARED_RULES,
       renderContractFields('WZR-BRIEF', ['priority_offer', 'priority_audience', 'business_direction']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: briefOfferSectionResult },
   }),
 
@@ -64,7 +65,7 @@ export const briefAgents: AiAgentDefinition[] = [
     label: 'Brief writer — promise constraints and voice',
     description: 'Writes the promise constraints and the voice preferences of the client brief (KLI-BRIEF): what the evidence lets us say and two equal voice variants.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_BRIEF_PROMISE_VOICE_AGENT_ID, [
       BRIEF_RULES,
       'Return `promise_constraints` (capabilities = what the evidence lets us say, `result_limits`,',
       '≥ 3 `prohibited_claims` such as percentages, guaranteed timelines, uniqueness, partner',
@@ -77,7 +78,7 @@ export const briefAgents: AiAgentDefinition[] = [
       'company channel\'s traits come second, and both examples read as that person would post.',
       SHARED_RULES,
       renderContractFields('WZR-BRIEF', ['promise_constraints', 'voice_preferences']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: briefPromiseVoiceSectionResult },
   }),
 
@@ -88,7 +89,7 @@ export const briefAgents: AiAgentDefinition[] = [
     label: 'Brief writer — channel, success, assets',
     description: 'Writes the channel and CTA, success and limits, reusable assets and the buyer reality of the client brief (KLI-BRIEF).',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_BRIEF_CHANNEL_AGENT_ID, [
       BRIEF_RULES,
       'Return `channel_and_cta` (the serviced channel, the audience there, the CTA goal, `cta_text`',
       'null unless a real one exists, the observed `destination` with its visibility and',
@@ -102,7 +103,7 @@ export const briefAgents: AiAgentDefinition[] = [
       'the facts behind them).',
       SHARED_RULES,
       renderContractFields('WZR-BRIEF', ['channel_and_cta', 'success_and_limits', 'assets_and_permissions', 'buyer_reality']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: briefChannelSectionResult },
   }),
 
@@ -113,7 +114,7 @@ export const briefAgents: AiAgentDefinition[] = [
     label: 'Brief completeness QA',
     description: 'Checks the brief for required fields, contradictions with the findings map and package consistency; distinguishes a missing client answer from an agent error.',
     defaultModel: MODEL_QA,
-    instructions: [
+    instructions: promptFor(RESEARCH_BRIEF_QA_AGENT_ID, [
       'You are the quality agent for step 4.2. You receive the assembled `brief` (KLI-BRIEF data),',
       'the findings map rows (`field_map`), the downstream `readiness` and the deterministic',
       '`validator_findings` already computed. Check against `criteria`: every filled MUST field',
@@ -132,7 +133,7 @@ export const briefAgents: AiAgentDefinition[] = [
       'never `ready_for_approval`. Summarise in `summary`.',
       SHARED_RULES,
       renderContractFields('WZR-BRIEF'),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: briefQaAgentResult },
   }),
 ]

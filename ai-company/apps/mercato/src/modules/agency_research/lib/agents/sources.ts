@@ -10,6 +10,7 @@ import {
   RESEARCH_PROOF_BUILDER_AGENT_ID,
 } from './ids.sources'
 import { MODEL_EXTRACT, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // The 3.2 agents (F06): one page in → its evidence out (map), then four small
 // syntheses over the fact bank (reduce). Each carries the WZR-ZRODLA field
@@ -25,7 +26,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
     label: 'Research page extractor',
     description: 'Reads ONE stored page of a company (or a competitor) and extracts atomic, quotable facts, language samples and audience signals with verbatim anchors.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_PAGE_EXTRACTOR_AGENT_ID, [
       'You read ONE page (`page.content_md`, markdown) published by `entity` (`client` = the',
       'brand in `order`, otherwise a competitor name) and extract evidence for a communication',
       'audit. Return `facts`: ONE claim per item, in `outputLanguage`, each with a `quote` copied',
@@ -52,7 +53,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
       'page is and is not. Empty arrays are correct for a page with nothing usable.',
       SHARED_RULES,
       renderContractFields('WZR-ZRODLA', ['facts', 'language_samples', 'audience_signals']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: pageExtractorResult },
     sampleInput: {
       order: { brand: 'Acme', market: 'Polska', language: 'pl', websiteUrl: 'https://acme.example', purchaseGoal: null },
@@ -70,7 +71,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
     label: 'Research proof builder',
     description: 'Turns the fact bank into proof-of-competence cards with the correct evidence variant, and a preliminary business profile.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_PROOF_BUILDER_AGENT_ID, [
       'You receive the company\'s fact bank (`facts` with ids and kinds, `sources`, `language_samples`,',
       '`audience_signals`) — never the pages. Build `proof_cards`: each card is one competence or',
       'promise the company could substantiate, with `proof_type` chosen by the STRICT variant rules:',
@@ -88,7 +89,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
       'implies (as a hypothesis), the market/language hint, and the `fact_ids` it rests on.',
       SHARED_RULES,
       renderContractFields('WZR-ZRODLA', ['proof_cards']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: proofBuilderResult },
   }),
 
@@ -100,7 +101,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
     label: 'Research content seeder',
     description: 'Builds the content bank: distinct audience questions and angles, each with the exact supported claim and a clearly labelled proposed utility.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_CONTENT_SEEDER_AGENT_ID, [
       'From the fact bank and `proof_cards` build `content_bank`: `requiredTopics` (usually 12)',
       'DISTINCT audience questions a future post could answer, each with an `angle` (the useful',
       'idea, not a title), the `source_claim` — the exact content the evidence supports, with its',
@@ -115,7 +116,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
       'beat twelve variations of one; do not pad with generic marketing topics that no fact supports.',
       SHARED_RULES,
       renderContractFields('WZR-ZRODLA', ['content_bank']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: contentSeederResult },
   }),
 
@@ -127,7 +128,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
     label: 'Research conflict finder',
     description: 'Finds contradictions, framing differences and possibly outdated statements between facts from different sources.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_CONFLICT_FINDER_AGENT_ID, [
       'Compare the `facts` (ids, claims, source ids, dates of retrieval in `sources`) and return',
       '`conflicts`: places where two or more facts contradict each other, describe the company',
       'differently across channels, or where one is likely outdated. Each conflict cites ≥2',
@@ -146,7 +147,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
       'the company still …?" — not a decision for the client; the website already answers it.',
       SHARED_RULES,
       renderContractFields('WZR-ZRODLA', ['conflicts']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: conflictFinderResult },
   }),
 
@@ -158,7 +159,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
     label: 'Research coverage assessor',
     description: 'Assesses, need by need, whether the register can support the brief, strategy, plan and post — with the gap and its owner.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_COVERAGE_ASSESSOR_AGENT_ID, [
       'For EACH requirement in `requirements` (segment, problem, zakup = purchase situation, oferta,',
       'mechanizm, dowód = proof, alternatywy, język, CTA) judge whether the register (facts, proof',
       'cards, samples, signals, seeds, conflicts) supports the later documents: `readiness` `ready`',
@@ -171,7 +172,7 @@ export const sourcesAgents: AiAgentDefinition[] = [
       'a website: those are `klient`. Return exactly one row per requirement.',
       SHARED_RULES,
       renderContractFields('WZR-ZRODLA', ['coverage']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: coverageAssessorResult },
   }),
 

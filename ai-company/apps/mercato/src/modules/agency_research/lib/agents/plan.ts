@@ -5,6 +5,7 @@ import { planBalanceResult, planQaAgentResult, planTopicsResult } from '../../da
 import { RESEARCH_PLAN_BALANCE_AGENT_ID, RESEARCH_PLAN_QA_AGENT_ID, RESEARCH_PLAN_TOPICS_AGENT_ID } from './ids.plan'
 import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // P6 — plan writer (6.2) and Q-P (6.3). The writer is two agents, one per output
 // section, so each registered schema stays small enough for provider structured
@@ -43,7 +44,7 @@ export const planAgents: AiAgentDefinition[] = [
     label: 'Content plan writer — topics',
     description: 'Writes one day window of the 30-day content plan (KLI-PLAN): six distinct topics with their evidence.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_PLAN_TOPICS_AGENT_ID, [
       PLAN_RULES,
       'Return `topics`: exactly `topic_count` topics with `local_ref` (`T-A`, `T-B`, …), `day`',
       'inside the given `days` window (distinct days, spaced), `pillar_id` from `pillars`,',
@@ -55,7 +56,7 @@ export const planAgents: AiAgentDefinition[] = [
       'questions or messages.',
       SHARED_RULES,
       renderContractFields('WZR-PLAN', ['plan_context', 'topics']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: planTopicsResult },
   }),
 
@@ -66,7 +67,7 @@ export const planAgents: AiAgentDefinition[] = [
     label: 'Content plan writer — balance and recommendation',
     description: 'Reads the twelve gated topics and returns the plan balance and the one recommended topic whose evidence is complete now.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_PLAN_BALANCE_AGENT_ID, [
       PLAN_RULES,
       'Return `balance` (`pillar_counts` as rows {pillar_id, count} over the twelve `existing_topics`,',
       '`need_stages`, `distinctness`, `evidence_diversity` — say plainly that twelve uses of the',
@@ -75,7 +76,7 @@ export const planAgents: AiAgentDefinition[] = [
       'the flashiest claim when data is missing, never two posts.',
       SHARED_RULES,
       renderContractFields('WZR-PLAN', ['balance', 'recommendation']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: planBalanceResult },
   }),
 
@@ -86,7 +87,7 @@ export const planAgents: AiAgentDefinition[] = [
     label: 'Content plan QA (Q-P)',
     description: 'Checks the content plan for pillar coverage, audience fit, distinctness, concreteness and whether the recommended topic can be written from the evidence at hand.',
     defaultModel: MODEL_QA,
-    instructions: [
+    instructions: promptFor(RESEARCH_PLAN_QA_AGENT_ID, [
       'You are the quality agent for step 6.3 (gate Q-P). You receive the assembled `plan`',
       '(KLI-PLAN data), the strategy `pillars`, the evidence `seeds`, the `audience`, the catalog',
       '`topic_count` and the deterministic `validator_findings` already computed (count, days,',
@@ -104,7 +105,7 @@ export const planAgents: AiAgentDefinition[] = [
       '`summary`, naming the checked plan version and the assumptions it rests on.',
       SHARED_RULES,
       renderContractFields('WZR-PLAN'),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: planQaAgentResult },
   }),
 ]

@@ -5,6 +5,7 @@ import { strategyChoiceSectionResult, strategyPillarsSectionResult, strategyProo
 import { RESEARCH_STRATEGY_CHOICE_AGENT_ID, RESEARCH_STRATEGY_PILLARS_AGENT_ID, RESEARCH_STRATEGY_PROOF_AGENT_ID, RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
 import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // P5 — strategy writer (5.2), ToV writer (5.3) and the Q-S pair QA (5.4). The
 // strategy writer is three agents, one per section group (`input.section`), each
@@ -58,7 +59,7 @@ export const strategyAgents: AiAgentDefinition[] = [
     label: 'Strategy writer — choice, tension, UVP',
     description: 'Writes the strategic choice, the buyer tension, the UVP and the rejected options of the communication strategy (KLI-STRATEGIA); choices with evidence, never promises beyond the proofs.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_STRATEGY_CHOICE_AGENT_ID, [
       STRATEGY_RULES,
       'Return `strategic_choice` (one positioning, the priority audience and situation, the',
       'reference category, the brief `decision` it rests on, what is deliberately',
@@ -73,7 +74,7 @@ export const strategyAgents: AiAgentDefinition[] = [
       'two rejected directions, ≤ 120 words together).',
       SHARED_RULES,
       renderContractFields('WZR-STRATEGIA', ['strategic_choice', 'buyer_tension', 'uvp', 'options_considered']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: strategyChoiceSectionResult },
   }),
 
@@ -84,7 +85,7 @@ export const strategyAgents: AiAgentDefinition[] = [
     label: 'Strategy writer — proof architecture and messages',
     description: 'Writes the proof architecture (one row per claim, capped by the cited proofs) and the message hierarchy of the communication strategy (KLI-STRATEGIA).',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_STRATEGY_PROOF_AGENT_ID, [
       STRATEGY_RULES,
       'The `draft` holds the sections already written (the UVP among them). Return',
       '`proof_architecture` (one row per claim the strategy will make; the first row has',
@@ -95,7 +96,7 @@ export const strategyAgents: AiAgentDefinition[] = [
       '`supporting_messages` with `claim_refs` and `fact_ids`; `explanation_order`).',
       SHARED_RULES,
       renderContractFields('WZR-STRATEGIA', ['proof_architecture', 'message_hierarchy']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: strategyProofSectionResult },
   }),
 
@@ -106,7 +107,7 @@ export const strategyAgents: AiAgentDefinition[] = [
     label: 'Strategy writer — pillars, channel, boundaries',
     description: 'Writes the content pillars, the channel role, the measurement hypothesis and the creative boundaries of the communication strategy (KLI-STRATEGIA).',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_STRATEGY_PILLARS_AGENT_ID, [
       STRATEGY_RULES,
       'The `draft` holds the sections already written (choice, UVP, claims). Return `pillars`',
       '(3–4 pillars with `local_ref` `PL-A`…, each differing in task, with `audience_question`,',
@@ -121,7 +122,7 @@ export const strategyAgents: AiAgentDefinition[] = [
       'research return is required).',
       SHARED_RULES,
       renderContractFields('WZR-STRATEGIA', ['pillars', 'channel_role', 'measurement_hypothesis', 'creative_boundaries']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: strategyPillarsSectionResult },
   }),
 
@@ -132,7 +133,7 @@ export const strategyAgents: AiAgentDefinition[] = [
     label: 'Tone of voice writer',
     description: 'Writes one section group of the brand voice rules (KLI-TOV) from the strategy, the brief preferences, the voice audit and the real language samples; executable rules with examples on the same facts.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_TOV_WRITER_AGENT_ID, [
       TOV_RULES,
       'The output shape depends on `section`: `principles_axes_wording` → `voice_principles`',
       '(EXACTLY four: `trait`, `purpose` for this brand, concrete `author_behavior`,',
@@ -151,7 +152,7 @@ export const strategyAgents: AiAgentDefinition[] = [
       'Return ONLY the keys of the requested section.',
       SHARED_RULES,
       renderContractFields('WZR-TOV'),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: tovWriterResult },
   }),
 
@@ -162,7 +163,7 @@ export const strategyAgents: AiAgentDefinition[] = [
     label: 'Strategy and ToV QA',
     description: 'Checks the strategy + ToV pair (Q-S) for fit with the goal, scope and evidence, mutual consistency, uncovered promises and tactical detail posing as strategy; routes each fix to its author.',
     defaultModel: MODEL_QA,
-    instructions: [
+    instructions: promptFor(RESEARCH_STRATEGY_QA_AGENT_ID, [
       'You are the quality agent for step 5.4 (gate Q-S). You receive the assembled `strategy`',
       '(KLI-STRATEGIA data), the `tov` (KLI-TOV data), the compact `brief`, the `proof_cards`',
       'and the deterministic `validator_findings` already computed. Check against `criteria`:',
@@ -187,7 +188,7 @@ export const strategyAgents: AiAgentDefinition[] = [
       SHARED_RULES,
       renderContractFields('WZR-STRATEGIA', ['strategic_choice', 'uvp', 'proof_architecture', 'message_hierarchy', 'pillars', 'creative_boundaries']),
       renderContractFields('WZR-TOV', ['voice_principles', 'wording', 'evidence_language', 'before_after', 'copy_checks']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: strategyQaAgentResult },
   }),
 ]

@@ -4,6 +4,7 @@ import { contractFor, renderContractFields } from '../../data/contracts'
 import { fieldMapperResult, questionWriterResult, readinessAssessorResult, researchQaResult } from '../../data/validators'
 import { RESEARCH_FIELD_MAPPER_AGENT_ID, RESEARCH_QA_AGENT_ID, RESEARCH_QUESTION_WRITER_AGENT_ID, RESEARCH_READINESS_ASSESSOR_AGENT_ID } from './ids.findings'
 import { MODEL_EXTRACT, MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // F08 — findings map (3.6) and analysis QA (3.7). Three researchers turn the
 // register, the audit and the comparison into the brief's readiness map — one
@@ -22,7 +23,7 @@ export const findingsAgents: AiAgentDefinition[] = [
     label: 'Research field mapper',
     description: 'Maps the audit, comparison and register findings onto the ten KLI-BRIEF fields: proposed value, evidence, provenance, readiness, decision state — hypotheses stay hypotheses.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_FIELD_MAPPER_AGENT_ID, [
       'You receive the evidence bank of one client (register facts and proof cards with ids, the',
       'communication audit maps, the competitor comparison when it exists, coverage and conflicts)',
       'and `seeded_rows`: one row per KLI-BRIEF field with its template description. Return',
@@ -41,7 +42,7 @@ export const findingsAgents: AiAgentDefinition[] = [
       '`repair_findings` is non-empty, fix exactly those paths first.',
       SHARED_RULES,
       renderContractFields('WZR-USTALENIA', ['field_map']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: fieldMapperResult },
   }),
 
@@ -53,7 +54,7 @@ export const findingsAgents: AiAgentDefinition[] = [
     label: 'Research question writer',
     description: 'Turns the unknown brief fields into at most a batch of client questions (one decision each, hint, reason, consequence) and the smallest useful evidence requests.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_QUESTION_WRITER_AGENT_ID, [
       'From `field_map` (rows with `readiness` conditional/blocked or `decision_state` awaiting_client),',
       'the audit `audit_gaps`, `coverage` gaps and `conflicts`, write `questions` for the client:',
       'at most `question_batch_max`, `must` priority first (fields the strategy cannot start without),',
@@ -73,7 +74,7 @@ export const findingsAgents: AiAgentDefinition[] = [
       'internal labels ("gap", "hypothesis", "conflict") — say what is unknown in plain language.',
       SHARED_RULES,
       renderContractFields('WZR-USTALENIA', ['questions', 'evidence_requests']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: questionWriterResult },
   }),
 
@@ -85,7 +86,7 @@ export const findingsAgents: AiAgentDefinition[] = [
     label: 'Research readiness assessor',
     description: 'Judges, result by result (UVP, strategy, ToV, plan, post), whether the mapped fields and open questions let the next stage start — with the gap and its owner.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_READINESS_ASSESSOR_AGENT_ID, [
       'For EACH result in `outputs` (UVP, strategia, ToV, plan, post) judge from `field_map`,',
       '`questions`, `evidence_requests`, `coverage` and `plan_capacity` whether it can start:',
       '`ready` when its `input_fields` are ready, `conditional` when a listed client decision is the',
@@ -98,7 +99,7 @@ export const findingsAgents: AiAgentDefinition[] = [
       'Return exactly one readiness row per output.',
       SHARED_RULES,
       renderContractFields('WZR-USTALENIA', ['readiness', 'research_return']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: readinessAssessorResult },
   }),
 
@@ -110,7 +111,7 @@ export const findingsAgents: AiAgentDefinition[] = [
     label: 'Research analysis QA',
     description: 'Checks the analysis documents for unsourced claims, fact/interpretation mixing, contradictions and missing fields; returns ready / to_fix / exception with owned findings.',
     defaultModel: MODEL_QA,
-    instructions: [
+    instructions: promptFor(RESEARCH_QA_AGENT_ID, [
       'You are the quality agent for step 3.7. You receive the analysis `documents` (their data,',
       'with ids) and the deterministic `validator_findings` already computed. Check against',
       '`criteria`: every important conclusion has a source and a limitation; facts, hypotheses and',
@@ -133,7 +134,7 @@ export const findingsAgents: AiAgentDefinition[] = [
       'add what a deterministic check cannot see. Summarise in `summary`.',
       SHARED_RULES,
       `Quality conditions of the judged templates — ${qualityGatesOf(['WZR-ZRODLA', 'WZR-AUDYT', 'WZR-KONKURENCJA', 'WZR-USTALENIA'])}`,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: researchQaResult },
   }),
 ]

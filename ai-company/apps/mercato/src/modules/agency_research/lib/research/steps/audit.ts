@@ -1,5 +1,6 @@
 import { auditGapsResult, auditMapperResult, auditVoiceResult, type AuditMaps, type AuditRegisterInput } from '../../../data/agents/audit'
 import { audytDataSchema, type AudytData } from '../../../data/schemas/audyt'
+import type { OnboardingContext } from '../../../data/agents/onboarding'
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { BusinessProfile, ZrodlaData } from '../../../data/schemas/zrodla'
@@ -24,6 +25,7 @@ import type { StepContext, StepOutcome } from './context'
 
 export type AuditPipelineOptions = {
   order: OrderFacts
+  onboardingContext?: OnboardingContext | null
   zrodla: ZrodlaData
   businessProfile: BusinessProfile
   runAgent: ResearchAgentRunner
@@ -151,6 +153,7 @@ function registerInput(opts: AuditPipelineOptions): AuditRegisterInput {
     audience_signals: zrodla.audience_signals.map((s) => ({ signal_id: s.signal_id, role_or_organization: s.role_or_organization, trigger: s.trigger, problem: s.problem, objection: s.objection, evidence_status: s.evidence_status, fact_ids: s.fact_ids })),
     conflicts: zrodla.conflicts.map((c) => ({ conflict_id: c.conflict_id, facts: c.facts, detail: c.detail, question: c.question })),
     repair_findings: opts.repairFindings ?? [],
+    onboarding_context: opts.onboardingContext ?? null,
   }
 }
 
@@ -252,6 +255,7 @@ export async function runAuditStep(ctx: StepContext): Promise<StepOutcome> {
   try {
     const result = await runAuditPipeline({
       order: ctx.order,
+      onboardingContext: ctx.onboardingContext ?? null,
       zrodla: zrodla.data as ZrodlaData,
       businessProfile: summary.businessProfile,
       runAgent: ctx.runAgent,
