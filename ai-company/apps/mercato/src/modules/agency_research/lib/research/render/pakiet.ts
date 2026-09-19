@@ -1,6 +1,6 @@
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { PakietData } from '../../../data/schemas/pakiet'
-import { checkClientView, type ClientView } from '../clientView'
+import { fitClientView, type ClientView } from '../clientView'
 
 /**
  * KLI-PAKIET rendering. The client view follows WZR-PAKIET's projection (mode
@@ -88,7 +88,7 @@ export function renderPakietClientView(args: { outputLanguage: 'pl' | 'en'; bran
     '',
     ...(data.next_contact ? [`## ${t.nextContact}`, data.next_contact, ''] : []),
   ]
-  return checkClientView('WZR-PAKIET', lines.join('\n'))
+  return fitClientView('WZR-PAKIET', lines, args.outputLanguage)
 }
 
 /** Internal markdown: the manifest with states, the checks and the gate — for staff. */

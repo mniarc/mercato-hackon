@@ -1,6 +1,6 @@
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { StrategiaData } from '../../../data/schemas/strategia'
-import { checkClientView, type ClientView } from '../clientView'
+import { fitClientView, type ClientView } from '../clientView'
 
 /**
  * KLI-STRATEGIA rendering. The client view follows WZR-STRATEGIA's projection:
@@ -168,7 +168,7 @@ export function renderStrategiaClientView(args: { outputLanguage: 'pl' | 'en'; b
     ...(data.creative_boundaries.open_assumptions.length ? [`**${t.assumptions}:** ${data.creative_boundaries.open_assumptions.join('; ')}`] : []),
     '',
   ]
-  return checkClientView('WZR-STRATEGIA', lines.join('\n'))
+  return fitClientView('WZR-STRATEGIA', lines, args.outputLanguage)
 }
 
 /** Internal markdown: every field with its ids, support levels and the full proof architecture — for staff and QA. */
