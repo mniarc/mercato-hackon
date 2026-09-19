@@ -18,6 +18,7 @@ const StandardTaskPage = dynamic(() => import('@open-mercato/core/modules/workfl
 const StrategyPairReview = dynamic(() => import('./strategy-review/StrategyPairReview').then((module) => module.StrategyPairReview))
 const PlanReview = dynamic(() => import('./plan-review/PlanReview').then((module) => module.PlanReview))
 const PostReview = dynamic(() => import('./post-review/PostReview').then((module) => module.PostReview))
+const PublicationConsent = dynamic(() => import('./publication-consent/PublicationConsent').then((module) => module.PublicationConsent))
 
 type Props = { params: { orgSlug: string; id: string } }
 type Detail = { ok: boolean; task?: { id: string; taskName: string; status: string; formSchema: unknown; updatedAt?: string }; canComplete?: boolean; formKey?: string | null }
@@ -129,6 +130,8 @@ function TaskLoader({ params }: Props) {
   if (detail.formKey === 'agency.plan-review') return <PlanReview taskId={params.id} orgSlug={params.orgSlug}
     canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
   if (detail.formKey === 'agency.post-review') return <PostReview taskId={params.id} orgSlug={params.orgSlug}
+    canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
+  if (detail.formKey === 'agency.publication-consent') return <PublicationConsent taskId={params.id} orgSlug={params.orgSlug}
     canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
   if (resolution.kind === 'other') return <StandardTaskPage params={params} />
   if (!review) return <div className="space-y-4"><ErrorMessage label={t('agency.review.invalid')} />{back}</div>
