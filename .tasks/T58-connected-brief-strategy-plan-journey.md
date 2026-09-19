@@ -1,6 +1,6 @@
 # T58 - Prove brief acceptance through strategy pair to plan
 
-State: blocked (T27 must apply actual client answers before brief QA can pass)
+State: active (T27 implementation present; connected native proof failing at initial research)
 Depends on: T27 answer application; T38/T39/T41/T43/T47/T48 implementation; existing native demo runtime
 Sources: F12-1, F20-1, F24-1, F24-2, F20-2, F26-1, F57-1
 Owns: a separate agency production journey and its collocated intelligence fixtures;

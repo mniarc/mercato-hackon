@@ -159,3 +159,57 @@ test('filters keep exact feature boundaries, reject unknown IDs and conflicting 
   assert.throws(() => parseOptions(['--story', 'F01']), /needs Fnn-n/)
   assert.throws(() => parseOptions(['--feature', 'F01', '--story', 'F01-1']), /not both/)
 })
+
+const criteriaStory = (id) => ({ ...story(id), text: `# ${id}\n\n### Kryteria akceptacji\n\n1. Authorized input.\n2. Preserve the exact result.\n\n### Other section\n1. Not an acceptance criterion.` })
+const coverage = (stories) => ({ path: '.dev-docs/coverage/test.json', text: JSON.stringify({ version: 1, stories }) })
+const assessed = (id, implementation = 'implemented', overrides = {}) => ({
+  id, implementation, evidence: [{ path: 'ai-company/actual-service.ts', note: 'Scoped implementation; focused check recorded passed.' }],
+  missing: [], verification: { focused: 'passed', nativeApp: 'not_run', liveModel: 'not_run' }, externalDecision: [], ...overrides,
+})
+
+test('canonical AC assessments separate implementation from native and paid model proof', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1'), criteriaStory('F34-1')],
+    taskFiles: [task('T01', 'State: done\nSources: F34-1')], adrFiles: [],
+    coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC2')] }])],
+  })
+  assert.equal(report.stories[0].implementation, 'implemented')
+  assert.deepEqual(report.stories[0].criteria.map((item) => item.id), ['AC1', 'AC2'])
+  assert.equal(report.stories[0].criteria[0].line, 5)
+  assert.equal(report.stories[1].implementation, 'unassessed')
+  assert.equal(report.stories[1].scope, 'proposal')
+  assert.equal(report.totals.coverage.criteria.total, 4)
+  assert.equal(report.totals.coverage.verification.focused.passed, 2)
+  assert.equal(report.totals.coverage.verification.nativeApp.passed, 0)
+  assert.equal(report.totals.coverage.verification.liveModel.passed, 0)
+  assert.equal(report.totals.documentedVerified, 0)
+  assert.match(formatDetails(selectHierarchy(report, { story: 'F20-1' })), /AC1: implemented; focused=passed, nativeApp=not_run, liveModel=not_run/)
+})
+
+test('partial ACs and external decisions remain explicit without task-derived completion', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F34-1')], taskFiles: [task('T01', 'State: done\nSources: F34-1')], adrFiles: [],
+    coverageFiles: [coverage([{ id: 'F34-1', criteria: [assessed('AC1'), assessed('AC2', 'partial', {
+      missing: ['Actual configured destination'], externalDecision: ['Approved publication provider'],
+      verification: { nativeApp: 'passed' },
+    })] }])],
+  })
+  assert.equal(report.stories[0].implementation, 'partial')
+  assert.equal(report.scopes.proposal.coverage.stories.partial, 1)
+  assert.equal(report.totals.coverage.criteriaWithExternalDecisions, 1)
+  assert.equal(report.stories[0].criteria[1].verification.liveModel, 'unknown')
+  assert.match(formatDetails(selectHierarchy(report)), /External decision: Approved publication provider/)
+})
+
+test('invalid, duplicate or absent AC evidence cannot become implementation claims', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1')], taskFiles: [], adrFiles: [],
+    coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC1'), assessed('AC2', 'implemented', { evidence: [] }), assessed('AC99')] },
+      { id: 'F99-1', criteria: [] }]), { path: '.dev-docs/coverage/bad.json', text: '{' }],
+  })
+  assert.equal(report.stories[0].implementation, 'unassessed')
+  assert.equal(report.totals.coverage.verification.focused.passed, 0)
+  for (const kind of ['duplicate-coverage-criterion', 'invalid-coverage-assessment', 'invalid-coverage-criterion', 'invalid-coverage-story', 'invalid-coverage-json']) {
+    assert.ok(report.diagnostics.some((item) => item.kind === kind), kind)
+  }
+})
