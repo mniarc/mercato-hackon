@@ -1,3 +1,6 @@
 
 # Cezar (local agent-runner) worktrees + state
 .ai/cezar/
+
+# Local browser captures for visual inspection
+/.visuals/
