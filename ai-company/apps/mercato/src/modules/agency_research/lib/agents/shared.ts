@@ -1,13 +1,14 @@
 /**
  * What every research agent's instructions repeat (the model sees one agent at a
  * time) and the model tiers (STD-LIMITY cost control): extraction and QA on the
- * cheap model, syntheses on the strong one. Overridable per tier through the
- * environment; the platform's model factory still honours `OM_AI_AGENCY_RESEARCH_MODEL`
- * and a caller override above these defaults.
+ * cheap model, syntheses on the strong one when no shared model is configured.
+ * Explicit tier settings take precedence over `OM_AI_MODEL`; the native factory
+ * still resolves module, tenant and caller overrides above these defaults.
  */
 
-export const MODEL_EXTRACT = process.env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? 'openrouter/anthropic/claude-haiku-4.5'
-export const MODEL_SYNTHESIS = process.env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? 'openrouter/anthropic/claude-sonnet-5'
+const sharedModel = process.env.OM_AI_MODEL?.trim() || undefined
+export const MODEL_EXTRACT = process.env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? sharedModel ?? 'openrouter/anthropic/claude-haiku-4.5'
+export const MODEL_SYNTHESIS = process.env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? sharedModel ?? 'openrouter/anthropic/claude-sonnet-5'
 export const MODEL_QA = process.env.OM_AGENCY_RESEARCH_MODEL_QA ?? MODEL_EXTRACT
 
 export const SHARED_RULES = [

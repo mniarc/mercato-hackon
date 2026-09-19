@@ -51,11 +51,13 @@ export type RunResearchOutcome = ResearchRunResult & { versionsByStep: Record<st
 
 /** The models the pipeline assumes for estimates; the orchestrator resolves the real one per agent. */
 export function defaultModels(env: NodeJS.ProcessEnv = process.env): ModelSet {
-  const extract = env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? 'anthropic/claude-haiku-4.5'
+  const moduleModel = env.OM_AI_AGENCY_RESEARCH_MODEL?.trim() || env.AGENCY_RESEARCH_AI_MODEL?.trim() || undefined
+  const sharedModel = env.OM_AI_MODEL?.trim() || undefined
+  const extract = moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? sharedModel ?? 'anthropic/claude-haiku-4.5'
   return {
     extract: extract.replace(/^openrouter\//, ''),
-    synthesis: (env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? 'anthropic/claude-sonnet-5').replace(/^openrouter\//, ''),
-    qa: (env.OM_AGENCY_RESEARCH_MODEL_QA ?? extract).replace(/^openrouter\//, ''),
+    synthesis: (moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? sharedModel ?? 'anthropic/claude-sonnet-5').replace(/^openrouter\//, ''),
+    qa: (moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_QA ?? extract).replace(/^openrouter\//, ''),
   }
 }
 
