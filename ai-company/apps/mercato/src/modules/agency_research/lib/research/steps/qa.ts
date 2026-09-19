@@ -120,6 +120,9 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
 /** A gap the QA agent itself attributes to a pending client decision. */
 export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|no confirmed (next-step |cta |contact )?destination|destination[^.]{0,40}(null|not observed|not_observed|unconfirmed)|awaiting confirmation from the client|decyzj\w* klienta)/i
 
+/** A finding that says the document is right is commentary. */
+export const CONCEDES_CORRECT = /(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))/i
+
 export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|insufficient evidence exists|no proof card|readiness:? ?'?(blocked|conditional)|plan[_ ]capacity|no (completion date|implementation evidence)|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
@@ -136,6 +139,23 @@ function fixStepForPath(path: string): AuthorStepId | null {
   if (id === 'Q' || id === 'ER') return '3.6'
   if (id) return '3.2'
   return null
+}
+
+/**
+ * The rules every production QA (Q-S, Q-P, Q-T) shares for the agent's own findings:
+ * evidence public sources cannot give and gaps the finding itself attributes to a
+ * pending client decision are the client's questions; a length the QA invented and
+ * a finding that concedes the document is right are advice, never blockers.
+ */
+export function reclassifyProductionFindings(findings: QaFinding[]): QaFinding[] {
+  return findings.map((f) => {
+    if (f.owner === 'client' || f.owner === 'staff') return f
+    if (NON_PUBLIC_EVIDENCE.test(f.gap) || CLIENT_DECISION_GAP.test(f.gap)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs a client decision or evidence public sources cannot provide; a question, not a rewrite' }
+    }
+    if (f.severity === 'blocking' && (f.code === 'limit_exceeded' || CONCEDES_CORRECT.test(f.gap))) return { ...f, severity: 'major' }
+    return f
+  })
 }
 
 export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaData, ustalenia?: UstaleniaData | null): QaFinding[] {

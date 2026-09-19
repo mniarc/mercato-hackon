@@ -264,10 +264,13 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         await runPlanStep(c)
         const qa = await runPlanQaLoop(c, { planStep: runPlanStep })
         planQaVerdict = qa.verdict
-        if (qa.verdict !== 'ready_for_approval') return { taskRunId: qa.taskRunId, versionId: qa.planVersionId, status: 'to_fix' }
+        // A plan still `to_fix` after its repairs is a draft, not a dead end: the selection is simulated on it and the
+        // instruction is built in simulation, as every unapproved input is; the verdict stays on the task run.
+        if (qa.verdict !== 'ready_for_approval') log(`6.3: plan stays a draft (${qa.verdict}); selection and instruction continue in simulation`)
         const selection = await runSelectionStep(c)
         if (selection.status !== 'done') return null
-        return runPostInstructionStep(c)
+        const instruction = await runPostInstructionStep(c)
+        return qa.verdict === 'ready_for_approval' ? instruction : { ...instruction, status: 'to_fix' }
       },
     },
     {

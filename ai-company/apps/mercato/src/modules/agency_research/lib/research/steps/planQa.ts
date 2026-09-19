@@ -1,6 +1,7 @@
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { QaFinding } from '../../../data/schemas/qa'
+import { reclassifyProductionFindings } from './qa'
 import { planDataSchema, type PlanData } from '../../../data/schemas/plan'
 import { strategiaDataSchema, type StrategiaData } from '../../../data/schemas/strategia'
 import { zrodlaDataSchema, type ZrodlaData } from '../../../data/schemas/zrodla'
@@ -96,7 +97,7 @@ export async function runPlanQa(opts: PlanQaOptions): Promise<PlanQaResult & { s
       return { value: { ...data, findings: kept }, issues: [], kept: kept.length, dropped: data.findings.length - kept.length }
     },
   })
-  const findings = [...validator, ...value.findings]
+  const findings = [...validator, ...reclassifyProductionFindings(value.findings)]
   return { verdict: mergePlanQaVerdict(findings), findings, summary: value.summary, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
 }
 
