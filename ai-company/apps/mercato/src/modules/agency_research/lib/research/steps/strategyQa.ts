@@ -1,7 +1,7 @@
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
-import { CLIENT_DECISION_GAP, NON_PUBLIC_EVIDENCE } from './qa'
+import { reclassifyProductionFindings } from './qa'
 import { audytDataSchema, type AudytData } from '../../../data/schemas/audyt'
 import { briefDataSchema, type BriefData } from '../../../data/schemas/brief'
 import { konkurencjaDataSchema, type KonkurencjaData } from '../../../data/schemas/konkurencja'
@@ -163,18 +163,14 @@ export function mergeStrategyQaVerdict(findings: QaFinding[]): StrategyQaVerdict
  * respect, so it stays with the strategy writer.
  */
 export function reclassifyStrategyFindings(findings: QaFinding[]): QaFinding[] {
-  return findings.map((f) => {
-    if (f.owner !== 'agent' && f.owner !== 'research') return f
-    if (NON_PUBLIC_EVIDENCE.test(f.gap) || CLIENT_DECISION_GAP.test(f.gap) || /decision_criterion|empirical_buyer_evidence/.test(f.path)) {
-      return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence public sources cannot provide (buyer criteria, interviews, benchmarks); a question for the client, not a rewrite' }
-    }
-    // Length is governed by the contract's client-view budget, which the validator measures; a per-section
-    // word count the QA agent invents is advice, never a blocker.
-    if (f.code === 'limit_exceeded' && f.severity === 'blocking') return { ...f, severity: 'major' }
-    // A finding that concedes the document is right ("this is correct", "correctly identifies") is commentary, never a blocker.
-    if (f.severity === 'blocking' && /\b(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))\b/i.test(f.gap)) return { ...f, severity: 'major' }
-    return f
-  })
+  return reclassifyProductionFindings(
+    findings.map((f) =>
+      // Rafał's v1.1 lesson "audience decision ≠ buyer-criteria knowledge": an honest `unknown` here is the client's gap.
+      (f.owner === 'agent' || f.owner === 'research') && /decision_criterion|empirical_buyer_evidence/.test(f.path)
+        ? { ...f, owner: 'client' as const, fix_step: null, fix_hint: 'the strategy honestly marks the buyer criterion unknown; a question for the client, not a rewrite' }
+        : f,
+    ),
+  )
 }
 
 /** The author step of a finding: from `fix_step`, else from the document its path names. */

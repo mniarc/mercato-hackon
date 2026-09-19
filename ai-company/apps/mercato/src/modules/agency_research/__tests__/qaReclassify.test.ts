@@ -69,3 +69,69 @@ describe('pending client decisions', () => {
     expect([a.fix_step, b.fix_step]).toEqual([null, null])
   })
 })
+
+describe('production-QA reclassification (shared by Q-S and Q-P)', () => {
+  const production = async () => (await import('../lib/research/steps/qa')).reclassifyProductionFindings
+  const strategy = async () => (await import('../lib/research/steps/strategyQa')).reclassifyStrategyFindings
+
+  it('keeps a writer-invented number on the writer even when the gap says "no proof card"', async () => {
+    const [out] = (await production())([finding({ code: 'invented_effectiveness', path: 'KLI-PLAN.topics[TOP04].main_message', fix_step: '6.2', gap: 'TOP04 promises 40 % faster onboarding; no proof card backs the number' })])
+    expect(out.owner).toBe('agent')
+  })
+
+  it('sends a recorded case lacking independent verification to the client', async () => {
+    const [out] = (await production())([finding({ code: 'invented_effectiveness', path: 'KLI-STRATEGIA.proof_architecture[CL04]', fix_step: '5.2', gap: 'P03 is a single-customer self-reported case, not independently verified' })])
+    expect(out.owner).toBe('client')
+  })
+
+  it('downgrades a concession only when nothing follows it', async () => {
+    const [pure, reversed] = (await production())([
+      finding({ code: 'contradiction', path: 'KLI-STRATEGIA.uvp', fix_step: '5.2', gap: 'The UVP explanation states the mechanism is unverified. This is correct.' }),
+      finding({ code: 'contradiction', path: 'KLI-PLAN.topics[TOP07]', fix_step: '6.2', gap: 'The strategy correctly identifies the priority audience, but TOP07 targets SMB owners instead' }),
+    ])
+    expect(pure.severity).toBe('major')
+    expect(reversed.severity).toBe('blocking')
+  })
+
+  it('a writer ignoring a recorded client decision stays a writer fault', async () => {
+    const [out] = (await production())([finding({ code: 'contradiction', path: 'KLI-PLAN.topics[TOP02]', fix_step: '6.2', gap: 'the plan ignores the client decision recorded in the brief (no partner naming)' })])
+    expect(out.owner).toBe('agent')
+  })
+
+  it('Q-S goes through the shared rules and keeps the buyer-criterion exception', async () => {
+    const [criterion, length] = (await strategy())([
+      finding({ code: 'missing_must_field', path: 'KLI-STRATEGIA.buyer_tension.decision_criterion', fix_step: '5.2', gap: 'marked unknown with no evidence_ids' }),
+      finding({ code: 'limit_exceeded', path: 'KLI-STRATEGIA.strategic_choice', fix_step: '5.2', gap: 'section exceeds recommended depth' }),
+    ])
+    expect(criterion.owner).toBe('client')
+    expect(length.severity).toBe('major')
+  })
+})
+
+describe('recorded conflicts and bare-id paths', () => {
+  it('a finding about the register\'s own conflict entry goes to the client; a downstream document taking a side stays with the writer', () => {
+    const withConflict = zrodlaDataSchema.parse({ ...zrodla, conflicts: [{ conflict_id: 'X01', facts: ['F14', 'F20'], dates: ['2026-09-19'], detail: 'd', impact: 'i', question: 'q', state: 'open' }] })
+    const [entry, downstream] = reclassifyRecordedClaims(
+      [
+        finding({ code: 'contradiction', path: 'documents.WEW-ZRODLA.conflicts.X01', owner: 'research', fix_step: '3.3', gap: 'F14 and F20 disagree on the timeline' }),
+        finding({ code: 'contradiction', path: 'WEW-AUDYT.message_map[0]', fix_step: '3.3', gap: 'asserts F14 as fact while X01 (F14 vs F20) is unresolved' }),
+      ],
+      withConflict,
+    )
+    expect(entry.owner).toBe('client')
+    expect(entry.path).toBe('WEW-ZRODLA.conflicts.X01')
+    expect(downstream.owner).toBe('agent')
+  })
+
+  it('routes a bare id path by the id alphabet', () => {
+    const [proof, competitor, question] = reclassifyRecordedClaims(
+      [
+        finding({ code: 'other', path: 'P03, P04 (case studies)', owner: 'research', fix_step: '3.4', gap: 'cards lack a recorded artifact detail' }),
+        finding({ code: 'other', path: 'C12', fix_step: '3.2', gap: 'competitor fact paraphrased' }),
+        finding({ code: 'other', path: 'Q03', fix_step: '3.2', gap: 'question repeats Q01' }),
+      ],
+      zrodla,
+    )
+    expect([proof.fix_step, competitor.fix_step, question.fix_step]).toEqual(['3.2', '3.4', '3.6'])
+  })
+})

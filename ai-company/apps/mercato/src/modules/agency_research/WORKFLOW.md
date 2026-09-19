@@ -89,7 +89,7 @@ warn at 10, `--yes` above 10) *before* it is made; reruns replay identical calls
 
 | | state |
 |---|---|
-| Unit tests | 111 (15 suites), fixture runner, zero spend |
+| Unit tests | 298 (36 suites, incl. the spine's acceptance/execution suites), fixture runner, zero spend |
 | FLOW fixture through CLI + Postgres, `--through 9.3` | green: 33 versions in ~2 s, 0 PLN, E.1 opened where the canned QA cannot pass, publication blocked at preflight, `close_allowed: false` |
 | Live on Open Mercato | **done end to end** (2026-09-19 06:50): 3.7 ready, brief QA needs_client_data (the 8 questions), Q-S ready_for_approval, Q-P draft (10/12 topics ready), post written and editor-approved on the first pass, publication documents blocked at preflight, package `close_allowed: false`; final pass 7.02 PLN, the whole night ≈ 114 PLN incl. reruns |
 | Demo | the live Open Mercato versions are the pre-run documents (D-00); Paweł's spine reads them through `agencyResearchService` (brief/strategy/plan/post review + acceptance) and Krysia's portal through `/api/agency_research/portal/{brief,documents}`; approvals, selection and publication consent stay real client actions there |

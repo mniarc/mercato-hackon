@@ -62,6 +62,8 @@ export type StepContext = {
   attempt: number
   /** 6.5 — the topic the client selected (`TOP01`…); when absent the recommendation is taken as a simulated selection. */
   selectedTopicId?: string | null
+  /** 3.4 — search for competitors again instead of reusing the stored selection (CLI `--refetch`). */
+  freshSelection?: boolean
   /** Phase-only strategy execution: the accepted/frozen foundation never follows current pointers. */
   strategyInputs?: StrategyExecutionInputs
   /** Shared across shallow repair contexts; only this execution's generated pair. */

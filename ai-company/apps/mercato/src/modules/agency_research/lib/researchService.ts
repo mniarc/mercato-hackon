@@ -80,6 +80,8 @@ export type RunResearchOptions = {
   through: ResearchStep
   /** 6.5 — the client's plan selection; null = simulated selection of the recommendation. */
   selectedTopicId?: string | null
+  /** Search for competitors again instead of reusing the stored selection. */
+  freshSelection?: boolean
   maxCostPln?: number
   cache?: PipelineCache
   concurrency?: number
@@ -204,6 +206,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     repairFindings: [],
     attempt: 1,
     selectedTopicId: opts.selectedTopicId ?? null,
+    freshSelection: opts.freshSelection ?? false,
   }
 
   let qaVerdict: 'ready' | 'to_fix' | 'exception' | undefined

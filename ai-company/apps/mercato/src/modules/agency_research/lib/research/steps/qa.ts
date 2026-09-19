@@ -116,14 +116,34 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
  * for the client (supply the basis, or accept hedged wording), so its owner becomes
  * `client` and it stops routing repairs that cannot change anything.
  */
-/** Evidence no author step can obtain from public sources — "lack of public knowledge is not a company defect" (Rafał). */
-/** A gap the QA agent itself attributes to a pending client decision. */
-export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|no confirmed (next-step |cta |contact )?destination|destination[^.]{0,40}(null|not observed|not_observed|unconfirmed)|awaiting confirmation from the client|decyzj\w* klienta)/i
+/** A gap the QA agent itself attributes to a pending client decision — the decision, not a writer ignoring a recorded one. */
+export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision (is )?(pending|outstanding|missing|awaited|not (yet )?(made|recorded))|pending client|no confirmed (next-step |cta |contact )?destination|destination[^.]{0,40}(not (yet )?(confirmed|decided|provided)|unconfirmed)|awaiting confirmation from the client|decyzj\w* klienta)/i
 
-/** A finding that says the document is right is commentary. */
-export const CONCEDES_CORRECT = /(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))/i
+/** A finding that says the document is right is commentary — unless a "but" follows the concession. */
+export const CONCEDES_CORRECT = /\b(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))\b/i
+const CONCESSION_REVERSED = /\b(but|however|yet|while|although|except|jednak|ale|natomiast|choć)\b/i
 
-export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|independently verified|independently (measured|audited|confirmed)|does not by itself prove|first-party (description|declaration|report|framing)|not (an )?independent(ly)?|insufficient evidence exists|no proof card|readiness:? ?'?(blocked|conditional)|plan[_ ]capacity|no (completion date|implementation evidence)|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
+export function concedesCorrect(gap: string): boolean {
+  return CONCEDES_CORRECT.test(gap) && !CONCESSION_REVERSED.test(gap)
+}
+
+/**
+ * Evidence no author step can obtain from public sources — "lack of public knowledge is not a company
+ * defect" (Rafał). Phrased as the evidence-request wording the QA agent uses, so that "TOP04 promises
+ * 40 % faster; no proof card backs the number" (a writer's invention) does not match while "P03 is a
+ * single-customer self-reported case, not independently verified" (an evidence request) does.
+ */
+export const NON_PUBLIC_EVIDENCE = /\b(interviews?|surveys?|conversion data|sales data|internal analytics|no analytics|independent (validation|verification)|third[- ]party (validation|verification)|(no|without|internal|independent) benchmarks?|(no|without|lacks?|undisclosed|disclosed|not disclosed) (calculation )?(methodology|method)|ICP validation|customer data|internal data|self-reported|single-customer|(not )?independently (verified|measured|audited|confirmed)|does not by itself prove|first-party (description|declaration|report|framing)|not (an )?independent(ly)? (verification|validation|measurement|source)|insufficient evidence exists|no proof card (exists|is available|in the register|backs (this|the) (claim|case|figure))|readiness:? ?'?(blocked|conditional)|plan[_ ]capacity|no (completion date|implementation evidence)|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
+
+/** Codes that describe the writer's own text; unobtainable evidence excuses them only when the finding is about recorded evidence (an F/P/X id). */
+const WRITER_FAULT_CODES = new Set(['contradiction', 'invented_effectiveness', 'duplicate'])
+const RECORDED_ID = /\b(F\d{2,}|P\d{2,}|X\d{2,})\b/
+
+/** Unobtainable evidence is the client's gap — for a writer-fault code only when the finding points at recorded evidence, not at the writer's own number. */
+export function unobtainableEvidence(f: Pick<QaFinding, 'code' | 'gap' | 'path'>): boolean {
+  if (!NON_PUBLIC_EVIDENCE.test(f.gap)) return false
+  return WRITER_FAULT_CODES.has(f.code) ? RECORDED_ID.test(`${f.path} ${f.gap}`) : true
+}
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
 function fixStepForPath(path: string): AuthorStepId | null {
@@ -150,10 +170,10 @@ function fixStepForPath(path: string): AuthorStepId | null {
 export function reclassifyProductionFindings(findings: QaFinding[]): QaFinding[] {
   return findings.map((f) => {
     if (f.owner === 'client' || f.owner === 'staff') return f
-    if (NON_PUBLIC_EVIDENCE.test(f.gap) || CLIENT_DECISION_GAP.test(f.gap)) {
+    if (unobtainableEvidence(f) || CLIENT_DECISION_GAP.test(f.gap)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs a client decision or evidence public sources cannot provide; a question, not a rewrite' }
     }
-    if (f.severity === 'blocking' && (f.code === 'limit_exceeded' || CONCEDES_CORRECT.test(f.gap))) return { ...f, severity: 'major' }
+    if (f.severity === 'blocking' && (f.code === 'limit_exceeded' || concedesCorrect(f.gap))) return { ...f, severity: 'major' }
     return f
   })
 }
@@ -167,8 +187,9 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
     const f = /^documents\./.test(raw.path) ? { ...raw, path: raw.path.replace(/^documents\./, '') } : raw
     if (f.owner === 'client' || f.owner === 'staff') return f
     // A conflict the register already records is the register doing its job; which side is true is the client's answer.
+    // Only when the finding is ABOUT the recorded conflict — a downstream document taking one side is still the writer's fault.
     const conflictId = f.path.match(/\b(X\d{2,})\b/)?.[1] ?? f.gap.match(/\bconflicts?\W+(X\d{2,})\b/i)?.[1]
-    if (conflictId && recordedConflicts.has(conflictId)) {
+    if (conflictId && recordedConflicts.has(conflictId) && /^(WEW-ZRODLA\.)?conflicts|^X\d/.test(f.path)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: `conflict ${conflictId} is recorded in the register with its question; the client resolves it` }
     }
     // A findings-map row already waiting for the client is a question by definition, not a missing field an agent forgot.
@@ -177,7 +198,7 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'the findings map already records this field as awaiting the client; it is a question for 4.3' }
     }
     // Asking for interviews, benchmarks or a methodology is a request to the client, not a rerun of a reading step.
-    if (NON_PUBLIC_EVIDENCE.test(f.gap)) {
+    if (unobtainableEvidence(f)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence that public sources cannot provide; recorded as a question / evidence request for the client' }
     }
     if (CLIENT_DECISION_GAP.test(f.gap)) {
@@ -322,22 +343,25 @@ export async function runQaLoop(ctx: StepContext, opts: { authorSteps: AuthorSte
     if (result.verdict === 'ready') return { verdict: 'ready', findings: result.findings, taskRunId: run.id, repairs }
 
     const blocking = result.findings.filter((f) => f.severity === 'blocking')
-    const fixSteps = [...new Set(blocking.map((f) => f.fix_step).filter((s): s is string => s !== null))] as AuthorStepId[]
+    // In step order: a register rewritten by 3.2 must precede the steps that read it in the same round.
+    const fixSteps = ([...new Set(blocking.map((f) => f.fix_step).filter((s): s is string => s !== null))] as AuthorStepId[]).sort()
     const canRepair = result.verdict === 'to_fix' && repairs < maxRepairs && fixSteps.length > 0 && fixSteps.every((s) => opts.authorSteps[s])
     if (canRepair) {
       repairs += 1
+      // A new register from 3.2 carries only the client's material; the competitor facts 3.4 appended must be
+      // re-appended before 3.3 / 3.5 / 3.6 read the register again, or every citation in WEW-KONKURENCJA dangles.
+      // 3.5 re-runs the comparison only and never re-appends; 3.4 does.
+      const competitors = opts.authorSteps['3.4']
+      const reappend = fixSteps.includes('3.2') && !fixSteps.includes('3.4') && competitors && documents.konkurencja
       for (const stepId of fixSteps) {
         const author = opts.authorSteps[stepId]
         if (!author) continue
         ctx.log(`3.7 → repair ${stepId} (attempt ${repairs} of ${maxRepairs})`)
         await author({ ...ctx, repairFindings: blocking.filter((f) => f.fix_step === stepId), attempt: repairs + 1 })
-      }
-      // A new register from 3.2 carries only the client's material; the competitor facts 3.4 appended
-      // must be re-appended, or every citation in WEW-KONKURENCJA dangles.
-      const competitors = opts.authorSteps['3.4']
-      if (fixSteps.includes('3.2') && !fixSteps.some((s) => s === '3.4' || s === '3.5') && competitors && documents.konkurencja) {
-        ctx.log(`3.7 → 3.4 re-run after the register changed (competitor facts re-appended)`)
-        await competitors({ ...ctx, repairFindings: [], attempt: repairs + 1 })
+        if (stepId === '3.2' && reappend && competitors) {
+          ctx.log(`3.7 → 3.4 re-run after the register changed (competitor facts re-appended)`)
+          await competitors({ ...ctx, repairFindings: [], attempt: repairs + 1 })
+        }
       }
       continue
     }

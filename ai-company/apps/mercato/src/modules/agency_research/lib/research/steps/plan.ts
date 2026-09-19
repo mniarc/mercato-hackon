@@ -69,6 +69,9 @@ const SECTION_DAYS: Record<PlanWriterSection, [number, number]> = {
   balance_recommendation: [1, 30],
 }
 
+/** What a blank narrative field says in the client's language (the issue names the field). */
+const PLACEHOLDER = { pl: 'nie określono — do uzupełnienia', en: 'not specified — to be completed' } as const
+
 /** Two topics closer than this in words are one idea said twice. */
 export const DUPLICATE_SIMILARITY = 0.6
 /** No pillar may carry more than this share of the plan. */
@@ -107,7 +110,7 @@ const topicText = (topic: Pick<PlanWriterTopic, 'audience_question' | 'topic' | 
 export function gateTopicsSection(
   section: PlanWriterSection,
   sections: PlanTopicsSection,
-  args: { known: Set<string>; pillarIds: Set<string>; count: number; existing: Pick<PlanTopic, 'audience_question' | 'topic' | 'main_message'>[] },
+  args: { known: Set<string>; pillarIds: Set<string>; count: number; existing: Pick<PlanTopic, 'audience_question' | 'topic' | 'main_message'>[]; language?: 'pl' | 'en' },
 ): { value: PlanTopicsSection; issues: GateIssue[]; kept: number; dropped: number } {
   const issues: GateIssue[] = []
   const topics = sections.topics
@@ -126,7 +129,7 @@ export function gateTopicsSection(
     }
     for (const key of ['post_goal', 'readiness_scope', 'evidence_limits', 'format', 'cta'] as const) {
       if (topic[key]?.trim()) continue
-      topic[key] = key === 'format' ? 'text' : 'not specified by the writer'
+      topic[key] = key === 'format' ? 'text' : PLACEHOLDER[args.language ?? 'pl']
       issues.push(issue('EMPTY_FIELD_DEFAULTED', `${path}.${key}`, `${topic.local_ref}: ${key} was blank; placeholder recorded`))
     }
     if (!args.pillarIds.has(topic.pillar_id)) {
@@ -284,7 +287,9 @@ const finding = (code: QaFinding['code'], path: string, gap: string, owner: QaFi
  * every id stored, readiness backed by evidence, a recommendation that is a ready
  * topic, and no numeric promise without a measured / external proof card.
  */
-const NUMERIC_EFFECT = /\b\d+\s?(%|proc\.|percent|razy|x\b|godzin|dni|tygodni|weeks|days|hours)/gi
+const NUMERIC_EFFECT = /\b\d+\s?(%|proc\.|percent|razy|x\b|godzin|dni|tygodni|weeks|days|hours)/i
+/** Every numeric effect in a text, normalised ("80 %" → "80%"); a fresh global regex per call, so no shared lastIndex. */
+const numericEffectsOf = (text: string): string[] => [...text.matchAll(new RegExp(NUMERIC_EFFECT.source, 'gi'))].map((m) => m[0].replace(/\s+/g, '').toLowerCase())
 
 export function planValidatorFindings(args: { plan: PlanData; strategia: StrategiaData; zrodla: ZrodlaData; topicCount: number }): QaFinding[] {
   const { plan, strategia, zrodla, topicCount } = args
@@ -292,7 +297,7 @@ export function planValidatorFindings(args: { plan: PlanData; strategia: Strateg
   const known = knownPlanIds(strategia, zrodla)
   const allowedNumbers = new Set(
     [...strategia.proof_architecture.map((row) => row.allowed_claim), strategia.uvp.working_sentence, strategia.message_hierarchy.main_promise.text].flatMap((text) =>
-      (text.match(NUMERIC_EFFECT) ?? []).map((m) => m.replace(/\s+/g, '').toLowerCase()),
+      numericEffectsOf(text),
     ),
   )
   if (plan.topics.length !== topicCount) findings.push(finding('limit_exceeded', 'KLI-PLAN.topics', `${plan.topics.length} topics; the pinned offer has ${topicCount}`))
@@ -313,7 +318,8 @@ export function planValidatorFindings(args: { plan: PlanData; strategia: Strateg
     if (topic.angle.steps.length === 0 && topic.angle.example === null) findings.push(finding('other', `${path}.angle`, 'angle has neither steps nor an example — not concrete enough to write from', 'agent', 'major'))
     // A number the strategy already allows as a claim (the client's "80% done" thesis, capped at declared_method with
     // its limitations) is the strategy's responsibility; the plan needs measured proof only for numbers of its own.
-    const numbers = (`${topic.main_message} ${topic.evidence_excerpt} ${topic.post_goal}`.match(NUMERIC_EFFECT) ?? []).map((m) => m.replace(/\s+/g, '').toLowerCase())
+    // Token-level on purpose: a number the strategy allows ("80%") is allowed in any topic; the QA agent reads the context.
+    const numbers = numericEffectsOf(`${topic.main_message} ${topic.evidence_excerpt} ${topic.post_goal}`)
     const numeric = numbers.some((n) => !allowedNumbers.has(n))
     const measured = topic.proof_ids.some((id) => {
       const card = zrodla.proof_cards.find((proof) => proof.proof_id === id)
@@ -401,7 +407,7 @@ export async function runPlanPipeline(opts: PlanPipelineOptions): Promise<PlanPi
       label: section,
       input: writerInput(opts, section, provisional(raw)),
       parse: (data) => planTopicsResult.parse(data).data,
-      gate: (data) => gateTopicsSection(section, data, { known, pillarIds, count, existing: raw }),
+      gate: (data) => gateTopicsSection(section, data, { known, pillarIds, count, existing: raw, language: opts.outputLanguage }),
     })
     issues.push(...sectionIssues)
     raw.push(...value.topics)

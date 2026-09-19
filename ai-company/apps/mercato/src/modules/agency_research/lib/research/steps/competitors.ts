@@ -358,6 +358,11 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
     accepted.push(candidate)
   }
   stats.competitors = accepted.length
+  // A stored selection carries no alternates: when one of its companies stopped being readable, say so instead of
+  // silently comparing against fewer — `--refetch` (a fresh search) brings the alternates back.
+  if (opts.reuseSelection?.length && accepted.length < Math.min(limits.research.competitorEntitiesMax, opts.reuseSelection.length)) {
+    issues.push({ code: 'COMPETITOR_REPLACEMENT_NEEDED', severity: 'limitation', detail: `${accepted.length} of the ${opts.reuseSelection.length} stored competitors still readable; rerun with --refetch to search for replacements`, path: 'selection' })
+  }
 
   const zrodlaV2: ZrodlaData = zrodlaDataSchema.parse({
     ...opts.zrodla,
@@ -589,7 +594,7 @@ export async function runCompetitorsStep(ctx: StepContext): Promise<StepOutcome>
   const run34 = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '3.4', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run34.id)
   let run35: Awaited<ReturnType<typeof startTaskRun>> | null = null
-  const previousComparison = ctx.repairFindings.length ? null : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
+  const previousComparison = ctx.repairFindings.length || ctx.freshSelection ? null : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
   const storedSelection = previousComparison ? konkurencjaDataSchema.safeParse(previousComparison.data) : null
   const reuseSelection = storedSelection?.success && storedSelection.data.selection.length
     ? storedSelection.data.selection.map((row) => ({ company: row.company, url: row.url, competition_type: row.competition_type, shared_problem_scope: row.shared_problem_scope, market_scale_difference: row.market_scale_difference, reason: row.reason }))
