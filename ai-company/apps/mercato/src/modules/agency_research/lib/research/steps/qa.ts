@@ -118,7 +118,7 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
  */
 /** Evidence no author step can obtain from public sources — "lack of public knowledge is not a company defect" (Rafał). */
 /** A gap the QA agent itself attributes to a pending client decision. */
-export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|decyzj\w* klienta)/i
+export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|no confirmed (next-step |cta |contact )?destination|destination[^.]{0,40}(null|not observed|not_observed|unconfirmed)|awaiting confirmation from the client|decyzj\w* klienta)/i
 
 export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
