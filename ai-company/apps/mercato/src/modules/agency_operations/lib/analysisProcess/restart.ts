@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import type { EntityManager } from '@mikro-orm/postgresql'
-import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { UserTask, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
@@ -9,7 +9,7 @@ import { AgencyCase } from '../../data/entities'
 import { assertAnalysisProcessConfigured } from './configure'
 import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
 
-type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext'>
+type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext' | 'completeWorkflow'>
 
 const inputSchema = z.object({
   tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(),
@@ -41,11 +41,21 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
     ? await findOneWithDecryption(em, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, deletedAt: null }, undefined, scope)
     : null
   const executor = container.resolve<Executor>('workflowExecutor')
-  if (previous && previous.status === 'PAUSED' && input.resumeFrom) {
+  if (previous && previous.status === 'PAUSED' && input.resumeFrom && previous.currentStepId === 'research_exception') {
     // Paused on an open exception task: the human decision stays with the employee. The override is written
     // into the live instance so that resolving the task re-enters research from the requested step.
     await executor.updateWorkflowContext(em, previous.id, { restart: { attempt: 0, previousWorkflowInstanceId: null, by: input.userId, at: new Date().toISOString(), resumeFrom: input.resumeFrom } })
-    return { caseId: agencyCase.id, previousWorkflowInstanceId: null, workflowInstanceId: previous.id, status: previous.status, currentStep: previous.currentStepId ?? 'research_exception' }
+    return { caseId: agencyCase.id, previousWorkflowInstanceId: null, workflowInstanceId: previous.id, status: previous.status, currentStep: previous.currentStepId }
+  }
+  if (previous && previous.status === 'PAUSED' && input.resumeFrom) {
+    // Paused on a client review: the employee rebuilds a document before the client reads it. The open
+    // review task and this instance are cancelled (nothing was accepted), a fresh instance re-enters
+    // research from the requested step and pauses again on a new review task.
+    await executor.completeWorkflow(em, container, previous.id, 'CANCELLED')
+    const openTasks = await em.find(UserTask, { workflowInstanceId: previous.id, status: 'PENDING' })
+    for (const task of openTasks) { task.status = 'CANCELLED'; task.updatedAt = new Date() }
+    await em.flush()
+    await em.refresh(previous)
   }
   if (previous && !TERMINAL.has(previous.status)) throw new CrudHttpError(409, { error: `The case workflow is still ${previous.status}; nothing to restart` })
   const attempt = (previous?.correlationKey?.match(/:restart-(\d+)$/)?.[1] ? Number(previous.correlationKey.match(/:restart-(\d+)$/)![1]) : 0) + 1
