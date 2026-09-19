@@ -53,6 +53,18 @@ test('build, image verification and transfer plans retain exact paths and stay o
   assert.throws(() => planAgencyCommand(['export', '--image', image, '--file', 'relative.tar'], { root }), /absolute path/)
 })
 
+test('build heap override is explicit and forwarded without becoming a container memory promise', () => {
+  const steps = planAgencyCommand(['build', '--image', 'agency:test', '--heap-mb', '4096'], { root })
+  const args = steps[0].args
+  assert.equal(args[args.indexOf('BUILD_NODE_HEAP_MB=4096') - 1], '--build-arg')
+  assert.ok(!args.includes('--memory'))
+  const turbo = JSON.parse(fs.readFileSync(new URL('../../ai-company/turbo.json', import.meta.url), 'utf8'))
+  assert.ok(turbo.globalPassThroughEnv.includes('NODE_OPTIONS'))
+  for (const value of ['0', '-1', '1.5', '4GB', '4096;echo bad', '9007199254740992']) {
+    assert.throws(() => planAgencyCommand(['build', '--image', 'agency:test', '--heap-mb', value], { root }), /heap-mb|Invalid options/)
+  }
+})
+
 test('disabled execution preflight needs no provider model or key and stays read-only', () => {
   assert.doesNotThrow(() => validateRuntimeEnvironment(runtimeEnv))
   const steps = planAgencyCommand(['preflight', '--env-file', envFile, '--for', 'deploy'], { root, runtimeEnv })
