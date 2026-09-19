@@ -4,6 +4,17 @@ import { render, screen } from '@testing-library/react'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { AgencyCaseProcess } from '../AgencyCaseProcess'
 
+test('links a saved specialist wait to intake for the same case', async () => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], strategyExecution: {
+      status: 'not_ready', orderRef: 'case-id', reason: 'specialist_tov_pending', nextAction: 'provide_specialist_corpus',
+    } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByRole('link', { name: 'agencyOperations.tovIntake.title' }))
+    .toHaveAttribute('href', '/backend/agency-operations/tov-intakes?caseId=case-id')
+})
+
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,

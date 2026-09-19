@@ -33,7 +33,10 @@ export default function AgencyOfferPage({ params }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <Button asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/materials`}>{t('agency.materials.link')}</Link></Button>
+      <div className="flex flex-wrap gap-2">
+        <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/questions`}>{t('agency.salesQuestions.title')}</Link></Button>
+        <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/cases`}>{t('agency.cases.title')}</Link></Button>
+      </div>
       <PortalPageHeader
         label={t('agency.offer.label')}
         title={t('agency.offer.productName')}

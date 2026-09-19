@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { AgencyJourneyLinks } from '../journey/AgencyJourneyLinks'
 import type { z } from 'zod'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { CrudForm, type CrudField } from '@open-mercato/ui/backend/CrudForm'
@@ -120,6 +121,7 @@ function PublicationConsentLoader({ taskId, orgSlug, canComplete, taskStatus, up
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader title={t(`${key}.title`)} description={t('agency.review.publicationHint')} action={back} />
+      <AgencyJourneyLinks orgSlug={orgSlug} caseId={projection.request.caseId} />
       <PortalCard>
         <div className="space-y-4">
           <div>

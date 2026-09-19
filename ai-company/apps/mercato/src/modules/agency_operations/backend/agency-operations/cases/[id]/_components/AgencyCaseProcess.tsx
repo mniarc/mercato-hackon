@@ -157,6 +157,11 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <h3 className="text-sm font-semibold">{translate(`${key}.strategyExecution.title`)}</h3>
                 <p className="text-sm">{translate(`${key}.strategyExecution.${submission.strategyExecution.status}`)}</p>
                 <p className="text-sm text-muted-foreground">{translate(`${key}.strategyExecution.noApproval`)}</p>
+                {submission.strategyExecution.status === 'not_ready' && submission.strategyExecution.reason === 'specialist_tov_pending' ? (
+                  <Button type="button" asChild variant="outline"><Link href={`/backend/agency-operations/tov-intakes?caseId=${encodeURIComponent(caseId)}`}>
+                    {translate('agencyOperations.tovIntake.title')}
+                  </Link></Button>
+                ) : null}
                 <JsonDisplay data={submission.strategyExecution} title={translate(`${key}.strategyExecution.title`)} />
               </div>
             ) : null}

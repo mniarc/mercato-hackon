@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { AgencyJourneyLinks } from '../journey/AgencyJourneyLinks'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { CrudForm, type CrudField } from '@open-mercato/ui/backend/CrudForm'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
@@ -117,6 +118,7 @@ function PairReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader title={t(`${key}.title`)} description={t(`${key}.description`)} action={back} />
+      <AgencyJourneyLinks orgSlug={orgSlug} caseId={projection.review.caseId} />
       {(['strategy', 'tov'] as const).map((document) => (
         <PortalCard key={`${document}:${projection.review[document].versionId}`}>
           <DocumentReview review={projection.review[document]} canRespond={false} submitting={false}

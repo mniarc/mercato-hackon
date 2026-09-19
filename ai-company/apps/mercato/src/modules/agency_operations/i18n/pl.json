@@ -1,4 +1,5 @@
 {
+  "agencyOperations.journey.openCase": "Otwórz sprawę agencyjną",
   "agencyOperations.cases.process.materialRevision.title": "Dowody z nowego materiału",
   "agencyOperations.cases.process.materialRevision.completed": "Zakończono wskazane uzupełnienie dowodów i briefu z zapisanym QA.",
   "agencyOperations.cases.process.materialRevision.needs_client_data": "Materiał nie wyjaśnił wszystkich pytań; sprawdź zapisane przekazanie do wyjaśnienia.",

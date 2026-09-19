@@ -1,4 +1,5 @@
 {
+  "agencyOperations.journey.openCase": "Open agency case",
   "agencyOperations.cases.process.materialRevision.title": "Late material evidence",
   "agencyOperations.cases.process.materialRevision.completed": "The directed evidence and brief revision completed with saved QA.",
   "agencyOperations.cases.process.materialRevision.needs_client_data": "The material did not resolve all questions; check the saved clarification handoff.",

@@ -1,13 +1,16 @@
 # T89 - Answer a customer's fixed-offer question before purchase
 
-State: ready
+State: active (source implemented; focused checks passed; connected native proof pending)
 Depends on: existing native G and approved demo offer; explicit worker configuration
 Sources: F01-2 AC1-5; F01-1 AC5
 Owns: bounded `agency_operations/lib/salesQuestions/**` producer/persistence seam
 and existing `agents/sales-advisor/**`; coordinator owns shared G contracts and
 teammate portal integration. Confirm exclusive paths before assigning implementation.
 
-## Confirmed gap
+Implementation: 9 focused checks and app typecheck passed. The joined native
+prepurchase question/follow-up path remains unproved; no live-model proof is claimed.
+
+## Original gap
 
 `clientSubmissionService.submit` requires an existing case and
 `client-triage/contract.ts` requires its case ID. The sales-advisor definition is

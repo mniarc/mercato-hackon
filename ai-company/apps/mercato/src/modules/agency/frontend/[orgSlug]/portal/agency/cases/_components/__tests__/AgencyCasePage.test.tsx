@@ -16,6 +16,10 @@ jest.mock('../CaseConversation', () => ({
   CaseConversation: ({ caseId }: { caseId: string }) =>
     <div data-testid="case-conversation" data-case-id={caseId} />,
 }))
+jest.mock('../ClientCaseTasks', () => ({
+  ClientCaseTasks: ({ caseId, orgSlug }: { caseId: string; orgSlug: string }) =>
+    <div data-testid="case-tasks" data-case-id={caseId} data-org-slug={orgSlug} />,
+}))
 
 it('links the case to its organization task inbox without presenting intake completion as case completion', () => {
   const caseId = 'b0c463a3-60d1-44ef-b828-d55d3e27104e'
@@ -23,9 +27,13 @@ it('links the case to its organization task inbox without presenting intake comp
 
   expect(screen.getByRole('link', { name: translations['agency.cases.openTasks'] }))
     .toHaveAttribute('href', '/acme/portal/tasks')
+  expect(screen.getByRole('link', { name: translations['agency.materials.link'] }))
+    .toHaveAttribute('href', `/acme/portal/agency/materials?caseId=${caseId}`)
   expect(screen.getByRole('heading', { name: translations['agency.cases.intakeStatus'] })).toBeTruthy()
   expect(screen.getByText(translations['agency.cases.reviewTasksHint'])).toBeTruthy()
   expect(screen.getByTestId('case-status')).toHaveAttribute('data-case-id', caseId)
   expect(screen.getByTestId('case-status')).toHaveAttribute('data-show-material', 'true')
   expect(screen.getByTestId('case-conversation')).toHaveAttribute('data-case-id', caseId)
+  expect(screen.getByTestId('case-tasks')).toHaveAttribute('data-case-id', caseId)
+  expect(screen.getByTestId('case-tasks')).toHaveAttribute('data-org-slug', 'acme')
 })

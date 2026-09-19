@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { AgencyJourneyLinks } from '../journey/AgencyJourneyLinks'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { CrudForm, type CrudField } from '@open-mercato/ui/backend/CrudForm'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
@@ -120,6 +121,7 @@ function PostReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader title={t(`${key}.title`)} description={t(`${key}.description`)} action={back} />
+      <AgencyJourneyLinks orgSlug={orgSlug} caseId={projection.review.caseId} />
       <PortalCard>
         <DocumentReview review={projection.review.post} canRespond={false} submitting={false}
           submitted={null} error={null} onRespond={readOnlyResponse} />
@@ -137,6 +139,5 @@ function PostReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
     </div>
   )
 }
-
 
 

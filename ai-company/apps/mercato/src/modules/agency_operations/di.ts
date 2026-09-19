@@ -77,12 +77,19 @@ import { MATERIAL_REVISION_FUNCTION, MATERIAL_REVISION_REVIEW_FUNCTION, MATERIAL
 import { createMaterialRevisionActivity } from './lib/materialRevision/activity'
 import { createMaterialRevisionReviewHandoff } from './lib/materialRevision/reviewHandoff'
 import { createMaterialRevisionResearchExceptionHandoff } from './lib/materialRevision/exceptionHandoff'
+import { SALES_QUESTIONS_SERVICE, PREPARE_SALES_QUESTION, PREPARE_SALES_ANSWER, RECORD_SALES_ANSWER } from './lib/salesQuestions/contracts'
+import { createSalesQuestionsService } from './lib/salesQuestions/service'
+import { createSalesQuestionActivities } from './lib/salesQuestions/activities'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [SALES_QUESTIONS_SERVICE]: asFunction(() => createSalesQuestionsService(container)).scoped(),
+    [`workflowFunction:${PREPARE_SALES_QUESTION}`]: asFunction(() => createSalesQuestionActivities(container).prepareQuestion).scoped(),
+    [`workflowFunction:${PREPARE_SALES_ANSWER}`]: asFunction(() => createSalesQuestionActivities(container).prepareAnswer).scoped(),
+    [`workflowFunction:${RECORD_SALES_ANSWER}`]: asFunction(() => createSalesQuestionActivities(container).recordAnswer).scoped(),
     [PUBLICATION_CONSENT_REQUEST_SERVICE]: asFunction(() => createPublicationConsentRequestService(container)).scoped(),
     [`workflowFunction:${PUBLICATION_CONSENT_FUNCTION}`]: asFunction(
       () => container.resolve<ReturnType<typeof createPublicationConsentRequestService>>(PUBLICATION_CONSENT_REQUEST_SERVICE).receiveResponse,

@@ -6,6 +6,8 @@ export const inputSchema = z.object({
   submissionId: z.string().min(1),
   triageDecisionId: z.string().min(1),
   question: z.string().min(1),
+  triageRecommendation: z.string().optional(),
+  previousExchange: z.object({ question: z.string(), answer: z.string().nullable() }).optional(),
   catalog: z.object({
     versionId: z.string().min(1),
     productId: z.string().min(1),

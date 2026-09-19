@@ -6,11 +6,12 @@ export const agentDefinition = {
   id: 'agency_operations.sales_advisor',
   moduleId: 'agency_operations',
   label: 'Sales advisor',
-  description: 'Disabled role scaffold; requires scoped workflow wiring and configured execution limits before activation.',
+  description: 'Catalogue-grounded pre-purchase answers after G; execution requires an explicitly configured native sales-question workflow.',
   instructions: systemPrompt,
   agentType: 'researcher',
   tools: [],
   subAgents: [],
   allowedActions: [],
+  loop: { maxSteps: 1 },
   result: { kind: 'research', schema: outputSchema },
 } satisfies DefineAgentInput

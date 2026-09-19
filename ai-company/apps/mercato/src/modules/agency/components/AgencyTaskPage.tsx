@@ -12,6 +12,7 @@ import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'
 import { DocumentReview } from './DocumentReview'
+import { AgencyJourneyLinks } from './journey/AgencyJourneyLinks'
 import { buildReviewRequest, canAcceptDocument, canCommentDocument, readDocumentReview } from '../data/document-review'
 
 const StandardTaskPage = dynamic(() => import('@open-mercato/core/modules/workflows/frontend/[orgSlug]/portal/tasks/[id]/page'))
@@ -139,6 +140,7 @@ function TaskLoader({ params }: Props) {
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader label={t('agency.review.pageTitle')} title={detail.task.taskName} description={t('agency.review.description')} action={back} />
+      <AgencyJourneyLinks orgSlug={params.orgSlug} caseId={review.caseId} />
       <PortalCard>
         <DocumentReview key={versionKey} review={review} canRespond={canRespond && ['PENDING', 'IN_PROGRESS'].includes(detail.task.status)} submitting={submitting || refreshing} submitted={submitted} error={error} onRespond={respond} />
       </PortalCard>

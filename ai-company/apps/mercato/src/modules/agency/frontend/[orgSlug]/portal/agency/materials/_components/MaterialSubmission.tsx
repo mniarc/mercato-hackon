@@ -12,6 +12,7 @@ import { Label } from '@open-mercato/ui/primitives/label'
 import { Textarea } from '@open-mercato/ui/primitives/textarea'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
+import { Button } from '@open-mercato/ui/primitives/button'
 import type { ClientCaseItem, ClientCaseListResult, SupplementaryMaterialResult } from '@/modules/agency_operations/lib/contracts'
 
 export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
@@ -66,7 +67,12 @@ export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
   }
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6" data-material-form-ready={ready ? '1' : '0'}>
-      <PortalPageHeader title={t('agency.materials.title')} description={t('agency.materials.supplement.description')} />
+      <PortalPageHeader title={t('agency.materials.title')} description={t('agency.materials.supplement.description')} action={(
+        <Button type="button" asChild variant="outline"><Link href={requestedCaseId && cases.some((item) => item.caseId === requestedCaseId)
+          ? `/${orgSlug}/portal/agency/cases/${encodeURIComponent(requestedCaseId)}` : `/${orgSlug}/portal/agency/cases`}>
+          {t('agency.cases.back')}
+        </Link></Button>
+      )} />
       <PortalCard>
         {submitted ? <div className="space-y-3" role="status">
           <p>{t(`agency.materials.supplement.${submitted.state}`)}</p>
