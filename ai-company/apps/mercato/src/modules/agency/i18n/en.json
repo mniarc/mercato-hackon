@@ -101,6 +101,8 @@
   "agency.materials.process": "Requested process",
   "agency.materials.process.intake": "Store material (no AI processing)",
   "agency.materials.process.tov": "Tone-of-voice research",
+  "agency.materials.process.analysis": "Configured agency analysis",
+  "agency.materials.analysisHint": "Upload analysis JSON (up to 1 MiB) containing order and optional pages/socialPosts source inputs. The product selection must match the agency's configured process. Other file formats are not supported.",
   "agency.materials.processHint": "Research invokes the configured server-side agents. Storage alone does not call an AI model.",
   "agency.materials.brand": "Brand",
   "agency.materials.outputLanguage": "Output language",

@@ -101,6 +101,8 @@
   "agency.materials.process": "Zlecony proces",
   "agency.materials.process.intake": "Zapisz materiał (bez przetwarzania AI)",
   "agency.materials.process.tov": "Badanie tonu komunikacji",
+  "agency.materials.process.analysis": "Skonfigurowana analiza agencji",
+  "agency.materials.analysisHint": "Prześlij plik JSON analizy (do 1 MiB) zawierający order i opcjonalne źródła pages/socialPosts. Wybór produktu musi odpowiadać konfiguracji procesu agencji. Inne formaty plików nie są obsługiwane.",
   "agency.materials.processHint": "Badanie uruchamia agentów skonfigurowanych na serwerze. Sam zapis nie wywołuje modelu AI.",
   "agency.materials.brand": "Marka",
   "agency.materials.outputLanguage": "Język wyników",

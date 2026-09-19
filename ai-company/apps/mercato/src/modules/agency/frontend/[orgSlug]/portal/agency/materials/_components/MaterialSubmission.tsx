@@ -34,6 +34,7 @@ export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
       options: [
         { value: 'intake', label: t('agency.materials.process.intake') },
         { value: 'tone_of_voice', label: t('agency.materials.process.tov') },
+        { value: 'analysis', label: t('agency.materials.process.analysis') },
       ],
       description: t('agency.materials.processHint'),
     },
@@ -57,9 +58,15 @@ export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
     },
     {
       id: 'file', type: 'custom', label: t('agency.materials.file'), required: true,
-      component: ({ id, setValue, disabled }) => (
-        <Input id={id} type="file" disabled={disabled} aria-label={t('agency.materials.file')}
-          onChange={(event) => setValue(event.target.files?.[0] ?? null)} />
+      component: ({ id, setValue, disabled, values }) => (
+        <>
+          <Input id={id} type="file" disabled={disabled} aria-label={t('agency.materials.file')}
+            aria-describedby={values?.processKind === 'analysis' ? `${id}-analysis-hint` : undefined}
+            onChange={(event) => setValue(event.target.files?.[0] ?? null)} />
+          {values?.processKind === 'analysis' ? (
+            <p id={`${id}-analysis-hint`} className="text-sm text-muted-foreground">{t('agency.materials.analysisHint')}</p>
+          ) : null}
+        </>
       ),
     },
   ], [t])
@@ -79,6 +86,8 @@ export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
       body.set('process', JSON.stringify({
         kind: 'tone_of_voice', brand: values.brand, outputLanguage: values.outputLanguage,
       }))
+    } else if (values.processKind === 'analysis') {
+      body.set('process', JSON.stringify({ kind: 'analysis' }))
     }
     const result = await readApiResultOrThrow<ClientMaterialIntakeResult>('/api/agency/portal/materials', {
       method: 'POST', body,

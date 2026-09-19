@@ -31,6 +31,22 @@ jest.mock('@open-mercato/ui/backend/utils/apiCall', () => ({
 }))
 jest.mock('../CaseStatus', () => ({ CaseStatus: () => null }))
 
+if (!Element.prototype.hasPointerCapture) Element.prototype.hasPointerCapture = () => false
+if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCapture = () => undefined
+if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => undefined
+if (typeof Response === 'undefined') Object.defineProperty(globalThis, 'Response', { value: class Response {}, configurable: true })
+
+beforeEach(() => jest.mocked(readApiResultOrThrow).mockReset())
+
+async function fillAnalysisSubmission() {
+  const material = new File(['{"order":{},"pages":[]}'], 'analysis.json', { type: 'application/json' })
+  fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), { target: { value: 'Client analysis' } })
+  fireEvent.change(screen.getByLabelText('Material file'), { target: { files: [material] } })
+  fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' })
+  fireEvent.click(await screen.findByRole('option', { name: translations['agency.materials.process.analysis'] }))
+  return material
+}
+
 it('does not expose editable server-rendered inputs before hydration', () => {
   const html = renderToString(
     <I18nProvider locale="en" dict={translations}><MaterialSubmission orgSlug="acme" /></I18nProvider>,
@@ -57,4 +73,35 @@ it('retains title when a file is selected and submits both through the real Crud
   const body = request?.body as FormData
   expect(body.get('title')).toBe('Client request')
   expect(body.get('file')).toBe(material)
+})
+
+it('submits configured analysis without client execution settings and links to the returned case', async () => {
+  jest.mocked(readApiResultOrThrow).mockResolvedValue({ caseId: 'analysis-case', status: 'WAITING_FOR_ACTIVITIES' })
+  renderWithProviders(<MaterialSubmission orgSlug="acme" />, { dict: translations })
+  const material = await fillAnalysisSubmission()
+  expect(screen.getByText(translations['agency.materials.analysisHint'])).toBeVisible()
+  expect(screen.queryByRole('textbox', { name: 'Brand' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Submit material' }))
+  await waitFor(() => expect(readApiResultOrThrow).toHaveBeenCalledTimes(1))
+  const [url, request] = jest.mocked(readApiResultOrThrow).mock.calls[0]
+  const body = request?.body as FormData
+  expect(url).toBe('/api/agency/portal/materials')
+  expect(request?.method).toBe('POST')
+  expect(body.get('title')).toBe('Client analysis')
+  expect(body.get('file')).toBe(material)
+  expect(JSON.parse(body.get('process') as string)).toEqual({ kind: 'analysis' })
+  expect(await screen.findByTestId('agency-material-case-id')).toHaveTextContent('analysis-case')
+  expect(screen.getByRole('link', { name: translations['agency.cases.open'] })).toHaveAttribute('href', '/acme/portal/agency/cases/analysis-case')
+})
+
+it('shows the existing server configuration error and retains the analysis form for correction', async () => {
+  const message = 'Agency analysis execution is not enabled'
+  jest.mocked(readApiResultOrThrow).mockRejectedValue(new Error(message))
+  renderWithProviders(<MaterialSubmission orgSlug="acme" />, { dict: translations })
+  await fillAnalysisSubmission()
+  fireEvent.click(screen.getByRole('button', { name: 'Submit material' }))
+  expect((await screen.findAllByText(message)).length).toBeGreaterThan(0)
+  expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue('Client analysis')
+  expect(screen.queryByTestId('agency-material-case-id')).not.toBeInTheDocument()
+  expect(readApiResultOrThrow).toHaveBeenCalledTimes(1)
 })
