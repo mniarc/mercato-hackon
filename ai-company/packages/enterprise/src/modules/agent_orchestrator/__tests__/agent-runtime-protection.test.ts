@@ -157,6 +157,40 @@ describe('in-process wall-clock timeout (OM_AGENT_RUN_TIMEOUT_MS)', () => {
     expect(completeRunMock).toHaveBeenCalledTimes(1)
     expect(failRunMock).not.toHaveBeenCalled()
   })
+
+  it('honors a caller timeout instead of the longer environment deadline', async () => {
+    process.env.OM_AGENT_RUN_TIMEOUT_MS = '5000'
+    registerInProcessAgent('protection.caller_timeout_agent')
+    runAiAgentObjectMock.mockImplementation(() => delay(100).then(() => VALID_MODEL_OUTPUT))
+
+    await expect(makeService().run('protection.caller_timeout_agent', {}, { ...runCtx, runTimeoutMs: 20 }))
+      .rejects.toThrow('20ms wall-clock deadline')
+    expect(failRunMock).toHaveBeenCalledTimes(1)
+    await delay(120)
+    expect(completeRunMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { override: 7000, environment: '5000', expected: 7000 },
+    { override: undefined, environment: '5000', expected: 5000 },
+    { override: 0, environment: '5000', expected: 5000 },
+    { override: -1, environment: '5000', expected: 5000 },
+    { override: Number.NaN, environment: '5000', expected: 5000 },
+    { override: Number.POSITIVE_INFINITY, environment: '5000', expected: 5000 },
+    { override: 0, environment: 'invalid', expected: 300000 },
+  ])('resolves caller timeout $override with environment $environment to $expected ms', async ({ override, environment, expected }) => {
+    process.env.OM_AGENT_RUN_TIMEOUT_MS = environment
+    registerInProcessAgent('protection.timeout_resolution_agent')
+    runAiAgentObjectMock.mockResolvedValue(VALID_MODEL_OUTPUT)
+    const schedule = jest.spyOn(globalThis, 'setTimeout')
+    try {
+      await makeService().run('protection.timeout_resolution_agent', {}, { ...runCtx, runTimeoutMs: override })
+      expect(schedule).toHaveBeenCalledWith(expect.any(Function), expected)
+      expect(completeRunMock).toHaveBeenCalledTimes(1)
+    } finally {
+      schedule.mockRestore()
+    }
+  })
 })
 
 describe('admission gate in AgentRuntimeService.run', () => {
