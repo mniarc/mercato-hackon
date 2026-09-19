@@ -11,6 +11,7 @@ import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
+import { readBriefReview } from './briefReview/read'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -276,6 +277,9 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         client_view_md: version?.clientViewMd ?? null,
         questions: questions.map((q) => ({ question_id: q.question_id, question: q.question, hint: q.hint, reason: q.reason, brief_field: q.brief_field, priority: q.priority })),
       }
+    },
+    async getBriefReview(scope, orderRef, versionId) {
+      return readBriefReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
     },
     async status(scope, orderRef) {
       const em = (container.resolve('em') as EntityManager).fork()

@@ -78,10 +78,32 @@ export type ClientView =
       questions: { question_id: string; question: string; hint: string; reason: string; brief_field: string; priority: string }[]
     }
 
+export type BriefReviewQa =
+  | { state: 'missing' }
+  | { state: 'unavailable'; taskRunId: string; status: string }
+  | { state: 'assessed'; taskRunId: string; status: 'done' | 'to_fix'; verdict: 'ready_for_approval' | 'needs_client_data' | 'needs_agent_fix' }
+
+/** Trusted server projection: QA is evidence for eligibility, never an approval. */
+export type BriefReviewProjection = {
+  orderRef: string
+  documentId: string
+  versionId: string
+  version: string
+  templateId: 'WZR-BRIEF'
+  isCurrent: boolean
+  documentStatus: string
+  versionStatus: string
+  clientViewMd: string | null
+  questions: Extract<ClientView, { version: string }>['questions']
+  qa: BriefReviewQa
+}
+
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
   /** The client projection of the current version of a document (today: `WZR-BRIEF`). */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: 'WZR-BRIEF'): Promise<ClientView>
+  /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */
+  getBriefReview(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<BriefReviewProjection | null>
   status(scope: { tenantId: string; organizationId: string }, orderRef: string): Promise<{
     documents: { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null }[]
     taskRuns: { id: string; stepId: string; attempt: number; status: string; costPln: number; outputVersionId: string | null; error: string | null }[]
