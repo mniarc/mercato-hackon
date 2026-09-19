@@ -1,6 +1,8 @@
 # T102 - Configure server agent execution and native mail
 
 State: done
+Outcome: Implemented by `13d8c0e85` with disabled-by-default container settings,
+configuration validation checks and deployment guidance; no live provider proof claimed.
 Sources: user-requested runnable Linux deployment; native triage configuration,
 ToV execution gate and Resend system-email preset. Deployment support, not new story coverage.
 Owns: `ai-company/docker/agency/{compose.yml,runtime.env.example}`, narrow

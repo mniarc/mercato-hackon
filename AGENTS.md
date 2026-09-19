@@ -15,9 +15,9 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
 - Give Git integration one named owner. Preserve teammate implementations over
   overlapping scaffolds and follow the integration process for branch selection,
   ancestry, dirty-work preservation, and scoped proof; fetching is not merging.
-- After the current closeout, this agent's continued development belongs on
-  `main-indev`. Preserve `main` as the shared checked checkpoint; promote later
-  milestones explicitly, not through automatic feature work on `main`.
+- Continue development on `main` after the user-requested consolidation from
+  `main-indev`. Preserve branch history; commit coherent checked slices and push
+  only when requested or agreed.
 - Preserve teammate-facing copy, including Polish text, verbatim when extracting
   translation keys or variables. Change wording only for a requested product
   change or necessary integration behavior; identify those changes explicitly.

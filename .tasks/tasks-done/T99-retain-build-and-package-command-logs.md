@@ -1,6 +1,8 @@
 # T99 - Retain build and package command logs
 
 State: done
+Outcome: Implemented by `dbf078f1b` with isolated invocation-log checks, package
+integration and deployment guidance; no recovery of pre-change build output claimed.
 Sources: user request for durable build diagnostics; existing Docker deployment runner.
 Owns: `bin/agency.mjs`, `bin/package-release.mjs`, small shared log helper/tests;
 coordinator owns the already-running build and recovery of its native history.

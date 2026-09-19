@@ -184,6 +184,11 @@ needs lasting evidence must copy the selected files elsewhere before the next ru
 
 ## Production proof and teardown gotchas
 
+Current working preference: use the persistent indev app and focused tests. Do
+not start production builds or generate release artifacts during this work;
+they compete with the user's machine use. Resume release work only when requested,
+or explain a concrete build-only blocker before scheduling an unavoidable build.
+
 A clean production build and isolated database are an explicit release/CI or
 clean-install proof, or a diagnostic for a demonstrated build/setup/isolation
 problem. They are not mandatory after every merge, milestone, or assertion fix.

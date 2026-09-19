@@ -1,6 +1,6 @@
 # T105 - Package and boot the current integrated release
 
-State: active
+State: deferred (user prioritizes indev testing; no build/artifact work now)
 Priority: P0-immediate
 Depends on: integrated source checkpoint; runtime lease for boot
 Owns: `bin/**`, `.demo-docs/server-setup/**`, existing build handoff; no application feature edits.

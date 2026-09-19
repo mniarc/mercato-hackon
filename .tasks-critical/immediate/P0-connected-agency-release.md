@@ -1,7 +1,7 @@
 # P0 - Deliver the current connected agency release
 
 State: active
-Branch: `main-indev`; preserve stable `main`.
+Branch: `main` after user-requested consolidation from `main-indev`.
 Source: user-approved `.task-seed.md`; no new product policy.
 
 ## Parallel delivery tasks
