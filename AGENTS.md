@@ -12,6 +12,9 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
   for Git and milestone review. These are the team's workflow defaults, including
   for `ai-company/`; upstream instructions remain authoritative for Open Mercato
   APIs, security, extension points, and technical contracts.
+- Give Git integration one named owner. Preserve teammate implementations over
+  overlapping scaffolds and follow the integration process for branch selection,
+  ancestry, dirty-work preservation, and scoped proof; fetching is not merging.
 - Give direct subagents disjoint paths. The coordinator owns shared/generated
   files, runtime state, and integration; review their handoff once, then rerun
   only checks affected by a real fix.
@@ -21,6 +24,9 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
   source in each task; distinguish teammate frontend/ToV contracts from product
   requirements. Flag conflicts or missing business decisions instead of inventing
   policy. Explicitly labelled partial scaffolds are not completed story coverage.
+- Treat demo screenshots as human-review artifacts: report their paths and test
+  checkpoint names, but do not open or visually inspect them unless the user
+  explicitly requests image review.
 
 ## Never
 
