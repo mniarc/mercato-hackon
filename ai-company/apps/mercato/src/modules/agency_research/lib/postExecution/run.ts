@@ -1,9 +1,12 @@
+import { z } from 'zod'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchTaskRun } from '../../data/entities'
+import { inputVersionSchema } from '../../data/schemas/envelope'
 import { limits } from '../../data/templates'
 import { readPostReview } from '../postReview/read'
 import { BudgetPausedError, createLedger } from '../research/ledger'
+import { openEscalation } from '../research/escalate'
 import type { StepContext } from '../research/steps/context'
 import { runPostStep } from '../research/steps/post'
 import { runPostQaLoop } from '../research/steps/postQa'
@@ -62,7 +65,22 @@ export async function runPostExecution(opts: RunPostExecutionOptions): Promise<P
       qaVerdict: qa.verdict, readyForReview, ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}) })
   } catch (error) {
     getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.post_execution_failed' })
-    if (error instanceof BudgetPausedError) return persist(result('paused_budget'))
+    if (error instanceof BudgetPausedError) {
+      const paused = await findOneWithDecryption(em, AgencyResearchTaskRun, {
+        ...scope, orderRef, id: { $in: taskRunIds }, status: 'paused_budget',
+      }, { orderBy: { createdAt: 'desc' } }, scope)
+      if (!paused) throw new Error('[internal] Post budget pause requires its persisted task evidence')
+      const escalation = await openEscalation(ctx, {
+        code: 'budget_exhausted', triggerStep: paused.stepId,
+        summary: `Post production paused during ${paused.stepId}: ${error.snapshot.total.toFixed(2)} PLN spent of ${error.snapshot.cap} PLN; next call estimated ${error.nextEstimatePln.toFixed(2)} PLN.`,
+        evidence: [{ ref: paused.id, fact: 'Persisted budget-paused task; its pinned inputs and configured cap remain unchanged.' }],
+        blockedSteps: [paused.stepId, '7.4', '8.1'],
+        decisionQuestion: 'Who will own this budget block while authorized producer recovery remains unavailable?',
+        allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+        resumeStep: paused.stepId,
+      }, z.array(inputVersionSchema).parse(paused.inputVersions))
+      return persist({ ...result('paused_budget'), escalationVersionId: escalation.versionId })
+    }
     await finishTaskRun(em, activation, { status: 'failed', summary, agentRunIds, cost: ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })
     throw error
   }

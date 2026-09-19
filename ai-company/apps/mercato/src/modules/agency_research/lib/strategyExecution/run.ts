@@ -7,6 +7,7 @@ import { inputVersionSchema, type InputVersion } from '../../data/schemas/envelo
 import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { limits } from '../../data/templates'
 import { documentIdFor, versionLabel } from '../research/envelope'
+import { openEscalation } from '../research/escalate'
 import { BudgetPausedError, createLedger, type LedgerEvent } from '../research/ledger'
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from '../research/pipeline'
 import type { StepContext, StrategyExecutionInput } from '../research/steps/context'
@@ -143,7 +144,22 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     })
   } catch (error) {
     getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.strategy_execution_failed' })
-    if (error instanceof BudgetPausedError) return persistResult(result('paused_budget'))
+    if (error instanceof BudgetPausedError) {
+      const paused = await findOneWithDecryption(em, AgencyResearchTaskRun, {
+        ...where, id: { $in: taskRunIds }, status: 'paused_budget',
+      }, { orderBy: { createdAt: 'desc' } }, scope)
+      if (!paused) throw new Error('[internal] Strategy budget pause requires its persisted task evidence')
+      const escalation = await openEscalation(ctx, {
+        code: 'budget_exhausted', triggerStep: paused.stepId,
+        summary: `Strategy production paused during ${paused.stepId}: ${error.snapshot.total.toFixed(2)} PLN spent of ${error.snapshot.cap} PLN; next call estimated ${error.nextEstimatePln.toFixed(2)} PLN.`,
+        evidence: [{ ref: paused.id, fact: 'Persisted budget-paused task; its pinned inputs and configured cap remain unchanged.' }],
+        blockedSteps: [paused.stepId, '5.5', '6.1'],
+        decisionQuestion: 'Who will own this budget block while authorized producer recovery remains unavailable?',
+        allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+        resumeStep: paused.stepId,
+      }, z.array(inputVersionSchema).parse(paused.inputVersions))
+      return persistResult({ ...result('paused_budget'), escalationVersionId: escalation.versionId })
+    }
     await finishTaskRun(em, activation, {
       status: 'failed', summary, agentRunIds, cost: ledger.snapshot(),
       error: error instanceof Error ? error.message : String(error),

@@ -5,6 +5,7 @@ import { AgencyResearchDocument, AgencyResearchTaskRun } from '../../../data/ent
 import { limits } from '../../../data/templates'
 import { readPostReview } from '../../postReview/read'
 import { BudgetPausedError, createLedger } from '../../research/ledger'
+import { openEscalation } from '../../research/escalate'
 import type { StepContext } from '../../research/steps/context'
 import { runPostStep } from '../../research/steps/post'
 import { runPostQaLoop } from '../../research/steps/postQa'
@@ -18,6 +19,7 @@ jest.mock('../readiness', () => ({ readPostExecutionInputs: jest.fn() }))
 jest.mock('../../research/steps/post', () => ({ runPostStep: jest.fn() }))
 jest.mock('../../research/steps/postQa', () => ({ runPostQaLoop: jest.fn() }))
 jest.mock('../../postReview/read', () => ({ readPostReview: jest.fn() }))
+jest.mock('../../research/escalate', () => ({ openEscalation: jest.fn() }))
 jest.mock('../../store', () => ({ startTaskRun: jest.fn(), finishTaskRun: jest.fn() }))
 
 const scope = { tenantId: 'tenant', organizationId: 'organization' }
@@ -57,7 +59,9 @@ beforeEach(() => {
   jest.mocked(readPostExecutionInputs).mockImplementation(async () => ready)
   jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity, query) => {
     if (entity === AgencyResearchDocument) return Object.assign(new AgencyResearchDocument(), { id: 'brief' }) as never
-    return (runs.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
+    return (runs.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) =>
+      value && typeof value === 'object' && '$in' in value
+        ? (value.$in as unknown[]).includes(Reflect.get(row, key)) : Reflect.get(row, key) === value)) ?? null) as never
   })
   jest.mocked(findWithDecryption).mockImplementation(async () => runs as never)
   jest.mocked(startTaskRun).mockImplementation(async (_em, tenantScope, input) => {
@@ -66,6 +70,11 @@ beforeEach(() => {
     return run
   })
   jest.mocked(finishTaskRun).mockImplementation(async (_em, run, result) => { Object.assign(run, result) })
+  jest.mocked(openEscalation).mockImplementation(async (ctx) => {
+    ctx.taskRunIds.push('budget-exception-task')
+    ctx.documentVersionIds.push('budget-exception-version')
+    return { taskRunId: 'budget-exception-task', versionId: 'budget-exception-version', data: {} } as never
+  })
   jest.mocked(runPostStep).mockImplementation(async (ctx) => {
     context = ctx
     ctx.postOutputs!.post = { document_id: 'KLI-POST@case', version: '1.0', versionId: 'draft', status: 'draft', data: {} }
@@ -115,9 +124,30 @@ test('a missing current selection stops before activation', async () => {
 })
 
 test('a budget pause saves the authored version and replays it without entering QA again', async () => {
-  jest.mocked(runPostQaLoop).mockRejectedValueOnce(new BudgetPausedError(createLedger({ maxPln: 3 }).snapshot(), 4))
+  jest.mocked(runPostQaLoop).mockImplementationOnce(async (ctx) => {
+    runs.push(Object.assign(new AgencyResearchTaskRun(), {
+      ...scope, orderRef: request.orderRef, id: 'paused-editor', stepId: '7.3', status: 'paused_budget',
+      inputVersions: [ctx.orderVersion, { document_id: ready.instruction.document_id, version: ready.instruction.version, status: ready.instruction.status }],
+    }))
+    runs.push(Object.assign(new AgencyResearchTaskRun(), {
+      ...scope, orderRef: request.orderRef, id: 'completed-repair', stepId: '7.2', status: 'done',
+    }))
+    ctx.taskRunIds.push('paused-editor', 'completed-repair')
+    throw new BudgetPausedError(createLedger({ maxPln: 3 }).snapshot(), 4)
+  })
   const result = await execute()
-  expect(result).toMatchObject({ status: 'paused_budget', postVersionId: 'draft', readyForReview: false })
+  expect(result).toMatchObject({ status: 'paused_budget', postVersionId: 'draft', readyForReview: false,
+    escalationVersionId: 'budget-exception-version', taskRunIds: expect.arrayContaining(['paused-editor', 'budget-exception-task']),
+    documentVersionIds: expect.arrayContaining(['budget-exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    code: 'budget_exhausted', triggerStep: '7.3', resumeStep: '7.3', summary: expect.stringContaining('next call estimated 4.00 PLN'),
+    evidence: [expect.objectContaining({ ref: 'paused-editor' })],
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+  }), expect.arrayContaining([{ document_id: ready.instruction.document_id, version: ready.instruction.version, status: ready.instruction.status }]))
   expect(await execute()).toEqual(result)
   expect(runPostQaLoop).toHaveBeenCalledTimes(1)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
+  expect(findOneWithDecryption).toHaveBeenCalledWith(em, AgencyResearchTaskRun, expect.objectContaining({
+    ...scope, orderRef: request.orderRef, id: { $in: expect.arrayContaining(['paused-editor', 'completed-repair']) }, status: 'paused_budget',
+  }), { orderBy: { createdAt: 'desc' } }, scope)
 })

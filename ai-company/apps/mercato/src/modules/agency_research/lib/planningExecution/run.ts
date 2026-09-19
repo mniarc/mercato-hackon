@@ -129,7 +129,22 @@ export async function runPlanningExecution(opts: RunPlanningExecutionOptions): P
       ...(escalation ? { escalationVersionId: escalation.versionId } : {}) })
   } catch (error) {
     getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.planning_execution_failed' })
-    if (error instanceof BudgetPausedError) return persist(result('paused_budget'))
+    if (error instanceof BudgetPausedError) {
+      const paused = await findOneWithDecryption(em, AgencyResearchTaskRun, {
+        ...where, id: { $in: taskRunIds }, status: 'paused_budget',
+      }, { orderBy: { createdAt: 'desc' } }, scope)
+      if (!paused) throw new Error('[internal] Planning budget pause requires its persisted task evidence')
+      const escalation = await openEscalation(ctx, {
+        code: 'budget_exhausted', triggerStep: paused.stepId,
+        summary: `Planning paused during ${paused.stepId}: ${error.snapshot.total.toFixed(2)} PLN spent of ${error.snapshot.cap} PLN; next call estimated ${error.nextEstimatePln.toFixed(2)} PLN.`,
+        evidence: [{ ref: paused.id, fact: 'Persisted budget-paused task; its pinned inputs and configured cap remain unchanged.' }],
+        blockedSteps: [paused.stepId, '6.4'],
+        decisionQuestion: 'Who will own this budget block while authorized producer recovery remains unavailable?',
+        allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+        resumeStep: paused.stepId,
+      }, z.array(inputVersionSchema).parse(paused.inputVersions))
+      return persist({ ...result('paused_budget'), escalationVersionId: escalation.versionId })
+    }
     await finishTaskRun(em, activation, { status: 'failed', summary, agentRunIds, cost: ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })
     throw error
   }

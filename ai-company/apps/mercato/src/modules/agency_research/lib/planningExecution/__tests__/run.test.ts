@@ -61,7 +61,10 @@ beforeEach(() => {
   jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity, query) => {
     const brief = Object.assign(new AgencyResearchDocument(), { ...scope, orderRef: 'case', templateId: 'WZR-BRIEF', deletedAt: null })
     const candidates = entity === AgencyResearchDocument ? [brief] : entity === AgencyResearchTaskRun ? runs : rows
-    return (candidates.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
+    return (candidates.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => {
+      if (typeof value === 'object' && value !== null && '$in' in value && Array.isArray(value.$in)) return value.$in.includes(Reflect.get(row, key))
+      return Reflect.get(row, key) === value
+    })) ?? null) as never
   })
   jest.mocked(findWithDecryption).mockImplementation(async () => runs as never)
   jest.mocked(startTaskRun).mockImplementation(async (_em, tenantScope, input) => {
@@ -146,13 +149,33 @@ test('concurrent duplicate calls claim once and preserve the in-flight run', asy
   expect(runPlanStep).toHaveBeenCalledTimes(1)
   expect(results.some((result) => result.status === 'completed')).toBe(true)
 })
-test('paused budget is saved with generated plan and no invented QA', async () => {
-  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => { context.ledger.assertCanSpend('6.3', 'qa', 4); throw new Error('unreachable') })
+test('paused budget saves its task evidence with the generated plan and replays without invented QA or extra spend', async () => {
+  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => {
+    runs.push(Object.assign(new AgencyResearchTaskRun(), { ...scope, orderRef: 'case', id: 'paused-plan-qa', stepId: '6.3', status: 'paused_budget',
+      inputVersions: [context.orderVersion, { document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }],
+    }))
+    runs.push(Object.assign(new AgencyResearchTaskRun(), { ...scope, orderRef: 'case', id: 'done-plan-repair', stepId: '6.2', status: 'done' }))
+    context.taskRunIds.push('paused-plan-qa', 'done-plan-repair')
+    context.ledger.assertCanSpend('6.3', 'qa', 4)
+    throw new Error('unreachable')
+  })
+  jest.mocked(openEscalation).mockImplementation(async (context) => {
+    context.taskRunIds.push('budget-exception-task')
+    context.documentVersionIds.push('budget-exception-version')
+    return { versionId: 'budget-exception-version', taskRunId: 'budget-exception-task', data: {} as never }
+  })
   const paused = await execute()
-  expect(paused).toMatchObject({ status: 'paused_budget', planVersionId: 'plan', qaTaskRunId: null, readyForApproval: false })
-  expect(openEscalation).not.toHaveBeenCalled()
-  expect(await execute()).toEqual(paused)
+  expect(paused).toMatchObject({ status: 'paused_budget', planVersionId: 'plan', qaTaskRunId: null, readyForApproval: false, escalationVersionId: 'budget-exception-version',
+    taskRunIds: expect.arrayContaining(['paused-plan-qa', 'budget-exception-task']), documentVersionIds: expect.arrayContaining(['plan', 'budget-exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(ctx, expect.objectContaining({
+    code: 'budget_exhausted', triggerStep: '6.3', resumeStep: '6.3', blockedSteps: ['6.3', '6.4'],
+    summary: expect.stringContaining('0.00 PLN spent of 3 PLN'), evidence: [expect.objectContaining({ ref: 'paused-plan-qa' })],
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+  }), expect.arrayContaining([{ document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }]))
+  expect(await execute({ maxCostPln: 50 })).toEqual(paused)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
+  expect(runPlanQaLoop).toHaveBeenCalledTimes(1)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
 })
 test('interrupted failed activation is not retried', async () => {
   jest.mocked(runPlanStep).mockRejectedValue(new Error('interrupted'))
