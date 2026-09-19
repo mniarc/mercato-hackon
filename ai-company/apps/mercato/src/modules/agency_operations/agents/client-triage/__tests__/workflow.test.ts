@@ -46,9 +46,9 @@ test('passes the stored original through native input mapping and projects the s
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
-    .toEqual(['answered', 'client_reply', 'brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'unapplied'].map((target) => expect.objectContaining({
+    .toEqual(['answered', 'client_reply', 'brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
       toStepId: target,
-      condition: ['brief_accepted', 'strategy_pair_decision', 'plan_topic_decision'].includes(target)
+      condition: ['brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
         ? { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: target }
         : { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: target === 'answered' ? 'answer' : target === 'client_reply' ? 'clarify' : 'unapplied' },
     })))

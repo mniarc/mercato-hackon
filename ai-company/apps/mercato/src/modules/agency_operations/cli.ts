@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises'
 import { configureAgencyAnalysisProcess } from './lib/analysisProcess'
 import { configureEmployeeQuestionWorkflow } from './lib/employeeQuestions/configure'
 import { configurePlanReviewWorkflow } from './lib/planReview/configure'
+import { configurePostReviewWorkflow } from './lib/postReview/configure'
 
 const configureTov: ModuleCli = {
   command: 'configure-tov',
@@ -97,4 +98,24 @@ const configurePlanReview: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview]
+const configurePostReview: ModuleCli = {
+  command: 'configure-post-review',
+  async run(argv) {
+    const options = new Map<string, string>()
+    for (let index = 0; index < argv.length; index += 2) {
+      if (!['--tenant', '--organization', '--user'].includes(argv[index]) || !argv[index + 1]) {
+        throw new Error('[internal] Usage: agency_operations configure-post-review --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>')
+      }
+      options.set(argv[index].slice(2), argv[index + 1])
+    }
+    const container = await createRequestContainer()
+    try {
+      const result = await configurePostReviewWorkflow(container, {
+        tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user'),
+      })
+      process.stdout.write(`${JSON.stringify(result)}\n`)
+    } finally { await container.dispose() }
+  },
+}
+
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview]

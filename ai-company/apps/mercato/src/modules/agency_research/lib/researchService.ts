@@ -31,6 +31,9 @@ import { readStrategyReview } from './strategyReview/read'
 import { runStrategyExecution, strategyExecutionRequestSchema } from './strategyExecution'
 import { runPlanningExecution, planningExecutionRequestSchema } from './planningExecution'
 import { runPostExecution, postExecutionRequestSchema } from './postExecution'
+import { acceptPost } from './postAcceptance/accept'
+import { readPostAcceptance } from './postAcceptance/read'
+import { acceptPostInputSchema } from './postAcceptance/contracts'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -465,6 +468,18 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
       return acceptPlan((container.resolve('em') as EntityManager).fork(), input)
+    },
+    async getPostAcceptance(scope, input) {
+      return readPostAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async acceptPost(rawInput) {
+      const input = acceptPostInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      return acceptPost((container.resolve('em') as EntityManager).fork(), input)
     },
     async runPostInstruction({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] Post instruction requires an explicit execution identity')

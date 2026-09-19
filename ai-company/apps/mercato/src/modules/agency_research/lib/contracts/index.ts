@@ -20,3 +20,5 @@ export { postInstructionExecutionRequestSchema, postInstructionReadySchema, post
 export type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
 export { postExecutionRequestSchema, postExecutionOutcomeSchema, postExecutionResultSchema } from '../postExecution/contracts'
 export type { PostExecutionRequest, PostExecutionOutcome, PostExecutionResult } from '../postExecution/contracts'
+export { postAcceptanceRequestSchema, postAcceptanceRecordSchema, postAcceptanceReceiptSchema, acceptPostInputSchema } from '../postAcceptance/contracts'
+export type { PostAcceptanceRequest, PostAcceptanceRecord, PostAcceptanceReceipt, PostAcceptance, AcceptPostInput } from '../postAcceptance/contracts'

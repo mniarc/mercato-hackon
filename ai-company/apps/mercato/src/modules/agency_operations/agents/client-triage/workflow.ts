@@ -8,6 +8,7 @@ import { STRATEGY_PAIR_CONTINUATION_FUNCTION, STRATEGY_PAIR_CONTINUATION_RESULT_
 import { PLANNING_EXECUTION_FUNCTION, PLANNING_EXECUTION_RESULT_KEY, PLANNING_EXECUTION_STEP_ID, PLAN_REVIEW_HANDOFF_FUNCTION } from '../../lib/planningExecution/contracts'
 import { POST_INSTRUCTION_FUNCTION, POST_INSTRUCTION_RESULT_KEY } from '../../lib/planApproval/contracts'
 import { POST_EXECUTION_FUNCTION, POST_EXECUTION_RESULT_KEY, POST_EXECUTION_STEP_ID } from '../../lib/postExecution/contracts'
+import { POST_REVIEW_HANDOFF_FUNCTION } from '../../lib/postApproval/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -15,6 +16,7 @@ export const PROJECT_CLIENT_TRIAGE_FUNCTION = 'agency_operations.projectClientTr
 export const ACCEPT_BRIEF_FUNCTION = 'agency_operations.acceptBrief'
 export const ACCEPT_STRATEGY_PAIR_FUNCTION = 'agency_operations.acceptStrategyPair'
 export const ACCEPT_PLAN_FUNCTION = 'agency_operations.acceptPlan'
+export const ACCEPT_POST_FUNCTION = 'agency_operations.acceptPostContent'
 export const CLIENT_TRIAGE_INPUT_KEY = 'nativeClientTriageInput'
 export const CLIENT_TRIAGE_INTERPRETATION_KEY = 'nativeClientTriageInterpretation'
 const exception = createClientTriageExceptionFragment()
@@ -49,7 +51,9 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'plan_review', stepName: 'Plan review handoff recorded', stepType: 'END' },
     { stepId: 'plan_topic_decision', stepName: 'Plan acceptance and topic choice recorded', stepType: 'AUTOMATED' },
     { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'AUTOMATED' },
-    { stepId: POST_EXECUTION_STEP_ID, stepName: 'Post author and editor outcome recorded', stepType: 'END' },
+    { stepId: POST_EXECUTION_STEP_ID, stepName: 'Post author and editor outcome recorded', stepType: 'AUTOMATED' },
+    { stepId: 'post_review', stepName: 'Post content review handoff recorded', stepType: 'END' },
+    { stepId: 'post_content_decision', stepName: 'Post content decision recorded', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'END' },
@@ -79,6 +83,10 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { transitionId: 'approve_plan', fromStepId: 'routed', toStepId: 'plan_topic_decision', trigger: 'auto', priority: 100,
       condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: 'plan_topic_decision' },
       activities: [{ activityId: 'accept_plan', activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_PLAN_FUNCTION, args: {} } }] },
+    { transitionId: 'approve_post_content', fromStepId: 'routed', toStepId: 'post_content_decision', trigger: 'auto', priority: 100,
+      condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: 'post_content_decision' },
+      activities: [{ activityId: 'accept_post_content', activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: ACCEPT_POST_FUNCTION, args: {} } }] },
     { transitionId: 'handoff_strategy', fromStepId: 'brief_accepted', toStepId: 'strategy_readiness', trigger: 'auto',
       activities: [{ activityId: 'strategy_readiness', activityName: STRATEGY_READINESS_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: STRATEGY_READINESS_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'continue_strategy_pair', fromStepId: 'strategy_pair_decision', toStepId: 'strategy_pair_continuation', trigger: 'auto',
@@ -110,6 +118,9 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       activities: [{ activityId: 'execute_post', activityName: POST_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
         retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
         config: { functionName: POST_EXECUTION_FUNCTION, args: {} } }] },
+    { transitionId: 'invite_post_review', fromStepId: POST_EXECUTION_STEP_ID, toStepId: 'post_review', trigger: 'auto',
+      activities: [{ activityId: 'invite_post_review', activityName: 'agencyPostInvitation', activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: POST_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'unapplied', fromStepId: 'routed', toStepId: 'unapplied', trigger: 'auto', priority: 10, condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: 'unapplied' } },
     { transitionId: 'reply_received', fromStepId: 'client_reply', toStepId: 'reply_received', trigger: 'auto' },
   ],

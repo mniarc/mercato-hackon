@@ -18,10 +18,16 @@ import { documentIdFor } from '../../../agency_research/lib/research/envelope'
 import { createLedger } from '../../../agency_research/lib/research/ledger'
 import { runPlanStep } from '../../../agency_research/lib/research/steps/plan'
 import { runPlanQaLoop } from '../../../agency_research/lib/research/steps/planQa'
+import { runPostStep } from '../../../agency_research/lib/research/steps/post'
+import { runPostQaLoop } from '../../../agency_research/lib/research/steps/postQa'
+import { readPostExecutionInputs } from '../../../agency_research/lib/postExecution/readiness'
+import type { StrategyProcessReference } from '../../../agency_research/lib/strategyReadiness/contracts'
 import type { StepContext, StrategyExecutionInput } from '../../../agency_research/lib/research/steps/context'
 import { createFixtureRunner } from '../../../agency_research/lib/runners'
 import { saveDocumentVersion, startTaskRun, finishTaskRun } from '../../../agency_research/lib/store'
 import { PLAN_REVIEW_SERVICE, PLAN_REVIEW_WORKFLOW_ID, type PlanReviewService } from '../../lib/planReview/contracts'
+import { POST_REVIEW_SERVICE, POST_REVIEW_WORKFLOW_ID, type PostReviewService } from '../../lib/postReview/contracts'
+import { createSelectedPostIntelligence } from './postIntelligence'
 import type { BriefReviewFixture } from './briefReview'
 
 export type PlanReviewFixture = {
@@ -126,12 +132,48 @@ export async function createPlanReviewFixture(input: {
   } finally { await container.dispose() }
 }
 
+/** Runs actual post producers/repair against the instruction compiled by the portal plan decision.
+ * This is local intelligence proof, not execution of the paid native T49 runner.
+ */
+export async function createPostReviewFixture(input: {
+  plan: PlanReviewFixture; instructionVersionId: string; selectionSubmissionId: string;
+  process: StrategyProcessReference; userId: string;
+}) {
+  const fixture = input.plan
+  const scope = { tenantId: fixture.tenantId, organizationId: fixture.organizationId }
+  const container = await createRequestContainer()
+  try {
+    const em = container.resolve<EntityManager>('em').fork()
+    const ready = await readPostExecutionInputs(em, scope, { orderRef: fixture.caseId,
+      instructionVersionId: input.instructionVersionId, selectionSubmissionId: input.selectionSubmissionId,
+      process: input.process, maxCostPln: 1 })
+    if (ready.status !== 'ready') throw new Error(`Post fixture instruction not ready: ${ready.reason}`)
+    const postOutputs: NonNullable<StepContext['postOutputs']> = { post: null }
+    const context: StepContext = {
+      em, scope, orderRef: fixture.caseId, order: ready.order, orderVersion: ready.orderInput,
+      runAgent: createSelectedPostIntelligence(), runner: 'fixture', models: { extract: 'fixture', synthesis: 'fixture', qa: 'fixture' },
+      ledger: createLedger({ prices: {} }), onEvent: () => {}, log: (message) => console.log(`[TC-AGENCY-001] ${message}`),
+      agentRunIds: [], taskRunIds: fixture.taskRunIds, documentVersionIds: fixture.versionIds,
+      repairFindings: [], attempt: 1, postInputs: { instruction: ready.instruction, tov: ready.tov }, postOutputs,
+      fetchPage: async () => { throw new Error('Post fixture cannot fetch new research') },
+    }
+    await runPostStep(context)
+    const qa = await runPostQaLoop(context, { postStep: runPostStep })
+    if (qa.verdict !== 'pass_for_draft' || !qa.postVersionId || !postOutputs.post) throw new Error('Real post repair loop did not produce a QA-ready version')
+    const post = await em.findOneOrFail(AgencyResearchDocumentVersion, { ...scope, orderRef: fixture.caseId, id: qa.postVersionId })
+    const invitation = await container.resolve<PostReviewService>(POST_REVIEW_SERVICE).invite({
+      ...scope, caseId: fixture.caseId, postVersionId: post.id, userId: input.userId,
+    })
+    return { ...invitation, documentId: post.documentId, versionId: post.id, version: postOutputs.post.version, qaTaskRunId: qa.taskRunId }
+  } finally { await container.dispose() }
+}
+
 export async function deletePlanReviewFixture(fixture: PlanReviewFixture): Promise<void> {
   await withClient(async (client) => {
     const scope = [fixture.tenantId, fixture.organizationId]
     const workflows = await client.query<{ id: string }>(
-      'SELECT id FROM workflow_instances WHERE tenant_id=$1 AND organization_id=$2 AND workflow_id=$3 AND correlation_key=$4',
-      [...scope, PLAN_REVIEW_WORKFLOW_ID, `agency-plan:${fixture.caseId}:${fixture.versionId}`])
+      'SELECT id FROM workflow_instances WHERE tenant_id=$1 AND organization_id=$2 AND ((workflow_id=$3 AND correlation_key=$4) OR (workflow_id=$5 AND correlation_key LIKE $6))',
+      [...scope, PLAN_REVIEW_WORKFLOW_ID, `agency-plan:${fixture.caseId}:${fixture.versionId}`, POST_REVIEW_WORKFLOW_ID, `agency-post:${fixture.caseId}:%`])
     for (const { id } of workflows.rows) {
       for (const table of ['workflow_events', 'user_tasks', 'step_instances', 'workflow_branch_instances']) {
         await client.query(`DELETE FROM ${table} WHERE workflow_instance_id=$1 AND tenant_id=$2 AND organization_id=$3`, [id, ...scope])
@@ -139,8 +181,8 @@ export async function deletePlanReviewFixture(fixture: PlanReviewFixture): Promi
       await client.query('DELETE FROM workflow_instances WHERE id=$1 AND tenant_id=$2 AND organization_id=$3', [id, ...scope])
     }
     // All rows for this new compiler output belong to this fixture's unique case.
-    await client.query("DELETE FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU'))", [...scope, fixture.caseId, fixture.versionIds])
-    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7'))", [...scope, fixture.caseId, fixture.taskRunIds])
-    await client.query("DELETE FROM agency_research_documents WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU'))", [...scope, fixture.caseId, fixture.documentIds])
+    await client.query("DELETE FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA'))", [...scope, fixture.caseId, fixture.versionIds])
+    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7','7.2','7.3','E.1'))", [...scope, fixture.caseId, fixture.taskRunIds])
+    await client.query("DELETE FROM agency_research_documents WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA'))", [...scope, fixture.caseId, fixture.documentIds])
   })
 }

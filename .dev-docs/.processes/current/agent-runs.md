@@ -157,8 +157,11 @@ Post production additionally requires `postExecution: { "maxCostPln": <explicit-
 on the original analysis policy and the execution flag below. It runs only the
 teammate author/editor against the exact instruction, selected topic and accepted
 ToV. Repairs stay within that run; duplicate handoffs replay its saved outcome.
-Employees see the post/QA references, budget pause or exception. This does not
-grant client approval or publication consent. Older configured
+Employees see the post/QA references, budget pause or exception. A QA-ready post
+creates an exact-version native customer review task. Explicit content approval
+goes through G and records a content-only acceptance; questions, changes and holds
+remain original messages, not approval. Neither response receipt nor content
+acceptance grants publication consent. Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
 On Windows, send workflow JSON as UTF-8 (Node `fetch` or explicit UTF-8 bytes);
@@ -168,6 +171,8 @@ For an existing installation, initialize the plan-review task definition without
 enabling paid analysis using `node scripts/agency-dev.mjs cli agency_operations
 configure-plan-review --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>`.
 First-time `configure-analysis` with a planning policy already does this.
+For post review, use the same command with `configure-post-review`; first-time
+`configure-analysis` with `postExecution` configures it automatically.
 
 Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
 existing portal materials API accepts `process: {"kind":"analysis"}` and a private
