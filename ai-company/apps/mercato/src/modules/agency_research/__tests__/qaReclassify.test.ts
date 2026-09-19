@@ -3,7 +3,7 @@ import type { QaFinding } from '../data/schemas/qa'
 import { mergeQaVerdict, reclassifyRecordedClaims } from '../lib/research/steps/qa'
 
 const fact = (id: string, kind: ZrodlaData['facts'][number]['kind'], limitation: string | null): ZrodlaData['facts'][number] => ({
-  fact_id: id, entity: 'Open Mercato', claim: `claim ${id}`, source_ids: ['S-01'], locator: { source_id: 'S-01', quote: `claim ${id}`, char_offset: 0 }, paraphrase: null, kind, use_scope: [], limitation,
+  fact_id: id, entity: 'Open Mercato', claim: `claim ${id}`, source_ids: ['S-01'], locator: { source_id: 'S-01', quote: `claim ${id}`, char_offset: 0 }, paraphrase: `claim ${id}`, kind, use_scope: [], limitation,
 })
 
 const zrodla = zrodlaDataSchema.parse({
