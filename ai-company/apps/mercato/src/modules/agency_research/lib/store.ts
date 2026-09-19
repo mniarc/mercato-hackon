@@ -43,9 +43,21 @@ export async function finishTaskRun(
   if (outcome.summary !== undefined) run.summary = outcome.summary
   if (outcome.qaResult !== undefined) run.qaResult = outcome.qaResult
   if (outcome.agentRunIds !== undefined) run.agentRunIds = outcome.agentRunIds
-  if (outcome.cost !== undefined) run.cost = outcome.cost
+  if (outcome.cost !== undefined) run.cost = outcome.cost ? ownCost(run, outcome.cost) : outcome.cost
   if (outcome.error !== undefined) run.error = outcome.error
   await em.flush()
+}
+
+/**
+ * The ledger is per process run and cumulative; a task run stores only the calls
+ * made for its own step since it started, so that summing task runs gives the
+ * order's real spend (a QA task run does not own the repairs it triggered — those
+ * are their own task runs). `run_total` keeps the cumulative figure for context.
+ */
+function ownCost(run: AgencyResearchTaskRun, snapshot: LedgerSnapshot): LedgerSnapshot & { run_total: number } {
+  const since = run.createdAt.getTime()
+  const own = snapshot.entries.filter((entry) => entry.step === run.stepId && (entry.at ?? since) >= since)
+  return { ...snapshot, entries: own, total: own.reduce((sum, entry) => sum + entry.costPln, 0), run_total: snapshot.total }
 }
 
 /** Stores every fetch attempt as a row (unavailable ones included); idempotent per (order, source_id). */
