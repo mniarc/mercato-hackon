@@ -2,6 +2,7 @@ import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
 import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import type { WorkflowDefinitionAuthoring } from '@open-mercato/core/modules/workflows/lib/owned-definition'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
@@ -11,7 +12,7 @@ import type { ClientCaseIdentity } from './contracts/clientCaseQuery'
 import { clientMaterialIntakeInputSchema, AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from './contracts/clientMaterialIntake'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema, type ClientSubmissionItem, type ClientSubmissionService } from './contracts/clientSubmission'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from './clientSubmissionWorkflow'
-import { isClientTriageEnabled } from '../agents/client-triage/configuration'
+import { ClientTriageConfigurationError, isClientTriageEnabled } from '../agents/client-triage/configuration'
 import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 
 type Executor = {
@@ -38,7 +39,24 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
     return { tenantId: identity.tenantId, organizationId: identity.organizationId, customerEntityId: identity.customerEntityId }
   }
 
-  async function project(manager: EntityManager, submission: AgencyClientSubmission): Promise<ClientSubmissionItem> {
+  async function nativeReady(scope: { tenantId: string; organizationId: string }): Promise<boolean> {
+    try {
+      if (!isClientTriageEnabled()) return false
+    } catch (error) {
+      // Invalid native provider configuration must not discard the customer's
+      // original or turn it into a fabricated interpretation.
+      if (error instanceof ClientTriageConfigurationError) return false
+      throw error
+    }
+    if (!container.hasRegistration('agentWorkflowBridge') || !container.hasRegistration('workflowDefinitionAuthoring')) return false
+    const definition = await container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring').findOwnedDefinition(em, {
+      workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, ...scope,
+    })
+    return Boolean(definition?.enabled && definition.metadata?.generatedBy?.module === 'agency_operations'
+      && definition.metadata.generatedBy.ownerId === 'client_triage')
+  }
+
+  async function project(manager: EntityManager, submission: AgencyClientSubmission, nativeAvailable: boolean): Promise<ClientSubmissionItem> {
     const scope = { tenantId: submission.tenantId, organizationId: submission.organizationId }
     const workflow = submission.workflowInstanceId ? await findOneWithDecryption(manager, WorkflowInstance, {
       id: submission.workflowInstanceId, ...scope, deletedAt: null,
@@ -50,6 +68,8 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
       createdAt: submission.createdAt.toISOString(), original: clientSubmissionRequestSchema.parse(submission.original),
       workflow: workflow ? { status: workflow.status, currentStep: workflow.currentStepId } : null,
       disposition: result.success ? result.data : null,
+      processing: { state: workflow ? result.success ? 'processed' : 'processing'
+        : nativeAvailable ? 'pending_dispatch' : 'waiting_configuration' },
     }
   }
 
@@ -57,7 +77,11 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
     async submit(identity, caseId, rawInput, options) {
       const scope = await authorize(identity, caseId)
       const input = clientSubmissionRequestSchema.parse(rawInput)
-      const native = isClientTriageEnabled()
+      const deterministicFixture = options?.deterministicTestFixture === true
+      if (deterministicFixture && (process.env.NODE_ENV !== 'test' || options?.requireNative)) {
+        throw new CrudHttpError(400, { error: 'Deterministic submission fixtures are available only to explicit test callers.' })
+      }
+      const native = await nativeReady({ tenantId: scope.tenantId, organizationId: scope.organizationId })
       const accepted = await em.transactional(async (tx) => {
         // Serializes this case's submissions through commit, including workflow creation.
         const agencyCase = await findOneWithDecryption(tx, AgencyCase, { id: caseId, ...scope, deletedAt: null }, {
@@ -86,11 +110,8 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
         })
         tx.persist(submission)
         await tx.flush()
-        if (options?.requireNative && !native) return { submission, replayed: Boolean(existing) }
+        if (!native && !deterministicFixture) return { submission, replayed: Boolean(existing) }
         const executor = container.resolve<Executor>('workflowExecutor')
-        if (native && !container.hasRegistration('agentWorkflowBridge')) {
-          throw new Error('[internal] Native client triage requires agent_orchestrator')
-        }
         const workflow = await executor.startWorkflow(tx, {
           workflowId: native ? NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID : CLIENT_SUBMISSION_WORKFLOW_ID, ...scope,
           correlationKey: `agency-submission:${submission.id}`,
@@ -106,7 +127,7 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
       if (!accepted.replayed && accepted.submission.workflowInstanceId) {
         await container.resolve<Executor>('workflowExecutor').executeWorkflow(em, container, accepted.submission.workflowInstanceId)
       }
-      return { item: await project(em, accepted.submission), replayed: accepted.replayed }
+      return { item: await project(em, accepted.submission, native), replayed: accepted.replayed }
     },
     async list(identity, caseId) {
       const scope = await authorize(identity, caseId)
@@ -115,7 +136,9 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
       const submissions = await findWithDecryption(em, AgencyClientSubmission, {
         ...scope, caseId, deletedAt: null,
       }, { limit: 100, orderBy: { createdAt: 'desc', id: 'desc' } }, scope)
-      return { items: await Promise.all(submissions.map((submission) => project(em, submission))) }
+      const native = submissions.some((submission) => !submission.workflowInstanceId)
+        ? await nativeReady({ tenantId: scope.tenantId, organizationId: scope.organizationId }) : false
+      return { items: await Promise.all(submissions.map((submission) => project(em, submission, native))) }
     },
   }
 }

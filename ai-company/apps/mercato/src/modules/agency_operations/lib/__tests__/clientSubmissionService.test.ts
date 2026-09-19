@@ -7,6 +7,7 @@ const findOne = jest.fn()
 const findMany = jest.fn()
 const nativeEnabled = jest.fn()
 jest.mock('../../agents/client-triage/configuration', () => ({
+  ...jest.requireActual('../../agents/client-triage/configuration'),
   isClientTriageEnabled: () => nativeEnabled(),
 }))
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({
@@ -18,6 +19,7 @@ import { createClientSubmissionService } from '../clientSubmissionService'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY, createClientSubmissionWorkflow, deterministicClientTriage } from '../clientSubmissionWorkflow'
 import { clientSubmissionDispositionSchema } from '../contracts/clientSubmission'
 import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../agents/client-triage/workflow'
+import { ClientTriageConfigurationError } from '../../agents/client-triage/configuration'
 
 const identity = {
   tenantId: '00000000-0000-4000-8000-000000000001', organizationId: '00000000-0000-4000-8000-000000000002',
@@ -36,6 +38,7 @@ const startWorkflow = jest.fn()
 const executeWorkflow = jest.fn()
 const hasRegistration = jest.fn()
 const readScoped = jest.fn()
+const findOwnedDefinition = jest.fn()
 let inTransaction = false
 const em = {
   transactional: async (fn: (tx: unknown) => unknown): Promise<unknown> => {
@@ -55,6 +58,7 @@ const container = {
     if (key === 'customerUserService') return { findById: customer }
     if (key === 'workflowExecutor') return { startWorkflow, executeWorkflow }
     if (key === 'attachmentService') return { readScoped }
+    if (key === 'workflowDefinitionAuthoring') return { findOwnedDefinition }
     throw new Error(key)
   },
 } as unknown as AppContainer
@@ -66,6 +70,7 @@ beforeEach(() => {
   inTransaction = false
   nativeEnabled.mockReturnValue(false)
   hasRegistration.mockReturnValue(true)
+  findOwnedDefinition.mockResolvedValue({ enabled: true, metadata: { generatedBy: { module: 'agency_operations', ownerId: 'client_triage' } } })
   readScoped.mockRejectedValue({ status: 404 })
   agencyCase = { id: caseId, ...identity, deletedAt: null, materialAttachmentId: materialId }
   customer.mockResolvedValue({ isActive: true, customerEntityId: identity.customerEntityId })
@@ -90,7 +95,7 @@ beforeEach(() => {
 
 it('stores immutable original and replays the same event without creating or classifying again', async () => {
   const service = createClientSubmissionService(container)
-  const first = await service.submit(identity, caseId, { eventId: 'client-event-1', text: '  My original words.  ', scaffoldScenario: 'answer' })
+  const first = await service.submit(identity, caseId, { eventId: 'client-event-1', text: '  My original words.  ', scaffoldScenario: 'answer' }, { deterministicTestFixture: true })
   const replay = await service.submit(identity, caseId, { eventId: 'client-event-1', text: 'Replacement must not overwrite', scaffoldScenario: 'clarify' })
   expect(first.replayed).toBe(false)
   expect(replay).toEqual({ item: first.item, replayed: true })
@@ -118,6 +123,7 @@ it('starts a saved native-only submission once after configuration, preserving i
   const original = { eventId: 'pending-native', text: 'My material', materialAttachmentId: materialId }
   const pending = await service.submit(identity, caseId, original, { requireNative: true })
   expect(pending.item.workflow).toBeNull()
+  expect(pending.item.processing?.state).toBe('waiting_configuration')
   expect(startWorkflow).not.toHaveBeenCalled()
   nativeEnabled.mockReturnValue(true)
   executeWorkflow.mockResolvedValue(undefined)
@@ -142,13 +148,14 @@ it('preserves the exact review response as original input without granting appro
   })
   expect(result.item.original.reviewResponse).toEqual(reviewResponse)
   expect(stored?.original).toMatchObject({ reviewResponse })
-  expect(result.item.disposition).toMatchObject({ effectsApplied: false })
+  expect(result.item.disposition).toBeNull()
+  expect(result.item.processing?.state).toBe('waiting_configuration')
   const replay = await service.submit(identity, caseId, {
     eventId: 'task-review-event', text: 'Replace original',
     reviewResponse: { ...reviewResponse, body: 'Unconditional acceptance' },
   })
   expect(replay.item.original.reviewResponse).toEqual(reviewResponse)
-  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  expect(startWorkflow).not.toHaveBeenCalled()
 })
 
 it('dispatches opted-in native triage only after committing its scoped original, and never redispatches a replay', async () => {
@@ -186,15 +193,52 @@ it('dispatches opted-in native triage only after committing its scoped original,
   expect(startWorkflow.mock.calls[0][1].initialContext).not.toHaveProperty('customerUserId')
 })
 
-it('rejects native triage without its native bridge and rolls back the submission', async () => {
+it('preserves the original while the native bridge or process configuration is missing', async () => {
   nativeEnabled.mockReturnValue(true)
   hasRegistration.mockReturnValue(false)
-  await expect(createClientSubmissionService(container).submit(identity, caseId, {
+  const result = await createClientSubmissionService(container).submit(identity, caseId, {
     eventId: 'native-1', text: 'Original',
-  })).rejects.toThrow('Native client triage requires agent_orchestrator')
-  expect(stored).toBeUndefined()
+  })
+  expect(result.item).toMatchObject({ original: { text: 'Original' }, workflow: null, disposition: null, processing: { state: 'waiting_configuration' } })
+  expect(stored).toBeDefined()
+  hasRegistration.mockReturnValue(true)
+  findOwnedDefinition.mockResolvedValue(null)
+  expect((await createClientSubmissionService(container).list(identity, caseId)).items[0].processing?.state).toBe('waiting_configuration')
   expect(startWorkflow).not.toHaveBeenCalled()
   expect(executeWorkflow).not.toHaveBeenCalled()
+})
+
+it('normal message intake stays pending, including invalid native setup, and caller scaffoldScenario cannot start a fixture', async () => {
+  nativeEnabled.mockImplementation(() => { throw new ClientTriageConfigurationError('live', 'OM_AI_MODEL') })
+  const service = createClientSubmissionService(container)
+  const first = await service.submit(identity, caseId, { eventId: 'unconfigured', text: '  Real original  ', scaffoldScenario: 'answer' })
+  expect(first.item).toMatchObject({ original: { text: '  Real original  ' }, workflow: null, disposition: null, processing: { state: 'waiting_configuration' } })
+  nativeEnabled.mockReturnValue(true)
+  const replay = await service.submit(identity, caseId, { eventId: 'unconfigured', text: 'Replacement' })
+  expect(replay.replayed).toBe(true)
+  expect(replay.item.original.text).toBe('  Real original  ')
+  expect(replay.item.processing?.state).toBe('pending_dispatch')
+  expect(startWorkflow).not.toHaveBeenCalled()
+})
+
+it('does not allow the explicit deterministic test option in production', async () => {
+  const original = process.env
+  jest.replaceProperty(process, 'env', { ...original, NODE_ENV: 'production' })
+  try {
+    await expect(createClientSubmissionService(container).submit(identity, caseId, {
+      eventId: 'test-only', text: 'Original',
+    }, { deterministicTestFixture: true })).rejects.toMatchObject({ status: 400 })
+    expect(stored).toBeUndefined()
+    expect(startWorkflow).not.toHaveBeenCalled()
+  } finally { jest.replaceProperty(process, 'env', original) }
+})
+
+it('does not disguise unexpected runtime faults as missing configuration', async () => {
+  nativeEnabled.mockImplementation(() => { throw new Error('Unexpected configuration loader failure') })
+  await expect(createClientSubmissionService(container).submit(identity, caseId, {
+    eventId: 'unexpected', text: 'Original',
+  })).rejects.toThrow('Unexpected configuration loader failure')
+  expect(startWorkflow).not.toHaveBeenCalled()
 })
 
 it.each(['customerEntityId', 'tenantId', 'organizationId'])('denies foreign %s before writing or executing', async (field) => {
@@ -215,7 +259,7 @@ it('denies an inactive customer and a material not attached to the owned case', 
 })
 
 it('projects saved clarification and keeps unsupported intents effect-free in the typed contract', async () => {
-  const result = await createClientSubmissionService(container).submit(identity, caseId, { eventId: '2', materialAttachmentId: materialId })
+  const result = await createClientSubmissionService(container).submit(identity, caseId, { eventId: '2', materialAttachmentId: materialId }, { deterministicTestFixture: true })
   expect(result.item.disposition).toMatchObject({ kind: 'clarify', effectsApplied: false })
   expect(result.item.workflow?.currentStep).toBe('client_reply')
   for (const kind of ['change', 'approve', 'hold', 'escalate']) {

@@ -166,6 +166,7 @@
   "agency.conversation.submitted": "Client message",
   "agency.conversation.materialReferenced": "This message references the material attached to this case.",
   "agency.conversation.processing": "Message saved. Its response is not available yet; refresh to check.",
+  "agency.conversation.waitingConfiguration": "Your message is saved and waiting for the agency to configure processing. It has not been interpreted or approved; you do not need to send it again.",
   "agency.conversation.replyReceived": "Clarification received. Its waiting workflow resumed; this is not document approval or a new agent decision.",
   "agency.conversation.invalid": "Enter a message of up to 20,000 characters.",
   "agency.conversation.saveError": "We could not confirm receipt. Retry to send the same message safely.",

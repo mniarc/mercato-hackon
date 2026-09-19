@@ -166,6 +166,7 @@
   "agency.conversation.submitted": "Wiadomość klienta",
   "agency.conversation.materialReferenced": "Wiadomość odwołuje się do materiału załączonego do tej sprawy.",
   "agency.conversation.processing": "Wiadomość zapisana. Odpowiedź nie jest jeszcze dostępna; odśwież rozmowę.",
+  "agency.conversation.waitingConfiguration": "Twoja wiadomość została zapisana i czeka na skonfigurowanie obsługi przez agencję. Nie została jeszcze zinterpretowana ani zatwierdzona; nie musisz wysyłać jej ponownie.",
   "agency.conversation.replyReceived": "Doprecyzowanie przyjęte. Oczekujący proces został wznowiony; nie oznacza to zatwierdzenia dokumentu ani nowej decyzji agenta.",
   "agency.conversation.invalid": "Wpisz wiadomość zawierającą maksymalnie 20 000 znaków.",
   "agency.conversation.saveError": "Nie udało się potwierdzić odbioru. Ponów wysłanie tej samej wiadomości bez ryzyka duplikatu.",

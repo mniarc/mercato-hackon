@@ -125,3 +125,15 @@ it('provides a refresh after a failed load without displaying a message form for
   expect(await screen.findByRole('textbox', { name: 'Message' })).toBeInTheDocument()
   expect(screen.getByText('No messages yet')).toBeInTheDocument()
 })
+
+it('shows a saved configuration hold without a fabricated reply or blanket scaffold disclaimer', async () => {
+  jest.mocked(readApiResultOrThrow).mockResolvedValue({ items: [{ ...submission,
+    workflow: null, disposition: null, processing: { state: 'waiting_configuration' },
+  }] })
+  renderWithProviders(<CaseConversation caseId="case-1" />, { dict: translations })
+  expect(await screen.findByText(translations['agency.conversation.waitingConfiguration'])).toBeInTheDocument()
+  expect(screen.getByText('Original client message')).toBeInTheDocument()
+  expect(screen.queryByText(translations['agency.conversation.scaffold'])).not.toBeInTheDocument()
+  expect(screen.queryByText('Which material do you mean?')).not.toBeInTheDocument()
+  expect(screen.queryByRole('textbox', { name: 'Your clarification' })).not.toBeInTheDocument()
+})
