@@ -1,6 +1,7 @@
 # RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure
 
 State: active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)
+Sources: F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39
 Depends on: RES-02
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`
 Context: The rest of the STD-PROCES chain after the brief, built overnight (2026-09-19) by five parallel builders on
@@ -51,6 +52,9 @@ Checkpoints: `--through 5.4 | 6.7 | 7.3 | 8.7 | 9.3`.
   pass it as an optional enrichment input to `tov_writer`.
 
 ## Handoff
-Next: run the fixture e2e after integration, top up credit and run live `--through 9.3`, put the numbers in PR #6,
+Merged into main with `e57170f8d`. Source links describe implemented/simulated producer scope,
+not full-story acceptance; customer receipts, external send and actual delivery remain absent.
+The teammate's live record above is not this integration session's paid-run authorization.
+Next: integrate later producer changes; further paid live `--through 9.3` requires explicit approval and credit,
 refine prompts with Marcin, then the T11 bridge and Krysia's portal (`getClientView` now covers brief, strategy, ToV,
 plan, post, package).
