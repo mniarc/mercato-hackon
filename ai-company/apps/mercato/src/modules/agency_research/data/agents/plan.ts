@@ -5,7 +5,7 @@ import { readiness } from '../schemas/zrodla'
 
 /**
  * Agent input/result schemas of the planning phase (6.2 writer in three section
- * calls, 6.3 Q-P QA). Sections, not documents: topics come back with `local_ref`
+ * calls over two agents, 6.3 Q-P QA). Sections, not documents: topics come back with `local_ref`
  * and code mints `TOP01…` by day; the balance/recommendation call reads the
  * already gated topics. Selection (6.5) and the post instruction (6.7) are code.
  */
@@ -120,15 +120,19 @@ export const planWriterRecommendationSchema = z.object({
   readiness: z.enum(readiness),
 })
 
-/** Every key optional: a call returns only the keys of its section. */
-export const planWriterSectionsSchema = z.object({
-  topics: z.array(planWriterTopicSchema).optional(),
-  balance: planBalanceSchema.optional(),
-  recommendation: planWriterRecommendationSchema.optional(),
+/** The writer's balance: pillar counts as rows (a record is not accepted by provider structured output); code rebuilds the record. */
+export const planWriterBalanceSchema = planBalanceSchema.omit({ pillar_counts: true }).extend({
+  pillar_counts: z.array(z.object({ pillar_id: z.string().min(1), count: z.number().int().min(0) })),
 })
-export type PlanWriterSections = z.infer<typeof planWriterSectionsSchema>
 
-export const planWriterResult = z.object({ kind: z.literal('research'), data: planWriterSectionsSchema })
+/** One agent per section, each with a section-sized result: the topics window, or balance + recommendation. */
+export const planTopicsSectionSchema = z.object({ topics: z.array(planWriterTopicSchema) })
+export const planBalanceSectionSchema = z.object({ balance: planWriterBalanceSchema, recommendation: planWriterRecommendationSchema })
+export type PlanTopicsSection = z.infer<typeof planTopicsSectionSchema>
+export type PlanBalanceSection = z.infer<typeof planBalanceSectionSchema>
+
+export const planTopicsResult = z.object({ kind: z.literal('research'), data: planTopicsSectionSchema })
+export const planBalanceResult = z.object({ kind: z.literal('research'), data: planBalanceSectionSchema })
 
 // ---------------------------------------------------------------------------
 // 6.3 — Q-P over the assembled plan plus the validator's findings

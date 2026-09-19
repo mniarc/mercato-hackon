@@ -41,7 +41,7 @@ describe('3.3 audit pipeline', () => {
     const calls: { agentId: string; input: unknown }[] = []
     const result = await runAuditPipeline({ order, zrodla, businessProfile, runAgent: createFixtureRunner(path.join(fixture, 'canned'), { calls }), ledger: createLedger({ prices: {} }), models })
     expect(audytDataSchema.safeParse(result.data).success).toBe(true)
-    expect(calls.map((c) => c.agentId)).toEqual(['agency_research.audit_mapper', 'agency_research.audit_voice_and_gaps'])
+    expect(calls.map((c) => c.agentId)).toEqual(['agency_research.audit_mapper', 'agency_research.audit_voice', 'agency_research.audit_gaps_assets'])
     // The invented offer row (F99) is gone; the rest keep their citations.
     expect(result.data.offer_map.map((o) => o.service)).toEqual(['Badania i diagnoza', 'Projektowanie i wdrożenie rozwiązań cyfrowych', 'Szkolenia AI i obsługa promocji'])
     // "evidence" without customer voice is a hypothesis; the scenario id is minted.

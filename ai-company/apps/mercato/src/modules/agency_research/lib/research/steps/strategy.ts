@@ -8,14 +8,14 @@ import { strategiaDataSchema, supportLevels, type StrategiaData } from '../../..
 import { ustaleniaDataSchema, type UstaleniaData } from '../../../data/schemas/ustalenia'
 import { zrodlaDataSchema, type ProofCard, type ZrodlaData } from '../../../data/schemas/zrodla'
 import {
-  strategyWriterResult,
+  strategySectionResults,
   type StrategyBriefInput,
   type StrategySection,
   type StrategyWriterInput,
   type StrategyWriterSections,
 } from '../../../data/agents/strategy'
 import { idPrefixes, limits } from '../../../data/templates'
-import { RESEARCH_STRATEGY_WRITER_AGENT_ID } from '../../agents/ids.strategy'
+import { STRATEGY_SECTION_AGENT_IDS } from '../../agents/ids.strategy'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
 import { GateError, type GateIssue } from '../gate'
 import { mintId, resolveId } from '../ids'
@@ -446,10 +446,10 @@ export async function runStrategyPipeline(opts: StrategyPipelineOptions): Promis
   for (const section of Object.keys(SECTION_KEYS) as StrategySection[]) {
     const { value, issues: sectionIssues } = await step<StrategyWriterSections>({
       step: '5.2',
-      agentId: RESEARCH_STRATEGY_WRITER_AGENT_ID,
+      agentId: STRATEGY_SECTION_AGENT_IDS[section],
       label: section,
       input: writerInput(opts, section, sections),
-      parse: (raw) => strategyWriterResult.parse(raw).data,
+      parse: (raw) => strategySectionResults[section].parse(raw).data as StrategyWriterSections,
       gate: (data) => gateStrategySection(section, data, known),
     })
     issues.push(...sectionIssues)

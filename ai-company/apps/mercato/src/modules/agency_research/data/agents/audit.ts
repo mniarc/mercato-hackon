@@ -67,10 +67,15 @@ export const auditVoiceInputSchema = auditRegisterSchema.pick({ order: true, out
   proof_cards: z.array(z.object({ proof_id: z.string(), proof_type: z.string(), artifact_or_method: z.string().nullable() })),
 })
 
+/** The voice audit alone; the gaps and assets are a second agent so each registered schema stays small. */
 export const auditVoiceResult = z.object({
   kind: z.literal('research'),
+  data: z.object({ voice_audit: voiceAuditSchema }),
+})
+
+export const auditGapsResult = z.object({
+  kind: z.literal('research'),
   data: z.object({
-    voice_audit: voiceAuditSchema,
     gaps: z.array(
       z.object({
         observation: z.string().min(1),

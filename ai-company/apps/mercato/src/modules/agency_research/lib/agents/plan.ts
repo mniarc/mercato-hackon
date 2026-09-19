@@ -1,13 +1,14 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { renderContractFields } from '../../data/contracts'
-import { planQaAgentResult, planWriterResult } from '../../data/agents/plan'
-import { RESEARCH_PLAN_QA_AGENT_ID, RESEARCH_PLAN_WRITER_AGENT_ID } from './ids.plan'
+import { planBalanceResult, planQaAgentResult, planTopicsResult } from '../../data/agents/plan'
+import { RESEARCH_PLAN_BALANCE_AGENT_ID, RESEARCH_PLAN_QA_AGENT_ID, RESEARCH_PLAN_TOPICS_AGENT_ID } from './ids.plan'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
-// P6 — plan writer (6.2) and Q-P (6.3). The writer is called three times: six
-// topics for days 1–15, six for days 16–30, then balance + recommendation over
-// the gated twelve. Code mints `TOP01…` by day, checks distinctness, pillar
+// P6 — plan writer (6.2) and Q-P (6.3). The writer is two agents, one per output
+// section, so each registered schema stays small enough for provider structured
+// output: the topics agent is called twice (days 1–15, days 16–30), then the
+// balance agent once over the gated twelve. Code mints `TOP01…` by day, checks distinctness, pillar
 // balance and evidence resolution, records the selection (6.5) and compiles the
 // post instruction (6.7) without any model call.
 
@@ -34,32 +35,46 @@ const PLAN_RULES = [
 
 export const planAgents: AiAgentDefinition[] = [
   defineAgent({
-    id: RESEARCH_PLAN_WRITER_AGENT_ID,
+    id: RESEARCH_PLAN_TOPICS_AGENT_ID,
     moduleId: 'agency_research',
     agentType: 'researcher',
-    label: 'Content plan writer',
-    description: 'Writes one section of the 30-day content plan (KLI-PLAN): six topics for a day window, or the balance and recommendation over the gated twelve.',
+    label: 'Content plan writer — topics',
+    description: 'Writes one day window of the 30-day content plan (KLI-PLAN): six distinct topics with their evidence.',
     defaultModel: MODEL_SYNTHESIS,
     instructions: [
       PLAN_RULES,
-      'The output shape depends on `section`: `topics_1_6` and `topics_7_12` → `topics`: exactly',
-      '`topic_count` topics with `local_ref` (`T-A`, `T-B`, …), `day` inside the given `days`',
-      'window (distinct days, spaced), `pillar_id` from `pillars`, `audience_question`, `topic`,',
-      '`main_message` (one sentence), `format` = `text`, `angle` {tool, steps (2–5), status,',
-      'example|null}, the id arrays, `evidence_excerpt`, `evidence_limits`, `post_goal`, `cta`,',
-      '`cta_type` (contact | question | reflection | none), `readiness`, `readiness_scope`,',
-      '`evidence_reuse_note` (null unless the evidence is shared with another topic). For',
-      '`topics_7_12`, `existing_topics` holds the first six: do not repeat their questions or',
-      'messages. `balance_recommendation` → `balance` (`pillar_counts` over the twelve',
-      '`existing_topics`, `need_stages`, `distinctness`, `evidence_diversity` — say plainly that',
-      'twelve uses of the material are not twelve studies) and `recommendation` (one existing',
-      '`topic_id` whose evidence is complete now, `reason`, `evidence_available` ids, `role`,',
-      '`readiness`) — not the flashiest claim when data is missing, never two posts.',
-      'Return ONLY the keys of the requested section.',
+      'Return `topics`: exactly `topic_count` topics with `local_ref` (`T-A`, `T-B`, …), `day`',
+      'inside the given `days` window (distinct days, spaced), `pillar_id` from `pillars`,',
+      '`audience_question`, `topic`, `main_message` (one sentence), `format` = `text`, `angle`',
+      '{tool, steps (2–5), status, example|null}, the id arrays, `evidence_excerpt`,',
+      '`evidence_limits`, `post_goal`, `cta`, `cta_type` (contact | question | reflection | none),',
+      '`readiness`, `readiness_scope`, `evidence_reuse_note` (null unless the evidence is shared',
+      'with another topic). When `existing_topics` holds the earlier window, do not repeat their',
+      'questions or messages.',
       SHARED_RULES,
-      renderContractFields('WZR-PLAN'),
+      renderContractFields('WZR-PLAN', ['plan_context', 'topics']),
     ].join(' '),
-    result: { kind: 'research', schema: planWriterResult },
+    result: { kind: 'research', schema: planTopicsResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_PLAN_BALANCE_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Content plan writer — balance and recommendation',
+    description: 'Reads the twelve gated topics and returns the plan balance and the one recommended topic whose evidence is complete now.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      PLAN_RULES,
+      'Return `balance` (`pillar_counts` as rows {pillar_id, count} over the twelve `existing_topics`,',
+      '`need_stages`, `distinctness`, `evidence_diversity` — say plainly that twelve uses of the',
+      'material are not twelve studies) and `recommendation` (one existing `topic_id` whose',
+      'evidence is complete now, `reason`, `evidence_available` ids, `role`, `readiness`) — not',
+      'the flashiest claim when data is missing, never two posts.',
+      SHARED_RULES,
+      renderContractFields('WZR-PLAN', ['balance', 'recommendation']),
+    ].join(' '),
+    result: { kind: 'research', schema: planBalanceResult },
   }),
 
   defineAgent({

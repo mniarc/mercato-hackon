@@ -170,14 +170,24 @@ export const strategyPillarsSectionSchema = z.object({
   creative_boundaries: creativeBoundariesSchema,
 })
 
-/** One flat result shape for the three calls; the pipeline requires the keys of the requested section. */
+/** The assembled view of the three section calls (every key optional); each call is its own agent with a section-sized result. */
 export const strategyWriterSectionsSchema = z.object({
   ...strategyChoiceSectionSchema.partial().shape,
   ...strategyProofSectionSchema.partial().shape,
   ...strategyPillarsSectionSchema.partial().shape,
 })
 export type StrategyWriterSections = z.infer<typeof strategyWriterSectionsSchema>
-export const strategyWriterResult = z.object({ kind: z.literal('research'), data: strategyWriterSectionsSchema })
+
+export const strategyChoiceSectionResult = z.object({ kind: z.literal('research'), data: strategyChoiceSectionSchema })
+export const strategyProofSectionResult = z.object({ kind: z.literal('research'), data: strategyProofSectionSchema })
+export const strategyPillarsSectionResult = z.object({ kind: z.literal('research'), data: strategyPillarsSectionSchema })
+
+/** Result schema per section group, keyed like `STRATEGY_SECTION_AGENT_IDS`. */
+export const strategySectionResults = {
+  choice_tension_uvp: strategyChoiceSectionResult,
+  proof_messages: strategyProofSectionResult,
+  pillars_channel_boundaries: strategyPillarsSectionResult,
+} as const
 
 // ---------------------------------------------------------------------------
 // 5.3 — ToV writer

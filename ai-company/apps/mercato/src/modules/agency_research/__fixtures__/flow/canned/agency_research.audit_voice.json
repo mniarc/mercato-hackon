@@ -1,0 +1,62 @@
+{
+  "kind": "research",
+  "data": {
+    "voice_audit": {
+      "sample_size": "6 krótkich fragmentów z 4 materiałów; brak pełnego korpusu.",
+      "formality": {
+        "finding": "WWW przystępne; posty swobodne.",
+        "sample_ids": [
+          "L01",
+          "L02",
+          "L04"
+        ],
+        "interpretation_limit": null
+      },
+      "directness": {
+        "finding": "Krótkie zdania i bezpośrednie zaproszenia.",
+        "sample_ids": [
+          "L01",
+          "L06"
+        ],
+        "interpretation_limit": null
+      },
+      "technical_level": {
+        "finding": "Tematy technologiczne oswajane prostym językiem.",
+        "sample_ids": [
+          "L01"
+        ],
+        "interpretation_limit": null
+      },
+      "emotion": {
+        "finding": "Entuzjazm w zaproszeniach, koleżeńskość w gratulacjach.",
+        "sample_ids": [
+          "L03",
+          "L06"
+        ],
+        "interpretation_limit": null
+      },
+      "claim_certainty": {
+        "finding": "Silny język korzyści bez miernika.",
+        "sample_ids": [
+          "L05"
+        ],
+        "interpretation_limit": null
+      },
+      "recurring_phrases": {
+        "finding": "Nie ustalono powtarzalnego słownika na tak małej próbce.",
+        "sample_ids": [],
+        "interpretation_limit": null
+      },
+      "channel_difference": {
+        "finding": "FAQ wyjaśnia zasady; posty budują relację.",
+        "sample_ids": [
+          "L01",
+          "L04",
+          "L99"
+        ],
+        "interpretation_limit": "Różne funkcje kanałów są obserwacją kontekstu, nie dowodem niespójności."
+      },
+      "future_voice_status": "Przyszły głos jest decyzją klienta; audyt go nie ustala."
+    }
+  }
+}

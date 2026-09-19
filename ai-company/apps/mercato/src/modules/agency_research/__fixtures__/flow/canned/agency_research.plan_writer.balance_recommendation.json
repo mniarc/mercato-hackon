@@ -2,11 +2,20 @@
   "kind": "research",
   "data": {
     "balance": {
-      "pillar_counts": {
-        "PL01": 4,
-        "PL02": 4,
-        "PL03": 4
-      },
+      "pillar_counts": [
+        {
+          "pillar_id": "PL01",
+          "count": 4
+        },
+        {
+          "pillar_id": "PL02",
+          "count": 4
+        },
+        {
+          "pillar_id": "PL03",
+          "count": 4
+        }
+      ],
       "need_stages": "Rozpoznanie problemu → sprawdzenie założenia → dobór zakresu i ról → kontakt; kolejność przeplata etapy, aby nie powtarzać jednego ujęcia.",
       "distinctness": "Każdy temat ma inne pytanie odbiorcy i inne narzędzie dla czytelnika; TOP01 i TOP05 dzielą fakt F03, ale odpowiadają na inne pytania.",
       "evidence_diversity": "Dwanaście użyć materiału nie oznacza dwunastu badań; wiele tematów wraca do tej samej deklaracji o punkcie wyjścia i braku wymogu specyfikacji."

@@ -1,11 +1,11 @@
-import { auditMapperResult, auditVoiceResult, type AuditMaps, type AuditRegisterInput } from '../../../data/agents/audit'
+import { auditGapsResult, auditMapperResult, auditVoiceResult, type AuditMaps, type AuditRegisterInput } from '../../../data/agents/audit'
 import { audytDataSchema, type AudytData } from '../../../data/schemas/audyt'
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { BusinessProfile, ZrodlaData } from '../../../data/schemas/zrodla'
 import { mustKeysOf } from '../../../data/contracts'
 import { limits } from '../../../data/templates'
-import { RESEARCH_AUDIT_MAPPER_AGENT_ID, RESEARCH_AUDIT_VOICE_AGENT_ID } from '../../agents/ids.audit'
+import { RESEARCH_AUDIT_GAPS_AGENT_ID, RESEARCH_AUDIT_MAPPER_AGENT_ID, RESEARCH_AUDIT_VOICE_AGENT_ID } from '../../agents/ids.audit'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
 import { checkClientView } from '../clientView'
 import { unresolvedCitations, type GateIssue } from '../gate'
@@ -109,15 +109,21 @@ export function gateAuditMaps(maps: AuditMaps, known: Set<string>): { value: Aud
   return { value: { offer_map, buyer_map, message_map, journey, relationship }, issues, kept: offer_map.length + buyer_map.length + message_map.length + journey.length, dropped }
 }
 
-type VoiceSections = ReturnType<typeof auditVoiceResult.parse>['data']
+type VoiceSection = ReturnType<typeof auditVoiceResult.parse>['data']
+type GapsSection = ReturnType<typeof auditGapsResult.parse>['data']
 
-export function gateAuditVoice(sections: VoiceSections, known: Set<string>): { value: VoiceSections; issues: GateIssue[]; kept: number; dropped: number } {
+export function gateAuditVoice(section: VoiceSection, known: Set<string>): { value: VoiceSection; issues: GateIssue[]; kept: number; dropped: number } {
   const issues: GateIssue[] = []
   const dims = ['formality', 'directness', 'technical_level', 'emotion', 'claim_certainty', 'recurring_phrases', 'channel_difference'] as const
-  const voice_audit = { ...sections.voice_audit }
+  const voice_audit = { ...section.voice_audit }
   for (const dim of dims) {
     voice_audit[dim] = { ...voice_audit[dim], sample_ids: resolveList(voice_audit[dim].sample_ids, known, `voice_audit.${dim}`, issues) }
   }
+  return { value: { voice_audit }, issues, kept: dims.length, dropped: 0 }
+}
+
+export function gateAuditGaps(sections: GapsSection, known: Set<string>): { value: GapsSection; issues: GateIssue[]; kept: number; dropped: number } {
+  const issues: GateIssue[] = []
   const order = { must: 0, should: 1, could: 2 }
   const gaps = sections.gaps
     .map((gap, index) => ({ ...gap, evidence_ids: resolveList(gap.evidence_ids, known, `gaps[${index}]`, issues) }))
@@ -130,7 +136,7 @@ export function gateAuditVoice(sections: VoiceSections, known: Set<string>): { v
     proof_ids: resolveList(asset.proof_ids, known, `reusable_assets[${index}].proof_ids`, issues),
     seed_ids: resolveList(asset.seed_ids, known, `reusable_assets[${index}].seed_ids`, issues),
   }))
-  return { value: { voice_audit, gaps: cappedGaps, reusable_assets }, issues, kept: cappedGaps.length + reusable_assets.length, dropped: gaps.length - cappedGaps.length }
+  return { value: { gaps: cappedGaps, reusable_assets }, issues, kept: cappedGaps.length + reusable_assets.length, dropped: gaps.length - cappedGaps.length }
 }
 
 function registerInput(opts: AuditPipelineOptions): AuditRegisterInput {
@@ -176,11 +182,7 @@ export async function runAuditPipeline(opts: AuditPipelineOptions): Promise<Audi
   issues.push(...maps.issues)
   const buyerMap = maps.value.buyer_map.map((row, index) => ({ scenario_id: `B${String(index + 1).padStart(2, '0')}`, ...row }))
 
-  const voice = await step<VoiceSections>({
-    step: '3.3',
-    agentId: RESEARCH_AUDIT_VOICE_AGENT_ID,
-    label: 'audit_voice_gaps',
-    input: {
+  const voiceInput = {
       order: input.order,
       outputLanguage: input.outputLanguage,
       repair_findings: input.repair_findings,
@@ -195,11 +197,26 @@ export async function runAuditPipeline(opts: AuditPipelineOptions): Promise<Audi
       coverage: opts.zrodla.coverage.flatMap((c) => (c.item_type === 'requirement_coverage' ? [{ requirement: c.requirement, readiness: c.readiness, gap: c.gap, owner: c.owner }] : [])),
       content_bank: opts.zrodla.content_bank.map((s) => ({ seed_id: s.seed_id, angle: s.angle, readiness: s.readiness, proof_ids: s.proof_ids })),
       proof_cards: opts.zrodla.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, artifact_or_method: p.artifact_or_method })),
-    },
+  }
+  // The same packet feeds two agents: the voice audit, then the gaps and reusable assets.
+  const voice = await step<VoiceSection>({
+    step: '3.3',
+    agentId: RESEARCH_AUDIT_VOICE_AGENT_ID,
+    label: 'audit_voice',
+    input: voiceInput,
     parse: (raw) => auditVoiceResult.parse(raw).data,
     gate: (value) => gateAuditVoice(value, known),
   })
   issues.push(...voice.issues)
+  const gapsAssets = await step<GapsSection>({
+    step: '3.3',
+    agentId: RESEARCH_AUDIT_GAPS_AGENT_ID,
+    label: 'audit_gaps_assets',
+    input: voiceInput,
+    parse: (raw) => auditGapsResult.parse(raw).data,
+    gate: (value) => gateAuditGaps(value, known),
+  })
+  issues.push(...gapsAssets.issues)
 
   const data = audytDataSchema.parse({
     offer_map: maps.value.offer_map,
@@ -208,8 +225,8 @@ export async function runAuditPipeline(opts: AuditPipelineOptions): Promise<Audi
     voice_audit: voice.value.voice_audit,
     journey: maps.value.journey,
     relationship: maps.value.relationship,
-    gaps: voice.value.gaps.map((gap, index) => ({ gap_id: `G${String(index + 1).padStart(2, '0')}`, ...gap })),
-    reusable_assets: voice.value.reusable_assets,
+    gaps: gapsAssets.value.gaps.map((gap, index) => ({ gap_id: `G${String(index + 1).padStart(2, '0')}`, ...gap })),
+    reusable_assets: gapsAssets.value.reusable_assets,
   })
   for (const key of mustKeysOf('WZR-AUDYT')) {
     const value = (data as unknown as Record<string, unknown>)[key]

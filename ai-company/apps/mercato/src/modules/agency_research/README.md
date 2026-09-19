@@ -128,18 +128,18 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 | step | document | agents | gate highlights |
 |---|---|---|---|
 | 3.2 | `WEW-ZRODLA` | page_extractor (map), proof_builder, content_seeder, conflict_finder, coverage_assessor | verbatim quotes, proof-card variants, plan capacity computed |
-| 3.3 | `WEW-AUDYT` | audit_mapper, audit_voice_and_gaps | no evidence without customer voice, no conversion judgement without data, gaps 3–5 |
-| 3.4–3.5 | `WEW-KONKURENCJA` v1/v2 + `WEW-ZRODLA` v2 | competitor_selector, page_extractor (entity = competitor), competitor_card_extractor, competitor_synthesizer | ≤3 companies from real search hits, `unknown` where nothing was read, claim strength ≤ proof, "jedyni" needs a named unknown |
+| 3.3 | `WEW-AUDYT` | audit_mapper, audit_voice, audit_gaps_assets | no evidence without customer voice, no conversion judgement without data, gaps 3–5 |
+| 3.4–3.5 | `WEW-KONKURENCJA` v1/v2 + `WEW-ZRODLA` v2 | competitor_selector, page_extractor (entity = competitor), competitor_card, competitor_channels, competitor_synthesizer | ≤3 companies from real search hits, `unknown` where nothing was read, claim strength ≤ proof, "jedyni" needs a named unknown |
 | 3.6 | `WEW-USTALENIA` | field_mapper, question_writer, readiness_assessor | future vision never a fact, ≤8 questions, five readiness outputs |
 | 3.7 | — (task run + `qa_result`) | research_qa + validator | exactly ready / to_fix / exception; ≤2 repairs through the author steps, then E.1 |
 | E.1 | `WEW-ESKALACJA` | — | observed reason, evidence, unassigned queue, hold, one question, allowed resolutions |
 | 3.8 | — (frozen set on the task run) | — | idempotent per set hash; only `status` changes |
-| 4.1 | `KLI-BRIEF` | brief_writer (3 section calls) | decision states from the map, two equal voice variants, rights copied from proof cards, CTA without owner blocks publication |
+| 4.1 | `KLI-BRIEF` | brief_writer.{offer_audience_direction, promise_voice, channel_success_assets} | decision states from the map, two equal voice variants, rights copied from proof cards, CTA without owner blocks publication |
 | 4.2 | — (task run + `qa_result`) | brief_qa + validator | ready_for_approval / needs_client_data / needs_agent_fix; agent errors repaired ≤2, client gaps become the questions |
-| 5.2 | `KLI-STRATEGIA` | strategy_writer (3 section calls) | CL/PL ids minted in code, support level capped by the cited proof cards (no auto promotion), uniqueness never from a competitor's silence, "everyone else" alternative rejected |
+| 5.2 | `KLI-STRATEGIA` | strategy_writer.{choice_tension_uvp, proof_messages, pillars_channel_boundaries} | CL/PL ids minted in code, support level capped by the cited proof cards (no auto promotion), uniqueness never from a competitor's silence, "everyone else" alternative rejected |
 | 5.3 | `KLI-TOV` | tov_writer (2 section calls) | 4 principles, 5 axes, 5 evidence-language types, 3 before/after pairs grounded only when facts resolve, 6–8 copy checks |
 | 5.4 | — (task run + `qa_result`) | strategy_qa + validator | Q-S on the pair: ready_for_approval / needs_agent_fix; repairs ≤2 through 5.2/5.3, then E.1 |
-| 6.2 | `KLI-PLAN` | plan_writer (3 section calls) | TOP ids by day, 12 distinct topics (word-set similarity < 0.6), pillar balance, every id resolves |
+| 6.2 | `KLI-PLAN` | plan_writer.topics (2 calls), plan_writer.balance_recommendation | TOP ids by day, 12 distinct topics (word-set similarity < 0.6), pillar balance, every id resolves |
 | 6.3 | — (task run + `qa_result`) | plan_qa + validator | Q-P: exactly 12 `ready` topics before the plan may be approved; repairs ≤2 |
 | 6.5 | `KLI-PLAN` (new version) | — | `--topic TOPxx` = client selection; otherwise the recommendation as `simulated_selection`, `real_approval: false` |
 | 6.7 | `WEW-ZLECENIE-POSTU` | — (code only) | evidence cards carry the texts, rights copied from proof cards, ≤5 voice rules, adapter limits from `data/adapters.ts`, 7 completion lines |
@@ -163,6 +163,8 @@ Expected live cost beyond 4.2: ≈ 9 Sonnet + 3 Haiku calls (P5–P7) plus repai
 questions — the surface Krysia's portal renders; ownership hook `assertCustomerOwnsOrder` is a TODO until orders
 are persisted). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
 `WZR-PLAN`, `WZR-POST` and `WZR-PAKIET` (questions only for the brief).
+
+One-page map of the whole chain, the agents and what is stored: [`WORKFLOW.md`](./WORKFLOW.md).
 
 Everything the process needs from the client (4.3–4.7 approvals, G requests) stays with the spine; this lane hands
 over `(task_run_id, version_id)` references and the client projections.

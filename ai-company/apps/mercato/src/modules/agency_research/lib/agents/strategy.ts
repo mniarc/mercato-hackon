@@ -1,13 +1,14 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { renderContractFields } from '../../data/contracts'
-import { strategyQaAgentResult, strategyWriterResult, tovWriterResult } from '../../data/agents/strategy'
-import { RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_STRATEGY_WRITER_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
+import { strategyChoiceSectionResult, strategyPillarsSectionResult, strategyProofSectionResult, strategyQaAgentResult, tovWriterResult } from '../../data/agents/strategy'
+import { RESEARCH_STRATEGY_CHOICE_AGENT_ID, RESEARCH_STRATEGY_PILLARS_AGENT_ID, RESEARCH_STRATEGY_PROOF_AGENT_ID, RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // P5 — strategy writer (5.2), ToV writer (5.3) and the Q-S pair QA (5.4). The
-// writers are called once per section group (`input.section`) so every output
-// stays section-sized; the pipeline mints claim and pillar ids, caps support
+// strategy writer is three agents, one per section group (`input.section`), each
+// with its own result schema (a union of sections is too large a grammar for
+// provider structured output); the ToV writer keeps one agent for its two sections; the pipeline mints claim and pillar ids, caps support
 // levels by the cited proofs, sets example statuses and assembles the documents.
 // The agents recommend; the client approves.
 
@@ -48,46 +49,77 @@ const TOV_RULES = [
 
 export const strategyAgents: AiAgentDefinition[] = [
   defineAgent({
-    id: RESEARCH_STRATEGY_WRITER_AGENT_ID,
+    id: RESEARCH_STRATEGY_CHOICE_AGENT_ID,
     moduleId: 'agency_research',
     agentType: 'researcher',
-    label: 'Strategy writer',
-    description: 'Writes one section group of the communication strategy (KLI-STRATEGIA) from the brief, the audit, the comparison and the frozen evidence; choices with evidence, never promises beyond the proofs.',
+    label: 'Strategy writer — choice, tension, UVP',
+    description: 'Writes the strategic choice, the buyer tension, the UVP and the rejected options of the communication strategy (KLI-STRATEGIA); choices with evidence, never promises beyond the proofs.',
     defaultModel: MODEL_SYNTHESIS,
     instructions: [
       STRATEGY_RULES,
-      'The output shape depends on `section`: `choice_tension_uvp` → `strategic_choice` (one',
-      'positioning, the priority audience and situation, the reference category, the brief',
-      '`decision` it rests on, what is deliberately `deprioritized`, `rationale`, `status`',
-      '`fact` | `hypothesis` | `client_decision` | `unknown`, `evidence_ids`), `buyer_tension`',
-      '(desired progress, barrier, an `illustrative_objection` with `objection_status`',
-      '`customer_voice` only when a customer said it, else `illustrative_hypothesis`; the status',
-      'quo risk; `decision_criterion` with its own status and origin; `evidence_ids`), `uvp`',
-      '(`local_ref` = `UVP`; one `working_sentence`; 3–5 sentences of `explanation`; the',
-      '`mechanism`; the concrete `alternative` it is compared with and `alternative_status`;',
-      '`reason_to_believe`; `evidence_ids`; `support_level`; `use_conditions`) and',
-      '`options_considered` (exactly two rejected directions, ≤ 120 words together).',
-      '`proof_messages` → `proof_architecture` (one row per claim the strategy will make; the',
-      'first row has `local_ref` `UVP`, further rows `CL-A`, `CL-B`…; each with the allowed',
-      'claim, its mechanism, `proof_ids` / `fact_ids` / `source_ids`, `status`, `limitations`,',
-      'the `forbidden_claim` and the `confirmation_owner` `client` | `agency` | `none_needed`)',
-      'and `message_hierarchy` (one lasting `main_promise` with `status` and `claim_refs`; 2–3',
-      '`supporting_messages` with `claim_refs` and `fact_ids`; `explanation_order`).',
-      '`pillars_channel_boundaries` → `pillars` (3–4 pillars with `local_ref` `PL-A`…, each',
-      'differing in task, with `audience_question`, `allowed_content`, `exclusions`,',
-      '`claim_refs` and the `seed_ids` from `evidence.content_bank` it can be developed from),',
-      '`channel_role` (one role of the one serviced channel; no multichannel or paid campaigns;',
-      '`contact_owner` null unless known; `evidence_ids`), `measurement_hypothesis` (a',
-      'hypothesis to test, observable signals, measures with definitions, `baseline` null',
-      'unless a fact exists, `numerical_target` null unless a baseline exists, the future',
-      'test and the causality limit) and `creative_boundaries` (what is not promoted, the',
-      'prohibited promises, permitted creativity, rights, `open_assumptions` as short texts,',
-      'the effect on the plan, whether a research return is required).',
-      'Return ONLY the keys of the requested section.',
+      'Return `strategic_choice` (one positioning, the priority audience and situation, the',
+      'reference category, the brief `decision` it rests on, what is deliberately',
+      '`deprioritized`, `rationale`, `status` `fact` | `hypothesis` | `client_decision` |',
+      '`unknown`, `evidence_ids`), `buyer_tension` (desired progress, barrier, an',
+      '`illustrative_objection` with `objection_status` `customer_voice` only when a customer',
+      'said it, else `illustrative_hypothesis`; the status quo risk; `decision_criterion` with',
+      'its own status and origin; `evidence_ids`), `uvp` (`local_ref` = `UVP`; one',
+      '`working_sentence`; 3–5 sentences of `explanation`; the `mechanism`; the concrete',
+      '`alternative` it is compared with and `alternative_status`; `reason_to_believe`;',
+      '`evidence_ids`; `support_level`; `use_conditions`) and `options_considered` (exactly',
+      'two rejected directions, ≤ 120 words together).',
       SHARED_RULES,
-      renderContractFields('WZR-STRATEGIA'),
+      renderContractFields('WZR-STRATEGIA', ['strategic_choice', 'buyer_tension', 'uvp', 'options_considered']),
     ].join(' '),
-    result: { kind: 'research', schema: strategyWriterResult },
+    result: { kind: 'research', schema: strategyChoiceSectionResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_STRATEGY_PROOF_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Strategy writer — proof architecture and messages',
+    description: 'Writes the proof architecture (one row per claim, capped by the cited proofs) and the message hierarchy of the communication strategy (KLI-STRATEGIA).',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      STRATEGY_RULES,
+      'The `draft` holds the sections already written (the UVP among them). Return',
+      '`proof_architecture` (one row per claim the strategy will make; the first row has',
+      '`local_ref` `UVP`, further rows `CL-A`, `CL-B`…; each with the allowed claim, its',
+      'mechanism, `proof_ids` / `fact_ids` / `source_ids`, `status`, `limitations`, the',
+      '`forbidden_claim` and the `confirmation_owner` `client` | `agency` | `none_needed`) and',
+      '`message_hierarchy` (one lasting `main_promise` with `status` and `claim_refs`; 2–3',
+      '`supporting_messages` with `claim_refs` and `fact_ids`; `explanation_order`).',
+      SHARED_RULES,
+      renderContractFields('WZR-STRATEGIA', ['proof_architecture', 'message_hierarchy']),
+    ].join(' '),
+    result: { kind: 'research', schema: strategyProofSectionResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_STRATEGY_PILLARS_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Strategy writer — pillars, channel, boundaries',
+    description: 'Writes the content pillars, the channel role, the measurement hypothesis and the creative boundaries of the communication strategy (KLI-STRATEGIA).',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      STRATEGY_RULES,
+      'The `draft` holds the sections already written (choice, UVP, claims). Return `pillars`',
+      '(3–4 pillars with `local_ref` `PL-A`…, each differing in task, with `audience_question`,',
+      '`allowed_content`, `exclusions`, `claim_refs` and the `seed_ids` from',
+      '`evidence.content_bank` it can be developed from), `channel_role` (one role of the one',
+      'serviced channel; no multichannel or paid campaigns; `contact_owner` null unless known;',
+      '`evidence_ids`), `measurement_hypothesis` (a hypothesis to test, observable signals,',
+      'measures with definitions, `baseline` null unless a fact exists, `numerical_target` null',
+      'unless a baseline exists, the future test and the causality limit) and',
+      '`creative_boundaries` (what is not promoted, the prohibited promises, permitted',
+      'creativity, rights, `open_assumptions` as short texts, the effect on the plan, whether a',
+      'research return is required).',
+      SHARED_RULES,
+      renderContractFields('WZR-STRATEGIA', ['pillars', 'channel_role', 'measurement_hypothesis', 'creative_boundaries']),
+    ].join(' '),
+    result: { kind: 'research', schema: strategyPillarsSectionResult },
   }),
 
   defineAgent({

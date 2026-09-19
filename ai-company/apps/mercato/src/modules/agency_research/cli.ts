@@ -5,6 +5,7 @@ import type { ModuleCli } from '@open-mercato/shared/modules/registry'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { ensureAgentsLoaded } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { orderDataSchema, orderFactsOf } from './data/schemas/zamowienie'
+import { outputIdByTemplate, type TemplateId } from './data/schemas/envelope'
 import { limits } from './data/templates'
 import { createDirectRunner } from './lib/directRunner'
 import { defaultModels, runResearch } from './lib/researchService'
@@ -14,7 +15,7 @@ import { formatLedger } from './lib/research/ledger'
 import type { PipelineCache, ResearchAgentRunner } from './lib/research/pipeline'
 import { createFixtureRunner, createOrchestratorRunner } from './lib/runners'
 import { currentInputVersion, orderStatus, type ResearchScope } from './lib/store'
-import { AgencyResearchDocument, AgencyResearchDocumentVersion } from './data/entities'
+import { AgencyResearchDocumentVersion } from './data/entities'
 import { researchSteps, type ResearchStep } from './lib/contracts'
 
 /** `--key value` pairs; a `--flag` followed by another option or nothing is `'true'`. */
@@ -182,33 +183,47 @@ const run: ModuleCli = {
         }
         if (event.type === 'call') console.log(`  ${event.step} ${event.label} ${event.cached ? '(cached)' : `${event.ms} ms, ${event.costPln.toFixed(3)} PLN`}`)
         if (event.type === 'gate' && event.dropped > 0) console.log(`  gate ${event.section}: kept ${event.kept}, dropped ${event.dropped} (${[...new Set(event.issues.map((i) => i.code))].join(', ')})`)
+        if (event.type === 'technical_retry') console.warn(`  ${event.step} ${event.label}: provider error (${event.error}) — retry ${event.attempt}`)
         if (event.type === 'gate_rejected') console.warn(`  gate REJECTED ${event.section} (attempt ${event.attempt}) — re-requesting`)
         if (event.type === 'budget_warning') console.warn(`  budget: ${event.total.toFixed(2)} PLN spent (warning at ${event.warnAt})`)
         if (event.type === 'budget_paused') console.error(`  budget PAUSED at ${event.total.toFixed(2)} PLN (cap ${event.cap})`)
       },
     }).catch((error) => {
-      fs.writeFileSync(path.join(out, 'events.json'), JSON.stringify(events, null, 2))
+      fs.writeFileSync(path.join(out, `events.${new Date().toISOString().replace(/[:.]/g, '-')}.json`), JSON.stringify(events, null, 2))
       throw error
     })
 
-    fs.writeFileSync(path.join(out, 'events.json'), JSON.stringify(events, null, 2))
-    // Every current document of the order goes to files: envelope + data, the internal markdown, the client view.
-    const documents = await db.em.find(AgencyResearchDocument, { ...scope, orderRef, deletedAt: null })
-    for (const document of documents) {
-      if (!document.currentVersionId) continue
-      const version = await db.em.findOne(AgencyResearchDocumentVersion, { id: document.currentVersionId })
-      if (!version) continue
-      fs.writeFileSync(path.join(out, `${document.outputId}.json`), JSON.stringify({ ...envelopeOf(version), data: version.data }, null, 2))
-      fs.writeFileSync(path.join(out, `${document.outputId}.md`), version.renderedMd)
-      if (version.clientViewMd) fs.writeFileSync(path.join(out, `${document.outputId}.client.md`), version.clientViewMd)
-    }
+    const runStamp = new Date().toISOString().replace(/[:.]/g, '-')
+    fs.writeFileSync(path.join(out, `events.${runStamp}.json`), JSON.stringify(events, null, 2))
+    // Every version of every document goes to files, named by version and never overwritten:
+    // envelope + data, the internal markdown, the client view. Older runs' files stay as they were.
+    const written = writeDocumentVersions(db.em, scope, orderRef, path.join(out, 'documents'))
     const status = await orderStatus(db.em, scope, orderRef)
     const last = status.taskRuns[status.taskRuns.length - 1]
     if (last?.status === 'paused_budget') console.error(`Paused on budget: ${outcome.spentPln.toFixed(2)} PLN spent; task run ${last.id}`)
     console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}${outcome.qaVerdict ? ` · QA ${outcome.qaVerdict}` : ''}${outcome.briefQaVerdict ? ` · brief QA ${outcome.briefQaVerdict}` : ''}${outcome.strategyQaVerdict ? ` · Q-S ${outcome.strategyQaVerdict}` : ''}${outcome.planQaVerdict ? ` · Q-P ${outcome.planQaVerdict}` : ''}${outcome.postQaVerdict ? ` · Q-T ${outcome.postQaVerdict}` : ''}${outcome.closeAllowed !== undefined ? ` · close_allowed ${outcome.closeAllowed}` : ''}${outcome.escalationVersionId ? ` · E.1 opened (${outcome.escalationVersionId})` : ''}`)
     console.log(`Spend this run: ${outcome.spentPln.toFixed(2)} PLN · order total ${status.totalPln.toFixed(2)} PLN`)
-    console.log(`Written to ${path.resolve(out)}`)
+    console.log(`Written ${await written} new version files to ${path.resolve(path.join(out, 'documents'))}`)
   },
+}
+
+/** Writes every stored version as `<OUTPUT>.v<N>.{json,md,client.md}`; existing files are never touched. */
+async function writeDocumentVersions(em: Awaited<ReturnType<typeof connectDb>>['em'], scope: { tenantId: string; organizationId: string }, orderRef: string, dir: string): Promise<number> {
+  fs.mkdirSync(dir, { recursive: true })
+  const versions = await em.find(AgencyResearchDocumentVersion, { ...scope, orderRef }, { orderBy: { createdAt: 'asc' } })
+  let written = 0
+  const put = (file: string, content: string) => {
+    if (fs.existsSync(file)) return
+    fs.writeFileSync(file, content)
+    written += 1
+  }
+  for (const version of versions) {
+    const base = path.join(dir, `${outputIdByTemplate[version.templateId as TemplateId]}.v${version.versionNo}`)
+    put(`${base}.json`, JSON.stringify({ ...envelopeOf(version), data: version.data }, null, 2))
+    put(`${base}.md`, version.renderedMd)
+    if (version.clientViewMd) put(`${base}.client.md`, version.clientViewMd)
+  }
+  return written
 }
 
 function envelopeOf(version: AgencyResearchDocumentVersion) {
