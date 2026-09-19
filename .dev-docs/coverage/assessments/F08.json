@@ -11,13 +11,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
               "note": "Findings pipeline produces schema-valid field map linked to defined brief fields."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: field_mapper produced WEW-USTALENIA keyed by WZR-BRIEF fields live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -27,13 +31,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
               "note": "Rows retain proposed value, evidence, provenance/readiness/decision axes; question batch is explicit."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live map records proposal, source or no-source, fact/hypothesis/gap status and a client question per field - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -43,13 +51,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
               "note": "Evidence requests, unresolved assumptions and research-return proposals remain recorded."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: readiness_assessor named limitations and needed material for unresolved fields live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -59,13 +71,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
               "note": "Gate downgrades model-invented client_answer/client_selected states absent genuine client source."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live map keeps vision/goals/priorities as proposals, not facts - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -75,13 +91,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
               "note": "Real chain sends findings to QA before creating question-bearing brief; no pre-brief customer gate."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live map went to 3.7 QA (research_qa) without a client answer - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         }
       ]
@@ -96,13 +116,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/qa.ts",
               "note": "Analysis QA consumes all four analysis documents from same order."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: research_qa checked WEW-AUDYT, WEW-KONKURENCJA, WEW-USTALENIA, WEW-ZRODLA live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -112,13 +136,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/qa.ts",
               "note": "Deterministic reference/schema checks combine with native QA contradictions/evidence judgment."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live QA findings cover required fields, claim sources, conflicts and fact/interpretation separation - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -132,13 +160,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the real native workflow completed research gate 3.7 on the paid case and emitted its next brief-review task. Intelligence/source responses were local fixtures; this is native orchestration proof, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live verdicts observed: done (ready), to_fix, exception - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -148,13 +180,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/qa.ts",
               "note": "Blocking findings target existing author steps; only ready proceeds to freeze."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live to_fix verdicts named the gap, owner agent and step; repairs re-ran 3.5/3.6 (attempt 2-3) before 3.8 - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10); live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -164,13 +200,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/handoff.ts",
               "note": "Repair exhaustion or unrepairable problem calls real E.1 producer, with native exception handoff available."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live repair limit exceeded routed to E.1 with reason and owner (4 E.1 records on demo-open-mercato-3) - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         }
       ]

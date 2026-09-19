@@ -30,13 +30,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
               "note": "Combined semantic agent and deterministic checks cover goals, evidence and unsupported promises."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: strategy_qa checked goal/scope/evidence fit, pair consistency and uncovered promises live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -47,13 +51,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
               "note": "Findings include contradiction and tactical-detail checks with exact paths and fix owners."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live QA listed tactical-as-strategy and conflict findings as concrete remarks - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -64,13 +72,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
               "note": "Bounded internal repairs dispatch to 5.2 or 5.3; exhausted result blocks and escalates."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live to_fix verdict routed a repair to 5.2 (5.2 attempt 2) and blocked the pair until re-QA - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -85,13 +97,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: an actually produced strategy and TOV existed as a versioned paired proposal before consent; the positive gated pair reached one shared native review and both exact versions required explicit client approval. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live positive 5.4 verdict (ready_for_approval) on the repaired pair - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         }

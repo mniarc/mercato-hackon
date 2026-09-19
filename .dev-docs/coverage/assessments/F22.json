@@ -28,13 +28,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/tov.ts",
               "note": "Writer and grounding cover voice principles, wording, style axes, examples and boundaries."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: agency_tov research run a2c4e64a-50e9-4c98-9520-d1367694990b (2026-09-18, live OpenRouter, direct runner): KLI-TOV + 5 TOV-PROFILE versions with tone, personality, vocabulary, formality, address, emotions, boundaries and cited do/don't examples (100% of quotes cited to stored posts). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },

@@ -11,13 +11,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
               "note": "Brief receives order, findings, sources, audit; initial research chain runs after positive freeze."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: brief writers consumed the frozen 3.8 package, WEW-USTALENIA and order data live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -27,13 +31,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
               "note": "Writer gates source IDs; code owns client-dependent decision states and limits."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live KLI-BRIEF fields carry evidence ids; client-only fields written as proposals with questions - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10) (KLI-BRIEF v1-v10 on aaedcb14); live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -43,13 +51,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
               "note": "Field priorities and firstContactQuestions expose must/should/could gaps."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live brief separates Must/Should/Could and lists Must questions (6 on aaedcb14 v10) - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10); live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -59,13 +71,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
               "note": "Purchase goal is writer context, not document acceptance."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: order goal used as input only; no acceptance inferred (status draft/ready_for_review) - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -202,13 +218,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/briefQa.ts",
               "note": "Existing validator plus native QA checks brief, evidence, required decisions and constraints."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: brief_qa validated required fields, conflicts and package fit live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -222,13 +242,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the initial exact brief was needs_client_data with genuine questions and acceptance disabled; the authenticated client answered in the native UI, a different version became ready_for_approval, and that exact version was explicitly accepted without another checkout. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live verdicts observed: ready_for_approval (demo-open-mercato-3), needs_client_data (aaedcb14) - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -242,13 +266,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the initial exact brief was needs_client_data with genuine questions and acceptance disabled; the authenticated client answered in the native UI, a different version became ready_for_approval, and that exact version was explicitly accepted without another checkout. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live needs_client_data verdicts reclassified client gaps into concrete questions handed to review - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "passed",
             "nativeApp": "passed",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -258,13 +286,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/briefQa.ts",
               "note": "Agent faults rerun existing4.1 under bounded QA repair; T63 exhaustion escalation is separately active."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live agent-side findings re-ran 4.1 (attempt 2/3 on aaedcb14) instead of asking the client - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "not_run",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         },
         {
@@ -278,13 +310,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the initial exact brief was needs_client_data with genuine questions and acceptance disabled; the authenticated client answered in the native UI, a different version became ready_for_approval, and that exact version was explicitly accepted without another checkout. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live brief with an unresolved required gap stayed needs_client_data, never ready - live GUI cases aaedcb14-b416-4cd6-9f06-d1dc06ab7e61 and 26fcfecf-7ef7-4887-80f9-0fabb1007755 (Flow Centrum Badawcze, agency_operations.analysis.v1, 2026-09-19 13:00-18:10). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "not_run"
+            "liveModel": "passed"
           }
         }
       ]
