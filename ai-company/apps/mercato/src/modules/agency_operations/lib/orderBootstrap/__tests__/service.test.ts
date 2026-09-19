@@ -8,6 +8,7 @@ import { createNativeDemoSales, purchaseRequestHash, type PurchaseBinding } from
 import { createDemoPaymentGateway, isVerifiedDemoCapture } from '../payment'
 import { demoOffer } from '../demoOffer'
 import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../../paidCaseAnalysis/bootstrap'
+import { dispatchPaymentConfirmation } from '../../paymentConfirmation/dispatch'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('../configure', () => ({ readDemoPurchaseConfiguration: jest.fn(async () => ({})) }))
@@ -15,6 +16,7 @@ jest.mock('../activate', () => ({ createActivatePaidPurchase: jest.fn() }))
 jest.mock('../nativeSales', () => ({ ...jest.requireActual('../nativeSales'), createNativeDemoSales: jest.fn() }))
 jest.mock('../payment', () => ({ ...jest.requireActual('../payment'), createDemoPaymentGateway: jest.fn() }))
 jest.mock('../../paidCaseAnalysis/bootstrap', () => ({ createPaidCaseAnalysisBootstrap: jest.fn(), createPaidCaseAnalysisReader: jest.fn() }))
+jest.mock('../../paymentConfirmation/dispatch', () => ({ dispatchPaymentConfirmation: jest.fn() }))
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const identity = { tenantId: uuid(1), organizationId: uuid(2), customerEntityId: uuid(3), customerUserId: uuid(4) }
@@ -25,7 +27,7 @@ const input = { requestId: uuid(5), offerVersion: demoOffer.offerVersion, termsV
 const em = { fork: () => em, transactional: jest.fn(async (fn: (manager: unknown) => Promise<unknown>) => fn(em)) }
 const container = { resolve: (name: string) => name === 'em' ? em : undefined } as unknown as AwilixContainer
 let order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction
-const ensureOrder = jest.fn(), ensurePayment = jest.fn(), loadOrder = jest.fn(), loadPayment = jest.fn(), reconcileCaptured = jest.fn(), saveActivation = jest.fn()
+const ensureOrder = jest.fn(), ensurePayment = jest.fn(), loadOrder = jest.fn(), loadPayment = jest.fn(), reconcileCaptured = jest.fn(), saveActivation = jest.fn(), savePaymentConfirmation = jest.fn()
 const readGateway = jest.fn(), ensureSession = jest.fn(), retrySession = jest.fn(), confirmGateway = jest.fn(), activate = jest.fn()
 const startPaidAnalysis = jest.fn(), readPaidAnalysis = jest.fn()
 const previousFlag = process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED
@@ -37,9 +39,15 @@ beforeEach(() => {
   jest.mocked(createPaidCaseAnalysisReader).mockReturnValue(readPaidAnalysis)
   startPaidAnalysis.mockResolvedValue({ state: 'waiting_configuration', reason: 'execution_disabled' })
   readPaidAnalysis.mockResolvedValue({ state: 'waiting_configuration', reason: 'execution_disabled' })
+  jest.mocked(dispatchPaymentConfirmation).mockImplementation(async (confirmationInput, saveOutcome) => {
+    const outcome = { ...confirmationInput.attempt, status: 'sent' as const, sentAt: '2026-09-19T12:01:00.000Z' }
+    await saveOutcome(outcome)
+    return outcome
+  })
   const binding: PurchaseBinding = { requestId: input.requestId, requestHash: purchaseRequestHash(input), customerUserId: identity.customerUserId,
     reservedCaseId: uuid(9), originalPurchase: input, termsAcceptedAt: new Date().toISOString(), offerVersion: demoOffer.offerVersion,
-    termsVersion: demoOffer.termsVersion, amount: demoOffer.amount, currencyCode: demoOffer.currency, provider: demoOffer.provider }
+    termsVersion: demoOffer.termsVersion, amount: demoOffer.amount, currencyCode: demoOffer.currency, provider: demoOffer.provider,
+    acceptedOffer: structuredClone(demoOffer) }
   order = Object.assign(new SalesOrder(), { id: uuid(6), ...identity, currencyCode: 'PLN', grandTotalGrossAmount: '2500', metadata: { agencyPurchase: binding } })
   payment = Object.assign(new SalesPayment(), { id: uuid(7), order, ...identity, amount: '2500', capturedAmount: '0', currencyCode: 'PLN' })
   transaction = Object.assign(new GatewayTransaction(), { id: uuid(8), ...identity, paymentId: payment.id,
@@ -58,7 +66,11 @@ beforeEach(() => {
     order.metadata = { ...order.metadata, agencyPurchase: { ...order.metadata?.agencyPurchase as object, ...activated } }
     return order
   })
-  jest.mocked(createNativeDemoSales).mockReturnValue({ ensureOrder, loadOrder, ensurePayment, loadPayment, reconcileCaptured, saveActivation })
+  savePaymentConfirmation.mockImplementation(async (_orderId, confirmation) => {
+    order.metadata = { ...order.metadata, agencyPurchase: { ...order.metadata?.agencyPurchase as object, paymentConfirmation: confirmation } }
+    return order
+  })
+  jest.mocked(createNativeDemoSales).mockReturnValue({ ensureOrder, loadOrder, ensurePayment, loadPayment, reconcileCaptured, saveActivation, savePaymentConfirmation })
   jest.mocked(createDemoPaymentGateway).mockReturnValue({ read: readGateway, ensureSession, retrySession, confirm: confirmGateway })
 })
 
@@ -125,6 +137,25 @@ test('native pending payment leaves its amount unallocated until verified captur
   }) }))
 })
 
+test('native order metadata records the confirmation outcome without replacing purchase evidence', async () => {
+  const { createNativeDemoSales: createNativeSales } = jest.requireActual<typeof import('../nativeSales')>('../nativeSales')
+  const execute = jest.fn(async () => ({ result: {} }))
+  const nativeContainer = { resolve: (name: string) => name === 'commandBus' ? { execute } : em } as unknown as AwilixContainer
+  const sales = createNativeSales(nativeContainer, { ...identity, executionUserId: uuid(11) } as never)
+  jest.mocked(findOneWithDecryption).mockResolvedValue(order)
+  const confirmation = { status: 'sent' as const, paymentId: payment.id, providerTransactionId: transaction.id,
+    attemptedAt: '2026-09-19T12:00:00.000Z', sentAt: '2026-09-19T12:01:00.000Z' }
+
+  await sales.savePaymentConfirmation(order.id, confirmation)
+
+  expect(execute).toHaveBeenCalledWith('sales.orders.update', expect.objectContaining({ input: {
+    id: order.id,
+    metadata: expect.objectContaining({ agencyPurchase: expect.objectContaining({
+      requestId: input.requestId, originalPurchase: input, paymentConfirmation: confirmation,
+    }) }),
+  } }))
+})
+
 test.each(['order', 'quote'] as const)('recovers a purchase from decrypted %s metadata without filtering encrypted JSON', async (kind) => {
   const { createNativeDemoSales: createNativeSales } = jest.requireActual<typeof import('../nativeSales')>('../nativeSales')
   const execute = jest.fn()
@@ -176,6 +207,37 @@ test('capture reconciles the native ledger then activates once across confirmati
   expect(activate).toHaveBeenCalledWith(expect.objectContaining({ caseId: uuid(9), originalPurchase: input, orderId: order.id, paymentId: payment.id }))
   expect(reconcileCaptured.mock.invocationCallOrder[0]).toBeLessThan(activate.mock.invocationCallOrder[0])
   expect(startPaidAnalysis).toHaveBeenCalledTimes(2)
+  expect(dispatchPaymentConfirmation).toHaveBeenCalledTimes(1)
+  expect(dispatchPaymentConfirmation).toHaveBeenCalledWith(expect.objectContaining({
+    orderId: order.id, packageName: demoOffer.name, recipientEmail: input.buyer.contactEmail,
+    attempt: expect.objectContaining({ paymentId: payment.id, providerTransactionId: transaction.id }),
+  }), expect.any(Function))
+})
+
+test('confirmation delivery failure remains explicit without blocking paid-case preparation', async () => {
+  jest.mocked(dispatchPaymentConfirmation).mockImplementationOnce(async (confirmationInput, saveOutcome) => {
+    const outcome = { ...confirmationInput.attempt, status: 'failed' as const,
+      failedAt: '2026-09-19T12:02:00.000Z', reason: 'delivery_failed' as const }
+    await saveOutcome(outcome)
+    return outcome
+  })
+  await expect(createDemoPurchaseService(container, activate).confirm(identity, order.id)).resolves.toMatchObject({
+    status: 'paid',
+    confirmation: { status: 'failed', reason: 'delivery_failed' },
+    processing: { state: 'waiting_configuration' },
+  })
+  expect(activate).toHaveBeenCalledTimes(1)
+  expect(startPaidAnalysis).toHaveBeenCalledTimes(1)
+})
+
+test('missing historical package content records waiting input without inventing confirmation copy', async () => {
+  const binding = order.metadata?.agencyPurchase as PurchaseBinding
+  order.metadata = { agencyPurchase: { ...binding, acceptedOffer: undefined } }
+  await expect(createDemoPurchaseService(container, activate).confirm(identity, order.id)).resolves.toMatchObject({
+    status: 'paid', confirmation: { status: 'waiting_input', reason: 'purchase_content_unavailable' },
+  })
+  expect(dispatchPaymentConfirmation).not.toHaveBeenCalled()
+  expect(startPaidAnalysis).toHaveBeenCalledTimes(1)
 })
 
 test('paid processing dispatch is after payment transaction commit; GET only reads its status', async () => {
@@ -201,9 +263,11 @@ test('a confirmation retry after activation failure reuses the reserved case ide
   const service = createDemoPurchaseService(container, activate)
   activate.mockRejectedValueOnce(new Error('temporary failure'))
   await expect(service.confirm(identity, order.id)).rejects.toThrow('temporary failure')
+  expect(dispatchPaymentConfirmation).toHaveBeenCalledTimes(1)
   expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canConfirmPayment: true })
   expect(await service.confirm(identity, order.id)).toMatchObject({ status: 'paid', caseId: uuid(9) })
   expect(activate.mock.calls.map(([value]) => value.caseId)).toEqual([uuid(9), uuid(9)])
+  expect(dispatchPaymentConfirmation).toHaveBeenCalledTimes(1)
 })
 
 test('a cancelled payment returns its real receipt without confirmation or service activation', async () => {

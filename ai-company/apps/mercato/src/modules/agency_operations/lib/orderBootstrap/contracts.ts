@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { paidCaseProcessingSchema } from '../paidCaseAnalysis/status'
+import { paymentConfirmationStateSchema } from '../paymentConfirmation/contracts'
 import { purchaseHistorySchema } from './purchaseSnapshot'
 
 export const DEMO_PURCHASE_SERVICE = 'agencyDemoPurchaseService' as const
@@ -46,6 +47,7 @@ export const demoPurchaseReceiptSchema = z.object({
   canConfirmPayment: z.boolean().optional(),
   purchaseHistory: purchaseHistorySchema.optional(),
   processing: paidCaseProcessingSchema.optional(),
+  confirmation: paymentConfirmationStateSchema.optional(),
 })
 
 export const demoPaymentRetrySchema = z.object({ providerSessionId: z.string().trim().min(1).max(255) }).strict()

@@ -13,6 +13,7 @@ import { demoPurchaseRequestSchema, type DemoPurchaseRequest, type PurchaseIdent
 import type { DemoPurchaseConfiguration } from './configure'
 import { demoOffer } from './demoOffer'
 import { purchasedOfferSchema } from './purchaseSnapshot'
+import { paymentConfirmationStateSchema, type PaymentConfirmationState } from '../paymentConfirmation/contracts'
 
 export const purchaseBindingSchema = z.object({
   requestId: z.uuid(), requestHash: z.string(), customerUserId: z.uuid(),
@@ -21,6 +22,7 @@ export const purchaseBindingSchema = z.object({
   amount: z.number(), currencyCode: z.string(), provider: z.string(),
   caseId: z.uuid().optional(), workflowInstanceId: z.uuid().optional(),
   acceptedOffer: purchasedOfferSchema.optional(),
+  paymentConfirmation: paymentConfirmationStateSchema.optional(),
 })
 export type PurchaseBinding = z.infer<typeof purchaseBindingSchema>
 
@@ -150,5 +152,12 @@ export function createNativeDemoSales(container: AwilixContainer, config: DemoPu
     })
     return loadOrder(orderId)
   }
-  return { loadOrder, ensureOrder, loadPayment, ensurePayment, reconcileCaptured, saveActivation }
+  async function savePaymentConfirmation(orderId: string, confirmation: PaymentConfirmationState): Promise<SalesOrder> {
+    const order = await loadOrder(orderId)
+    await command('sales.orders.update', { id: orderId,
+      metadata: { ...order.metadata, agencyPurchase: { ...readPurchaseBinding(order), paymentConfirmation: confirmation } },
+    })
+    return loadOrder(orderId)
+  }
+  return { loadOrder, ensureOrder, loadPayment, ensurePayment, reconcileCaptured, saveActivation, savePaymentConfirmation }
 }
