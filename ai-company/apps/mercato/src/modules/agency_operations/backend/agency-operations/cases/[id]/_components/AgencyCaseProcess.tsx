@@ -238,6 +238,36 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.postExecution} title={translate(`${key}.postExecution.title`)} />
               </div>
             ) : null}
+            {submission.postRevision ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.postRevision.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.postRevision.${submission.postRevision.status}`)}</p>
+                <p className="text-sm font-medium">{translate(`${key}.postRevision.savedCorrection`)}</p>
+                <p className="whitespace-pre-wrap text-sm">{submission.original.postReviewResponse?.body ?? submission.original.text}</p>
+                {submission.postRevisionHandoff ? (
+                  <>
+                    <StatusBadge variant={submission.postRevisionHandoff.status === 'blocked' ? 'warning' : 'neutral'}>
+                      {translate(`${key}.postRevision.${submission.postRevisionHandoff.status}`)}
+                    </StatusBadge>
+                    {submission.postRevisionHandoff.status === 'blocked' ? (
+                      <>
+                        <p className="text-sm"><code>{submission.postRevisionHandoff.reason}</code></p>
+                        <p className="text-sm">{translate(`${key}.postRevision.nextAction.${submission.postRevisionHandoff.nextAction}`)}</p>
+                      </>
+                    ) : null}
+                  </>
+                ) : 'reason' in submission.postRevision ? <p className="text-sm text-muted-foreground">{submission.postRevision.reason}</p> : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.postRevision.noApprovalOrResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${submission.postRevisionHandoff?.status === 'invited' ? submission.postRevisionHandoff.invitation.workflowInstanceId : submission.workflow.id}`}>
+                      {translate(`${key}.postRevision.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.postRevisionHandoff ?? submission.postRevision} title={translate(`${key}.postRevision.title`)} />
+              </div>
+            ) : null}
             {submission.publicationPreparation ? (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">{translate(`${key}.publicationPreparation.title`)}</h3>

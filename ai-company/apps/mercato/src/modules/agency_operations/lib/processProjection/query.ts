@@ -26,6 +26,7 @@ import { postInstructionExecutionResultSchema, publicationPreparationResultSchem
 import { PUBLICATION_PREPARATION_RESULT_KEY } from '../publicationPreparation/contracts'
 import { POST_EXECUTION_RESULT_KEY, postExecutionActivityResultSchema } from '../postExecution/contracts'
 import { BRIEF_REVISION_RESULT_KEY, briefRevisionActivityResultSchema } from '../briefRevision/contracts'
+import { POST_REVISION_RESULT_KEY, postRevisionActivityResultSchema, postRevisionReviewHandoffResultSchema } from '../postRevision/contracts'
 import { caseBriefRevisionHandoffSchema, caseStrategyHandoffSchema, caseStrategyPairContinuationSchema, type CaseAnalysisProcess, type CaseProcessResponse, type CaseProcessSubmission } from './contract'
 
 type EmployeeScope = { tenantId: string; organizationId: string; userId: string; roleNames: string[] }
@@ -40,6 +41,21 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const disposition = clientSubmissionDispositionSchema.safeParse(savedResult)
   const interpretation = clientTriageInterpretationSchema.safeParse(context[CLIENT_TRIAGE_INTERPRETATION_KEY])
   const native = workflow?.workflowId === NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
+  const original = clientSubmissionRequestSchema.parse(submission.original)
+  const postRevision = postRevisionActivityResultSchema.safeParse(record(context[POST_REVISION_RESULT_KEY]).result)
+  const postRevisionHandoff = postRevisionReviewHandoffResultSchema.safeParse(record(context.agencyPostRevisionInvitation).result)
+  const scopedPostRevision = native && original.postReviewResponse?.kind === 'message'
+    && postRevision.success && postRevision.data.orderRef === submission.caseId
+    && (!('submissionId' in postRevision.data) || postRevision.data.submissionId === submission.id)
+    && (!('previousPostVersionId' in postRevision.data) || postRevision.data.previousPostVersionId === original.postReviewResponse.post.versionId)
+    ? postRevision.data : null
+  const scopedPostRevisionHandoff = scopedPostRevision && postRevisionHandoff.success
+    && postRevisionHandoff.data.orderRef === submission.caseId
+    && (postRevisionHandoff.data.status === 'blocked'
+      ? isDeepStrictEqual(postRevisionHandoff.data.revision, scopedPostRevision)
+      : scopedPostRevision.status === 'completed' && scopedPostRevision.readyForReview
+        && postRevisionHandoff.data.versionId === scopedPostRevision.postVersionId)
+    ? postRevisionHandoff.data : null
   const briefRevision = briefRevisionActivityResultSchema.safeParse(record(context[BRIEF_REVISION_RESULT_KEY]).result)
   const briefRevisionHandoff = caseBriefRevisionHandoffSchema.safeParse(record(context.agencyBriefRevisionInvitation).result)
   const scopedBriefRevision = native && briefRevision.success && briefRevision.data.orderRef === submission.caseId
@@ -68,7 +84,7 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
     submissionId: submission.id,
     eventId: submission.eventId,
     createdAt: submission.createdAt.toISOString(),
-    original: clientSubmissionRequestSchema.parse(submission.original),
+    original,
     workflow: workflow ? {
       id: workflow.id, workflowId: workflow.workflowId, version: workflow.version,
       status: workflow.status, currentStepId: workflow.currentStepId,
@@ -107,6 +123,8 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
     publicationPreparation: native && publicationPreparation.success && publicationPreparation.data.orderRef === submission.caseId
       && (publicationPreparation.data.status !== 'prepared' || publicationPreparation.data.acceptanceSubmissionId === submission.id)
       ? publicationPreparation.data : null,
+    postRevision: scopedPostRevision,
+    postRevisionHandoff: scopedPostRevisionHandoff,
     tasks: tasks.map((task) => ({
       id: task.id, status: task.status, assignedTo: task.assignedTo ?? null,
       assignedToRoles: task.assignedToRoles ?? [], claimedBy: task.claimedBy ?? null,

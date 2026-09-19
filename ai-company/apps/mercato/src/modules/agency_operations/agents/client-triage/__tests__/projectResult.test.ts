@@ -23,6 +23,15 @@ test('projects only the server-authorized target and never applies effects', () 
   expect(clientTriageInterpretationSchema.safeParse({ ...interpretation, targets: { caseId: scope.caseId } }).success).toBe(false)
 })
 
+test('routes a verified post change only to its server-bound review path, never a competing brief revision', () => {
+  const change = { ...interpretation, recommendedDisposition: 'change', changeScope: 'post_content',
+    parts: [{ ...interpretation.parts[0], intent: 'change', recommendedDisposition: 'change' }] }
+  expect(projectClientTriageResult(scope, change, ['post_revision'])).toMatchObject({
+    disposition: { kind: 'change', targetStepId: 'post_revision' }, effectsApplied: false,
+  })
+  expect(projectClientTriageResult(scope, change, ['post_revision', 'brief_revision'])).toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized' })
+})
+
 test('keeps unauthorized approval and mixed parts unapplied', () => {
   const approvalPart = { ...interpretation.parts[0], intent: 'approval', recommendedDisposition: 'approve' }
   expect(projectClientTriageResult(scope, { ...interpretation, parts: [approvalPart], recommendedDisposition: 'approve' }, ['answered', 'client_reply'])).toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized', interpretation: { recommendedDisposition: 'approve' } })

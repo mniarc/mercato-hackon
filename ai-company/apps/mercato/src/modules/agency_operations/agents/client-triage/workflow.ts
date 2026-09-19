@@ -13,6 +13,7 @@ import { PUBLICATION_PREPARATION_FUNCTION, PUBLICATION_PREPARATION_RESULT_KEY, P
 import { createResearchExceptionFragment, RESEARCH_EXCEPTION_STEP_ID } from '../../lib/researchException/workflow'
 import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../../lib/researchException/contracts'
 import { BRIEF_REVISION_FUNCTION, BRIEF_REVISION_STEP_ID, BRIEF_REVISION_RESULT_KEY, BRIEF_REVISION_REVIEW_FUNCTION, BRIEF_REVISION_EXCEPTION_FUNCTION } from '../../lib/briefRevision/contracts'
+import { POST_REVISION_FUNCTION, POST_REVISION_STEP_ID, POST_REVISION_RESULT_KEY, POST_REVISION_REVIEW_FUNCTION, POST_REVISION_EXCEPTION_FUNCTION } from '../../lib/postRevision/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -58,6 +59,12 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'brief_revision_waiting', stepName: 'Brief revision needs attention', stepType: 'WAIT_FOR_SIGNAL',
       signalConfig: { signalName: 'agency.brief-revision.follow-up' } },
     { stepId: 'strategy_pair_decision', stepName: 'Selected strategy pair approvals recorded', stepType: 'AUTOMATED' },
+    { stepId: POST_REVISION_STEP_ID, stepName: 'Client correction applied to post', stepType: 'AUTOMATED' },
+    { stepId: 'post_revision_exception_checked', stepName: 'Saved post revision escalation checked', stepType: 'AUTOMATED' },
+    { stepId: 'post_revision_review', stepName: 'Post follow-up handoff recorded', stepType: 'AUTOMATED' },
+    { stepId: 'post_revision_invited', stepName: 'Fresh post review available', stepType: 'END' },
+    { stepId: 'post_revision_waiting', stepName: 'Post revision needs attention', stepType: 'WAIT_FOR_SIGNAL',
+      signalConfig: { signalName: 'agency.post-revision.follow-up' } },
     { stepId: 'strategy_pair_continuation', stepName: 'Pair review or planning readiness handoff recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_pair_waiting', stepName: 'Pair review still needs action', stepType: 'END' },
     { stepId: PLANNING_EXECUTION_STEP_ID, stepName: 'Planning phase outcome recorded', stepType: 'AUTOMATED' },
@@ -120,6 +127,24 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       condition: { field: 'agencyBriefRevisionInvitation.result.status', operator: '=', value: 'invited' } },
     { transitionId: 'hold_brief_revision', fromStepId: 'brief_revision_review', toStepId: 'brief_revision_waiting', trigger: 'auto',
       condition: { field: 'agencyBriefRevisionInvitation.result.status', operator: '=', value: 'blocked' } },
+    { transitionId: 'revise_post', fromStepId: 'routed', toStepId: POST_REVISION_STEP_ID, trigger: 'auto', priority: 100,
+      condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: POST_REVISION_STEP_ID },
+      activities: [{ activityId: 'execute_post_revision', activityName: POST_REVISION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
+        retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
+        config: { functionName: POST_REVISION_FUNCTION, args: {} } }] },
+    { transitionId: 'check_post_revision_exception', fromStepId: POST_REVISION_STEP_ID, toStepId: 'post_revision_exception_checked', trigger: 'auto',
+      activities: [{ activityId: 'post_revision_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: POST_REVISION_EXCEPTION_FUNCTION, args: {} } }] },
+    { transitionId: 'assign_post_revision_exception', fromStepId: 'post_revision_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    { transitionId: 'review_revised_post', fromStepId: 'post_revision_exception_checked', toStepId: 'post_revision_review', trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
+      activities: [{ activityId: 'invite_revised_post', activityName: 'agencyPostRevisionInvitation', activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: POST_REVISION_REVIEW_FUNCTION, args: {} } }] },
+    { transitionId: 'post_revision_invitation_available', fromStepId: 'post_revision_review', toStepId: 'post_revision_invited', trigger: 'auto',
+      condition: { field: 'agencyPostRevisionInvitation.result.status', operator: '=', value: 'invited' } },
+    { transitionId: 'hold_post_revision', fromStepId: 'post_revision_review', toStepId: 'post_revision_waiting', trigger: 'auto',
+      condition: { field: 'agencyPostRevisionInvitation.result.status', operator: '=', value: 'blocked' } },
     { transitionId: 'approve_strategy_pair', fromStepId: 'routed', toStepId: 'strategy_pair_decision', trigger: 'auto', priority: 100,
       condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: 'strategy_pair_decision' },
       activities: [{ activityId: 'accept_strategy_pair', activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_STRATEGY_PAIR_FUNCTION, args: {} } }] },

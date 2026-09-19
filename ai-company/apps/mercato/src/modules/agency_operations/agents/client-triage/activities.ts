@@ -11,6 +11,7 @@ import { createStrategyPairApproval } from '../../lib/strategyPairApproval/servi
 import { createPlanApproval } from '../../lib/planApproval/service'
 import { createPostApproval } from '../../lib/postApproval/service'
 import { createBriefRevisionBinding } from '../../lib/briefRevision/binding'
+import { createPostRevisionBinding } from '../../lib/postRevision/binding'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
@@ -26,6 +27,7 @@ export function createClientTriageActivities(container: AppContainer) {
   const planApproval = createPlanApproval(container)
   const postApproval = createPostApproval(container)
   const briefRevision = createBriefRevisionBinding(container)
+  const postRevision = createPostRevisionBinding(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -56,6 +58,8 @@ export function createClientTriageActivities(container: AppContainer) {
       if (postDecision) allowedTargets.push('post_content_decision')
       const revision = await briefRevision.load(submission, interpretation)
       if (revision) allowedTargets.push('brief_revision')
+      const postCorrection = await postRevision.load(submission, interpretation)
+      if (postCorrection) allowedTargets.push('post_revision')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
@@ -67,7 +71,7 @@ export function createClientTriageActivities(container: AppContainer) {
         rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id,
           ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}),
-          ...(result.disposition.kind === 'change' && revision ? { documentVersionReference: revision.briefVersionId } : {}) }, effectsApplied: false,
+          ...(result.disposition.kind === 'change' ? { documentVersionReference: revision?.briefVersionId ?? postCorrection?.postVersionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },

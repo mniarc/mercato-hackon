@@ -12,6 +12,7 @@ export const analysisExecutionPolicySchema = z.object({
   strategyExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   planningExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   postExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
+  postRevision: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   productSelection: researchRunRequestSchema.shape.order.shape.product_selection,
 }).strict().superRefine((policy, context) => {
   if (policy.briefRevision && policy.through !== '4.2') {
@@ -25,6 +26,9 @@ export const analysisExecutionPolicySchema = z.object({
   }
   if (policy.postExecution && policy.through !== '4.2') {
     context.addIssue({ code: 'custom', path: ['postExecution'], message: 'Post continuation requires the accepted plan and instruction handoffs' })
+  }
+  if (policy.postRevision && policy.through !== '4.2') {
+    context.addIssue({ code: 'custom', path: ['postRevision'], message: 'Post revision requires the exact post review handoff' })
   }
   if (!Number.isInteger(policy.productSelection.result_limits?.topics) || (policy.productSelection.result_limits?.topics ?? 0) <= 0) {
     context.addIssue({ code: 'custom', path: ['productSelection', 'result_limits', 'topics'], message: 'Explicit product topic limit required' })

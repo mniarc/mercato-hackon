@@ -33,6 +33,34 @@ const process = {
 beforeEach(() => jest.clearAllMocks())
 
 test.each([
+  { status: 'blocked', orderRef: 'case-id', invitation: null, reason: 'missing_post_revision_authorization', nextAction: 'review_configuration' },
+  { status: 'invited', orderRef: 'case-id', versionId: 'post-v2', invitation: { workflowInstanceId: 'post-review-run', taskId: 'client-review', replayed: false } },
+])('shows saved post correction and $status handoff without a resume or approval action', async (postRevisionHandoff) => {
+  const postRevision = postRevisionHandoff.status === 'blocked'
+    ? { status: 'not_configured', orderRef: 'case-id', reason: 'missing_post_revision_authorization' }
+    : { status: 'completed', orderRef: 'case-id', readyForReview: true }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postRevision, postRevisionHandoff,
+      original: { text: 'Shorten the opening.', postReviewResponse: { body: 'Shorten the opening.' } },
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'post_revision_waiting', waitingFor: null },
+    }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.postRevision.${postRevisionHandoff.status}`)).toBeTruthy()
+  expect(screen.getByText('Shorten the opening.')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postRevision.noApprovalOrResume')).toBeTruthy()
+  if (postRevisionHandoff.status === 'blocked') {
+    expect(screen.getByText('missing_post_revision_authorization')).toBeTruthy()
+    expect(screen.getByText('agencyOperations.cases.process.postRevision.nextAction.review_configuration')).toBeTruthy()
+  }
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.postRevision.inspectWorkflow' }).getAttribute('href'))
+    .toBe(`/backend/instances/${postRevisionHandoff.status === 'invited' ? 'post-review-run' : 'native-run'}`)
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.openTask' }).getAttribute('href')).toBe('/backend/tasks/visible-task')
+  expect(screen.queryByRole('button', { name: /retry|resume|approve/i })).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test.each([
   { status: 'blocked', invitation: null, reason: 'missing_brief_revision_authorization', revision: { status: 'not_configured' } },
   { status: 'invited', versionId: 'brief-v2', invitation: { workflowInstanceId: 'brief-review-run', taskId: 'client-review', replayed: false }, questions: [] },
 ])('shows saved brief revision $status and inspection without a resume action', async (briefRevisionHandoff) => {

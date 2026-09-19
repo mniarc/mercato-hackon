@@ -11,6 +11,7 @@ import { STRATEGY_EXECUTION_RESULT_KEY } from '../../strategyExecution/contracts
 import { PLANNING_EXECUTION_RESULT_KEY } from '../../planningExecution/contracts'
 import { POST_EXECUTION_RESULT_KEY, POST_EXECUTION_FUNCTION } from '../../postExecution/contracts'
 import { BRIEF_REVISION_RESULT_KEY } from '../../briefRevision/contracts'
+import { POST_REVISION_RESULT_KEY } from '../../postRevision/contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('@open-mercato/core/modules/workflows/lib/task-visibility-request', () => ({
@@ -39,6 +40,44 @@ function workflow(step: string, context: Record<string, unknown> = {}, status = 
 }
 
 beforeEach(() => jest.clearAllMocks())
+
+const postCorrection = Object.assign(new AgencyClientSubmission(), submission, {
+  original: { ...submission.original, text: 'Shorten the opening.', postReviewResponse: {
+    channel: 'portal', kind: 'message', taskId: customerEntityId, externalEventId: 'post-change',
+    post: { documentId: tenantId, versionId: organizationId }, body: 'Shorten the opening.',
+  } },
+})
+
+test('retains the exact post correction configuration hold without inventing an employee task', () => {
+  const revision = { status: 'not_configured', orderRef: caseId, reason: 'missing_post_revision_authorization' }
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: revision.reason, nextAction: 'review_configuration', revision }
+  const saved = workflow('post_revision_waiting', { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: blocked } })
+  const projected = projectSubmissionProcess(postCorrection, saved, [])
+  expect(projected.postRevision).toEqual(revision)
+  expect(projected.postRevisionHandoff).toEqual(blocked)
+  expect(projected.original.postReviewResponse?.body).toBe('Shorten the opening.')
+  expect(projected.workflow?.waitingFor).toBeNull()
+  expect(projected.tasks).toEqual([])
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: { ...revision, orderRef: customerEntityId } }, agencyPostRevisionInvitation: { result: blocked } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevision).toBeNull()
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: { ...blocked, revision: { ...revision, reason: 'execution_disabled' } } } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+})
+
+test('projects a post revision invitation only for the matching correction and new reviewable version', () => {
+  const revision = { status: 'completed', orderRef: caseId, submissionId, previousPostVersionId: organizationId,
+    instructionVersionId: tenantId, postVersionId: customerEntityId, qaTaskRunId: instanceId,
+    qaVerdict: 'pass_for_draft', readyForReview: true, taskRunIds: [instanceId], documentVersionIds: [customerEntityId], agentRunIds: [], spentPln: 0.1 }
+  const invited = { status: 'invited', orderRef: caseId, versionId: customerEntityId,
+    invitation: { workflowInstanceId: instanceId, taskId: tenantId, replayed: false } }
+  const saved = workflow('post_revision_decision', { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: invited } })
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toEqual(invited)
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: { ...revision, previousPostVersionId: tenantId } }, agencyPostRevisionInvitation: { result: invited } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: { ...invited, versionId: tenantId } } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+})
 
 test('projects actual brief revision invitation or hold only with its scoped saved revision', () => {
   const revision = { status: 'not_configured', orderRef: caseId, reason: 'missing_brief_revision_authorization' }

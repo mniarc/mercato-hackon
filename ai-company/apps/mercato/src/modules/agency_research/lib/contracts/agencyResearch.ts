@@ -12,6 +12,7 @@ import type { PlanningExecutionRequest, PlanningExecutionResult } from '../plann
 import type { PlanReviewRequest, PlanReview, PlanAcceptance, AcceptPlanInput, PlanAcceptanceReceipt } from '../planAcceptance/contracts'
 import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
 import type { PostExecutionRequest, PostExecutionResult } from '../postExecution/contracts'
+import type { PostRevisionRequest, PostRevisionResult } from '../postRevision/contracts'
 import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAcceptanceReceipt } from '../postAcceptance/contracts'
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
 import type { BriefRevisionRequest, BriefRevisionResult } from '../briefRevision/contracts'
@@ -142,6 +143,7 @@ export interface AgencyResearchService {
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
   runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>
   runPostExecution(input: { context: ResearchExecutionContext; request: PostExecutionRequest }): Promise<PostExecutionResult>
+  runPostRevision(input: { context: ResearchExecutionContext; request: PostRevisionRequest }): Promise<PostRevisionResult>
   preparePublication(input: PreparePublicationInput): Promise<PublicationPreparationResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>

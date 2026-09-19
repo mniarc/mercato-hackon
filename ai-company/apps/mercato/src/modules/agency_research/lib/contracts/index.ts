@@ -28,3 +28,5 @@ export { publicationPreparationRequestSchema, preparePublicationInputSchema, pub
 export type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
 export { briefRevisionRequestSchema, briefRevisionOutcomeSchema, briefRevisionResultSchema } from '../briefRevision/contracts'
 export type { BriefRevisionRequest, BriefRevisionOutcome, BriefRevisionResult } from '../briefRevision/contracts'
+export { postRevisionRequestSchema, postRevisionSourceSchema, postRevisionOutcomeSchema, postRevisionResultSchema } from '../postRevision/contracts'
+export type { PostRevisionRequest, PostRevisionOutcome, PostRevisionResult } from '../postRevision/contracts'

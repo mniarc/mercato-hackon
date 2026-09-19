@@ -25,6 +25,7 @@ export const clientTriageInterpretationSchema = z.object({
   rationale: z.string().min(1),
   recommendedDisposition: clientTriageRecommendationSchema,
   responseMessage: z.string().min(1).nullable(),
+  changeScope: z.enum(['post_content', 'upstream', 'uncertain']).optional(),
 }).strict()
 
 export const clientTriageScopeSchema = z.object({
@@ -44,7 +45,7 @@ export const clientTriageResultSchema = z.object({
   disposition: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('answer'), targetStepId: z.literal('answered') }).strict(),
     z.object({ kind: z.literal('clarify'), targetStepId: z.literal('client_reply') }).strict(),
-    z.object({ kind: z.literal('change'), targetStepId: z.literal('brief_revision') }).strict(),
+    z.object({ kind: z.literal('change'), targetStepId: z.enum(['brief_revision', 'post_revision']) }).strict(),
     z.object({ kind: z.literal('approve'), targetStepId: z.enum(['brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision']) }).strict(),
   ]).nullable(),
   unappliedReason: z.enum(['unsupported_disposition', 'mixed_dispositions', 'uncertainty_not_clarified', 'target_not_authorized', 'missing_response']).nullable(),
@@ -54,6 +55,6 @@ export const clientTriageResultSchema = z.object({
 export type ClientTriageInterpretation = z.infer<typeof clientTriageInterpretationSchema>
 export type ClientTriageScope = z.infer<typeof clientTriageScopeSchema>
 export type ClientTriageResult = z.infer<typeof clientTriageResultSchema>
-export type ClientTriageAllowedTarget = 'answered' | 'client_reply' | 'brief_revision' | 'brief_accepted' | 'strategy_pair_decision' | 'plan_topic_decision' | 'post_content_decision'
+export type ClientTriageAllowedTarget = 'answered' | 'client_reply' | 'brief_revision' | 'post_revision' | 'brief_accepted' | 'strategy_pair_decision' | 'plan_topic_decision' | 'post_content_decision'
 
 export const outputSchema = clientTriageInterpretationSchema

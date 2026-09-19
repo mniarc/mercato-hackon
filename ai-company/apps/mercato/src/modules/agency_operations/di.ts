@@ -61,6 +61,10 @@ import { BRIEF_REVISION_FUNCTION, BRIEF_REVISION_REVIEW_FUNCTION, BRIEF_REVISION
 import { createBriefRevisionActivity } from './lib/briefRevision/activity'
 import { createBriefRevisionReviewHandoff } from './lib/briefRevision/reviewHandoff'
 import { createBriefRevisionResearchExceptionHandoff } from './lib/briefRevision/exceptionHandoff'
+import { POST_REVISION_FUNCTION, POST_REVISION_REVIEW_FUNCTION, POST_REVISION_EXCEPTION_FUNCTION } from './lib/postRevision/contracts'
+import { createPostRevisionActivity } from './lib/postRevision/activity'
+import { createPostRevisionReviewHandoff } from './lib/postRevision/reviewHandoff'
+import { createPostRevisionResearchExceptionHandoff } from './lib/postRevision/exceptionHandoff'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
@@ -68,6 +72,9 @@ export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
     [`workflowFunction:${BRIEF_REVISION_FUNCTION}`]: asFunction(() => createBriefRevisionActivity(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_FUNCTION}`]: asFunction(() => createPostRevisionActivity(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createPostRevisionReviewHandoff(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createPostRevisionResearchExceptionHandoff(container)).scoped(),
     [`workflowFunction:${BRIEF_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createBriefRevisionReviewHandoff(container)).scoped(),
     [`workflowFunction:${BRIEF_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createBriefRevisionResearchExceptionHandoff(container)).scoped(),
     [DEMO_PURCHASE_SERVICE]: asFunction(() => createDemoPurchaseService(container)).scoped(),
