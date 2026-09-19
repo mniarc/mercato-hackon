@@ -1,0 +1,77 @@
+name: agency
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agency
+      POSTGRES_DB: agency
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a private PostgreSQL password}
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U agency -d agency]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    image: ${AGENCY_IMAGE:?Build and select the agency image tag}
+    restart: unless-stopped
+    init: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${AGENCY_HTTP_PORT:-3000}:3000"
+    volumes:
+      - storage:/app/apps/mercato/storage
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      HOSTNAME: 0.0.0.0
+      APP_URL: ${APP_URL:?Set the public HTTPS application origin}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-}
+      DATABASE_URL: postgres://agency:${POSTGRES_PASSWORD:?Set a private PostgreSQL password}@postgres:5432/agency
+      JWT_SECRET: ${JWT_SECRET:?Set a private random JWT secret}
+      AUTH_SECRET: ${AUTH_SECRET:?Set a separate private random auth secret}
+      OM_INIT_SUPERADMIN_EMAIL: ${OM_INIT_SUPERADMIN_EMAIL:-}
+      OM_INIT_SUPERADMIN_PASSWORD: ${OM_INIT_SUPERADMIN_PASSWORD:-}
+      OM_INIT_ADMIN_PASSWORD: ${OM_INIT_ADMIN_PASSWORD:-}
+      OM_INIT_EMPLOYEE_PASSWORD: ${OM_INIT_EMPLOYEE_PASSWORD:-}
+      JWT_LEGACY_GRACE_MINUTES: "0"
+      TENANT_DATA_ENCRYPTION: "yes"
+      TENANT_DATA_ENCRYPTION_FALLBACK_KEY: ${TENANT_DATA_ENCRYPTION_FALLBACK_KEY:?Set and retain a private encryption key}
+      OM_ENABLE_ENTERPRISE_MODULES: "true"
+      OM_ENABLE_ENTERPRISE_MODULES_AGENTS: "true"
+      AUTO_SPAWN_WORKERS: "true"
+      AUTO_SPAWN_SCHEDULER: "true"
+      QUEUE_STRATEGY: local
+      QUEUE_BASE_DIR: /app/apps/mercato/storage/queue
+      CACHE_STRATEGY: sqlite
+      CACHE_SQLITE_PATH: /app/apps/mercato/storage/cache/cache.db
+      OM_MULTI_INSTANCE: "false"
+      OM_INSTANCE_COUNT: "1"
+      OM_AGENCY_TRIAGE_ENABLED: "false"
+      OM_AGENCY_TRIAGE_MODE: ${OM_AGENCY_TRIAGE_MODE:-disabled}
+      AGENCY_ANALYSIS_EXECUTION_ENABLED: ${AGENCY_ANALYSIS_EXECUTION_ENABLED:-false}
+      OM_AGENCY_DEMO_PURCHASE_ENABLED: "false"
+      OM_AI_PROVIDER: ${OM_AI_PROVIDER:-openrouter}
+      OM_AI_MODEL: ${OM_AI_MODEL:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+      OM_ENABLE_TEST_CHANNEL_SEEDING: "false"
+      OM_TEST_MODE: "false"
+      AGENCY_TEST_NATIVE_TRIAGE: "0"
+      AGENCY_TEST_NATIVE_POST: "0"
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      start_period: 60s
+      retries: 3
+
+volumes:
+  database:
+  storage:

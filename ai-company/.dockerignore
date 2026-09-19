@@ -30,6 +30,15 @@ packages/core/generated
 .env
 .env.local
 .env.*.local
+**/.env*
+!**/.env.example
+**/*.env
+!**/*.env.example
+**/.mercato
+**/.queue
+**/.events
+**/test-results
+**/playwright-report
 *.log
 tmp
 .queue
