@@ -1,0 +1,277 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "card": {
+        "market_segment": {
+          "text": "B2B, produkcja maszyn i logistyka",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": "interpretacja pozycjonowania"
+        },
+        "problem": {
+          "text": "Potrzeba rozwiązania cyfrowego dla procesu B2B.",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": null
+        },
+        "service": {
+          "text": "Badania, prototyp, wdrożenie",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": null
+        },
+        "message": {
+          "text": "Przewidywalny proces.",
+          "fact_ids": [
+            "C02"
+          ],
+          "status": "interpretacja przekazu"
+        },
+        "mechanism": {
+          "text": "Warsztat odkrywczy, etapy z decyzją klienta",
+          "fact_ids": [
+            "C02"
+          ],
+          "status": null
+        },
+        "proof": {
+          "text": "Deklarowani klienci bez nazw",
+          "fact_ids": [
+            "C03"
+          ],
+          "status": null
+        },
+        "cta": {
+          "text": "Bezpłatna konsultacja",
+          "fact_ids": [
+            "C04"
+          ],
+          "status": null
+        },
+        "language": {
+          "text": "Rzeczowy, krótkie zdania.",
+          "fact_ids": [
+            "F01"
+          ],
+          "status": "ocena wycinka"
+        },
+        "channels": {
+          "confirmed": [
+            "WWW"
+          ],
+          "unverified": [
+            "LinkedIn"
+          ],
+          "fact_ids": [
+            "C01"
+          ]
+        },
+        "comparability": "Porównywalny zakres; nie porównano skali i cen.",
+        "category": "Usługi badań i projektowania rozwiązań cyfrowych",
+        "unknowns": [
+          "Obecność w tych samych przetargach.",
+          "Cena i konwersja."
+        ]
+      },
+      "channel_observation": {
+        "visible_activity": "WWW",
+        "sample": "1-2 strony",
+        "visible_metrics": "Brak metryk.",
+        "unknowns": [
+          "lead",
+          "koszt",
+          "konwersja"
+        ],
+        "fact_ids": [
+          "C01"
+        ]
+      }
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "card": {
+        "market_segment": {
+          "text": "Przemysł",
+          "fact_ids": [
+            "C07"
+          ],
+          "status": "interpretacja pozycjonowania"
+        },
+        "problem": {
+          "text": "Potrzeba rozwiązania cyfrowego dla procesu B2B.",
+          "fact_ids": [
+            "C07"
+          ],
+          "status": null
+        },
+        "service": {
+          "text": "Systemy produkcyjne, integracje ERP",
+          "fact_ids": [
+            "C07"
+          ],
+          "status": null
+        },
+        "message": {
+          "text": "Przewidywalny proces.",
+          "fact_ids": [
+            "C09"
+          ],
+          "status": "interpretacja przekazu"
+        },
+        "mechanism": {
+          "text": "Analiza wymagań, wycena stała, sprinty",
+          "fact_ids": [
+            "C09"
+          ],
+          "status": null
+        },
+        "proof": {
+          "text": "unknown",
+          "fact_ids": [
+            "C99"
+          ],
+          "status": null
+        },
+        "cta": {
+          "text": "E-mail",
+          "fact_ids": [
+            "C98"
+          ],
+          "status": null
+        },
+        "language": {
+          "text": "Rzeczowy, krótkie zdania.",
+          "fact_ids": [
+            "F01"
+          ],
+          "status": "ocena wycinka"
+        },
+        "channels": {
+          "confirmed": [
+            "WWW"
+          ],
+          "unverified": [
+            "LinkedIn"
+          ],
+          "fact_ids": [
+            "C07"
+          ]
+        },
+        "comparability": "Porównywalny zakres; nie porównano skali i cen.",
+        "category": "Usługi badań i projektowania rozwiązań cyfrowych",
+        "unknowns": [
+          "Obecność w tych samych przetargach.",
+          "Cena i konwersja."
+        ]
+      },
+      "channel_observation": {
+        "visible_activity": "WWW",
+        "sample": "1-2 strony",
+        "visible_metrics": "Brak metryk.",
+        "unknowns": [
+          "lead",
+          "koszt",
+          "konwersja"
+        ],
+        "fact_ids": [
+          "C07"
+        ]
+      }
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "card": {
+        "market_segment": {
+          "text": "unknown",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": "interpretacja pozycjonowania"
+        },
+        "problem": {
+          "text": "Potrzeba rozwiązania cyfrowego dla procesu B2B.",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": null
+        },
+        "service": {
+          "text": "unknown",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": null
+        },
+        "message": {
+          "text": "Przewidywalny proces.",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": "interpretacja przekazu"
+        },
+        "mechanism": {
+          "text": "unknown",
+          "fact_ids": [
+            "C01"
+          ],
+          "status": null
+        },
+        "proof": {
+          "text": "unknown",
+          "fact_ids": [],
+          "status": null
+        },
+        "cta": {
+          "text": "unknown",
+          "fact_ids": [],
+          "status": null
+        },
+        "language": {
+          "text": "Rzeczowy, krótkie zdania.",
+          "fact_ids": [
+            "F01"
+          ],
+          "status": "ocena wycinka"
+        },
+        "channels": {
+          "confirmed": [
+            "WWW"
+          ],
+          "unverified": [
+            "LinkedIn"
+          ],
+          "fact_ids": [
+            "C01"
+          ]
+        },
+        "comparability": "Porównywalny zakres; nie porównano skali i cen.",
+        "category": "Usługi badań i projektowania rozwiązań cyfrowych",
+        "unknowns": [
+          "Obecność w tych samych przetargach.",
+          "Cena i konwersja."
+        ]
+      },
+      "channel_observation": {
+        "visible_activity": "WWW",
+        "sample": "1-2 strony",
+        "visible_metrics": "Brak metryk.",
+        "unknowns": [
+          "lead",
+          "koszt",
+          "konwersja"
+        ],
+        "fact_ids": [
+          "C01"
+        ]
+      }
+    }
+  }
+]

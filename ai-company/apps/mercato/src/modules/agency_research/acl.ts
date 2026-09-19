@@ -7,6 +7,11 @@ export const features = [
     dependsOn: ['agency_research.view'],
   },
   {
+    id: 'agency_research.portal.brief.view',
+    title: 'Read own brief in the customer portal',
+    module: 'agency_research',
+  },
+  {
     id: 'agency_research.documents.view',
     title: 'View stored research documents, versions and sources',
     module: 'agency_research',

@@ -1,0 +1,53 @@
+{
+  "kind": "research",
+  "data": {
+    "facts": [
+      {
+        "local_ref": "f1",
+        "claim": "Kubik buduje systemy dla przemysłu: aplikacje produkcyjne, integracje ERP, panele.",
+        "quote": "buduje systemy dla przemysłu: aplikacje produkcyjne, integracje ERP i panele operatorskie",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "oferta"
+        ],
+        "limitation": null
+      },
+      {
+        "local_ref": "f2",
+        "claim": "Kubik ma zespół 40 inżynierów w Poznaniu.",
+        "quote": "Zespół 40 inżynierów w Poznaniu",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "alternatives"
+        ],
+        "limitation": "Liczba deklarowana."
+      },
+      {
+        "local_ref": "f3",
+        "claim": "Kubik zaczyna od analizy wymagań i wyceny stałej.",
+        "quote": "Najpierw analiza wymagań, potem wycena stała",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "mechanizm",
+          "zakup"
+        ],
+        "limitation": null
+      }
+    ],
+    "language_samples": [
+      {
+        "local_ref": "l1",
+        "excerpt": "raportujemy co piątek",
+        "situation": "opis współpracy",
+        "suggested_audience": "kierownik projektu",
+        "linguistic_features": [
+          "konkret",
+          "rytm"
+        ],
+        "observed_function": "przewidywalność"
+      }
+    ],
+    "audience_signals": [],
+    "page_summary": "Software house dla przemysłu."
+  }
+}

@@ -9,12 +9,13 @@ import { limits } from './data/templates'
 import { createDirectRunner } from './lib/directRunner'
 import { defaultModels, runResearch } from './lib/researchService'
 import type { FetchPage, SocialPost } from './lib/research/fetch'
-import { createFirecrawlFetcher } from './lib/research/firecrawl'
+import { createFirecrawlFetcher, createFirecrawlSearch, type SearchHit, type SearchWeb } from './lib/research/firecrawl'
 import { formatLedger } from './lib/research/ledger'
 import type { PipelineCache, ResearchAgentRunner } from './lib/research/pipeline'
 import { createFixtureRunner, createOrchestratorRunner } from './lib/runners'
-import { orderStatus, type ResearchScope } from './lib/store'
-import { AgencyResearchDocumentVersion } from './data/entities'
+import { currentInputVersion, orderStatus, type ResearchScope } from './lib/store'
+import { AgencyResearchDocument, AgencyResearchDocumentVersion } from './data/entities'
+import { researchSteps, type ResearchStep } from './lib/contracts'
 
 /** `--key value` pairs; a `--flag` followed by another option or nothing is `'true'`. */
 function parseArgs(args: string[]): Record<string, string> {
@@ -87,6 +88,12 @@ function fileFetcher(dir: string): FetchPage {
   }
 }
 
+/** Fixture search: `<file>` maps a query (or `*`) to hits. */
+function fileSearch(file: string): SearchWeb {
+  const table = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, SearchHit[]>
+  return async (query) => table[query] ?? table['*'] ?? []
+}
+
 function loadSocialCorpus(file: string): SocialPost[] {
   const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as { posts?: SocialPost[] } | SocialPost[]
   const posts = Array.isArray(raw) ? raw : (raw.posts ?? [])
@@ -97,7 +104,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  * Runs the audit process for one order and stores every document version.
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
- *     [--through 3.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] \
+ *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
  *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] \
  *     [--tenant <id> --org <id> --user <id>]
  *
@@ -117,6 +124,8 @@ const run: ModuleCli = {
     const out = args.out
     fs.mkdirSync(out, { recursive: true })
     const maxCostPln = args['max-cost-pln'] ? Number(args['max-cost-pln']) : limits.cost.defaultMaxPlnPerRun
+    const through = (args.through ?? '3.2') as ResearchStep
+    if (!researchSteps.includes(through)) throw new Error(`[internal] --through must be one of ${researchSteps.join(', ')}`)
     const models = defaultModels()
     const runnerName = args.runner ?? 'orchestrator'
 
@@ -134,7 +143,9 @@ const run: ModuleCli = {
       const userId = await resolveUser(db, scope, args)
       runAgent = createOrchestratorRunner(db, { ...scope, userId }, agentRunIds)
     }
-    const fetchPage: FetchPage = args['fixture-pages'] ? fileFetcher(args['fixture-pages']) : createFirecrawlFetcher({ apiKey: process.env.FIRECRAWL_API_KEY ?? '' })
+    const firecrawlKey = process.env.FIRECRAWL_API_KEY ?? ''
+    const fetchPage: FetchPage = args['fixture-pages'] ? fileFetcher(args['fixture-pages']) : createFirecrawlFetcher({ apiKey: firecrawlKey })
+    const searchWeb: SearchWeb | undefined = args['fixture-search'] ? fileSearch(args['fixture-search']) : firecrawlKey ? createFirecrawlSearch({ apiKey: firecrawlKey }) : undefined
     const socialPosts = args['social-corpus'] ? loadSocialCorpus(args['social-corpus']) : undefined
     console.log(`Runner: ${runnerName} (extract ${models.extract}, synthesis ${models.synthesis}) · cap ${maxCostPln} PLN · tenant=${scope.tenantId} org=${scope.organizationId} order=${orderRef}`)
 
@@ -149,9 +160,10 @@ const run: ModuleCli = {
       runner: runnerName,
       models,
       fetchPage,
+      searchWeb,
       socialPosts,
       pages: args.pages ? args.pages.split(',').map((url) => url.trim()).filter(Boolean) : undefined,
-      through: '3.2',
+      through,
       maxCostPln,
       cache: fileCache(path.join(out, 'cache')),
       concurrency: args.concurrency ? Number(args.concurrency) : undefined,
@@ -179,19 +191,21 @@ const run: ModuleCli = {
     })
 
     fs.writeFileSync(path.join(out, 'events.json'), JSON.stringify(events, null, 2))
-    if (outcome.zrodlaVersionId) {
-      const version = await db.em.findOne(AgencyResearchDocumentVersion, { id: outcome.zrodlaVersionId })
-      if (version) {
-        fs.writeFileSync(path.join(out, 'WEW-ZRODLA.json'), JSON.stringify({ ...envelopeOf(version), data: version.data }, null, 2))
-        fs.writeFileSync(path.join(out, 'WEW-ZRODLA.md'), version.renderedMd)
-      }
+    // Every current document of the order goes to files: envelope + data, the internal markdown, the client view.
+    const documents = await db.em.find(AgencyResearchDocument, { ...scope, orderRef, deletedAt: null })
+    for (const document of documents) {
+      if (!document.currentVersionId) continue
+      const version = await db.em.findOne(AgencyResearchDocumentVersion, { id: document.currentVersionId })
+      if (!version) continue
+      fs.writeFileSync(path.join(out, `${document.outputId}.json`), JSON.stringify({ ...envelopeOf(version), data: version.data }, null, 2))
+      fs.writeFileSync(path.join(out, `${document.outputId}.md`), version.renderedMd)
+      if (version.clientViewMd) fs.writeFileSync(path.join(out, `${document.outputId}.client.md`), version.clientViewMd)
     }
     const status = await orderStatus(db.em, scope, orderRef)
     const last = status.taskRuns[status.taskRuns.length - 1]
     if (last?.status === 'paused_budget') console.error(`Paused on budget: ${outcome.spentPln.toFixed(2)} PLN spent; task run ${last.id}`)
-    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}`)
-    const costRun = status.taskRuns.find((r) => r.stepId === '3.2')
-    if (costRun) console.log(`Spend this run: ${costRun.costPln.toFixed(2)} PLN · order total ${status.totalPln.toFixed(2)} PLN`)
+    console.log(`Completed through ${outcome.completedThrough ?? '— (not completed)'} · versions ${outcome.documentVersionIds.length} · agent runs ${outcome.agentRunIds.length}${outcome.qaVerdict ? ` · QA ${outcome.qaVerdict}` : ''}${outcome.briefQaVerdict ? ` · brief QA ${outcome.briefQaVerdict}` : ''}${outcome.escalationVersionId ? ` · E.1 opened (${outcome.escalationVersionId})` : ''}`)
+    console.log(`Spend this run: ${outcome.spentPln.toFixed(2)} PLN · order total ${status.totalPln.toFixed(2)} PLN`)
     console.log(`Written to ${path.resolve(out)}`)
   },
 }
@@ -233,6 +247,26 @@ const status: ModuleCli = {
   },
 }
 
-const agencyResearchCliCommands: ModuleCli[] = [run, status]
+/** yarn mercato agency_research escalations --order-ref <ref> — the E.1 records of an order. */
+const escalations: ModuleCli = {
+  command: 'escalations',
+  async run(rest: string[]) {
+    const args = parseArgs(rest ?? [])
+    if (!args['order-ref']) throw new Error('[internal] --order-ref is required')
+    const db = await connectDb()
+    const scope = await resolveScope(db, args)
+    const status = await orderStatus(db.em, scope, args['order-ref'])
+    const runs = status.taskRuns.filter((r) => r.stepId === 'E.1')
+    console.log(`Order ${args['order-ref']}: ${runs.length} escalation(s)`)
+    for (const r of runs) console.log(`  ${r.createdAt.toISOString()} ${r.status} run ${r.id}${r.error ? ` · ${r.error}` : ''}`)
+    const current = await currentInputVersion(db.em, scope, args['order-ref'], 'WZR-ESKALACJA')
+    if (current) {
+      const version = await db.em.findOne(AgencyResearchDocumentVersion, { id: current.versionId })
+      if (version) console.log(`\n${version.renderedMd}`)
+    }
+  },
+}
+
+const agencyResearchCliCommands: ModuleCli[] = [run, status, escalations]
 
 export default agencyResearchCliCommands

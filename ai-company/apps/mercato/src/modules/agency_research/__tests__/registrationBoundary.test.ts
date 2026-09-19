@@ -15,7 +15,7 @@ jest.mock('ai', () => ({ generateText: jest.fn(), Output: {} }))
 it('loads CLI and DI without eagerly registering research agents', async () => {
   const cli = await import('../cli')
   const di = await import('../di')
-  expect(cli.default.map((command) => command.command)).toEqual(['run', 'status'])
+  expect(cli.default.map((command) => command.command)).toEqual(['run', 'status', 'escalations'])
   expect(typeof di.register).toBe('function')
 })
 

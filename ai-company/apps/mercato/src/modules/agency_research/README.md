@@ -121,9 +121,25 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 `toOrderData()`). The identity is a trusted server execution identity, checked against
 `agency_research.manage` + `agent_orchestrator.agents.run`.
 
-## Next phases
+## The whole P3 → P4 chain (F06–F09)
 
-F07 — 3.3 audit (`WEW-AUDYT`) and 3.4/3.5 competitors (`WEW-KONKURENCJA`, Firecrawl search,
-≤ 3 companies × ≤ 4 pages); F08 — 3.6 findings map, 3.7 QA + repair loop + E.1 escalation
-(`WEW-ESKALACJA`), 3.8 freeze; F09 — 4.1 brief (`KLI-BRIEF`), 4.2 brief QA, API routes and
-the portal brief route. Task files: `.tasks/RES-01…`.
+| step | document | agents | gate highlights |
+|---|---|---|---|
+| 3.2 | `WEW-ZRODLA` | page_extractor (map), proof_builder, content_seeder, conflict_finder, coverage_assessor | verbatim quotes, proof-card variants, plan capacity computed |
+| 3.3 | `WEW-AUDYT` | audit_mapper, audit_voice_and_gaps | no evidence without customer voice, no conversion judgement without data, gaps 3–5 |
+| 3.4–3.5 | `WEW-KONKURENCJA` v1/v2 + `WEW-ZRODLA` v2 | competitor_selector, page_extractor (entity = competitor), competitor_card_extractor, competitor_synthesizer | ≤3 companies from real search hits, `unknown` where nothing was read, claim strength ≤ proof, "jedyni" needs a named unknown |
+| 3.6 | `WEW-USTALENIA` | field_mapper, question_writer, readiness_assessor | future vision never a fact, ≤8 questions, five readiness outputs |
+| 3.7 | — (task run + `qa_result`) | research_qa + validator | exactly ready / to_fix / exception; ≤2 repairs through the author steps, then E.1 |
+| E.1 | `WEW-ESKALACJA` | — | observed reason, evidence, unassigned queue, hold, one question, allowed resolutions |
+| 3.8 | — (frozen set on the task run) | — | idempotent per set hash; only `status` changes |
+| 4.1 | `KLI-BRIEF` | brief_writer (3 section calls) | decision states from the map, two equal voice variants, rights copied from proof cards, CTA without owner blocks publication |
+| 4.2 | — (task run + `qa_result`) | brief_qa + validator | ready_for_approval / needs_client_data / needs_agent_fix; agent errors repaired ≤2, client gaps become the questions |
+
+`run --through 3.2 | 3.5 | 3.8 | 4.2`; `status`, `escalations`. API: `GET /api/agency_research/documents`,
+`document-versions`, `task-runs` (staff, `agency_research.documents.view`) and the portal route
+`GET /api/agency_research/portal/brief?order_ref=` (customer JWT; returns only the client view and the ≤8
+questions — the surface Krysia's portal renders; ownership hook `assertCustomerOwnsOrder` is a TODO until orders
+are persisted). The service exposes `getClientView(scope, orderRef, 'WZR-BRIEF')` for the same.
+
+Everything the process needs from the client (4.3–4.7 approvals, G requests) stays with the spine; this lane hands
+over `(task_run_id, version_id)` references and the client projections.

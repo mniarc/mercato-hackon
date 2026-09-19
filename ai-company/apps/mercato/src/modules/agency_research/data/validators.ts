@@ -30,6 +30,10 @@ export * from './schemas/ustalenia'
 export * from './schemas/eskalacja'
 export * from './schemas/brief'
 export * from './contracts'
+export * from './agents/audit'
+export * from './agents/competitors'
+export * from './agents/findings'
+export * from './agents/brief'
 
 export const outputLanguages = ['pl', 'en'] as const
 export type OutputLanguage = (typeof outputLanguages)[number]

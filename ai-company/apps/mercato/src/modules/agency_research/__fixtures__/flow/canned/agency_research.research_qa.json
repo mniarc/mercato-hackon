@@ -3,16 +3,25 @@
     "kind": "research",
     "data": {
       "verdict": "to_fix",
-      "summary": "Jedna luka do poprawy przez autora.",
+      "summary": "Jedno pole briefu zapisane jako fakt, choć to hipoteza.",
       "findings": [
         {
-          "code": "unsourced_claim",
-          "path": "WEW-ZRODLA.content_bank[T06]",
+          "code": "fact_vs_interpretation",
+          "path": "WEW-USTALENIA.field_map[priority_offer]",
           "severity": "blocking",
-          "gap": "Ujęcie bez faktu.",
+          "gap": "Priorytet oferty zapisany jako fakt ze strony.",
           "owner": "agent",
-          "fix_step": "3.2",
-          "fix_hint": "Dodaj fact_id albo oznacz blocked."
+          "fix_step": "3.6",
+          "fix_hint": "Oznacz jako hipotezę i pytanie do klienta."
+        },
+        {
+          "code": "other",
+          "path": "WEW-AUDYT.gaps[G01]",
+          "severity": "minor",
+          "gap": "Luka bez wskazania kroku docelowego.",
+          "owner": "agent",
+          "fix_step": "3.3",
+          "fix_hint": "Dodaj destination."
         }
       ]
     }
@@ -21,8 +30,18 @@
     "kind": "research",
     "data": {
       "verdict": "ready",
-      "summary": "Bez blokujących ustaleń.",
-      "findings": []
+      "summary": "Bez blokujących ustaleń; pytania do klienta zapisane.",
+      "findings": [
+        {
+          "code": "other",
+          "path": "WEW-USTALENIA.questions[Q03]",
+          "severity": "minor",
+          "gap": "Pytanie o kierunek mogłoby mieć podpowiedź z audytu.",
+          "owner": "client",
+          "fix_step": null,
+          "fix_hint": null
+        }
+      ]
     }
   }
 ]

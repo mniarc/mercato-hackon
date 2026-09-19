@@ -1,0 +1,143 @@
+{
+  "kind": "research",
+  "data": {
+    "parity_claims": [
+      {
+        "claim": "Zaczynamy od rozpoznania problemu przed wdrożeniem",
+        "companies": [
+          "FLOW Centrum Badawcze",
+          "Northlight Studio",
+          "Kubik Digital"
+        ],
+        "evidence_ids": [
+          "F03",
+          "C02",
+          "C09"
+        ],
+        "why_insufficient": "Deklaruje to każda z firm; nie wyróżnia."
+      },
+      {
+        "claim": "Praca etapami",
+        "companies": [
+          "FLOW Centrum Badawcze",
+          "Nieznana Firma"
+        ],
+        "evidence_ids": [
+          "F05"
+        ],
+        "why_insufficient": "x"
+      }
+    ],
+    "alternative_routes": [
+      {
+        "route": "Własny zespół",
+        "status": "hypothesis_not_buyer_research",
+        "when_sensible": "Gdy ma kompetencje i dostępność.",
+        "tradeoff": "Sam uzgadnia badanie i realizację.",
+        "evidence_ids": [
+          "F05"
+        ]
+      },
+      {
+        "route": "Obecny software house",
+        "status": "hypothesis_not_buyer_research",
+        "when_sensible": "Gdy zna system i może zrobić diagnozę.",
+        "tradeoff": "Może pominąć etap badań.",
+        "evidence_ids": [
+          "C07",
+          "C09"
+        ]
+      }
+    ],
+    "difference_candidates": [
+      {
+        "feature": "Rozpoznanie potrzeb, celu, organizacji i techniki jednocześnie",
+        "audience_value": "Łatwiej uzgodnić, co zmienić.",
+        "proof_ids": [
+          "P01"
+        ],
+        "comparison": "Northlight też deklaruje warsztat; brak dowodu wyłączności.",
+        "unknown": "Standard wykonania i wpływ.",
+        "allowed_claim_strength": "demonstrated_result",
+        "fact_ids": [
+          "F03",
+          "C02"
+        ]
+      },
+      {
+        "feature": "AI tylko z uzasadnieniem biznesowym",
+        "audience_value": "Bez kosztu technologii dla technologii.",
+        "proof_ids": [],
+        "comparison": "Kubik nie mówi o AI; to nie dowód.",
+        "unknown": "Czy konkurenci mają podobną zasadę.",
+        "allowed_claim_strength": "documented_capability",
+        "fact_ids": [
+          "F05"
+        ]
+      },
+      {
+        "feature": "Jedyni na rynku z taką diagnozą",
+        "audience_value": "x",
+        "proof_ids": [
+          "P01"
+        ],
+        "comparison": "Jesteśmy jedyni.",
+        "unknown": " ",
+        "allowed_claim_strength": "described_approach",
+        "fact_ids": [
+          "F03"
+        ]
+      },
+      {
+        "feature": "Czwarty kandydat ponad limit",
+        "audience_value": "x",
+        "proof_ids": [],
+        "comparison": "x",
+        "unknown": "x",
+        "allowed_claim_strength": "hypothesis",
+        "fact_ids": [
+          "F01"
+        ]
+      }
+    ],
+    "implications": [
+      {
+        "finding": "Nie opieraj UVP wyłącznie na research + UX + development.",
+        "limitation": "Porównano dwie celowo dobrane firmy.",
+        "strategy_field": "uvp / mechanism",
+        "client_answer_needed": "Którą sytuację klienta obsługujemy priorytetowo?",
+        "evidence_ids": [
+          "F01",
+          "C01"
+        ]
+      },
+      {
+        "finding": "Northlight komunikuje czas etapów; FLOW nie — decyzja, czy to podjąć.",
+        "limitation": "Czas etapów to deklaracja.",
+        "strategy_field": "proof",
+        "client_answer_needed": null,
+        "evidence_ids": [
+          "C05"
+        ]
+      },
+      {
+        "finding": "Kubik to alternatywa dla klientów ze specyfikacją; FLOW dla tych bez.",
+        "limitation": "Hipoteza segmentacyjna.",
+        "strategy_field": "audience",
+        "client_answer_needed": "Czy chcemy klientów bez specyfikacji?",
+        "evidence_ids": [
+          "F04",
+          "C09"
+        ]
+      }
+    ],
+    "return_requests": [
+      {
+        "target_step": "3.4",
+        "question": "Czy Pracownia Ekspres obsługuje B2B?",
+        "source_to_check": "https://pracownia-ekspres.example/oferta",
+        "expected_result": "Zakres usług."
+      }
+    ]
+  }
+}
