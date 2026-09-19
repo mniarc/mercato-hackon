@@ -6,15 +6,15 @@
     "features": 53,
     "stories": 102,
     "criteria": 489,
-    "tasks": 107,
+    "tasks": 110,
     "tasksByState": {
-      "active": 25,
+      "active": 26,
       "blocked": 3,
       "done": 72,
       "implemented": 3,
       "legacy": 1,
-      "queued": 1,
-      "ready": 1,
+      "queued": 2,
+      "ready": 2,
       "source": 1
     },
     "mappedStories": 102,
@@ -77,7 +77,8 @@
                 "T25",
                 "T59",
                 "T89",
-                "T100"
+                "T100",
+                "T110"
               ],
               "doneTaskIds": [
                 "T25",
@@ -93,6 +94,13 @@
                   "source": ".tasks/T100-connect-context-aware-agency-journey.md",
                   "line": 4,
                   "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -132,6 +140,17 @@
                   "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
                   "stateLine": 3,
                   "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -908,7 +927,8 @@
               "taskIds": [
                 "T24",
                 "T25",
-                "T74"
+                "T74",
+                "T110"
               ],
               "doneTaskIds": [
                 "T25",
@@ -918,6 +938,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -948,6 +975,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -1208,7 +1246,8 @@
               "taskIds": [
                 "T25",
                 "T74",
-                "T75"
+                "T75",
+                "T110"
               ],
               "doneTaskIds": [
                 "T25",
@@ -1219,6 +1258,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T25",
@@ -1249,6 +1295,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T25",
                   "title": "T25 - Start one agency process from a confirmed paid order",
@@ -1961,7 +2018,8 @@
               ],
               "taskIds": [
                 "RES-02",
-                "T26"
+                "T26",
+                "T111"
               ],
               "doneTaskIds": [
                 "RES-02"
@@ -1970,6 +2028,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -2000,6 +2065,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -2341,7 +2417,8 @@
               "taskIds": [
                 "RES-02",
                 "T26",
-                "T42"
+                "T42",
+                "T111"
               ],
               "doneTaskIds": [
                 "RES-02",
@@ -2351,6 +2428,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -2388,6 +2472,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -2481,7 +2576,8 @@
               ],
               "taskIds": [
                 "RES-02",
-                "T27"
+                "T27",
+                "T111"
               ],
               "doneTaskIds": [
                 "RES-02",
@@ -2491,6 +2587,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-02",
@@ -2521,6 +2624,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-02",
                   "title": "RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA",
@@ -2586,7 +2700,8 @@
               ],
               "taskIds": [
                 "RES-02",
-                "T27"
+                "T27",
+                "T111"
               ],
               "doneTaskIds": [
                 "RES-02",
@@ -2596,6 +2711,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-02",
@@ -2626,6 +2748,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-02",
                   "title": "RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA",
@@ -3213,7 +3346,8 @@
               "taskIds": [
                 "T27",
                 "T39",
-                "T41"
+                "T41",
+                "T111"
               ],
               "doneTaskIds": [
                 "T27",
@@ -3224,6 +3358,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T27",
@@ -3254,6 +3395,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T27",
                   "title": "T27 - Apply client answers and regenerate the brief",
@@ -3339,7 +3491,8 @@
               "taskIds": [
                 "T26",
                 "T27",
-                "T78"
+                "T78",
+                "T111"
               ],
               "doneTaskIds": [
                 "T27"
@@ -3348,6 +3501,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -3406,6 +3566,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -3483,7 +3654,8 @@
               "taskIds": [
                 "T26",
                 "T27",
-                "T78"
+                "T78",
+                "T111"
               ],
               "doneTaskIds": [
                 "T27"
@@ -3492,6 +3664,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -3536,6 +3715,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -3989,7 +4179,8 @@
                 "T43",
                 "T54",
                 "T58",
-                "T61"
+                "T61",
+                "T111"
               ],
               "doneTaskIds": [
                 "T42",
@@ -4002,6 +4193,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T42",
@@ -4046,6 +4244,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T42",
                   "title": "T42 - Hand off the accepted brief and frozen analysis",
@@ -4347,7 +4556,8 @@
                 }
               ],
               "taskIds": [
-                "RES-03"
+                "RES-03",
+                "T111"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -4360,6 +4570,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "adr-reference",
@@ -4386,6 +4603,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 }
               ]
@@ -4443,6 +4671,7 @@
                 "T43",
                 "T97",
                 "T98",
+                "T111",
                 "TOV-01",
                 "TOV-02"
               ],
@@ -4460,6 +4689,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -4535,6 +4771,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -4658,7 +4905,8 @@
                 "T53",
                 "T54",
                 "T97",
-                "T98"
+                "T98",
+                "T111"
               ],
               "doneTaskIds": [
                 "T43",
@@ -4674,6 +4922,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -4735,6 +4990,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -5240,7 +5506,9 @@
                 "T28",
                 "T48",
                 "T58",
-                "T62"
+                "T62",
+                "T110",
+                "T111"
               ],
               "doneTaskIds": [
                 "T28",
@@ -5258,6 +5526,20 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -5305,6 +5587,28 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -5395,7 +5699,8 @@
               "taskIds": [
                 "RES-03",
                 "T28",
-                "T48"
+                "T48",
+                "T111"
               ],
               "doneTaskIds": [
                 "T28",
@@ -5411,6 +5716,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -5451,6 +5763,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6230,7 +6553,8 @@
                 "RES-03",
                 "T29",
                 "T49",
-                "T54"
+                "T54",
+                "T111"
               ],
               "doneTaskIds": [
                 "T49",
@@ -6246,6 +6570,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -6286,6 +6617,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6366,7 +6708,8 @@
                 "RES-03",
                 "T29",
                 "T49",
-                "T70"
+                "T70",
+                "T111"
               ],
               "doneTaskIds": [
                 "T49",
@@ -6382,6 +6725,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -6429,6 +6779,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6517,7 +6878,8 @@
                 "RES-03",
                 "T29",
                 "T49",
-                "T77"
+                "T77",
+                "T111"
               ],
               "doneTaskIds": [
                 "T49",
@@ -6533,6 +6895,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -6580,6 +6949,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6659,7 +7039,8 @@
               "taskIds": [
                 "RES-03",
                 "T29",
-                "T86"
+                "T86",
+                "T111"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -6672,6 +7053,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T111",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
                 },
                 {
                   "kind": "task-source",
@@ -6712,6 +7100,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T111",
+                  "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -7472,7 +7871,8 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T31"
+                "T31",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -7485,6 +7885,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -7511,6 +7918,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -7568,7 +7986,8 @@
               "taskIds": [
                 "RES-03",
                 "T31",
-                "T83"
+                "T83",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -7581,6 +8000,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -7621,6 +8047,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -7696,7 +8133,8 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T31"
+                "T31",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -7709,6 +8147,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -7742,6 +8187,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -8690,7 +9146,8 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T32"
+                "T32",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -8703,6 +9160,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -8736,6 +9200,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -8897,7 +9372,8 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T32"
+                "T32",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -8910,6 +9386,13 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
                 },
                 {
                   "kind": "task-source",
@@ -8936,6 +9419,17 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -9013,13 +9507,21 @@
                 }
               ],
               "taskIds": [
-                "T33"
+                "T33",
+                "T112"
               ],
               "doneTaskIds": [],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T112",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9036,6 +9538,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T112",
+                  "title": "T112 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after T110, T111 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -9103,7 +9616,8 @@
               ],
               "taskIds": [
                 "T33",
-                "T58"
+                "T58",
+                "T112"
               ],
               "doneTaskIds": [
                 "T58"
@@ -9112,6 +9626,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T112",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9135,6 +9656,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T112",
+                  "title": "T112 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after T110, T111 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -9215,13 +9747,21 @@
                 "T31",
                 "T32",
                 "T33",
-                "T83"
+                "T83",
+                "T112"
               ],
               "doneTaskIds": [],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T112",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -9259,6 +9799,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T112",
+                  "title": "T112 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after T110, T111 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -9358,13 +9909,21 @@
                 }
               ],
               "taskIds": [
-                "T33"
+                "T33",
+                "T112"
               ],
               "doneTaskIds": [],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T112",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9381,6 +9940,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T112",
+                  "title": "T112 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after T110, T111 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -13321,13 +13891,21 @@
                 }
               ],
               "taskIds": [
-                "T24"
+                "T24",
+                "T110"
               ],
               "doneTaskIds": [],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T110",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -13358,6 +13936,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T110",
+                  "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -13737,6 +14326,79 @@
       "taskGroup": "T",
       "mappingBasis": "sources",
       "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T110",
+      "title": "T110 - Settle the eight agency decisions the coverage report waits for",
+      "source": ".tasks/T110-settle-the-eight-agency-decisions.md",
+      "state": "ready",
+      "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+      "stateLine": 3,
+      "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F01-1",
+        "F04-2",
+        "F05-2",
+        "F26-1",
+        "F34-1",
+        "F34-2",
+        "F35-1",
+        "F38-3",
+        "F39-1",
+        "F60-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T111",
+      "title": "T111 - Research lane: directed revision, evidence supplement and pinned limits",
+      "source": ".tasks/T111-research-lane-revision-supplement-and-pinned-limits.md",
+      "state": "active",
+      "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+      "stateLine": 3,
+      "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F07-3",
+        "F08-3",
+        "F09-1",
+        "F09-2",
+        "F10-3",
+        "F11-1",
+        "F11-2",
+        "F20-1",
+        "F21-2",
+        "F22-1",
+        "F23-1",
+        "F26-1",
+        "F26-2",
+        "F30-1",
+        "F30-2",
+        "F31-1",
+        "F31-2"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T112",
+      "title": "T112 - One golden native run, journaled, and the demo evidence around it",
+      "source": ".tasks/T112-golden-native-run-and-demo-evidence.md",
+      "state": "queued",
+      "stateLabel": "queued (after T110, T111 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+      "stateLine": 3,
+      "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F56-1",
+        "F57-1",
+        "F58-1",
+        "F59-1"
+      ],
       "adrIds": []
     },
     {
