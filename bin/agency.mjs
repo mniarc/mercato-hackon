@@ -4,6 +4,7 @@ import path from 'node:path'
 import readline from 'node:readline'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { parseEnv } from 'node:util'
+import { createInvocationLog, forwardFailureExit, loggedAgencyCommands, redactCommandArgs, redactLogText, signalExitCode } from './invocation-log.mjs'
 
 const teamRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const usage = `Usage: agency.ps1 <command> [options] | sh agency.sh <command> [options]
@@ -103,7 +104,7 @@ export function planAgencyCommand(argv, { root = teamRoot, runtimeEnv = {} } = {
   const app = path.join(root, 'ai-company')
   const step = (...args) => ({ executable: 'docker', args, cwd: app })
   const verify = (image) => step('run', '--rm', '--pull', 'never', '--network', 'none', '--entrypoint', 'node', image, '--input-type=module', '-e', imageCheck)
-  if (command === 'build') return [step('build', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true',
+  if (command === 'build') return [step('build', '--progress', 'plain', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true',
     '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true', '--file', path.join(app, 'Dockerfile'), '--tag', required(options, 'image'), app)]
   if (command === 'verify-image') return [verify(required(options, 'image'))]
   if (command === 'export') return [step('image', 'save', '--output', absoluteFile(options, 'file'), required(options, 'image'))]
@@ -146,34 +147,65 @@ export function redactSecrets(line, values) {
     /PASSWORD|SECRET|TOKEN|KEY/.test(key) && value ? result.split(value).join('[redacted]') : result, line)
 }
 
-async function execute(steps, runtimeEnv) {
-  for (const step of steps) {
+export async function executeAgencySteps(steps, runtimeEnv = {}, { log = null, stdout = process.stdout, stderr = process.stderr } = {}) {
+  for (const [index, step] of steps.entries()) {
+    log?.event('stage_start', { stage: index + 1, executable: step.executable, args: redactCommandArgs(step.args), cwd: step.cwd })
     await new Promise((resolve, reject) => {
       const child = spawn(step.executable, step.args, { cwd: step.cwd, shell: false,
         env: { ...process.env, ...runtimeEnv }, stdio: ['inherit', 'pipe', 'pipe'] })
-      for (const [stream, output] of [[child.stdout, process.stdout], [child.stderr, process.stderr]]) {
+      let interrupted = null, spawnFailed = false
+      const onInterrupt = () => { interrupted = 'SIGINT'; child.kill('SIGINT') }
+      const onTerminate = () => { interrupted = 'SIGTERM'; child.kill('SIGTERM') }
+      process.on('SIGINT', onInterrupt)
+      process.on('SIGTERM', onTerminate)
+      for (const [stream, output, channel] of [[child.stdout, stdout, 'stdout'], [child.stderr, stderr, 'stderr']]) {
         const lines = readline.createInterface({ input: stream })
-        lines.on('line', (line) => output.write(`${redactSecrets(line, runtimeEnv)}\n`))
+        lines.on('line', (line) => {
+          const safe = redactSecrets(line, log ? { ...process.env, ...runtimeEnv } : runtimeEnv)
+          const displayed = log ? redactLogText(safe) : safe
+          output.write(`${displayed}\n`)
+          log?.line(channel, displayed)
+        })
       }
-      child.once('error', () => reject(new Error('Cannot start Docker; install/start the Docker engine and Compose plugin')))
-      child.once('close', (code) => code === 0 ? resolve() : reject(new Error(`Docker command failed (${code ?? 'signal'}); no later commands ran`)))
+      child.once('error', () => { spawnFailed = true })
+      child.once('close', (code, childSignal) => {
+        process.off('SIGINT', onInterrupt)
+        process.off('SIGTERM', onTerminate)
+        const signal = interrupted ?? childSignal
+        const exitCode = signal ? signalExitCode(signal) : spawnFailed ? 1 : code ?? 1
+        log?.event('stage_end', { stage: index + 1, exitCode, signal })
+        if (exitCode === 0) resolve()
+        else reject(Object.assign(new Error(spawnFailed
+          ? 'Cannot start Docker; install/start the Docker engine and Compose plugin'
+          : `Docker command failed (${signal ?? exitCode}); no later commands ran`), { exitCode, signal }))
+      })
     })
   }
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  let log
   try {
     const argv = process.argv.slice(2)
     if (argv.length === 0 || argv.includes('--help') || argv.includes('-h') || argv[0] === 'help') {
       console.log(usage)
     } else {
       const parsed = parseAgencyArgs(argv)
+      if (loggedAgencyCommands.has(parsed.command)) {
+        log = createInvocationLog(teamRoot, parsed.command, argv.slice(1))
+        console.error(`Command log: ${log.path}`)
+      }
       const runtimeEnv = runtimeCommands.has(parsed.command)
         ? parseEnv(fs.readFileSync(absoluteFile(parsed.options, 'env-file'), 'utf8')) : {}
-      await execute(planAgencyCommand(argv, { runtimeEnv }), runtimeEnv)
+      await executeAgencySteps(planAgencyCommand(argv, { runtimeEnv }), runtimeEnv, { log })
+      log?.close()
     }
   } catch (error) {
-    console.error(error instanceof Error && error.code === 'ENOENT' ? 'Runtime environment file not found' : error instanceof Error ? error.message : 'Agency command failed')
-    process.exitCode = 1
+    const message = error instanceof Error && error.code === 'ENOENT' ? 'Runtime environment file not found' : error instanceof Error ? error.message : 'Agency command failed'
+    console.error(message)
+    log?.line('stderr', message)
+    log?.close({ exitCode: error?.exitCode ?? 1, signal: error?.signal ?? null })
+    if (log) console.error(`Retained command log: ${log.path}`)
+    forwardFailureExit(error)
   }
 }

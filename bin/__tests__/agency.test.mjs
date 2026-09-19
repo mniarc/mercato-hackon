@@ -37,7 +37,7 @@ test('build, image verification and transfer plans retain exact paths and stay o
   const build = planAgencyCommand(['build', '--image', image], { root })
   assert.deepEqual(build[0], {
     executable: 'docker', cwd: path.join(root, 'ai-company'),
-    args: ['build', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true', '--build-arg',
+    args: ['build', '--progress', 'plain', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true', '--build-arg',
       'OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true', '--file', path.join(root, 'ai-company', 'Dockerfile'), '--tag', image,
       path.join(root, 'ai-company')],
   })

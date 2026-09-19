@@ -38,11 +38,38 @@ node bin/package-release.mjs \
 ```
 
 The outer tar contains one `agency-release-*` directory with the image archive,
-`bin/agency.{mjs,ps1,sh}`, Compose/runtime templates, and `QUICKSTART.txt`. It contains
+`bin/agency.{mjs,ps1,sh}` and its logging helper, Compose/runtime templates, and `QUICKSTART.txt`. It contains
 no application source, dependencies, private environment file, or secrets. After
 extraction, run commands from that directory so the unchanged runner can resolve
 `ai-company/docker/agency/compose.yml`. Docker Engine, Compose v2 and Node.js 24 are
 required; the bundle imports its prebuilt image and is not a server-side build kit.
+
+## Build and package logs
+
+`build`, `verify-image`, `export`, `import` and `package-release.mjs` automatically
+retain a timestamped invocation log at `App/.build-artifacts/.cache-logs/*.log`
+(or the extracted bundle's same relative directory). The command prints its log
+path immediately and again on failure. Console output remains live; stdout and
+stderr are streamed with stage/start/end/exit-code/signal metadata. Docker build
+uses plain progress. No log rotation deletes previous failures automatically.
+
+Runtime/config/init commands are not automatically logged. Logs never dump the
+environment; obvious secret arguments and known secret output are redacted.
+Build scripts themselves should never print credentials. The directory is
+gitignored; review logs before sharing them. A missing end record means the
+wrapper was interrupted/killed before finalization, not a successful build.
+
+This captures **new invocations only**. For an already-running BuildKit build,
+recover native history separately without restarting it:
+
+```powershell
+docker buildx history ls
+docker buildx --builder desktop-linux history logs --progress plain <short-build-ref>
+```
+
+Use the builder and short reference reported by Docker; native history may not
+include wrapper setup or commands run outside that build. Do not infer completion
+from a quiet log, or restart a build merely to add logging.
 
 ## Configure and start
 

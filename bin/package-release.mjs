@@ -3,6 +3,7 @@ import { createReadStream } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { createInvocationLog, forwardFailureExit, signalExitCode } from './invocation-log.mjs'
 
 const teamRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const usage = `Usage: node bin/package-release.mjs --image <image:tag> --image-file <absolute-path> --output <absolute-path>
@@ -13,6 +14,7 @@ the existing agency deployment runner. The output target must not exist.
 
 const bundleFiles = [
   ['bin/agency.mjs', 'bin/agency.mjs', 0o644],
+  ['bin/invocation-log.mjs', 'bin/invocation-log.mjs', 0o644],
   ['bin/agency.ps1', 'bin/agency.ps1', 0o644],
   ['bin/agency.sh', 'bin/agency.sh', 0o755],
   ['ai-company/docker/agency/compose.yml', 'ai-company/docker/agency/compose.yml', 0o644],
@@ -89,12 +91,12 @@ async function addBuffer(handle, name, content, mode, modifiedAt) {
   if (padding) await writeAll(handle, Buffer.alloc(padding))
 }
 
-async function addFile(handle, name, source, mode, modifiedAt) {
+async function addFile(handle, name, source, mode, modifiedAt, signal) {
   const sourceStat = await fs.lstat(source)
   if (!sourceStat.isFile() || sourceStat.isSymbolicLink()) throw new Error(`Release input must be a regular file: ${source}`)
   await writeAll(handle, createTarHeader({ name, size: sourceStat.size, mode, modifiedAt }))
   let copied = 0
-  for await (const chunk of createReadStream(source)) {
+  for await (const chunk of createReadStream(source, { signal })) {
     copied += chunk.length
     await writeAll(handle, chunk)
   }
@@ -161,7 +163,9 @@ function archiveTimestamp() {
   return value
 }
 
-export async function packageRelease({ image, imageFile, output, root = teamRoot }) {
+export async function packageRelease({ image, imageFile, output, root = teamRoot, onProgress = () => {}, signal }) {
+  signal?.throwIfAborted()
+  onProgress({ stage: 'validate-inputs', status: 'start' })
   await assertRegularFile(imageFile)
   const outputParent = path.dirname(output)
   const parentStat = await fs.lstat(outputParent)
@@ -175,6 +179,7 @@ export async function packageRelease({ image, imageFile, output, root = teamRoot
 
   const sources = bundleFiles.map(([source, entry, mode]) => ({ source: path.join(root, source), entry, mode }))
   for (const item of sources) await assertRegularFile(item.source)
+  onProgress({ stage: 'validate-inputs', status: 'end' })
   const rootName = releaseName(image)
   const imageName = path.basename(imageFile)
   const modifiedAt = archiveTimestamp()
@@ -182,12 +187,17 @@ export async function packageRelease({ image, imageFile, output, root = teamRoot
   let handle
   try {
     handle = await fs.open(temporary, 'wx', 0o600)
+    onProgress({ stage: 'deployment-files', status: 'start' })
     for (const directory of ['', 'bin', 'image', 'ai-company', 'ai-company/docker', 'ai-company/docker/agency']) {
       const name = `${rootName}${directory ? `/${directory}` : ''}/`
       await writeAll(handle, createTarHeader({ name, mode: 0o755, modifiedAt, type: '5' }))
     }
-    for (const item of sources) await addFile(handle, `${rootName}/${item.entry}`, item.source, item.mode, modifiedAt)
-    await addFile(handle, `${rootName}/image/${imageName}`, imageFile, 0o644, modifiedAt)
+    for (const item of sources) await addFile(handle, `${rootName}/${item.entry}`, item.source, item.mode, modifiedAt, signal)
+    onProgress({ stage: 'deployment-files', status: 'end' })
+    onProgress({ stage: 'image-archive', status: 'start' })
+    await addFile(handle, `${rootName}/image/${imageName}`, imageFile, 0o644, modifiedAt, signal)
+    onProgress({ stage: 'image-archive', status: 'end' })
+    onProgress({ stage: 'seal-release', status: 'start' })
     await addBuffer(handle, `${rootName}/QUICKSTART.txt`, Buffer.from(quickstart({ image, imageName }), 'utf8'), 0o644, modifiedAt)
     await writeAll(handle, Buffer.alloc(1024))
     await handle.sync()
@@ -196,6 +206,7 @@ export async function packageRelease({ image, imageFile, output, root = teamRoot
     handle = undefined
     await fs.link(temporary, output)
     await fs.unlink(temporary)
+    onProgress({ stage: 'seal-release', status: 'end' })
     return { output, rootName, image, imageFile, bytes: (await fs.stat(output)).size }
   } catch (error) {
     await handle?.close().catch(() => undefined)
@@ -205,12 +216,40 @@ export async function packageRelease({ image, imageFile, output, root = teamRoot
 }
 
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  let log, interrupted
+  const controller = new AbortController()
+  const onInterrupt = () => { interrupted = 'SIGINT'; controller.abort() }
+  const onTerminate = () => { interrupted = 'SIGTERM'; controller.abort() }
   try {
     const options = parsePackageArgs(process.argv.slice(2))
     if (options.help) console.log(usage)
-    else console.log(JSON.stringify(await packageRelease(options), null, 2))
+    else {
+      log = createInvocationLog(teamRoot, 'package', process.argv.slice(2))
+      console.error(`Command log: ${log.path}`)
+      process.on('SIGINT', onInterrupt)
+      process.on('SIGTERM', onTerminate)
+      const result = await packageRelease({ ...options, signal: controller.signal, onProgress: stage => {
+        log.event('stage', stage)
+        const line = `Packaging: ${stage.stage} ${stage.status}`
+        console.log(line)
+        log.line('stdout', line)
+      } })
+      const summary = JSON.stringify(result, null, 2)
+      console.log(summary)
+      log.line('stdout', summary)
+      log.close()
+    }
   } catch (error) {
-    console.error(error instanceof Error && error.code === 'ENOENT' ? 'Release input or output directory not found' : error instanceof Error ? error.message : 'Release packaging failed')
-    process.exitCode = 1
+    const message = error instanceof Error && error.code === 'ENOENT' ? 'Release input or output directory not found' : error instanceof Error ? error.message : 'Release packaging failed'
+    console.error(message)
+    log?.line('stderr', message)
+    log?.close({ exitCode: interrupted ? signalExitCode(interrupted) : 1, signal: interrupted ?? null })
+    if (log) console.error(`Retained command log: ${log.path}`)
+    process.off('SIGINT', onInterrupt)
+    process.off('SIGTERM', onTerminate)
+    forwardFailureExit(interrupted ? { signal: interrupted } : error)
+  } finally {
+    process.off('SIGINT', onInterrupt)
+    process.off('SIGTERM', onTerminate)
   }
 }
