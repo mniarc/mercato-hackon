@@ -261,6 +261,8 @@ describe('8.3 publication order and 8.7 confirmation (pure)', () => {
 
 describe('8.x steps over the store', () => {
   type Stored = InputVersion & { versionId: string; data: unknown }
+  // 8.3 reads publication consent by the exact post version id, which must be a uuid
+  const POST_VERSION_ID = '0f6b1e2a-8c3d-4e5f-9a1b-2c3d4e5f6a7b'
   const mocked = store as jest.Mocked<typeof store>
   const ctxOf = (em: unknown): StepContext =>
     ({
@@ -293,7 +295,7 @@ describe('8.x steps over the store', () => {
   })
 
   it('8.3 refuses without a post or a configuration, and records the failed run', async () => {
-    const { ctx } = arrange({ 'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'ready_for_review', versionId: 'vp', data: post() } })
+    const { ctx } = arrange({ 'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'ready_for_review', versionId: POST_VERSION_ID, data: post() } })
     await expect(runPublicationOrderStep(ctx)).rejects.toThrow('8.3 needs')
     expect(mocked.startTaskRun).not.toHaveBeenCalled()
   })
@@ -302,7 +304,7 @@ describe('8.x steps over the store', () => {
     const config = buildPublicationConfig({ order }, 'pl').data
     const { em, ctx } = arrange(
       {
-        'WZR-POST': { document_id: 'KLI-POST@o', version: '2.0', status: 'ready_for_review', versionId: 'vp', data: post() },
+        'WZR-POST': { document_id: 'KLI-POST@o', version: '2.0', status: 'ready_for_review', versionId: POST_VERSION_ID, data: post() },
         'WZR-KONFIG-PUBLIKACJI': { document_id: 'WEW-KONFIG-PUBLIKACJI@o', version: '1.0', status: 'blocked', versionId: 'vc', data: config },
         'WZR-ESKALACJA': { document_id: 'WEW-ESKALACJA@o', version: '1.0', status: 'blocked', versionId: 've', data: { resolution: { state: 'open', selected_code_or_null: null, actor_ref_or_null: null, rationale_or_null: null, evidence_refs: [] } } },
       },
@@ -310,7 +312,7 @@ describe('8.x steps over the store', () => {
     )
     const outcome = await runPublicationOrderStep(ctx)
     expect(outcome.status).toBe('done')
-    expect(em.findOne).toHaveBeenCalledWith(expect.anything(), { id: 'vp' })
+    expect(em.findOne).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ id: POST_VERSION_ID }))
     const saved = mocked.saveDocumentVersion.mock.calls[0][2]
     expect(saved.templateId).toBe('WZR-ZLECENIE-PUBLIKACJI')
     expect(saved.status).toBe('blocked')
@@ -331,7 +333,7 @@ describe('8.x steps over the store', () => {
     const config = buildPublicationConfig({ order }, 'pl').data
     const { ctx } = arrange(
       {
-        'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'approved', versionId: 'vp', data: post() },
+        'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'approved', versionId: POST_VERSION_ID, data: post() },
         'WZR-KONFIG-PUBLIKACJI': { document_id: 'WEW-KONFIG-PUBLIKACJI@o', version: '1.0', status: 'blocked', versionId: 'vc', data: config },
         'WZR-POTWIERDZENIE-PUBLIKACJI': { document_id: 'WEW-POTWIERDZENIE-PUBLIKACJI@o', version: '1.0', status: 'blocked', versionId: 'vk', data: { ...buildPublicationConfirmation({ order: buildPublicationOrder({ orderRef: 'o', post: post(), postVersion: postVersion(), config, configVersion, adapter: null }, 'pl').data, orderRef: { document_id: 'WEW-ZLECENIE-PUBLIKACJI@o', version: '1.0' } }, 'pl') } },
       },
@@ -355,7 +357,7 @@ describe('8.x steps over the store', () => {
     await expect(runPublicationConfirmationStep(missing.ctx)).rejects.toThrow('8.7 needs')
     const { em, ctx } = arrange({
       'WZR-ZLECENIE-PUBLIKACJI': { document_id: 'WEW-ZLECENIE-PUBLIKACJI@o', version: '1.0', status: 'blocked', versionId: 'vo', data: orderData },
-      'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'ready_for_review', versionId: 'vp', data: post() },
+      'WZR-POST': { document_id: 'KLI-POST@o', version: '1.0', status: 'ready_for_review', versionId: POST_VERSION_ID, data: post() },
     })
     const outcome = await runPublicationConfirmationStep(ctx)
     expect(outcome).toEqual({ taskRunId: 'run-8', versionId: 'v-WZR-POTWIERDZENIE-PUBLIKACJI', status: 'done' })
