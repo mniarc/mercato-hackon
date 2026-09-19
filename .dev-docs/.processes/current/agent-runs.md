@@ -161,7 +161,11 @@ Employees see the post/QA references, budget pause or exception. A QA-ready post
 creates an exact-version native customer review task. Explicit content approval
 goes through G and records a content-only acceptance; questions, changes and holds
 remain original messages, not approval. Neither response receipt nor content
-acceptance grants publication consent. Older configured
+acceptance grants publication consent. Applied content acceptance also prepares
+the teammate's internal publication instruction deterministically, pinned to that
+post and receipt. Employees see the saved references and missing destination,
+access or consent gates; this continuation never reserves or sends a publication.
+Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
 On Windows, send workflow JSON as UTF-8 (Node `fetch` or explicit UTF-8 bytes);

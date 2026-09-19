@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema } from '../contracts/clientSubmission'
 import { clientTriageInterpretationSchema } from '../../agents/client-triage/contract'
 import { analysisProcessResultSchema } from '../analysisProcess/contracts'
-import { postInstructionExecutionResultSchema, strategyProcessReferenceSchema } from '@/modules/agency_research/lib/contracts'
+import { postInstructionExecutionResultSchema, strategyProcessReferenceSchema, publicationPreparationResultSchema } from '@/modules/agency_research/lib/contracts'
 import { strategyExecutionActivityResultSchema } from '../strategyExecution/contracts'
 import { planningExecutionActivityResultSchema } from '../planningExecution/contracts'
 import { postExecutionActivityResultSchema } from '../postExecution/contracts'
@@ -78,6 +78,7 @@ export const caseProcessSubmissionSchema = z.object({
   planningExecution: planningExecutionActivityResultSchema.nullable().optional(),
   postInstruction: postInstructionExecutionResultSchema.nullable().optional(),
   postExecution: postExecutionActivityResultSchema.nullable().optional(),
+  publicationPreparation: publicationPreparationResultSchema.nullable().optional(),
   tasks: z.array(z.object({
     id: z.uuid(),
     status: z.string(),

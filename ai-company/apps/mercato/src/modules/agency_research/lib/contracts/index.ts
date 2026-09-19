@@ -22,3 +22,5 @@ export { postExecutionRequestSchema, postExecutionOutcomeSchema, postExecutionRe
 export type { PostExecutionRequest, PostExecutionOutcome, PostExecutionResult } from '../postExecution/contracts'
 export { postAcceptanceRequestSchema, postAcceptanceRecordSchema, postAcceptanceReceiptSchema, acceptPostInputSchema } from '../postAcceptance/contracts'
 export type { PostAcceptanceRequest, PostAcceptanceRecord, PostAcceptanceReceipt, PostAcceptance, AcceptPostInput } from '../postAcceptance/contracts'
+export { publicationPreparationRequestSchema, preparePublicationInputSchema, publicationPreparationPreparedSchema, publicationPreparationResultSchema } from '../publicationPreparation/contracts'
+export type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'

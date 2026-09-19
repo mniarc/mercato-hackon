@@ -9,6 +9,7 @@ import { PLANNING_EXECUTION_FUNCTION, PLANNING_EXECUTION_RESULT_KEY, PLANNING_EX
 import { POST_INSTRUCTION_FUNCTION, POST_INSTRUCTION_RESULT_KEY } from '../../lib/planApproval/contracts'
 import { POST_EXECUTION_FUNCTION, POST_EXECUTION_RESULT_KEY, POST_EXECUTION_STEP_ID } from '../../lib/postExecution/contracts'
 import { POST_REVIEW_HANDOFF_FUNCTION } from '../../lib/postApproval/contracts'
+import { PUBLICATION_PREPARATION_FUNCTION, PUBLICATION_PREPARATION_RESULT_KEY, PUBLICATION_PREPARATION_STEP_ID } from '../../lib/publicationPreparation/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -53,7 +54,8 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'AUTOMATED' },
     { stepId: POST_EXECUTION_STEP_ID, stepName: 'Post author and editor outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'post_review', stepName: 'Post content review handoff recorded', stepType: 'END' },
-    { stepId: 'post_content_decision', stepName: 'Post content decision recorded', stepType: 'END' },
+    { stepId: 'post_content_decision', stepName: 'Post content decision recorded', stepType: 'AUTOMATED' },
+    { stepId: PUBLICATION_PREPARATION_STEP_ID, stepName: 'Publication instruction prepared; sending not authorized', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'END' },
@@ -121,6 +123,9 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { transitionId: 'invite_post_review', fromStepId: POST_EXECUTION_STEP_ID, toStepId: 'post_review', trigger: 'auto',
       activities: [{ activityId: 'invite_post_review', activityName: 'agencyPostInvitation', activityType: 'EXECUTE_FUNCTION',
         config: { functionName: POST_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
+    { transitionId: 'prepare_publication', fromStepId: 'post_content_decision', toStepId: PUBLICATION_PREPARATION_STEP_ID, trigger: 'auto',
+      activities: [{ activityId: 'prepare_publication', activityName: PUBLICATION_PREPARATION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: PUBLICATION_PREPARATION_FUNCTION, args: {} } }] },
     { transitionId: 'unapplied', fromStepId: 'routed', toStepId: 'unapplied', trigger: 'auto', priority: 10, condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: 'unapplied' } },
     { transitionId: 'reply_received', fromStepId: 'client_reply', toStepId: 'reply_received', trigger: 'auto' },
   ],

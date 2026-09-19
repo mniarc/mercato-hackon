@@ -1,4 +1,8 @@
 {
+  "agencyOperations.cases.process.publicationPreparation.title": "Przygotowanie publikacji",
+  "agencyOperations.cases.process.publicationPreparation.prepared": "Zapisano wewnętrzną instrukcję dla zaakceptowanej wersji postu.",
+  "agencyOperations.cases.process.publicationPreparation.not_ready": "Przygotowanie publikacji wymaga zaakceptowanych danych wejściowych.",
+  "agencyOperations.cases.process.publicationPreparation.noSend": "Przygotowanie nie upoważnia do wysłania. Brak celu, dostępu i zgody na publikację pozostaje jawny.",
   "agencyOperations.cases.process.postExecution.title": "Zapisany wynik autora i redaktora postu",
   "agencyOperations.cases.process.postExecution.completed": "Zakończono pisanie i kontrolę redakcyjną. Sprawdź zapisany wynik QA.",
   "agencyOperations.cases.process.postExecution.paused_budget": "Produkcję postu wstrzymano po osiągnięciu ustalonego limitu kosztów.",

@@ -20,7 +20,8 @@ import { STRATEGY_EXECUTION_RESULT_KEY, strategyExecutionActivityResultSchema } 
 import { STRATEGY_PAIR_CONTINUATION_RESULT_KEY } from '../strategyPairApproval/contracts'
 import { PLANNING_EXECUTION_RESULT_KEY, planningExecutionActivityResultSchema } from '../planningExecution/contracts'
 import { POST_INSTRUCTION_RESULT_KEY } from '../planApproval/contracts'
-import { postInstructionExecutionResultSchema } from '@/modules/agency_research/lib/contracts'
+import { postInstructionExecutionResultSchema, publicationPreparationResultSchema } from '@/modules/agency_research/lib/contracts'
+import { PUBLICATION_PREPARATION_RESULT_KEY } from '../publicationPreparation/contracts'
 import { POST_EXECUTION_RESULT_KEY, postExecutionActivityResultSchema } from '../postExecution/contracts'
 import { caseStrategyHandoffSchema, caseStrategyPairContinuationSchema, type CaseAnalysisProcess, type CaseProcessResponse, type CaseProcessSubmission } from './contract'
 
@@ -42,6 +43,7 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const planningExecution = planningExecutionActivityResultSchema.safeParse(record(context[PLANNING_EXECUTION_RESULT_KEY]).result)
   const postInstruction = postInstructionExecutionResultSchema.safeParse(record(context[POST_INSTRUCTION_RESULT_KEY]).result)
   const postExecution = postExecutionActivityResultSchema.safeParse(record(context[POST_EXECUTION_RESULT_KEY]).result)
+  const publicationPreparation = publicationPreparationResultSchema.safeParse(record(context[PUBLICATION_PREPARATION_RESULT_KEY]).result)
   const scaffold = workflow?.workflowId === CLIENT_SUBMISSION_WORKFLOW_ID
   const active = workflow?.status === 'PAUSED' || workflow?.status === 'WAITING_FOR_ACTIVITIES' || workflow?.status === 'RUNNING'
   const error = workflow?.errorMessage ?? (workflow?.currentStepId === CLIENT_TRIAGE_EXCEPTION_STEP_ID ? record(context.__error).message : null)
@@ -80,6 +82,9 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
     postExecution: native && postExecution.success && postExecution.data.orderRef === submission.caseId
       && ((postExecution.data.status !== 'completed' && postExecution.data.status !== 'paused_budget') || postExecution.data.selectionSubmissionId === submission.id)
       ? postExecution.data : null,
+    publicationPreparation: native && publicationPreparation.success && publicationPreparation.data.orderRef === submission.caseId
+      && (publicationPreparation.data.status !== 'prepared' || publicationPreparation.data.acceptanceSubmissionId === submission.id)
+      ? publicationPreparation.data : null,
     tasks: tasks.map((task) => ({
       id: task.id, status: task.status, assignedTo: task.assignedTo ?? null,
       assignedToRoles: task.assignedToRoles ?? [], claimedBy: task.claimedBy ?? null,
