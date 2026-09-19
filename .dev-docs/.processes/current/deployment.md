@@ -26,6 +26,24 @@ directories with networking disabled; it never starts the app or contacts a data
 Transfer/load that image on the server, or use your chosen private registry; no registry
 or CI credentials are part of this repository.
 
+For a handoff that does not include a development checkout, package the already-exported
+image and the small deployment surface into one uncompressed tar. The output target must
+not exist; packaging streams the image and never builds, loads, starts, or deletes it.
+
+```sh
+node bin/package-release.mjs \
+  --image agency-app:<commit> \
+  --image-file /absolute/path/agency-app-<commit>.tar \
+  --output /absolute/path/agency-release-<commit>.tar
+```
+
+The outer tar contains one `agency-release-*` directory with the image archive,
+`bin/agency.{mjs,ps1,sh}`, Compose/runtime templates, and `QUICKSTART.txt`. It contains
+no application source, dependencies, private environment file, or secrets. After
+extraction, run commands from that directory so the unchanged runner can resolve
+`ai-company/docker/agency/compose.yml`. Docker Engine, Compose v2 and Node.js 24 are
+required; the bundle imports its prebuilt image and is not a server-side build kit.
+
 ## Configure and start
 
 Create `/etc/agency/runtime.env` from `ai-company/docker/agency/runtime.env.example`, outside the
