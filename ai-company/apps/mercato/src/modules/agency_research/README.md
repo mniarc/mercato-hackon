@@ -89,6 +89,7 @@ OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5     # wh
 OM_AGENCY_RESEARCH_MODEL_QA=openrouter/anthropic/claude-haiku-4.5
 OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
 OM_AGENT_RUN_TIMEOUT_MS=600000                   # orchestrator wall clock per agent run (default 300000); a synthesis over a full register can take longer
+OM_AGENCY_RESEARCH_CACHE_DIR=                    # in-app runs cache agent outputs per order here (default apps/mercato/.mercato/agency-research/cache); a resume or repair re-pays only changed inputs
 APIFY_TOKEN=…                                    # 3.2a: reads the spokespeople's own LinkedIn/X/Facebook/Instagram posts through the ToV lane's scraper seam; unset = channels listed, not read
 ```
 
