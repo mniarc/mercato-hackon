@@ -12,6 +12,10 @@
 - Keep integration tests independent, data-independent, deterministic, and safe across retries.
 - Create required fixtures per test and clean up created data in `finally`/teardown.
 - Inspect the project-owned persistent development environment before starting another app.
+- Preserve demo screenshots for human review and report their paths, but do not
+  visually inspect them unless the user explicitly requests image review.
+- Keep screenshots in Playwright's latest-run `test-results` directories; do not
+  create timestamped or accumulating screenshot archives.
 
 ## Ask First
 
@@ -28,7 +32,8 @@
 
 ## Validation Commands
 
-Use `yarn test:agency` or `yarn test:agency:headed` for the daily demo. The runner
+Use `yarn test:agency`, `yarn test:agency:headed`, or `yarn test:agency:demo` for
+the daily demo. The runner
 supplies matching app, database, queue, and auth environment and selects one spec.
 
 ## Quick Start

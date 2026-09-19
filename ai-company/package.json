@@ -123,6 +123,7 @@
     "dev:agency:status": "node scripts/agency-dev.mjs status",
     "test:agency": "node scripts/agency-dev.mjs test",
     "test:agency:headed": "node scripts/agency-dev.mjs test --headed",
+    "test:agency:demo": "cross-env PW_CAPTURE_SCREENSHOTS=1 node scripts/agency-dev.mjs test --headed",
     "test:agency:indev:start": "yarn dev:agency",
     "test:agency:indev:inspect": "yarn dev:agency:status",
     "test:agency:indev:run": "yarn test:agency",

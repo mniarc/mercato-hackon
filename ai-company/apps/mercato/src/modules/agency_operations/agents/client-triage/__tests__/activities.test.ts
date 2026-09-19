@@ -2,7 +2,7 @@
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { AgencyClientSubmission } from '../../../data/entities'
 import { CLIENT_TRIAGE_AGENT_ID, type ClientTriageInterpretation } from '../contract'
-import { CLIENT_TRIAGE_ENABLED_ENV } from '../configuration'
+import { CLIENT_TRIAGE_ENABLED_ENV, CLIENT_TRIAGE_FIXTURE_ENVIRONMENT } from '../configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../workflow'
 
 const findOne = jest.fn()
@@ -28,7 +28,9 @@ const container = { resolve: (key: string) => {
   if (key === 'em') return em
   throw new Error(key)
 } } as unknown as AppContainer
-const previousEnabled = process.env[CLIENT_TRIAGE_ENABLED_ENV]
+const previousEnvironment = Object.fromEntries(
+  [CLIENT_TRIAGE_ENABLED_ENV, ...Object.keys(CLIENT_TRIAGE_FIXTURE_ENVIRONMENT)].map((key) => [key, process.env[key]]),
+)
 
 function interpretation(kind: 'answer' | 'clarify' | 'approve'): ClientTriageInterpretation {
   return {
@@ -52,6 +54,7 @@ function activityContext(result: unknown = interpretation('answer')) {
 }
 
 beforeEach(() => {
+  Object.assign(process.env, CLIENT_TRIAGE_FIXTURE_ENVIRONMENT)
   process.env[CLIENT_TRIAGE_ENABLED_ENV] = 'true'
   findOne.mockReset()
   findOne.mockImplementation((_em, _entity, where: Record<string, unknown>) =>
@@ -59,8 +62,10 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  if (previousEnabled === undefined) delete process.env[CLIENT_TRIAGE_ENABLED_ENV]
-  else process.env[CLIENT_TRIAGE_ENABLED_ENV] = previousEnabled
+  for (const [key, value] of Object.entries(previousEnvironment)) {
+    if (value === undefined) delete process.env[key]
+    else process.env[key] = value
+  }
 })
 
 test('reloads the immutable original using the native workflow scope, ignoring mutable context and retry input', async () => {

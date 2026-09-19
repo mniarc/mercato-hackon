@@ -135,10 +135,11 @@ The current bounded foundation persists intake, deterministic answer/clarify,
 clarification replies, and employee attention using real platform infrastructure
 (T15/T16/T20 and earlier milestones). Triage's opt-in implementation connects native
 workflow invocation, workflow-owned grants, post-commit asynchronous dispatch,
-and authorized-result projection; T19 still owns its end-to-end runtime proof.
-Default-off wiring is not proof that an agent has completed a native run. T17 still needs
+and authorized-result projection. The canonical headed demo proved native execution
+and employee exception return with local intelligence; paid bounds remain T24.
+This is not proof of a live model's quality or full F51/F60 coverage. T17 still needs
 positive persisted-artifact runtime proof;
-T21 needs exact-step exception return; T22 needs a real version review receipt.
+T22 needs a real version review receipt.
 None is made complete by adding the role folders.
 
 Proceed T24 + T19 first at their shared activation seam; independent paid-order,

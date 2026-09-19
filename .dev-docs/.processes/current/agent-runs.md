@@ -145,7 +145,7 @@ and automatic recovery of partially persisted research are not implemented: reco
 existing runs instead of rerunning the full analysis. Code checks are separate from
 the pending live runtime proof; do not activate this in an occupied development runtime.
 
-## Native client triage (opt-in; runtime proof pending)
+## Native client triage (opt-in; local-intelligence proof passed)
 
 With the same Enterprise prerequisites, configure the scope once:
 
@@ -155,8 +155,9 @@ node scripts/agency-dev.mjs cli agency_operations configure-triage --tenant <uui
 
 This grants only `agent_orchestrator.agents.run` to the native workflow identity.
 Configuration refuses to overwrite an existing definition; changes use native
-workflow version publishing. Set `OM_AGENCY_TRIAGE_ENABLED=true` in app/workers
-only for intended native execution. Client submissions then use `INVOKE_AGENT`;
+workflow version publishing. Native triage currently permits only the explicit
+localhost intelligence fixture; live activation fails with an unsupported-limits
+error. Client submissions in fixture mode use `INVOKE_AGENT`;
 clients cannot select workers. Answer/clarify can route; other typed results are
 saved as explicitly unapplied. Agent failure enters a native employee UserTask;
 its sole resolution decision returns to the original triage input.
@@ -165,4 +166,14 @@ Keep the flag false for the deterministic baseline. Prompts and the shared model
 environment are not pinned by workflow versioning. Native run timeout does not
 cancel an in-flight provider request; activity timeout/retry settings are not
 agent budgets. No monetary/token cap is enforced by this binding. Paid execution
-still needs approved bounds and a separate live proof; opt-in is not that approval.
+is blocked until native enforcement and approved versioned bounds exist, followed
+by a separately approved live proof; opt-in cannot bypass that gap.
+
+The canonical headed demo passed on the persistent database: native clarification,
+client reply, controlled provider failure, authorized employee resolution, same-workflow
+retry and fixture cleanup. Only intelligence was substituted. For this unpaid proof,
+set `AGENCY_TEST_NATIVE_TRIAGE=1` in both app and test terminals, configure the workflow
+above once, then run `yarn test:agency:headed`. The runner pins a dummy credential,
+loopback provider (including the higher-priority `AGENCY_OPERATIONS_AI_BASE_URL`)
+and model allowlist; the test owns that temporary provider server.
+This mode is for the demo run, not unattended manual usage after its provider closes.

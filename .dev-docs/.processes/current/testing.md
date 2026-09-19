@@ -18,6 +18,7 @@ yarn dev:agency            # Leave running in its own terminal
 yarn dev:agency:status     # Inspect from another terminal
 yarn test:agency           # Run the one demo spec
 yarn test:agency:headed    # Same scenario with a visible browser
+yarn test:agency:demo      # Visible run plus checkpoint screenshots
 node scripts/agency-dev.mjs cli <command> <arguments> # Native CLI, same owned DB/runtime
 ```
 
@@ -62,6 +63,23 @@ Use the maintained runner, exact-spec discovery, one worker, and zero retries.
 Tests create and clean up only their own fixtures, leaving manual demo data alone.
 Prefer one cross-surface journey; keep detailed access/data assertions in focused
 tests. Report coarse progress steps, not polling noise.
+
+`test:agency:demo` saves numbered screenshots at meaningful user-visible
+checkpoints and attaches them to the Playwright HTML report. Report the run result,
+checkpoint names, and artifact paths. Files live beneath
+`ai-company/.ai/qa/test-results/artifacts/` and are linked from
+`ai-company/.ai/qa/test-results/html/`; open that report with
+`yarn test:integration:report`. Agents must not open, OCR, describe, or
+otherwise visually inspect those images unless the user explicitly requests it;
+use assertions, logs, and network/API evidence for routine diagnosis. This keeps
+the screenshots available for human inspection without spending model tokens on
+automatic image analysis.
+
+Treat `test-results` as latest-run storage, not an archive. Playwright clears the
+configured artifacts directory before each normal run and replaces the HTML
+report when reporting finishes, so repeated demo runs do not accumulate images.
+Do not add timestamped screenshot directories or automatic archives. A human who
+needs lasting evidence must copy the selected files elsewhere before the next run.
 
 ## Database changes
 

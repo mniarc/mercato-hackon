@@ -25,3 +25,17 @@ test('port overrides select the same app and database without changing dev crede
   assert.equal(new URL(env.DATABASE_URL).port, '5547')
   assert.throws(() => agencyEnvironment({}, { AGENCY_DB_PORT: 'shared' }), /Invalid agency development port/)
 })
+
+test('native triage proof overrides live provider credentials with the loopback fixture for app and runner', () => {
+  const env = agencyEnvironment({ OPENROUTER_API_KEY: 'live-key', OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1', AGENCY_OPERATIONS_AI_BASE_URL: 'https://example.com/live' }, { AGENCY_TEST_NATIVE_TRIAGE: '1' })
+  assert.equal(env.OPENROUTER_API_KEY, 'agency-triage-fixture-only')
+  assert.equal(env.OPENROUTER_BASE_URL, 'http://127.0.0.1:5003/v1')
+  assert.equal(env.AGENCY_OPERATIONS_AI_BASE_URL, 'http://127.0.0.1:5003/v1')
+  assert.equal(env.OM_AI_MODEL, 'openrouter/agency-triage-fixture')
+  assert.equal(env.OM_AI_AVAILABLE_PROVIDERS, 'openrouter')
+  assert.equal(env.OM_AI_AVAILABLE_MODELS_OPENROUTER, 'agency-triage-fixture')
+  assert.equal(env.OM_AGENCY_TRIAGE_ENABLED, 'true')
+  assert.equal(env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS, 'true')
+  assert.equal(env.AGENCY_TOV_EXECUTION_ENABLED, 'false')
+  assert.equal(agencyEnvironment({}).OM_AGENCY_TRIAGE_ENABLED, undefined)
+})
