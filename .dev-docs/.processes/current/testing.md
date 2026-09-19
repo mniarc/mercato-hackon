@@ -22,6 +22,18 @@ yarn test:agency:demo      # Visible run plus checkpoint screenshots
 node scripts/agency-dev.mjs cli <command> <arguments> # Native CLI, same owned DB/runtime
 ```
 
+Select a non-default journey explicitly on both app and runner. The production
+preset pins the repository's source and loopback intelligence fixtures, native
+post execution and the zero-charge purchase flag; it never selects live models.
+
+```powershell
+yarn dev:agency --journey production
+yarn test:agency:headed --journey production
+```
+
+`canonical` remains the default. `--journey purchase` selects the existing
+zero-charge purchase journey without changing the default scenario.
+
 The app is at `http://localhost:5002`; local demo login is
 `admin@acme.com` / `secret`. PostgreSQL uses `127.0.0.1:5544`, database `agency_dev`,
 with a workspace-specific Compose project and named volume. Runtime state stays

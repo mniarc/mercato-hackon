@@ -14,10 +14,72 @@ const journeySpecs = {
   production: 'TC-AGENCY-002-brief-to-plan.spec.ts',
   purchase: 'TC-AGENCY-003-demo-purchase.spec.ts',
 }
+const productionFixtureDirectory = path.join(app, 'src', 'modules', 'agency_research', '__fixtures__', 'flow')
+const usage = 'Use start [--journey canonical|production|purchase] | setup | migrate | status | test [--journey canonical|production|purchase] [--headed] [--list] | cli <mercato arguments>'
 
 export function agencyJourneySpec(journey = 'canonical') {
   if (!Object.hasOwn(journeySpecs, journey)) throw new Error('AGENCY_TEST_JOURNEY must be canonical, production or purchase')
   return `apps/mercato/src/modules/agency_operations/__integration__/${journeySpecs[journey]}`
+}
+
+function nonEmpty(value) {
+  return typeof value === 'string' && value.trim() ? value.trim() : null
+}
+
+function assertPresetValue(existing, key, expected, equivalent = (value) => value === expected) {
+  const actual = nonEmpty(existing[key])
+  if (actual && !equivalent(actual)) {
+    throw new Error(`--journey conflicts with ${key}=${actual}; required ${key}=${expected}`)
+  }
+}
+
+export function agencyJourneyPreset(journey, existing = {}) {
+  agencyJourneySpec(journey)
+  assertPresetValue(existing, 'AGENCY_TEST_JOURNEY', journey)
+  if (journey === 'canonical') return { AGENCY_TEST_JOURNEY: journey }
+  assertPresetValue(existing, 'OM_AGENCY_DEMO_PURCHASE_ENABLED', '1', (value) => /^(1|true)$/i.test(value))
+  if (journey === 'purchase') {
+    return { AGENCY_TEST_JOURNEY: journey, OM_AGENCY_DEMO_PURCHASE_ENABLED: '1' }
+  }
+  assertPresetValue(existing, 'AGENCY_TEST_NATIVE_TRIAGE', '1')
+  assertPresetValue(existing, 'AGENCY_TEST_NATIVE_POST', '1')
+  assertPresetValue(existing, 'AGENCY_TEST_RESEARCH_FIXTURE_DIR', productionFixtureDirectory,
+    (value) => path.resolve(value) === productionFixtureDirectory)
+  return {
+    AGENCY_TEST_JOURNEY: journey,
+    AGENCY_TEST_NATIVE_TRIAGE: '1',
+    AGENCY_TEST_NATIVE_POST: '1',
+    AGENCY_TEST_RESEARCH_FIXTURE_DIR: productionFixtureDirectory,
+    OM_AGENCY_DEMO_PURCHASE_ENABLED: '1',
+  }
+}
+
+export function parseAgencyInvocation(argv) {
+  const [action = 'start', ...rawFlags] = argv
+  if (!['start', 'setup', 'migrate', 'status', 'test', 'cli'].includes(action)) throw new Error(usage)
+  if (action === 'cli') {
+    if (!rawFlags.length) throw new Error(usage)
+    return { action, flags: rawFlags, journey: null }
+  }
+  const flags = []
+  let journey = null
+  for (let index = 0; index < rawFlags.length; index++) {
+    const token = rawFlags[index]
+    if (token === '--journey' || token.startsWith('--journey=')) {
+      if (journey) throw new Error(`Journey was selected more than once: ${journey} and ${token === '--journey' ? rawFlags[index + 1] ?? '(missing)' : token.slice('--journey='.length)}`)
+      journey = token === '--journey' ? rawFlags[++index] ?? '' : token.slice('--journey='.length)
+      agencyJourneySpec(journey)
+    } else {
+      flags.push(token)
+    }
+  }
+  if (journey && !['start', 'test'].includes(action)) throw new Error(`--journey is available only for start and test. ${usage}`)
+  if (action === 'test') {
+    if (flags.some((flag) => !['--headed', '--list'].includes(flag))) throw new Error(usage)
+  } else if (flags.length) {
+    throw new Error(usage)
+  }
+  return { action, flags, journey }
 }
 const composeProject = `agency-dev-${createHash('sha256').update(root.toLowerCase()).digest('hex').slice(0, 8)}`
 
@@ -152,11 +214,8 @@ async function assertPortFree(appPort) {
 }
 
 async function main() {
-  const [action = 'start', ...flags] = process.argv.slice(2)
-  if (!['start', 'setup', 'migrate', 'status', 'test', 'cli'].includes(action)
-    || (action === 'cli' ? flags.length === 0 : flags.some((flag) => !['--headed', '--list'].includes(flag)))) {
-    throw new Error('Use start | setup | migrate | status | test [--headed] [--list] | cli <mercato arguments>')
-  }
+  const { action, flags, journey } = parseAgencyInvocation(process.argv.slice(2))
+  const journeyPreset = journey ? agencyJourneyPreset(journey, process.env) : {}
   const cliBuild = path.join(root, 'packages', 'cli', 'dist', 'lib', 'testing', 'integration.js')
   if (!existsSync(cliBuild)) throw new Error('Prepare this checkout once: yarn build:packages && yarn generate && yarn build:packages')
   const { buildReusableEnvironment } = await import(pathToFileURL(cliBuild).href)
@@ -169,7 +228,11 @@ async function main() {
     path.join(runtime, 'queue'),
     process.env.PW_CAPTURE_SCREENSHOTS === '1',
   )
-  const env = agencyEnvironment(shared, process.env)
+  Object.assign(shared, journeyPreset)
+  const env = agencyEnvironment(shared, { ...process.env, ...journeyPreset })
+  if (action === 'start' || action === 'test') {
+    console.log(`[agency-dev] Journey ${env.AGENCY_TEST_JOURNEY ?? 'canonical'}: ${env.OM_INTEGRATION_EXACT_SPEC}`)
+  }
   const cli = (...args) => run(process.execPath, [path.join(app, 'scripts', 'mercato-cli.mjs'), ...args], env, app)
   if (action === 'cli') {
     await cli(...flags)

@@ -1,7 +1,56 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
-import { agencyEnvironment, assertUnpaidDemoEnvironment } from '../agency-dev.mjs'
+import {
+  agencyEnvironment, agencyJourneyPreset, assertUnpaidDemoEnvironment, parseAgencyInvocation,
+} from '../agency-dev.mjs'
+
+test('explicit journey arguments route start and test without changing the default', () => {
+  assert.deepEqual(parseAgencyInvocation([]), { action: 'start', flags: [], journey: null })
+  assert.deepEqual(parseAgencyInvocation(['start', '--journey=production']), { action: 'start', flags: [], journey: 'production' })
+  assert.deepEqual(parseAgencyInvocation(['test', '--headed', '--journey', 'purchase']), {
+    action: 'test', flags: ['--headed'], journey: 'purchase',
+  })
+  assert.deepEqual(parseAgencyInvocation(['cli', 'example', 'run', '--journey', 'internal']), {
+    action: 'cli', flags: ['example', 'run', '--journey', 'internal'], journey: null,
+  })
+  assert.throws(() => parseAgencyInvocation(['status', '--journey', 'canonical']), /available only for start and test/)
+  assert.throws(() => parseAgencyInvocation(['test', '--journey', 'canonical', '--journey', 'production']), /selected more than once/)
+  assert.throws(() => parseAgencyInvocation(['test', '--journey', 'unknown']), /must be canonical, production or purchase/)
+  assert.deepEqual(agencyJourneyPreset('canonical'), { AGENCY_TEST_JOURNEY: 'canonical' })
+  assert.deepEqual(agencyJourneyPreset('purchase'), {
+    AGENCY_TEST_JOURNEY: 'purchase',
+    OM_AGENCY_DEMO_PURCHASE_ENABLED: '1',
+  })
+})
+
+test('explicit production preset keeps app and runner on the complete local-only journey', () => {
+  const preset = agencyJourneyPreset('production')
+  const env = agencyEnvironment({ ...preset }, preset)
+  assert.equal(preset.AGENCY_TEST_NATIVE_TRIAGE, '1')
+  assert.equal(preset.AGENCY_TEST_NATIVE_POST, '1')
+  assert.equal(preset.OM_AGENCY_DEMO_PURCHASE_ENABLED, '1')
+  assert.ok(path.isAbsolute(preset.AGENCY_TEST_RESEARCH_FIXTURE_DIR))
+  assert.equal(env.AGENCY_TEST_NATIVE_POST, '1')
+  assert.equal(env.OPENROUTER_BASE_URL, 'http://127.0.0.1:5003/v1')
+  assert.equal(env.OPENROUTER_API_KEY, 'agency-triage-fixture-only')
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(env))
+})
+
+test('journey presets reject conflicting non-secret settings instead of silently mixing modes', () => {
+  assert.throws(
+    () => agencyJourneyPreset('production', { AGENCY_TEST_JOURNEY: 'canonical' }),
+    /AGENCY_TEST_JOURNEY=canonical; required AGENCY_TEST_JOURNEY=production/,
+  )
+  assert.throws(
+    () => agencyJourneyPreset('production', { AGENCY_TEST_NATIVE_POST: '0' }),
+    /AGENCY_TEST_NATIVE_POST=0; required AGENCY_TEST_NATIVE_POST=1/,
+  )
+  assert.throws(
+    () => agencyJourneyPreset('purchase', { OM_AGENCY_DEMO_PURCHASE_ENABLED: 'false' }),
+    /OM_AGENCY_DEMO_PURCHASE_ENABLED=false; required OM_AGENCY_DEMO_PURCHASE_ENABLED=1/,
+  )
+})
 
 test('journey selection reuses the same runner and keeps demo purchasing explicit', () => {
   assert.match(agencyEnvironment({}).OM_INTEGRATION_EXACT_SPEC, /TC-AGENCY-001-/)
