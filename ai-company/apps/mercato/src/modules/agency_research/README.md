@@ -103,7 +103,8 @@ yarn mercato agency_research status --order-ref demo-open-mercato-1
 Options: `--pages url,url` replaces site discovery (≤ 10 same-host pages ranked home / about /
 offer / cases / contact / blog); `--dry-run` prints the plan and the estimate and stops;
 `--runner direct` (OpenRouter directly, prompt iteration); `--tenant --org --user`.
-Outputs in `--out`: `WEW-ZRODLA.{json,md}`, `events.json`, `cache/`.
+Outputs in `--out`: `documents/<OUTPUT>.v<N>.{json,md,client.md}` — one file set per stored version, written once and
+never overwritten (Marcin's rule: every output keeps its versions) — plus `events.<timestamp>.json` per run and `cache/`.
 
 ## What is stored (`data/entities.ts`, `lib/store.ts`)
 
