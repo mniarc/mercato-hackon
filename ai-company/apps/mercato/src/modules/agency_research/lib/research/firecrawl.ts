@@ -61,3 +61,33 @@ export function createFirecrawlFetcher(opts: FirecrawlOptions): FetchPage {
     }
   }
 }
+
+export type SearchHit = { url: string; title: string | null; snippet: string | null }
+export type SearchWeb = (query: string, opts?: { limit?: number }) => Promise<SearchHit[]>
+
+/** Firecrawl's search endpoint for competitor discovery (3.4); results are candidates the code then vets and fetches. */
+export function createFirecrawlSearch(opts: FirecrawlOptions): SearchWeb {
+  const baseUrl = (opts.baseUrl ?? 'https://api.firecrawl.dev').replace(/\/$/, '')
+  const timeoutMs = opts.timeoutMs ?? 30_000
+  const fetchImpl = opts.fetchImpl ?? fetch
+  if (!opts.apiKey) throw new Error('[internal] FIRECRAWL_API_KEY is required for live search')
+  return async (query, options = {}) => {
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), timeoutMs)
+    try {
+      const response = await fetchImpl(`${baseUrl}/v1/search`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${opts.apiKey}` },
+        body: JSON.stringify({ query, limit: options.limit ?? 5 }),
+        signal: controller.signal,
+      })
+      if (!response.ok) return []
+      const body = (await response.json()) as { success?: boolean; data?: { url?: string; title?: string; description?: string }[] }
+      return (body.data ?? []).filter((hit) => typeof hit.url === 'string').map((hit) => ({ url: hit.url as string, title: hit.title ?? null, snippet: hit.description ?? null }))
+    } catch {
+      return []
+    } finally {
+      clearTimeout(timer)
+    }
+  }
+}

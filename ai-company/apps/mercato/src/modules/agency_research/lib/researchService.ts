@@ -7,8 +7,9 @@ import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, type AgencyResearchS
 import { collectSources, type CollectOptions, type FetchPage } from './research/fetch'
 import { createFirecrawlFetcher } from './research/firecrawl'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
-import { runSourcesStep, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from './research/pipeline'
-import { renderZrodla } from './research/render'
+import { runSourcesStep } from './research/steps/sources'
+import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
+import { renderZrodla } from './research/render/zrodla'
 import { createOrchestratorRunner } from './runners'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
 

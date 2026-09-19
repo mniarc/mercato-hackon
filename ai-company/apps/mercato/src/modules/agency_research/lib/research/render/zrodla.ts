@@ -1,5 +1,5 @@
-import type { DocumentIssue } from '../../data/schemas/envelope'
-import type { BusinessProfile, CoverageItem, ZrodlaData } from '../../data/schemas/zrodla'
+import type { DocumentIssue } from '../../../data/schemas/envelope'
+import type { BusinessProfile, CoverageItem, ZrodlaData } from '../../../data/schemas/zrodla'
 
 /**
  * Internal markdown for WEW-ZRODLA — the register is `internal_only` for the

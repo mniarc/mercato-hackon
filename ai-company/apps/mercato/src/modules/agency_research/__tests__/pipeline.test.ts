@@ -5,8 +5,9 @@ import { zrodlaDataSchema, type CoverageItem } from '../data/schemas/zrodla'
 import { collectSources, type FetchPage, type SocialPost } from '../lib/research/fetch'
 import { fieldEvidenceOf, buildEnvelope } from '../lib/research/envelope'
 import { BudgetPausedError, createLedger } from '../lib/research/ledger'
-import { runSourcesStep, type PipelineCache, type PipelineEvent } from '../lib/research/pipeline'
-import { renderZrodla } from '../lib/research/render'
+import { runSourcesStep } from '../lib/research/steps/sources'
+import type { PipelineCache, PipelineEvent } from '../lib/research/pipeline'
+import { renderZrodla } from '../lib/research/render/zrodla'
 import { createFixtureRunner } from '../lib/runners'
 
 const fixture = path.join(__dirname, '..', '__fixtures__', 'flow')

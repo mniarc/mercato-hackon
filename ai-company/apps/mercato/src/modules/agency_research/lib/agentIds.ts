@@ -1,19 +1,23 @@
-// Pure identifiers: importing a service or the CLI must not register agents.
-export const RESEARCH_PAGE_EXTRACTOR_AGENT_ID = 'agency_research.page_extractor'
-export const RESEARCH_PROOF_BUILDER_AGENT_ID = 'agency_research.proof_builder'
-export const RESEARCH_CONTENT_SEEDER_AGENT_ID = 'agency_research.content_seeder'
-export const RESEARCH_CONFLICT_FINDER_AGENT_ID = 'agency_research.conflict_finder'
-export const RESEARCH_COVERAGE_ASSESSOR_AGENT_ID = 'agency_research.coverage_assessor'
-export const RESEARCH_QA_AGENT_ID = 'agency_research.research_qa'
+// Pure identifiers, aggregated per phase: importing a service or the CLI must not register agents.
+import { auditAgentTiers } from './agents/ids.audit'
+import { briefAgentTiers } from './agents/ids.brief'
+import { competitorsAgentTiers } from './agents/ids.competitors'
+import { findingsAgentTiers } from './agents/ids.findings'
+import { sourcesAgentTiers } from './agents/ids.sources'
+
+export * from './agents/ids.sources'
+export * from './agents/ids.audit'
+export * from './agents/ids.competitors'
+export * from './agents/ids.findings'
+export * from './agents/ids.brief'
+
+export type ResearchAgentTier = 'extract' | 'synthesis' | 'qa'
 
 /** Model tier per agent: map/extract and QA on the cheap model, syntheses on the strong one. */
-export const RESEARCH_AGENT_TIERS = {
-  [RESEARCH_PAGE_EXTRACTOR_AGENT_ID]: 'extract',
-  [RESEARCH_PROOF_BUILDER_AGENT_ID]: 'synthesis',
-  [RESEARCH_CONTENT_SEEDER_AGENT_ID]: 'synthesis',
-  [RESEARCH_CONFLICT_FINDER_AGENT_ID]: 'extract',
-  [RESEARCH_COVERAGE_ASSESSOR_AGENT_ID]: 'extract',
-  [RESEARCH_QA_AGENT_ID]: 'qa',
-} as const
-
-export type ResearchAgentTier = (typeof RESEARCH_AGENT_TIERS)[keyof typeof RESEARCH_AGENT_TIERS]
+export const RESEARCH_AGENT_TIERS: Record<string, ResearchAgentTier> = {
+  ...sourcesAgentTiers,
+  ...auditAgentTiers,
+  ...competitorsAgentTiers,
+  ...findingsAgentTiers,
+  ...briefAgentTiers,
+}
