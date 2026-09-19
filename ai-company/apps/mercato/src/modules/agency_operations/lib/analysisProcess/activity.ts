@@ -11,7 +11,7 @@ import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase } from '../../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from '../contracts'
-import { analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
+import { analysisIntakeSteps, analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
 import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
 import { mapPaidPurchaseMaterial } from '../paidCaseAnalysis/material'
@@ -121,7 +121,7 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     }, undefined, scope)
     if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
     const saved = z.object({ result: analysisProcessResultSchema }).safeParse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.workflowInstance.context.agencyAnalysisResult)
-    const restart = z.object({ previousWorkflowInstanceId: z.uuid(), by: z.uuid(), attempt: z.number().int().positive() })
+    const restart = z.object({ previousWorkflowInstanceId: z.uuid(), by: z.uuid(), attempt: z.number().int().positive(), resumeFrom: z.enum(analysisIntakeSteps).optional() })
       .safeParse(context.workflowInstance.context.restart)
     // A queue redelivery is not a new paid attempt. Only the explicit staff
     // restart operation may continue a persisted waiting/interrupted result.
@@ -146,7 +146,10 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     const service = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
     // Reuse the producer's phase continuation, preserving scoped material inputs.
     const previous = await service.status(scope, agencyCase.id)
-    const resumeFrom = resumePoint(previous.taskRuns)
+    const resumeFrom = restart.success && restart.data.resumeFrom ? restart.data.resumeFrom : resumePoint(previous.taskRuns)
+    if (resumeFrom && analysisIntakeSteps.indexOf(resumeFrom as typeof analysisIntakeSteps[number]) > analysisIntakeSteps.indexOf(input.policy.through)) {
+      throw new CrudHttpError(409, { error: 'The requested resume point is outside the original pinned analysis policy.' })
+    }
     if (previous.taskRuns.length && (!restart.success || !resumeFrom)) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
     if (restart.success) {
       const attempted = await findOneWithDecryption(container.resolve<EntityManager>('em'), AgentRun, {

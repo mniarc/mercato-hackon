@@ -7,7 +7,8 @@ import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { orderDataSchema, orderFactsOf, type OrderData } from '../data/schemas/zamowienie'
 import { limits } from '../data/templates'
 import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type AgencyResearchService, type ResearchExecutionContext, type ResearchRunRequest, type ResearchRunResult, type ResearchStep } from './contracts'
-import { collectSources, type FetchPage, type SocialPost } from './research/fetch'
+import { collectSources, type CollectedSource, type FetchPage, type SocialPost } from './research/fetch'
+import { canonicalUrl, sourceId, sampleId } from './research/ids'
 import type { ResearchMaterialSource } from './contracts/agencyResearch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
 import { configuredFixtureSources } from './research/fixtureSources'
@@ -15,6 +16,7 @@ import { BudgetPausedError, createLedger, type LedgerEvent } from './research/le
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
+import type { ZrodlaData } from '../data/schemas/zrodla'
 import type { TemplateId } from '../data/schemas/envelope'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
@@ -139,6 +141,62 @@ export function resumedResearchTaskSteps(from: ResearchStep, through: ResearchSt
   return [...new Set(stepOrder.filter((step) => reaches(step, from) && reaches(through, step)).flatMap((step) => groups[step]))]
 }
 
+/**
+ * The competitor half of a stored register — what 3.4 appended: facts of a
+ * non-client entity, the sources only they cite, and the language samples of
+ * those sources — merged behind a freshly built client half. Collection keeps
+ * source identities stable; colliding new client sample IDs are remapped while
+ * the competitor references used by existing comparisons remain unchanged.
+ */
+export function carryCompetitorEntries(fresh: ZrodlaData, previous: ZrodlaData): ZrodlaData {
+  const clientEntity = fresh.facts[0]?.entity ?? null
+  const competitorFacts = previous.facts.filter((fact) => fact.fact_id.startsWith('C') && fact.entity !== clientEntity && !fresh.facts.some((row) => row.fact_id === fact.fact_id))
+  if (!competitorFacts.length) return fresh
+  const competitorSourceIds = new Set(competitorFacts.flatMap((fact) => [...fact.source_ids, fact.locator.source_id]))
+  for (const source of previous.sources.filter((source) => competitorSourceIds.has(source.source_id))) {
+    const collision = fresh.sources.find((row) => row.source_id === source.source_id)
+    if (collision && (canonicalUrl(collision.url_or_file) !== canonicalUrl(source.url_or_file)
+      || collision.source_visibility !== source.source_visibility || collision.origin !== source.origin)) {
+      throw new Error(`[internal] Source identity collision while retaining competitor evidence: ${source.source_id}`)
+    }
+  }
+  const freshSourceIds = new Set(fresh.sources.map((source) => source.source_id))
+  const sources = previous.sources.filter((source) => competitorSourceIds.has(source.source_id) && !freshSourceIds.has(source.source_id))
+  const samples = previous.language_samples.filter((sample) => competitorSourceIds.has(sample.source_id))
+  const sampleRenames = new Map<string, string>()
+  let nextSample = Math.max(0, ...[...previous.language_samples, ...fresh.language_samples].map((row) => Number(/^L(\d+)$/.exec(row.sample_id)?.[1] ?? 0)))
+  const clientSamples = fresh.language_samples.map((sample) => {
+    const collision = samples.find((row) => row.sample_id === sample.sample_id)
+    if (!collision || (collision.source_id === sample.source_id && collision.excerpt_or_paraphrase === sample.excerpt_or_paraphrase)) return sample
+    const id = sampleId(nextSample++)
+    sampleRenames.set(sample.sample_id, id)
+    return { ...sample, sample_id: id }
+  })
+  const freshSampleIds = new Set(clientSamples.map((sample) => sample.sample_id))
+  return {
+    ...fresh,
+    sources: [...fresh.sources, ...sources],
+    facts: [...fresh.facts, ...competitorFacts],
+    language_samples: [...clientSamples, ...samples.filter((sample) => !freshSampleIds.has(sample.sample_id))],
+    coverage: fresh.coverage.map((row) => row.item_type === 'requirement_coverage'
+      ? { ...row, evidence_ids: row.evidence_ids.map((id) => sampleRenames.get(id) ?? id) } : row),
+  }
+}
+
+/** A repaired collection retains existing source identities before extraction and native source persistence. */
+export function retainCollectedSourceIds(collected: CollectedSource[], previous: ZrodlaData): CollectedSource[] {
+  const used = new Set<string>()
+  let nextSource = Math.max(0, ...previous.sources.map((row) => Number(/^S-(\d+)$/.exec(row.source_id)?.[1] ?? 0)))
+  return collected.map((source) => {
+    const stored = previous.sources.find((row) => !used.has(row.source_id)
+      && canonicalUrl(row.url_or_file) === canonicalUrl(source.url) && row.origin === source.origin
+      && row.publisher === source.publisher && row.source_visibility === (source.source_visibility ?? 'public'))
+    const id = stored?.source_id ?? sourceId(nextSource++)
+    used.add(id)
+    return { ...source, source_id: id }
+  })
+}
+
 /** 3.2 as a step over the shared context: fetch → sources rows → pipeline → WEW-ZRODLA v1. */
 export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
@@ -153,9 +211,13 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   })
   ctx.taskRunIds.push(run.id)
   try {
-    const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, materialSources: ctx.materialSources, log: ctx.log })
+    const fetched = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, materialSources: ctx.materialSources, log: ctx.log })
+    const collected = previous ? retainCollectedSourceIds(fetched, previous.data as ZrodlaData) : fetched
     await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, collected)
     const result = await runSourcesStep({ order: ctx.order, sources: collected, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
+    // A repair of 3.2 rebuilds the client's half of the register; the competitor half 3.4 appended (C-facts, their
+    // sources and samples) is carried forward unchanged, so WEW-KONKURENCJA keeps citing ids that exist.
+    const data = previous ? carryCompetitorEntries(result.data, previous.data as ZrodlaData) : result.data
     // The register is reviewed in 3.7; its blockers travel as issues, not as a status.
     const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
       orderRef: ctx.orderRef,
@@ -163,9 +225,9 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
       templateId: 'WZR-ZRODLA',
       status: 'ready_for_review',
       inputVersions: [ctx.orderVersion],
-      data: result.data as unknown as Record<string, unknown>,
+      data: data as unknown as Record<string, unknown>,
       issues: result.issues,
-      renderedMd: renderZrodla({ brand: ctx.order.brand, data: result.data, businessProfile: result.businessProfile, issues: result.issues, versionLabel: previous ? String(Number(previous.version.split('.')[0]) + 1) : '1' }),
+      renderedMd: renderZrodla({ brand: ctx.order.brand, data, businessProfile: result.businessProfile, issues: result.issues, versionLabel: previous ? String(Number(previous.version.split('.')[0]) + 1) : '1' }),
       taskRunId: run.id,
     })
     ctx.documentVersionIds.push(saved.version.id)

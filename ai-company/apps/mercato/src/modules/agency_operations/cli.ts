@@ -144,15 +144,15 @@ const configurePurchase: ModuleCli = {
 const resumeAnalysis: ModuleCli = {
   command: 'resume-analysis',
   async run(argv) {
-    const usage = '[internal] Usage: agency_operations resume-analysis --case <uuid> --tenant <uuid> --organization <uuid> --user <staff-uuid>'
+    const usage = '[internal] Usage: agency_operations resume-analysis --case <uuid> --tenant <uuid> --organization <uuid> --user <staff-uuid> [--from 3.2|3.5|3.8|4.2]'
     const options = new Map<string, string>()
     for (let index = 0; index < argv.length; index += 2) {
-      if (!['--case', '--tenant', '--organization', '--user'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
+      if (!['--case', '--tenant', '--organization', '--user', '--from'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
       options.set(argv[index].slice(2), argv[index + 1])
     }
     const container = await createRequestContainer()
     try {
-      const result = await restartAnalysisCase(container, { caseId: options.get('case'), tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user') })
+      const result = await restartAnalysisCase(container, { caseId: options.get('case'), tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user'), ...(options.get('from') ? { resumeFrom: options.get('from') } : {}) })
       process.stdout.write(`${JSON.stringify(result)}
 `)
     } finally { await container.dispose() }

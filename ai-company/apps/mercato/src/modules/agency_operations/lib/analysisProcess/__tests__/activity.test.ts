@@ -1,6 +1,8 @@
 /** @jest-environment node */
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { workflowStepSchema, workflowTransitionSchema } from '@open-mercato/core/modules/workflows/data/validators'
+import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 
 const findOne = jest.fn()
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: (...args: unknown[]) => findOne(...args) }))
@@ -126,6 +128,21 @@ it('fixture analysis never resolves the paid social scraper even with a buyer pr
     if (previousFixture === undefined) delete process.env.AGENCY_TEST_NATIVE_TRIAGE
     else process.env.AGENCY_TEST_NATIVE_TRIAGE = previousFixture
   }
+})
+
+it('uses an explicit terminal-recovery override inside the pinned intake range, not as queue retry authority', async () => {
+  const execution = context()
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: stepInstanceId, by: userId, attempt: 1, resumeFrom: '3.5' }
+  findOne.mockImplementation(async (_em, entity) => entity === AgentRun ? null : entity === WorkflowInstance
+    ? { metadata: { entityType: 'agency_operations:agency_case', entityId: caseId } }
+    : { id: caseId, materialAttachmentId: 'attachment-1' })
+  status.mockResolvedValue({ taskRuns: [{ stepId: '3.2', status: 'done' }] })
+  await createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)
+  expect(run.mock.calls[0][0].request.resumeFrom).toBe('3.5')
+  run.mockClear()
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: stepInstanceId, by: userId, attempt: 1, resumeFrom: '4.2' }
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)).rejects.toMatchObject({ status: 409 })
+  expect(run).not.toHaveBeenCalled()
 })
 
 it.each([

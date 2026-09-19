@@ -5,12 +5,14 @@ import { WorkflowDefinition, WorkflowInstance } from '@open-mercato/core/modules
 import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 import { AgencyCase } from '../../../data/entities'
 import { restartAnalysisCase } from '../restart'
-import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from '../workflow'
+import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const input = { tenantId: uuid(1), organizationId: uuid(2), userId: uuid(3), caseId: uuid(4) }
 const purchase = { orderId: uuid(8), paymentId: uuid(9), receiptAttachmentId: uuid(10) }
+const policy = { through: '3.8' as const, maxCostPln: 2,
+  productSelection: { sku: 'configured', offer_version: 'v1', price_net: 100, currency: 'PLN', result_limits: { topics: 7 } } }
 let previous: WorkflowInstance, agencyCase: AgencyCase, active: boolean, transactionOpen: boolean
 const startWorkflow = jest.fn(), executeWorkflow = jest.fn()
 const em = { flush: jest.fn(), transactional: async (fn: (tx: unknown) => Promise<unknown>) => {
@@ -32,7 +34,7 @@ beforeEach(() => {
     if (entity === AgencyCase) return agencyCase as never
     if (entity === WorkflowInstance) return previous as never
     if (entity === AgentRun) return (active ? { id: uuid(21) } : null) as never
-    if (entity === WorkflowDefinition) return { version: 7, enabled: true, metadata: { generatedBy: { module: 'agency_operations', ownerId: 'analysis' } } } as never
+    if (entity === WorkflowDefinition) return { version: 7, enabled: true, definition: createAgencyAnalysisWorkflowDefinition(policy), metadata: { generatedBy: { module: 'agency_operations', ownerId: 'analysis' } } } as never
     return null
   })
   startWorkflow.mockResolvedValue({ id: uuid(11) })
@@ -60,5 +62,19 @@ test('a terminal workflow is not proof that its provider or a parallel client-re
   expect(startWorkflow).not.toHaveBeenCalled(); expect(executeWorkflow).not.toHaveBeenCalled()
   active = false; previous.status = 'RUNNING'
   await expect(restartAnalysisCase(container, input)).rejects.toMatchObject({ status: 409 })
+  expect(startWorkflow).not.toHaveBeenCalled()
+})
+
+test('explicit --from is saved only within the original intake policy; paused employee holds are not a resume action', async () => {
+  await restartAnalysisCase(container, { ...input, resumeFrom: '3.5' })
+  expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({ initialContext: expect.objectContaining({
+    restart: expect.objectContaining({ resumeFrom: '3.5', attempt: 1, previousWorkflowInstanceId: uuid(5) }),
+  }) }))
+  startWorkflow.mockClear()
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '4.2' })).rejects.toMatchObject({ status: 409 })
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '7.3' })).rejects.toThrow()
+  previous.status = 'PAUSED'
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '3.2' })).rejects.toMatchObject({ status: 409,
+    body: expect.objectContaining({ error: expect.stringContaining('keep_blocked') }) })
   expect(startWorkflow).not.toHaveBeenCalled()
 })
