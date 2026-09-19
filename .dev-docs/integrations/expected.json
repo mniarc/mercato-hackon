@@ -403,15 +403,15 @@
     },
     {
       "id": "agency_tov.source_scout",
-      "processId": "agency_tov.cli.discover",
+      "processId": "agency_tov_source_discovery",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/corpus/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
       "integrationIds": [
         "scout-to-tov-targets"
       ],
-      "notes": "Conditional CLI --discover only; not invoked by native workflow or canonical agency flow."
+      "notes": "Authorized case-scoped app API invokes the teammate scout through native agentRuntime at step agency_tov_source_discovery and reads its saved target result. CLI --discover also remains. This source connection is not executed proof or a completed normalized-corpus handoff."
     }
   ],
   "integrations": [
@@ -523,12 +523,12 @@
     },
     {
       "id": "scout-to-tov-targets",
-      "processId": "agency_tov.cli.discover",
-      "source": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
-      "notes": "CLI target selection exists. No canonical app trigger or handoff proven."
+      "processId": "agency_tov_source_discovery",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/[id]/route.ts",
+      "notes": "App start/read routes expose persisted native scout targets. This edge ends at saved target selection, not corpus collection or specialist production; no execution observation is implied."
     }
   ]
 }
