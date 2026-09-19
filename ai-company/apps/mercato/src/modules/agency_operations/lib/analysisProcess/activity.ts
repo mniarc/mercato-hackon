@@ -133,7 +133,8 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     // left persisted research without the native activity result, stop instead
     // of charging for a second whole analysis or inventing a partial replay.
     const previous = await service.status(scope, agencyCase.id)
-    const resumeFrom = resumePoint(previous.taskRuns)
+    const override = z.object({ restart: z.object({ resumeFrom: z.enum(RESUMABLE_STEPS) }) }).safeParse(context.workflowInstance.context)
+    const resumeFrom = override.success ? override.data.restart.resumeFrom : resumePoint(previous.taskRuns)
     if (previous.taskRuns.length && !resumeFrom) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
     if (resumeFrom) logger.info('Resuming research after a pause', { caseId: agencyCase.id, resumeFrom, cap: input.policy.maxCostPln })
     const socialPosts = parsed.socialPosts?.length ? parsed.socialPosts : await liveSocialCorpus(container, parsed.order, agencyCase.id)

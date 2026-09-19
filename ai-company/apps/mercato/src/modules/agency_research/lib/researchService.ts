@@ -11,6 +11,7 @@ import { BudgetPausedError, createLedger, type LedgerEvent } from './research/le
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
+import type { ZrodlaData } from '../data/schemas/zrodla'
 import type { TemplateId } from '../data/schemas/envelope'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
@@ -115,6 +116,30 @@ const groupOutput: Record<ResearchStep, TemplateId> = {
   '6.7': 'WZR-ZLECENIE-POSTU', '7.3': 'WZR-POST', '8.7': 'WZR-POTWIERDZENIE-PUBLIKACJI', '9.3': 'WZR-PAKIET',
 }
 
+/**
+ * The competitor half of a stored register — what 3.4 appended: facts of a
+ * non-client entity, the sources only they cite, and the language samples of
+ * those sources — merged behind a freshly built client half. Ids do not
+ * collide: client facts are F…, competitor facts C…; sources and samples are
+ * matched by id so a rebuilt client source never duplicates.
+ */
+export function carryCompetitorEntries(fresh: ZrodlaData, previous: ZrodlaData): ZrodlaData {
+  const clientEntity = fresh.facts[0]?.entity ?? null
+  const competitorFacts = previous.facts.filter((fact) => fact.fact_id.startsWith('C') && fact.entity !== clientEntity && !fresh.facts.some((row) => row.fact_id === fact.fact_id))
+  if (!competitorFacts.length) return fresh
+  const competitorSourceIds = new Set(competitorFacts.flatMap((fact) => [...fact.source_ids, fact.locator.source_id]))
+  const freshSourceIds = new Set(fresh.sources.map((source) => source.source_id))
+  const sources = previous.sources.filter((source) => competitorSourceIds.has(source.source_id) && !freshSourceIds.has(source.source_id))
+  const freshSampleIds = new Set(fresh.language_samples.map((sample) => sample.sample_id))
+  const samples = previous.language_samples.filter((sample) => competitorSourceIds.has(sample.source_id) && !freshSampleIds.has(sample.sample_id))
+  return {
+    ...fresh,
+    sources: [...fresh.sources, ...sources],
+    facts: [...fresh.facts, ...competitorFacts],
+    language_samples: [...fresh.language_samples, ...samples],
+  }
+}
+
 /** 3.2 as a step over the shared context: fetch → sources rows → pipeline → WEW-ZRODLA v1. */
 export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
@@ -132,6 +157,9 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
     const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, log: ctx.log })
     await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, collected)
     const result = await runSourcesStep({ order: ctx.order, sources: collected, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
+    // A repair of 3.2 rebuilds the client's half of the register; the competitor half 3.4 appended (C-facts, their
+    // sources and samples) is carried forward unchanged, so WEW-KONKURENCJA keeps citing ids that exist.
+    const data = previous ? carryCompetitorEntries(result.data, previous.data as ZrodlaData) : result.data
     // The register is reviewed in 3.7; its blockers travel as issues, not as a status.
     const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
       orderRef: ctx.orderRef,
@@ -139,9 +167,9 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
       templateId: 'WZR-ZRODLA',
       status: 'ready_for_review',
       inputVersions: [ctx.orderVersion],
-      data: result.data as unknown as Record<string, unknown>,
+      data: data as unknown as Record<string, unknown>,
       issues: result.issues,
-      renderedMd: renderZrodla({ brand: ctx.order.brand, data: result.data, businessProfile: result.businessProfile, issues: result.issues, versionLabel: previous ? String(Number(previous.version.split('.')[0]) + 1) : '1' }),
+      renderedMd: renderZrodla({ brand: ctx.order.brand, data, businessProfile: result.businessProfile, issues: result.issues, versionLabel: previous ? String(Number(previous.version.split('.')[0]) + 1) : '1' }),
       taskRunId: run.id,
     })
     ctx.documentVersionIds.push(saved.version.id)

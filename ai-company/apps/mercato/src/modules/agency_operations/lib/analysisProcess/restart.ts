@@ -9,9 +9,13 @@ import { AgencyCase } from '../../data/entities'
 import { assertAnalysisProcessConfigured } from './configure'
 import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
 
-type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
+type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext'>
 
-const inputSchema = z.object({ tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid() }).strict()
+const inputSchema = z.object({
+  tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(),
+  /** Override the automatic resume point (a chain group: 3.2, 3.5, 3.8, 4.2 …), e.g. to rebuild an earlier document. */
+  resumeFrom: z.enum(['3.2', '3.5', '3.8', '4.2', '5.4', '6.7', '7.3', '8.7', '9.3']).optional(),
+}).strict()
 const TERMINAL = new Set(['FAILED', 'CANCELLED', 'COMPLETED'])
 
 /**
@@ -36,9 +40,15 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
   const previous = agencyCase.workflowInstanceId
     ? await findOneWithDecryption(em, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, deletedAt: null }, undefined, scope)
     : null
+  const executor = container.resolve<Executor>('workflowExecutor')
+  if (previous && previous.status === 'PAUSED' && input.resumeFrom) {
+    // Paused on an open exception task: the human decision stays with the employee. The override is written
+    // into the live instance so that resolving the task re-enters research from the requested step.
+    await executor.updateWorkflowContext(em, previous.id, { restart: { attempt: 0, previousWorkflowInstanceId: null, by: input.userId, at: new Date().toISOString(), resumeFrom: input.resumeFrom } })
+    return { caseId: agencyCase.id, previousWorkflowInstanceId: null, workflowInstanceId: previous.id, status: previous.status, currentStep: previous.currentStepId ?? 'research_exception' }
+  }
   if (previous && !TERMINAL.has(previous.status)) throw new CrudHttpError(409, { error: `The case workflow is still ${previous.status}; nothing to restart` })
   const attempt = (previous?.correlationKey?.match(/:restart-(\d+)$/)?.[1] ? Number(previous.correlationKey.match(/:restart-(\d+)$/)![1]) : 0) + 1
-  const executor = container.resolve<Executor>('workflowExecutor')
   const workflow = await executor.startWorkflow(em, {
     ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: definition.version, correlationKey: `agency-case:${agencyCase.id}:restart-${attempt}`,
     initialContext: {
@@ -46,7 +56,7 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
       customerEntityId: agencyCase.customerEntityId, submittedByCustomerUserId: agencyCase.submittedByCustomerUserId,
       title: agencyCase.title, agentWorkerId: agencyCase.agentWorkerId,
       materialFileName: agencyCase.materialFileName, materialMimeType: agencyCase.materialMimeType, materialFileSize: agencyCase.materialFileSize,
-      restart: { attempt, previousWorkflowInstanceId: previous?.id ?? null, by: input.userId, at: new Date().toISOString() },
+      restart: { attempt, previousWorkflowInstanceId: previous?.id ?? null, by: input.userId, at: new Date().toISOString(), ...(input.resumeFrom ? { resumeFrom: input.resumeFrom } : {}) },
     },
     metadata: { entityType: 'agency_operations:agency_case', entityId: agencyCase.id, labels: { agentWorkerId: agencyCase.agentWorkerId } },
   })
