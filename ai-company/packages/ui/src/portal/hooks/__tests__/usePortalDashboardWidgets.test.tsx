@@ -4,9 +4,16 @@ import { renderHook, waitFor } from '@testing-library/react'
 
 const loadInjectionWidgetsForSpotMock = jest.fn()
 const apiCallMock = jest.fn()
+let mockRegistryVersion = 0
+const mockRegistryListeners = new Set<() => void>()
 
 jest.mock('@open-mercato/shared/modules/widgets/injection-loader', () => ({
   loadInjectionWidgetsForSpot: (...args: unknown[]) => loadInjectionWidgetsForSpotMock(...args),
+  getInjectionRegistryVersion: () => mockRegistryVersion,
+  subscribeToInjectionRegistryChanges: (listener: () => void) => {
+    mockRegistryListeners.add(listener)
+    return () => { mockRegistryListeners.delete(listener) }
+  },
 }))
 
 jest.mock('../../../backend/utils/apiCall', () => ({
@@ -37,6 +44,8 @@ function mockFeatureCheckGranted(granted: string[]) {
 describe('usePortalDashboardWidgets — feature gating (Phase 1 regression)', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockRegistryVersion = 0
+    mockRegistryListeners.clear()
   })
 
   it('returns widgets without required features regardless of grants', async () => {
@@ -114,4 +123,5 @@ describe('usePortalDashboardWidgets — feature gating (Phase 1 regression)', ()
     await waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.widgets.map((w) => w.widgetId)).toEqual(['real'])
   })
+
 })

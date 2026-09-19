@@ -147,17 +147,20 @@ export default async function FrontendLayout({ children }: LayoutProps) {
   }
 
   return (
-    <PortalLayoutShell
-      orgSlug={orgSlug}
-      organizationName={orgName}
-      tenantId={tenantId}
-      organizationId={organizationId}
-      authenticated={!isPublic && customerAuthMatchesUrlOrg}
-      userName={userName}
-      userEmail={userEmail}
-      customerAuth={customerAuthMatchesUrlOrg ? customerAuth : null}
-    >
-      {children}
-    </PortalLayoutShell>
+    <div className="portal-skin">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" />
+      <PortalLayoutShell
+        orgSlug={orgSlug}
+        organizationName={orgName}
+        tenantId={tenantId}
+        organizationId={organizationId}
+        authenticated={!isPublic && customerAuthMatchesUrlOrg}
+        userName={userName}
+        userEmail={userEmail}
+        customerAuth={customerAuthMatchesUrlOrg ? customerAuth : null}
+      >
+        {children}
+      </PortalLayoutShell>
+    </div>
   )
 }

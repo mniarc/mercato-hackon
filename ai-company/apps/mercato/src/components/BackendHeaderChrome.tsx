@@ -11,6 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@open-mercato/ui/primit
 import { IntegrationsButton } from '@open-mercato/ui/backend/IntegrationsButton'
 import { ProfileDropdown } from '@open-mercato/ui/backend/ProfileDropdown'
 import { SettingsButton } from '@open-mercato/ui/backend/SettingsButton'
+import { ThemeToggle } from '@open-mercato/ui/theme'
 import { useBackendChrome } from '@open-mercato/ui/backend/BackendChromeProvider'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { AiAssistantShellIntegration } from '@/components/AiAssistantShellIntegration'
@@ -196,6 +197,7 @@ export function BackendHeaderChrome({
       </span>
 
       {isReady && showNotifications ? <LazyNotificationBellWrapper /> : null}
+      <ThemeToggle className="hidden sm:flex" />
       <ProfileDropdown email={email} />
     </>
   )

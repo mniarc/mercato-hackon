@@ -122,8 +122,35 @@ export default function AgencyOrderPage({ params }: Props) {
 
   const goalLeft = GOAL_MAX - form.purchaseGoal.length
 
+  const included = [
+    t('agency.offer.included.audit'), t('agency.offer.included.strategy'), t('agency.offer.included.tov'),
+    t('agency.offer.included.plan'), t('agency.offer.included.post'), t('agency.offer.included.materials'),
+  ]
+  const boundaries = [
+    t('agency.offer.boundaries.scope'), t('agency.offer.boundaries.plan'),
+    t('agency.offer.boundaries.exclusions'), t('agency.offer.boundaries.revisions'),
+  ]
+
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="agency-order mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" />
+      <style>{`
+        .agency-order{font-family:"Archivo",system-ui,sans-serif;font-variation-settings:"wdth" 118;font-weight:300;letter-spacing:0}
+        .agency-order h1,.agency-order h2,.agency-order h3{font-weight:500}
+        .agency-order b,.agency-order strong{font-weight:500}
+        .agency-price{position:relative;overflow:hidden;border-radius:18px;padding:24px;color:#fff;
+          background:radial-gradient(150% 170% at 100% 0%,#9b8bff 0%,#7256ec 50%,#5a3fd0 100%);
+          box-shadow:0 24px 60px -30px rgba(90,63,208,.6)}
+        .agency-price::after{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12)}
+        .agency-price .apx-tag{position:relative;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.2);padding:5px 11px;border-radius:999px}
+        .agency-price .apx-amt{position:relative;font-size:38px;font-weight:500;margin:16px 0 2px;line-height:1}
+        .agency-price .apx-amt span{font-size:15px;opacity:.85}
+        .agency-price .apx-note{position:relative;font-size:13px;color:rgba(255,255,255,.85);margin:0 0 8px}
+        .agency-price .apx-meta{position:relative;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:rgba(255,255,255,.9);margin-top:12px}
+        .agency-bullets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+        .agency-bullets li{display:flex;gap:10px;font-size:14px;line-height:1.5}
+        .agency-bullets li::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;margin-top:9px;background:currentColor;opacity:.35}
+      `}</style>
       <PortalPageHeader
         label={t('agency.order.label')}
         title={offer.name}
@@ -143,17 +170,31 @@ export default function AgencyOrderPage({ params }: Props) {
 
       {error ? <ErrorMessage label={error} /> : null}
       {!offer.enabled ? <ErrorMessage label={t('agency.purchase.disabled', 'Demo checkout is disabled. An operator must enable the test purchase flow.')} /> : null}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <PortalCard>
-          <PortalCardHeader label={t('agency.purchase.demoOffer', 'Demo offer')} title={offer.name} description={t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')} />
-          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <div><dt className="text-muted-foreground">{t('agency.order.sku')}</dt><dd>{offer.sku}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.purchase.testAmount', 'Test amount')}</dt><dd>{offer.amount} {offer.currency}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.order.scope')}</dt><dd>{t('agency.order.scopeValue')}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.order.revisions')}</dt><dd>{t('agency.order.revisionsValue')}</dd></div>
-          </dl>
-        </PortalCard>
+      <div className="agency-price">
+        <span className="apx-tag">{t('agency.purchase.demoOffer', 'Demo offer')}</span>
+        <div className="apx-amt">{offer.amount} <span>{offer.currency}</span></div>
+        <p className="apx-note">{t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')}</p>
+        <div className="apx-meta">
+          <span>{t('agency.order.scope')}: {t('agency.order.scopeValue')}</span>
+          <span>{t('agency.order.revisions')}: {t('agency.order.revisionsValue')}</span>
+        </div>
+      </div>
 
+      <PortalCard>
+        <PortalCardHeader title={t('agency.offer.includedTitle')} />
+        <ul className="agency-bullets">
+          {included.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </PortalCard>
+
+      <PortalCard>
+        <PortalCardHeader title={t('agency.offer.boundariesTitle')} />
+        <ul className="agency-bullets">
+          {boundaries.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </PortalCard>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <PortalCard>
           <PortalCardHeader title={t('agency.order.brandMarket')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

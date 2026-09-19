@@ -108,6 +108,8 @@ export default async function BackendLayout({
 
   return (
     <I18nProvider locale={locale} dict={dict} localeLocked={resolveForcedLocale(process.env) !== null} supportedLocales={supportedLocales}>
+      <div className="crm-skin">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" />
       <AppShell
         productName={productName}
         email={auth?.email}
@@ -141,6 +143,7 @@ export default async function BackendLayout({
         </PageInjectionBoundary>
         {demoModeEnabled ? <DemoFeedbackWidget demoModeEnabled={demoModeEnabled} /> : null}
       </AppShell>
+      </div>
     </I18nProvider>
   )
 }

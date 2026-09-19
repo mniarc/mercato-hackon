@@ -2,7 +2,12 @@
 
 import * as React from 'react'
 import type { InjectionSpotId } from '@open-mercato/shared/modules/widgets/injection'
-import { loadInjectionWidgetsForSpot, type LoadedInjectionWidget } from '@open-mercato/shared/modules/widgets/injection-loader'
+import {
+  loadInjectionWidgetsForSpot,
+  subscribeToInjectionRegistryChanges,
+  getInjectionRegistryVersion,
+  type LoadedInjectionWidget,
+} from '@open-mercato/shared/modules/widgets/injection-loader'
 import { hasAllFeatures } from '@open-mercato/shared/security/features'
 import { apiCall } from '../../backend/utils/apiCall'
 import { createLogger } from '@open-mercato/shared/lib/logger'
@@ -61,6 +66,21 @@ export function usePortalDashboardWidgets(spotId: InjectionSpotId): {
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
   const [grantedFeatures, setGrantedFeatures] = React.useState<Set<string>>(new Set())
+  // Re-load whenever the injection registry version changes. On a fresh page
+  // load the ClientBootstrap can register widgets AFTER this hook's first effect
+  // has already read an empty table; subscribing here lets the dashboard pick
+  // them up instead of showing the empty state permanently (#race).
+  const [registryVersion, setRegistryVersion] = React.useState(() => getInjectionRegistryVersion())
+
+  React.useEffect(() => {
+    const unsubscribe = subscribeToInjectionRegistryChanges(() => {
+      setRegistryVersion(getInjectionRegistryVersion())
+    })
+    // Sync once in case the version advanced between the initial state read and
+    // the subscription being attached.
+    setRegistryVersion(getInjectionRegistryVersion())
+    return unsubscribe
+  }, [])
 
   React.useEffect(() => {
     let mounted = true
@@ -90,7 +110,7 @@ export function usePortalDashboardWidgets(spotId: InjectionSpotId): {
     return () => {
       mounted = false
     }
-  }, [spotId])
+  }, [spotId, registryVersion])
 
   const grantedFeatureList = React.useMemo(() => Array.from(grantedFeatures), [grantedFeatures])
 
