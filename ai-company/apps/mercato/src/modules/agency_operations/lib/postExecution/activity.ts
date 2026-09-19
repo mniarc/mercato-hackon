@@ -69,13 +69,31 @@ export function createPostExecutionActivity(container: AppContainer) {
     if (!parseBooleanWithDefault(process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED, false)) return { status: 'not_configured', orderRef: agencyCase.id, reason: 'execution_disabled' }
     const userId = await resolveWorkflowPrincipalUserId(em, source!)
     if (!userId) throw new Error('[internal] Post execution requires the native workflow execution principal')
-    return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).runPostExecution({
-      context: { ...scope, userId, workflowInstanceId: source!.id, stepId: POST_EXECUTION_STEP_ID,
-        ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}) },
+    const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+    const executionContext = { ...scope, userId, workflowInstanceId: source!.id, stepId: POST_EXECUTION_STEP_ID,
+      ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}) }
+    const produced = await research.runPostExecution({
+      context: executionContext,
       request: { orderRef: agencyCase.id, instructionVersionId: instruction.instructionVersionId,
         selectionSubmissionId: instruction.selectionSubmissionId,
         process: { workflowDefinitionId: analysis.definitionId, workflowId: analysis.workflowId, version: analysis.version },
         maxCostPln: authorization.data.maxCostPln },
     })
+    if (produced.status !== 'completed' || !produced.evidenceRequest || !produced.postVersionId || !produced.qaTaskRunId) return produced
+    const evidenceAuthorization = authorizationSchema.safeParse(activities[0].config.args?.policy?.postEvidence)
+    if (!evidenceAuthorization.success) return { ...produced, readyForReview: false, evidencePendingReason: 'missing_post_evidence_authorization' }
+    const returned = await research.runPostEvidence({ context: executionContext, request: {
+      orderRef: agencyCase.id, instructionVersionId: produced.instructionVersionId,
+      postVersionId: produced.postVersionId, qaTaskRunId: produced.qaTaskRunId, maxCostPln: evidenceAuthorization.data.maxCostPln,
+    } })
+    if (returned.status === 'not_ready' || returned.status === 'execution_incomplete') return {
+      ...produced, readyForReview: false, evidencePendingReason: returned.reason,
+    }
+    return { ...returned,
+      taskRunIds: [...new Set([...produced.taskRunIds, ...returned.taskRunIds])],
+      documentVersionIds: [...new Set([...produced.documentVersionIds, ...returned.documentVersionIds])],
+      agentRunIds: [...new Set([...produced.agentRunIds, ...returned.agentRunIds])],
+      spentPln: produced.spentPln + returned.spentPln,
+    }
   }
 }

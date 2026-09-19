@@ -104,6 +104,27 @@ export type PostDraft = z.infer<typeof postDraftSchema>
 export const postAuthorResult = z.object({ kind: z.literal('research'), data: postDraftSchema })
 
 // 7.3 — the independent editor
+/** Internal P3 return request, never a customer decision or permission to browse. */
+export const postEvidenceRequestSchema = z.object({
+  claim: z.string().min(1),
+  question: z.string().min(1),
+  targetStep: z.literal('3.2'),
+  sourceRefs: z.array(z.string().min(1)).min(1),
+  returnStep: z.literal('7.3'),
+}).strict()
+export type PostEvidenceRequest = z.infer<typeof postEvidenceRequestSchema>
+
+export const postEvidencePacketSchema = z.object({
+  request: postEvidenceRequestSchema,
+  sourceTaskRunId: z.string().uuid(),
+  facts: z.array(z.object({
+    factId: z.string(), claim: z.string(), sourceRefs: z.array(z.string()),
+    quote: z.string(), limitation: z.string().nullable(), kind: z.string(),
+    useScope: z.array(z.string()), sourceVisibility: z.enum(['public', 'client_private', 'unknown']),
+  })),
+}).strict()
+export type PostEvidencePacket = z.infer<typeof postEvidencePacketSchema>
+
 export const postEditorInputSchema = z.object({
   order: postOrderContextSchema,
   outputLanguage,
@@ -120,6 +141,8 @@ export const postEditorInputSchema = z.object({
   copy_checks: z.array(z.object({ id: z.string().min(1), question: z.string().min(1) })),
   length: z.object({ words: z.number().int(), words_target: z.tuple([z.number().int(), z.number().int()]), platform_character_limit: z.number().int().nullable(), characters: z.number().int() }),
   validator_findings: z.array(qaFindingSchema),
+  available_source_refs: z.array(z.string()).optional(),
+  supplementary_evidence: postEvidencePacketSchema.optional(),
   criteria: z.array(z.string().min(1)),
 })
 export type PostEditorInput = z.infer<typeof postEditorInputSchema>
@@ -127,6 +150,12 @@ export type PostEditorInput = z.infer<typeof postEditorInputSchema>
 export const postEditorResults = ['pass_for_draft', 'needs_fix', 'reject'] as const
 
 export const postEditorReviewSchema = z.object({
+  evidence_request: postEvidenceRequestSchema.nullable().optional(),
+  evidence_assessment: z.object({
+    outcome: z.enum(['supported', 'post_change_required', 'foundation_conflict', 'unresolved']),
+    explanation: z.string().min(1),
+    factIds: z.array(z.string()),
+  }).nullable().optional(),
   result: z.enum(postEditorResults),
   checked: z.array(z.string().min(1)),
   not_verified: z.array(z.string().min(1)),

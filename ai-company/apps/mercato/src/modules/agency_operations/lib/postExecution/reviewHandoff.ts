@@ -53,6 +53,8 @@ function blockedHandoff(execution: NativePostExecutionResult): Extract<PostRevie
   if (execution.status === 'not_configured') return { ...blocked, reason: execution.reason, nextAction: 'review_configuration' }
   if (execution.status === 'not_ready') return { ...blocked, reason: execution.reason, nextAction: 'review_dependencies' }
   if (execution.status === 'execution_incomplete') return { ...blocked, reason: execution.reason, nextAction: 'reconcile_execution' }
+  if (execution.evidencePendingReason) return { ...blocked, reason: execution.evidencePendingReason,
+    nextAction: execution.evidencePendingReason === 'missing_post_evidence_authorization' ? 'review_configuration' : 'review_qa' }
   return { ...blocked, reason: execution.status === 'paused_budget' ? 'paused_budget' : 'post_not_ready',
     nextAction: execution.escalationVersionId ? 'review_employee_exception' : 'review_qa' }
 }

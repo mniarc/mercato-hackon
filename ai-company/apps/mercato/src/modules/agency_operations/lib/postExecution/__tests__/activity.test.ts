@@ -18,7 +18,8 @@ const receipt = { status: 'plan_accepted', orderRef: caseId, replayed: false, re
 const decision = { kind: 'approve', source: 'native_agent', workerId: 'agency_operations.client_triage', rationale: 'Explicit choice', message: 'Recorded', targets: { caseId, submissionId, documentVersionReference: planVersionId }, effectsApplied: true, acceptance: receipt }
 const context = { userId: uuid(99), stepInstanceId: stepId, workflowInstance: { id: workflowId, ...scope, workflowId: 'agency_operations.client-submission.native.v1' } }
 const runPostExecution = jest.fn()
-const services: Record<string, unknown> = { em: {}, agencyResearchService: { runPostExecution } }
+const runPostEvidence = jest.fn()
+const services: Record<string, unknown> = { em: {}, agencyResearchService: { runPostExecution, runPostEvidence } }
 const container = { resolve: (name: string) => services[name] }
 const definition = (postExecution: unknown = { maxCostPln: 3 }) => ({
   metadata: { generatedBy: { module: 'agency_operations', ownerId: 'analysis' } },
@@ -103,4 +104,26 @@ test('preserves interrupted producer outcome and omits an absent native step ide
   const { stepInstanceId: _step, ...transitionContext } = context
   await expect(createPostExecutionActivity(container as never)({}, transitionContext)).resolves.toEqual({ status: 'execution_incomplete', orderRef: caseId, activationTaskRunId: 'activation', reason: 'in_progress_or_interrupted' })
   expect(runPostExecution.mock.calls[0][0].context).not.toHaveProperty('invocationId')
+})
+
+test('returns an exact saved QA evidence request only under its separate configured cap', async () => {
+  const produced = { status: 'completed', orderRef: caseId, instructionVersionId, selectionSubmissionId: submissionId,
+    postVersionId: uuid(30), qaTaskRunId: uuid(31), qaVerdict: 'needs_fix', readyForReview: false,
+    taskRunIds: ['author', uuid(31)], documentVersionIds: [uuid(30)], agentRunIds: ['editor'], spentPln: 2,
+    evidenceRequest: { claim: 'Exact post claim', question: 'Find its source evidence', sourceRefs: ['S01'], targetStep: '3.2', returnStep: '7.3' } }
+  runPostExecution.mockResolvedValue(produced)
+  await expect(createPostExecutionActivity(container as never)({}, context)).resolves.toMatchObject({
+    ...produced, evidencePendingReason: 'missing_post_evidence_authorization', readyForReview: false,
+  })
+  expect(runPostEvidence).not.toHaveBeenCalled()
+  const configured = definition()
+  Object.assign(configured.definition.transitions[0].activities[0].config.args.policy, { postEvidence: { maxCostPln: 1.5 } })
+  arrange({ definition: configured })
+  runPostEvidence.mockResolvedValue({ ...produced, evidenceRequest: undefined, readyForReview: true, qaVerdict: 'pass_for_draft',
+    postVersionId: uuid(32), taskRunIds: ['source', uuid(31)], documentVersionIds: [uuid(32)], agentRunIds: ['extractor'], spentPln: 1 })
+  await expect(createPostExecutionActivity(container as never)({ maxCostPln: 999 }, context)).resolves.toMatchObject({
+    readyForReview: true, postVersionId: uuid(32), spentPln: 3, taskRunIds: ['author', uuid(31), 'source'],
+  })
+  expect(runPostEvidence).toHaveBeenCalledWith({ context: expect.objectContaining({ userId: principalId, workflowInstanceId: workflowId }),
+    request: { orderRef: caseId, instructionVersionId, postVersionId: uuid(30), qaTaskRunId: uuid(31), maxCostPln: 1.5 } })
 })

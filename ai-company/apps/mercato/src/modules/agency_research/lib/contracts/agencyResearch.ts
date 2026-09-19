@@ -14,6 +14,7 @@ import type { PlanReviewRequest, PlanReview, PlanAcceptance, AcceptPlanInput, Pl
 import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
 import type { PostExecutionRequest, PostExecutionResult } from '../postExecution/contracts'
 import type { PostRevisionRequest, PostRevisionResult } from '../postRevision/contracts'
+import type { RunPostEvidenceRequest, PostEvidenceResult } from '../postEvidence/contracts'
 import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAcceptanceReceipt } from '../postAcceptance/contracts'
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
 import type { BriefRevisionRequest, BriefRevisionResult } from '../briefRevision/contracts'
@@ -166,6 +167,7 @@ export interface AgencyResearchService {
   runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>
   runPostExecution(input: { context: ResearchExecutionContext; request: PostExecutionRequest }): Promise<PostExecutionResult>
   runPostRevision(input: { context: ResearchExecutionContext; request: PostRevisionRequest }): Promise<PostRevisionResult>
+  runPostEvidence(input: { context: ResearchExecutionContext; request: RunPostEvidenceRequest }): Promise<PostEvidenceResult>
   preparePublication(input: PreparePublicationInput): Promise<PublicationPreparationResult>
   configurePublicationDestination(input: ConfigurePublicationDestinationInput): Promise<PublicationDestinationResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */

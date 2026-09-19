@@ -62,7 +62,8 @@ export async function runPostExecution(opts: RunPostExecutionOptions): Promise<P
       && review.documentStatus === 'ready_for_review' && review.qa.state === 'assessed'
       && review.qa.taskRunId === qa.taskRunId && review.qa.verdict === 'pass_for_draft')
     return await persist({ ...result('completed'), postVersionId: qa.postVersionId, qaTaskRunId: qa.taskRunId,
-      qaVerdict: qa.verdict, readyForReview, ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}) })
+      qaVerdict: qa.verdict, readyForReview, ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}),
+      ...(qa.evidenceRequest ? { evidenceRequest: qa.evidenceRequest } : {}) })
   } catch (error) {
     getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.post_execution_failed' })
     if (error instanceof BudgetPausedError) {

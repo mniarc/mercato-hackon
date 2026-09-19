@@ -33,3 +33,5 @@ export { briefRevisionRequestSchema, briefRevisionOutcomeSchema, briefRevisionRe
 export type { BriefRevisionRequest, BriefRevisionOutcome, BriefRevisionResult } from '../briefRevision/contracts'
 export { postRevisionRequestSchema, postRevisionSourceSchema, postRevisionOutcomeSchema, postRevisionResultSchema } from '../postRevision/contracts'
 export type { PostRevisionRequest, PostRevisionOutcome, PostRevisionResult } from '../postRevision/contracts'
+export { runPostEvidenceRequestSchema, postEvidenceOutcomeSchema, postEvidenceResultSchema } from '../postEvidence/contracts'
+export type { RunPostEvidenceRequest, PostEvidenceOutcome, PostEvidenceResult } from '../postEvidence/contracts'

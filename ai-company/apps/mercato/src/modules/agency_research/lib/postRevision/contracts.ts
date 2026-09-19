@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { postExecutionRequestSchema } from '../postExecution/contracts'
+import { postEvidenceRequestSchema } from '../../data/agents/post'
 
 export const postRevisionSourceSchema = z.object({
   submissionId: z.uuid(), eventId: z.string().min(1), customerUserId: z.uuid(),
@@ -19,6 +20,7 @@ export const postRevisionOutcomeSchema = z.object({
   qaVerdict: z.enum(['pass_for_draft', 'needs_fix', 'reject']).nullable(), readyForReview: z.boolean(),
   taskRunIds: z.array(z.string()), documentVersionIds: z.array(z.string()), agentRunIds: z.array(z.string()),
   spentPln: z.number().nonnegative(), escalationVersionId: z.string().optional(),
+  evidenceRequest: postEvidenceRequestSchema.optional(),
 })
 export type PostRevisionOutcome = z.infer<typeof postRevisionOutcomeSchema>
 export const postRevisionResultSchema = z.union([

@@ -68,7 +68,8 @@ export async function runPostRevision(opts: RunPostRevisionOptions): Promise<Pos
       && review.versionStatus === 'ready_for_review' && review.qa.state === 'assessed'
       && review.qa.taskRunId === qa.taskRunId && review.qa.verdict === 'pass_for_draft')
     return await persist({ ...result('completed'), postVersionId: qa.postVersionId, qaTaskRunId: qa.taskRunId,
-      qaVerdict: qa.verdict, readyForReview, ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}) })
+      qaVerdict: qa.verdict, readyForReview, ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}),
+      ...(qa.evidenceRequest ? { evidenceRequest: qa.evidenceRequest } : {}) })
   } catch (error) {
     if (error instanceof BudgetPausedError) {
       const paused = await findOneWithDecryption(em, AgencyResearchTaskRun, {

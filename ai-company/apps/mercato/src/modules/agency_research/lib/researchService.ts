@@ -40,6 +40,7 @@ import { runBriefRevision, briefRevisionRequestSchema } from './briefRevision'
 import { runPlanningExecution, planningExecutionRequestSchema } from './planningExecution'
 import { runPostExecution, postExecutionRequestSchema } from './postExecution'
 import { runPostRevision, postRevisionRequestSchema } from './postRevision'
+import { runPostEvidence, runPostEvidenceRequestSchema } from './postEvidence'
 import { acceptPost } from './postAcceptance/accept'
 import { readPostAcceptance } from './postAcceptance/read'
 import { acceptPostInputSchema } from './postAcceptance/contracts'
@@ -592,6 +593,20 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
         runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
       })
+    },
+    async runPostEvidence({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] post evidence requires explicit scope and execution user')
+      const parsed = runPostEvidenceRequestSchema.parse(request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] post evidence execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId,
+        workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runPostEvidence({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds })
     },
     async getClientView(scope, orderRef, templateId) {
       const em = (container.resolve('em') as EntityManager).fork()
