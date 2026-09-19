@@ -23,6 +23,9 @@ export default function AgencyCasePage({ params }: { params: { orgSlug: string; 
           <h2 className="text-lg font-semibold">{t('agency.cases.intakeStatus')}</h2>
           <CaseStatus caseId={params.id} showMaterial />
           <p className="text-sm text-muted-foreground">{t('agency.cases.reviewTasksHint')}</p>
+          <Button type="button" asChild>
+            <Link href={`/${params.orgSlug}/portal/agency/cases/${encodeURIComponent(params.id)}/journey`}>{t('agency.journey.open')}</Link>
+          </Button>
           <Button type="button" asChild variant="outline">
             <Link href={`/${params.orgSlug}/portal/agency/materials?caseId=${encodeURIComponent(params.id)}`}>{t('agency.materials.link')}</Link>
           </Button>

@@ -21,6 +21,8 @@ const taskRunSchema = z.object({
   status: z.string(),
   runner: z.string(),
   costPln: z.number(),
+  /** The QA verdict and findings of a 3.7 / 4.2 / 5.4 / 6.3 / 7.3 run; null for author steps. */
+  qaResult: z.unknown().nullable(),
   agentRuns: z.number().int(),
   outputVersionId: z.string().nullable(),
   error: z.string().nullable(),

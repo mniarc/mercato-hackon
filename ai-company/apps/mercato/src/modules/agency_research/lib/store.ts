@@ -183,7 +183,7 @@ export async function currentInputVersion(em: EntityManager, scope: ResearchScop
 
 export type OrderStatus = {
   documents: { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null; updatedAt: Date | null }[]
-  taskRuns: { id: string; stepId: string; attempt: number; status: string; runner: string; costPln: number; agentRuns: number; outputVersionId: string | null; error: string | null; createdAt: Date; finishedAt: Date | null }[]
+  taskRuns: { id: string; stepId: string; attempt: number; status: string; runner: string; costPln: number; agentRuns: number; outputVersionId: string | null; error: string | null; qaResult: unknown; createdAt: Date; finishedAt: Date | null }[]
   totalPln: number
   sources: number
 }
@@ -212,6 +212,7 @@ export async function orderStatus(em: EntityManager, scope: ResearchScope, order
       agentRuns: Array.isArray(r.agentRunIds) ? r.agentRunIds.length : 0,
       outputVersionId: r.outputVersionId,
       error: r.error,
+      qaResult: r.qaResult ?? null,
       createdAt: r.createdAt,
       finishedAt: r.finishedAt,
     })),

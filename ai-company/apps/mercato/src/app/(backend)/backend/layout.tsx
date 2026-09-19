@@ -1,3 +1,4 @@
+import { AGENCY_FONT_STYLESHEET_URL } from '@/modules/agency/theme/fonts'
 import { cookies, headers } from 'next/headers'
 import { backendRouteMetadata } from '@/.mercato/generated/backend-route-metadata.generated'
 import { findRouteManifestMatch } from '@open-mercato/shared/modules/registry'
@@ -109,7 +110,7 @@ export default async function BackendLayout({
   return (
     <I18nProvider locale={locale} dict={dict} localeLocked={resolveForcedLocale(process.env) !== null} supportedLocales={supportedLocales}>
       <div className="crm-skin">
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" />
+      <link rel="stylesheet" href={AGENCY_FONT_STYLESHEET_URL} />
       <AppShell
         productName={productName}
         email={auth?.email}

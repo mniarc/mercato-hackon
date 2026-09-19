@@ -1,0 +1,17 @@
+/* Shared agency appearance. Native controls use Open Mercato's semantic tokens;
+   add :root / .dark overrides here to skin them, including body-level dialogs.
+   Keep customer-only rules in .portal-skin and staff-only rules in .crm-skin. */
+:root {
+  --agency-primary: #6e56e6;
+  --agency-accent: #7256ec;
+  --agency-gradient-start: #9b8bff;
+  --agency-gradient-end: #5a3fd0;
+  --agency-shadow-rgb: 90,63,208;
+  --agency-display-font: "Archivo";
+  --agency-font-width: 116;
+  --agency-detail-font-width: 118;
+  --agency-body-weight: 300;
+  --agency-heading-weight: 500;
+  --agency-customer-radius: 1.05rem;
+  --agency-staff-radius: 0.65rem;
+}

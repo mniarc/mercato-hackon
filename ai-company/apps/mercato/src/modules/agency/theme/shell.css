@@ -1,0 +1,22 @@
+/* === Studio Komunikacji — shared skin (portal + CRM backend) === */
+.portal-skin,.crm-skin{font-family:var(--agency-display-font,"Archivo"),system-ui,-apple-system,Segoe UI,sans-serif;font-variation-settings:"wdth" var(--agency-font-width,116);font-weight:var(--agency-body-weight,300);letter-spacing:0;--primary:var(--agency-primary,#6e56e6);--primary-foreground:#ffffff;--ring:var(--agency-accent,#7256ec)}
+.portal-skin{--radius:var(--agency-customer-radius,1.05rem)}
+/* Backend keeps a tighter radius so dense admin controls (toolbars, table
+   buttons, inputs) stay compact while still picking up the softer feel. */
+.crm-skin{--radius:var(--agency-staff-radius,0.65rem)}
+.portal-skin :is(h1,h2,h3,h4),.crm-skin :is(h1,h2,h3,h4){font-weight:var(--agency-heading-weight,500);letter-spacing:-.012em}
+.portal-skin :is(.font-bold,.font-semibold,.font-medium),.crm-skin :is(.font-bold,.font-semibold,.font-medium){font-weight:var(--agency-heading-weight,500)}
+.portal-skin b,.portal-skin strong,.crm-skin b,.crm-skin strong{font-weight:var(--agency-heading-weight,500)}
+.portal-skin .bg-card{background:color-mix(in srgb, var(--card) 76%, transparent);backdrop-filter:blur(16px) saturate(1.15);-webkit-backdrop-filter:blur(16px) saturate(1.15)}
+.portal-skin .agency-price{position:relative;overflow:hidden;border-radius:var(--radius);padding:24px;color:#fff;background:radial-gradient(150% 170% at 100% 0%,var(--agency-gradient-start,#9b8bff) 0%,var(--agency-accent,#7256ec) 50%,var(--agency-gradient-end,#5a3fd0) 100%);box-shadow:0 24px 60px -30px rgba(var(--agency-shadow-rgb,90,63,208),.6)}
+.portal-skin .agency-price::after{content:"";position:absolute;right:-50px;top:-50px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.12)}
+.portal-skin .agency-price .apx-tag{position:relative;display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:var(--agency-heading-weight,500);letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,.2);padding:5px 11px;border-radius:999px}
+.portal-skin .agency-price .apx-amt{position:relative;font-size:40px;font-weight:var(--agency-heading-weight,500);margin:16px 0 4px;line-height:1}
+.portal-skin .agency-price .apx-amt span{font-size:16px;opacity:.85}
+.portal-skin .agency-price .apx-note{position:relative;font-size:13.5px;color:rgba(255,255,255,.85);margin:0}
+.portal-skin .agency-price .apx-meta{position:relative;display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;color:rgba(255,255,255,.9);margin-top:14px}
+.portal-skin .agency-bullets{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.portal-skin .agency-bullets li{display:flex;gap:11px;font-size:14px;line-height:1.55}
+.portal-skin .agency-bullets li::before{content:"";flex:none;width:6px;height:6px;border-radius:999px;margin-top:9px;background:var(--agency-accent,#7256ec)}
+/* Agency panel spans the full dashboard width (single sections widget) */
+.portal-skin .md\:grid-cols-2.xl\:grid-cols-3 > *{grid-column:1 / -1}
