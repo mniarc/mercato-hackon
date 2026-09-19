@@ -20,7 +20,8 @@ type TaskRun = {
   error: string | null; createdAt: string; finishedAt: string | null
 }
 type LedgerDocument = { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null; updatedAt: string | null }
-type Ledger = { orderRef: string; totalPln: number; sources: number; documents: LedgerDocument[]; taskRuns: TaskRun[] }
+type AgentRun = { id: string; agentId: string; stepId: string | null; status: string; model: string | null; inputTokens: number | null; outputTokens: number | null; costMinor: number | null; createdAt: string; completedAt: string | null }
+type Ledger = { orderRef: string; totalPln: number; sources: number; documents: LedgerDocument[]; taskRuns: TaskRun[]; agentRuns?: AgentRun[] }
 type VersionEnvelope = {
   id: string; document_id: string; template_id: string; order_id: string; version: string; version_no: number
   status: string; simulation_flag: boolean; issues: unknown; qa_result: unknown; task_run_id: string; created_at: string
@@ -55,11 +56,12 @@ export function ResearchOrderDetail({ orderRef }: { orderRef?: string }) {
   const [body, setBody] = React.useState<VersionBody | null>(null)
   const [bodyError, setBodyError] = React.useState<string | null>(null)
   const [view, setView] = React.useState<BodyView>('internal')
+  const [tick, setTick] = React.useState(0)
 
   React.useEffect(() => {
     if (!orderRef) { setLoading(false); setError(`${key}.missingRef`); return }
     let cancelled = false
-    setLoading(true)
+    if (tick === 0) setLoading(true)
     setError(null)
     void apiCall<Ledger>(`/api/agency_research/task-runs?order_ref=${encodeURIComponent(orderRef)}`)
       .then((response) => {
@@ -77,7 +79,15 @@ export function ResearchOrderDetail({ orderRef }: { orderRef?: string }) {
       .catch(() => { if (!cancelled) setError(`${key}.unavailable`) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [orderRef, scopeVersion])
+  }, [orderRef, scopeVersion, tick])
+
+  // While a step is running (or a call is in flight) the ledger and the agent calls refresh every 10 s.
+  const inFlight = Boolean(ledger?.taskRuns.some((run) => run.status === 'running') || ledger?.agentRuns?.some((run) => run.status === 'running'))
+  React.useEffect(() => {
+    if (!inFlight) return
+    const timer = window.setInterval(() => setTick((value) => value + 1), 10000)
+    return () => window.clearInterval(timer)
+  }, [inFlight])
 
   React.useEffect(() => {
     if (!orderRef || !selectedTemplate) return
@@ -123,6 +133,16 @@ export function ResearchOrderDetail({ orderRef }: { orderRef?: string }) {
     { accessorKey: 'status', header: translate(`${key}.documents.status`), cell: ({ row }) => <StatusBadge variant={documentStatusVariant(row.original.status)}>{row.original.status}</StatusBadge> },
     { accessorKey: 'versionNo', header: translate(`${key}.documents.version`), cell: ({ row }) => row.original.versionNo === null ? '—' : `v${row.original.versionNo}` },
     { accessorKey: 'updatedAt', header: translate(`${key}.documents.updatedAt`), cell: ({ row }) => formatDateTime(row.original.updatedAt, locale, '—') },
+  ], [locale, translate])
+
+  const agentColumns = React.useMemo<ColumnDef<AgentRun>[]>(() => [
+    { accessorKey: 'createdAt', header: translate(`${key}.agents.startedAt`), cell: ({ row }) => formatDateTime(row.original.createdAt, locale, '—') },
+    { accessorKey: 'agentId', header: translate(`${key}.agents.agent`), cell: ({ row }) => row.original.agentId.replace(/^agency_research\./, ''), meta: { maxWidth: '260px', truncate: true } },
+    { accessorKey: 'status', header: translate(`${key}.agents.status`), cell: ({ row }) => <StatusBadge variant={row.original.status === 'ok' ? 'success' : row.original.status === 'running' ? 'warning' : row.original.status === 'error' || row.original.status === 'failed' ? 'error' : 'neutral'}>{row.original.status}</StatusBadge> },
+    { accessorKey: 'model', header: translate(`${key}.agents.model`), cell: ({ row }) => row.original.model?.replace(/^openrouter\//, '') ?? '—', meta: { maxWidth: '200px', truncate: true } },
+    { accessorKey: 'inputTokens', header: translate(`${key}.agents.tokens`), cell: ({ row }) => row.original.inputTokens === null ? '—' : `${row.original.inputTokens} / ${row.original.outputTokens ?? '—'}` },
+    { accessorKey: 'costMinor', header: translate(`${key}.agents.cost`), cell: ({ row }) => row.original.costMinor === null ? '—' : (row.original.costMinor / 100).toFixed(2) },
+    { accessorKey: 'completedAt', header: translate(`${key}.agents.duration`), cell: ({ row }) => row.original.completedAt ? `${Math.max(0, Math.round((new Date(row.original.completedAt).getTime() - new Date(row.original.createdAt).getTime()) / 1000))} s` : '…' },
   ], [locale, translate])
 
   const runColumns = React.useMemo<ColumnDef<TaskRun>[]>(() => [
@@ -215,6 +235,23 @@ export function ResearchOrderDetail({ orderRef }: { orderRef?: string }) {
               <JsonDisplay title={translate(`${key}.version.data`)} data={body.data} />
             </div>
           ) : null}
+        </section>
+      ) : null}
+
+      {ledger.agentRuns?.length ? (
+        <section className="space-y-4 rounded-lg border bg-card p-6">
+          <SectionHeader
+            title={translate(`${key}.agents.title`)}
+            action={inFlight ? <StatusBadge variant="warning">{translate(`${key}.agents.live`)}</StatusBadge> : null}
+          />
+          <p className="text-sm text-muted-foreground">
+            {translate(`${key}.agents.summary`, {
+              count: ledger.agentRuns.length,
+              running: ledger.agentRuns.filter((run) => run.status === 'running').length,
+              cost: (ledger.agentRuns.reduce((sum, run) => sum + (run.costMinor ?? 0), 0) / 100).toFixed(2),
+            })}
+          </p>
+          <DataTable<AgentRun> columns={agentColumns} data={ledger.agentRuns.slice(0, 30)} emptyState={translate(`${key}.agents.empty`)} />
         </section>
       ) : null}
 

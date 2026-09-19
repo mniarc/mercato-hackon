@@ -66,6 +66,13 @@ export const researchRunRequestSchema = z.object({
   maxCostPln: z.number().positive().optional(),
   /** 6.5 — the plan topic the client selected (`TOP01`…); absent = the recommendation as a simulated selection. */
   selectedTopicId: z.string().min(1).optional(),
+  /**
+   * Continue an order whose earlier run paused (budget) or stopped (exception):
+   * chain groups before the one holding this step are not run again — their
+   * current document versions are the inputs, exactly as a fresh run would read
+   * them from the store. The ledger starts at zero for the new run.
+   */
+  resumeFrom: z.enum(researchSteps).optional(),
 })
 export type ResearchRunRequest = z.infer<typeof researchRunRequestSchema>
 

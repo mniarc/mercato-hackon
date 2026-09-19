@@ -44,6 +44,31 @@ async function liveSocialCorpus(container: AppContainer, order: { official_socia
   }
 }
 
+const RESUMABLE_STEPS = ['3.2', '3.5', '3.8', '4.2', '5.4', '6.7', '7.3', '8.7', '9.3'] as const
+type ResumableStep = (typeof RESUMABLE_STEPS)[number]
+/** The chain group a paused or exhausted run stopped in — the step a re-entered research activity resumes from. */
+const GROUP_OF: Record<string, ResumableStep> = { '3.1': '3.2', '3.2': '3.2', '3.3': '3.5', '3.4': '3.5', '3.5': '3.5', '3.6': '3.8', '3.7': '3.8', '3.8': '3.8', '4.1': '4.2', '4.2': '4.2', 'E.1': '3.8' }
+
+/**
+ * Where a previous run of this case stopped, or null when it never ran or
+ * finished cleanly. Only a budget pause or an exception makes a case resumable;
+ * anything else keeps the "reconcile first" refusal.
+ */
+export function resumePoint(taskRuns: Array<{ stepId: string; status: string }>): ResumableStep | null {
+  if (!taskRuns.length) return null
+  // The store lists task runs in creation order.
+  const ordered = [...taskRuns]
+  const last = ordered[ordered.length - 1]
+  const paused = [...ordered].reverse().find((run) => run.status === 'paused_budget')
+  if (last.status === 'exception' && paused) return GROUP_OF[paused.stepId] ?? null
+  if (last.status === 'paused_budget') return GROUP_OF[last.stepId] ?? null
+  if (last.status === 'exception') {
+    const before = ordered.filter((run) => run.stepId !== 'E.1').pop()
+    return before ? (GROUP_OF[before.stepId] ?? null) : null
+  }
+  return null
+}
+
 export function assertAnalysisExecutionEnabled(): void {
   if (!parseBooleanWithDefault(process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED, false)) {
     throw new CrudHttpError(409, { error: 'Agency analysis execution is not enabled' })
@@ -82,7 +107,8 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     }, undefined, scope)
     if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
     const saved = z.object({ result: analysisProcessResultSchema }).safeParse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.workflowInstance.context.agencyAnalysisResult)
-    if (saved.success && saved.data.result.caseId === agencyCase.id && saved.data.result.requestedThrough === input.policy.through) return saved.data.result
+    // A completed result replays; a waiting one (budget pause, exception) is what a re-entered research step resumes.
+    if (saved.success && saved.data.result.caseId === agencyCase.id && saved.data.result.requestedThrough === input.policy.through && saved.data.result.state === 'completed') return saved.data.result
     if (['COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATING'].includes(context.workflowInstance.status)) {
       throw new Error('[internal] Analysis cannot restart a terminal workflow')
     }
@@ -102,14 +128,16 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     // left persisted research without the native activity result, stop instead
     // of charging for a second whole analysis or inventing a partial replay.
     const previous = await service.status(scope, agencyCase.id)
-    if (previous.taskRuns.length) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    const resumeFrom = resumePoint(previous.taskRuns)
+    if (previous.taskRuns.length && !resumeFrom) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    if (resumeFrom) logger.info('Resuming research after a pause', { caseId: agencyCase.id, resumeFrom, cap: input.policy.maxCostPln })
     const socialPosts = parsed.socialPosts?.length ? parsed.socialPosts : await liveSocialCorpus(container, parsed.order, agencyCase.id)
     const result = await service.run({
       context: {
         ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
         ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
       },
-      request: { ...parsed, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln },
+      request: { ...parsed, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln, ...(resumeFrom ? { resumeFrom } : {}) },
     })
     const completed = result.completedThrough === input.policy.through
       && (input.policy.through === '3.2' || input.policy.through === '3.5' || result.qaVerdict === 'ready')

@@ -47,5 +47,16 @@
   "agencyResearch.orders.detail.runs.startedAt": "Start",
   "agencyResearch.orders.detail.runs.error": "Błąd",
   "agencyResearch.orders.detail.runs.output": "Wynik",
-  "agencyResearch.orders.detail.runs.open": "Otwórz wersję"
+  "agencyResearch.orders.detail.runs.open": "Otwórz wersję",
+  "agencyResearch.orders.detail.agents.title": "Wywołania agentów",
+  "agencyResearch.orders.detail.agents.live": "na żywo",
+  "agencyResearch.orders.detail.agents.summary": "{count} wywołań · {running} w toku · {cost} PLN dotąd",
+  "agencyResearch.orders.detail.agents.empty": "Brak wywołań agentów.",
+  "agencyResearch.orders.detail.agents.startedAt": "Start",
+  "agencyResearch.orders.detail.agents.agent": "Agent",
+  "agencyResearch.orders.detail.agents.status": "Status",
+  "agencyResearch.orders.detail.agents.model": "Model",
+  "agencyResearch.orders.detail.agents.tokens": "Tokeny we / wy",
+  "agencyResearch.orders.detail.agents.cost": "Koszt (PLN)",
+  "agencyResearch.orders.detail.agents.duration": "Czas"
 }
