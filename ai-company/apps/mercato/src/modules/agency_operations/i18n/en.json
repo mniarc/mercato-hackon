@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.postInstruction.title": "Saved post instruction",
+  "agencyOperations.cases.process.postInstruction.ready": "The instruction was saved for the client-selected topic.",
+  "agencyOperations.cases.process.postInstruction.not_ready": "The post instruction could not be prepared.",
+  "agencyOperations.cases.process.postInstruction.selectedTopic": "Selected topic",
+  "agencyOperations.cases.process.postInstruction.noPost": "This instruction is not a generated post or consent to publish.",
   "agencyOperations.cases.process.planningExecution.title": "Saved planning outcome",
   "agencyOperations.cases.process.planningExecution.completed": "Planning and its quality check finished. See the saved QA verdict.",
   "agencyOperations.cases.process.planningExecution.paused_budget": "Planning paused at the configured spending limit.",

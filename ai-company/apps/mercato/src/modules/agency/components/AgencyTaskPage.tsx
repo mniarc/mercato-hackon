@@ -16,6 +16,7 @@ import { buildReviewRequest, canAcceptDocument, canCommentDocument, readDocument
 
 const StandardTaskPage = dynamic(() => import('@open-mercato/core/modules/workflows/frontend/[orgSlug]/portal/tasks/[id]/page'))
 const StrategyPairReview = dynamic(() => import('./strategy-review/StrategyPairReview').then((module) => module.StrategyPairReview))
+const PlanReview = dynamic(() => import('./plan-review/PlanReview').then((module) => module.PlanReview))
 
 type Props = { params: { orgSlug: string; id: string } }
 type Detail = { ok: boolean; task?: { id: string; taskName: string; status: string; formSchema: unknown; updatedAt?: string }; canComplete?: boolean; formKey?: string | null }
@@ -123,6 +124,8 @@ function TaskLoader({ params }: Props) {
   if (failed) return <div className="space-y-4"><ErrorMessage label={t('agency.review.loadError')} /><Button type="button" variant="outline" onClick={() => { void load() }}>{t('agency.review.retry')}</Button>{back}</div>
   if (!detail?.task) return <LoadingMessage label={t('agency.review.loading')} />
   if (detail.formKey === 'agency.strategy-pair-review') return <StrategyPairReview taskId={params.id} orgSlug={params.orgSlug}
+    canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
+  if (detail.formKey === 'agency.plan-review') return <PlanReview taskId={params.id} orgSlug={params.orgSlug}
     canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
   if (resolution.kind === 'other') return <StandardTaskPage params={params} />
   if (!review) return <div className="space-y-4"><ErrorMessage label={t('agency.review.invalid')} />{back}</div>

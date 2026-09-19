@@ -1,6 +1,7 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
+import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { orderDataSchema, orderFactsOf, type OrderData } from '../data/schemas/zamowienie'
 import { limits } from '../data/templates'
 import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type AgencyResearchService, type ResearchExecutionContext, type ResearchRunRequest, type ResearchRunResult, type ResearchStep } from './contracts'
@@ -18,6 +19,11 @@ import { readBriefAcceptance } from './briefAcceptance/read'
 import { acceptStrategyPair } from './strategyPairAcceptance/accept'
 import { readStrategyPairAcceptance } from './strategyPairAcceptance/read'
 import { readPlanningReadiness } from './planningReadiness/read'
+import { acceptPlan } from './planAcceptance/accept'
+import { readPlanReview, readPlanAcceptance } from './planAcceptance/read'
+import { acceptPlanInputSchema } from './planAcceptance/contracts'
+import { runPostInstructionExecution } from './postInstructionExecution/run'
+import { postInstructionExecutionRequestSchema } from './postInstructionExecution/contracts'
 import { readResearchException } from './exceptionReview/read'
 import { readPostReview } from './postReview/read'
 import { resolveStrategyReadiness } from './strategyReadiness'
@@ -425,6 +431,31 @@ export function createAgencyResearchService(container: Container): AgencyResearc
     },
     async getPlanningReadiness(scope, input) {
       return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPlanReview(scope, input) {
+      return readPlanReview((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPlanAcceptance(scope, input) {
+      return readPlanAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async acceptPlan(rawInput) {
+      const input = acceptPlanInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      return acceptPlan((container.resolve('em') as EntityManager).fork(), input)
+    },
+    async runPostInstruction({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] Post instruction requires an explicit execution identity')
+      const parsed = postInstructionExecutionRequestSchema.parse(request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(context.userId, ['agency_research.manage'], scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      return runPostInstructionExecution({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed })
     },
     async getBriefAcceptance(scope, orderRef, versionId) {
       return readBriefAcceptance((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)

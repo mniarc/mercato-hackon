@@ -20,7 +20,7 @@ import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
 import { createClientTriageActivities } from './agents/client-triage/activities'
-import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION } from './agents/client-triage/workflow'
+import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION } from './agents/client-triage/workflow'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
 import { BRIEF_RESPONSE_FUNCTION, BRIEF_REVIEW_SERVICE } from './lib/briefStrategyProcess/contracts'
 import { createBriefReviewService } from './lib/briefStrategyProcess/service'
@@ -38,13 +38,25 @@ import { STRATEGY_PAIR_REVIEW_SERVICE, STRATEGY_PAIR_RESPONSE_FUNCTION } from '.
 import { createStrategyPairContinuation } from './lib/strategyPairApproval/handoff'
 import { STRATEGY_PAIR_CONTINUATION_FUNCTION } from './lib/strategyPairApproval/contracts'
 import { createPlanningExecutionActivity } from './lib/planningExecution/activity'
-import { PLANNING_EXECUTION_FUNCTION } from './lib/planningExecution/contracts'
+import { PLANNING_EXECUTION_FUNCTION, PLAN_REVIEW_HANDOFF_FUNCTION } from './lib/planningExecution/contracts'
+import { createPlanReviewHandoff } from './lib/planningExecution/reviewHandoff'
+import { createPlanReviewService } from './lib/planReview/service'
+import { PLAN_REVIEW_SERVICE, PLAN_RESPONSE_FUNCTION } from './lib/planReview/contracts'
+import { POST_INSTRUCTION_FUNCTION } from './lib/planApproval/contracts'
+import { createPostInstructionHandoff } from './lib/planApproval/handoff'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [PLAN_REVIEW_SERVICE]: asFunction(() => createPlanReviewService(container)).scoped(),
+    [`workflowFunction:${PLAN_RESPONSE_FUNCTION}`]: asFunction(
+      () => container.resolve<ReturnType<typeof createPlanReviewService>>(PLAN_REVIEW_SERVICE).receiveResponse,
+    ).scoped(),
+    [`workflowFunction:${PLAN_REVIEW_HANDOFF_FUNCTION}`]: asFunction(() => createPlanReviewHandoff(container)).scoped(),
+    [`workflowFunction:${POST_INSTRUCTION_FUNCTION}`]: asFunction(() => createPostInstructionHandoff(container)).scoped(),
+    [`workflowFunction:${ACCEPT_PLAN_FUNCTION}`]: asValue(clientTriage.acceptPlan),
     [`workflowFunction:${PLANNING_EXECUTION_FUNCTION}`]: asFunction(() => createPlanningExecutionActivity(container)).scoped(),
     [`workflowFunction:${STRATEGY_PAIR_CONTINUATION_FUNCTION}`]: asFunction(() => createStrategyPairContinuation(container)).scoped(),
     [STRATEGY_PAIR_REVIEW_SERVICE]: asFunction(() => createStrategyPairReviewService(container)).scoped(),

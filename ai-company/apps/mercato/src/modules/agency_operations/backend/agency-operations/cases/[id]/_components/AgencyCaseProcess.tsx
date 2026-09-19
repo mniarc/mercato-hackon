@@ -161,6 +161,17 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.planningExecution} title={translate(`${key}.planningExecution.title`)} />
               </div>
             ) : null}
+            {submission.postInstruction ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.postInstruction.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.postInstruction.${submission.postInstruction.status}`)}</p>
+                {submission.postInstruction.status === 'ready' ? (
+                  <p className="text-sm">{translate(`${key}.postInstruction.selectedTopic`)}: {submission.postInstruction.selectedTopicId}</p>
+                ) : <p className="text-sm text-muted-foreground">{submission.postInstruction.reason}</p>}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.postInstruction.noPost`)}</p>
+                <JsonDisplay data={submission.postInstruction} title={translate(`${key}.postInstruction.title`)} />
+              </div>
+            ) : null}
             {submission.tasks.map((task) => (
               <div key={task.id} className="flex flex-wrap items-center gap-2">
                 <Button type="button" asChild variant="outline">

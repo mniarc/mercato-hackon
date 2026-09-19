@@ -149,6 +149,14 @@ outcome. It does not select a topic, approve the plan or start post production.
 Omitted authorization, paused budget and interrupted runs remain explicit states;
 the same acceptance replays its saved execution instead of spending again.
 
+A QA-ready plan creates a native customer review task. Its response goes through
+G before saving plan approval and one explicit topic choice. That saved decision
+feeds the teammate's deterministic post-instruction compiler (no model call);
+employees can see the selected topic, exact instruction or blocking reason.
+This does not generate a post or grant publication consent. Older configured
+submission workflows must be updated through native version publishing to use
+new continuations; code changes do not rewrite running workflow definitions.
+
 Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
 existing portal materials API accepts `process: {"kind":"analysis"}` and a private
 JSON file containing `order` plus optional `socialPosts`/`pages`, using the teammate

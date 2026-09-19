@@ -8,6 +8,7 @@ import { CLIENT_TRIAGE_AGENT_ID, inputSchema, type ClientTriageAllowedTarget } f
 import { projectClientTriageResult } from './projectResult'
 import { createBriefApproval } from './briefApproval'
 import { createStrategyPairApproval } from '../../lib/strategyPairApproval/service'
+import { createPlanApproval } from '../../lib/planApproval/service'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
@@ -20,6 +21,7 @@ const activityContextSchema = z.object({ workflowInstance: z.object({
 export function createClientTriageActivities(container: AppContainer) {
   const briefApproval = createBriefApproval(container)
   const strategyPairApproval = createStrategyPairApproval(container)
+  const planApproval = createPlanApproval(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -44,6 +46,8 @@ export function createClientTriageActivities(container: AppContainer) {
       if (approval) allowedTargets.push('brief_accepted')
       const pairApproval = await strategyPairApproval.load(submission, interpretation)
       if (pairApproval) allowedTargets.push('strategy_pair_decision')
+      const planDecision = await planApproval.load(submission, interpretation)
+      if (planDecision) allowedTargets.push('plan_topic_decision')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
@@ -54,7 +58,7 @@ export function createClientTriageActivities(container: AppContainer) {
         kind: result.disposition.kind, source: 'native_agent', workerId: CLIENT_TRIAGE_AGENT_ID,
         rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id,
-          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId } : {}) }, effectsApplied: false,
+          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },
@@ -68,6 +72,18 @@ export function createClientTriageActivities(container: AppContainer) {
       return { kind: 'approve' as const, source: 'native_agent' as const, workerId: CLIENT_TRIAGE_AGENT_ID,
         rationale: triage.interpretation.rationale, message: triage.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id, documentVersionReference: acceptance.pair.strategy.versionId },
+        effectsApplied: true as const, acceptance, triage }
+    },
+    async acceptPlan(_input: unknown, context: unknown) {
+      const { submission, workflowInstance } = await original(context)
+      const interpretation = workflowInstance.context[CLIENT_TRIAGE_INTERPRETATION_KEY]
+      const acceptance = await planApproval.accept(submission, interpretation)
+      const triage = projectClientTriageResult({ tenantId: submission.tenantId, organizationId: submission.organizationId,
+        customerEntityId: submission.customerEntityId, caseId: submission.caseId, submissionId: submission.id,
+        workflowInstanceId: workflowInstance.id }, interpretation, ['plan_topic_decision'])
+      return { kind: 'approve' as const, source: 'native_agent' as const, workerId: CLIENT_TRIAGE_AGENT_ID,
+        rationale: triage.interpretation.rationale, message: triage.interpretation.responseMessage ?? '',
+        targets: { caseId: submission.caseId, submissionId: submission.id, documentVersionReference: acceptance.record.documentVersionId },
         effectsApplied: true as const, acceptance, triage }
     },
     async acceptBrief(_input: unknown, context: unknown) {

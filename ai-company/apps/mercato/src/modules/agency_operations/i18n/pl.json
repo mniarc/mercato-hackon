@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.postInstruction.title": "Zapisana instrukcja postu",
+  "agencyOperations.cases.process.postInstruction.ready": "Zapisano instrukcję dla tematu wybranego przez klienta.",
+  "agencyOperations.cases.process.postInstruction.not_ready": "Nie udało się przygotować instrukcji postu.",
+  "agencyOperations.cases.process.postInstruction.selectedTopic": "Wybrany temat",
+  "agencyOperations.cases.process.postInstruction.noPost": "Ta instrukcja nie jest gotowym postem ani zgodą na publikację.",
   "agencyOperations.cases.process.planningExecution.title": "Zapisany wynik planowania",
   "agencyOperations.cases.process.planningExecution.completed": "Planowanie i kontrola jakości zostały zakończone. Sprawdź zapisany werdykt QA.",
   "agencyOperations.cases.process.planningExecution.paused_budget": "Planowanie wstrzymano na skonfigurowanym limicie wydatków.",

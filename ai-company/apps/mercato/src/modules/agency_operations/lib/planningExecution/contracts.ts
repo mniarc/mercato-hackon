@@ -4,6 +4,7 @@ import { planningExecutionOutcomeSchema } from '@/modules/agency_research/lib/co
 export const PLANNING_EXECUTION_FUNCTION = 'agency_operations.runAcceptedPlanning'
 export const PLANNING_EXECUTION_RESULT_KEY = 'agencyPlanningExecution'
 export const PLANNING_EXECUTION_STEP_ID = 'planning_execution'
+export const PLAN_REVIEW_HANDOFF_FUNCTION = 'agency_operations.invitePlanReview'
 
 export const planningExecutionActivityResultSchema = z.discriminatedUnion('status', [
   z.object({ status: z.literal('not_configured'), orderRef: z.string().min(1), reason: z.enum(['missing_planning_authorization', 'missing_process_configuration', 'execution_disabled']) }),
