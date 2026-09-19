@@ -36,7 +36,12 @@ export function resolveClientTriageConfiguration(environment: Record<string, str
   }
   if (mode === 'disabled') return { mode }
   if (mode === 'fixture') {
-    const mismatch = Object.entries(CLIENT_TRIAGE_FIXTURE_ENVIRONMENT).find(([key, value]) => environment[key] !== value)
+    const expected = read('AGENCY_MANUAL_PROFILE') === 'fixture' ? {
+      ...CLIENT_TRIAGE_FIXTURE_ENVIRONMENT,
+      OPENROUTER_BASE_URL: 'http://127.0.0.1:5005/v1',
+      AGENCY_OPERATIONS_AI_BASE_URL: 'http://127.0.0.1:5005/v1',
+    } : CLIENT_TRIAGE_FIXTURE_ENVIRONMENT
+    const mismatch = Object.entries(expected).find(([key, value]) => environment[key] !== value)
     if (mismatch) invalid(mismatch[0])
     return { mode }
   }

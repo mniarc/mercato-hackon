@@ -15,7 +15,8 @@ type Input = {
   caseId: string
   baseUrl: string
   orgSlug: string
-  intelligence: ReturnType<typeof createProductionJourneyIntelligence>
+  intelligence: Omit<ReturnType<typeof createProductionJourneyIntelligence>, 'resolveStructured'>
+  selectedTopicId: string
   continueNativeResponse: () => Promise<void>
   capture: (name: string) => Promise<void>
 }
@@ -27,13 +28,13 @@ export async function completeProducedPostJourney(input: Input) {
     console.log('[TC-AGENCY-002] Client chooses a real plan topic; no preaccepted plan or seeded instruction')
     const invitation = await readInvitation(scope, caseId, PLAN_REVIEW_WORKFLOW_ID)
     const review = planReviewInvitationSchema.parse(invitation.context[PLAN_REVIEW_CONTEXT_KEY]).review
-    const selected = review.topics.find((topic) => topic.topicId === 'TOP02')
+    const selected = review.topics.find((topic) => topic.topicId === input.selectedTopicId)
     expect(selected, 'The fixture customer selects an actually offered topic, never an invented topic ID').toBeTruthy()
     intelligence.allowPlanApproval({ ...review.plan, taskId: invitation.taskId, selectedTopicId: selected!.topicId })
     await openTask(invitation.taskId)
     await page.getByRole('checkbox', { name: 'I approve this exact plan version', exact: true }).check()
     await page.locator('[data-crud-field-id="selectedTopicId"]').getByRole('combobox').click()
-    await page.getByRole('option', { name: /\(TOP02\)$/ }).click()
+    await page.getByRole('option').filter({ hasText: `(${selected!.topicId})` }).click()
     await input.capture('05-client-selects-produced-plan-topic')
     const responsePromise = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/agency/plan-reviews/${invitation.taskId}`
       && response.request().method() === 'POST')

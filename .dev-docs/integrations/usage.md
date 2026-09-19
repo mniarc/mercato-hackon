@@ -54,8 +54,9 @@ The index is not the story acceptance count, an audit trail, or a replacement fo
 existing demo assertions. Keep only meaningful business-transition checks in the
 demo. A collector does not invent success or require a coverage percentage.
 
-Initial map: 31 registered `agency_research` agents and four `agency_tov` agents.
-The standalone ToV pipeline has a missing app entry; source scout is CLI-only.
-These are visible source gaps, not silently counted as canonical-demo coverage.
-The initial generated report intentionally contains zero runtime observations.
-T95 owns the actual journey collector; T96 owns its connected demonstration.
+The current map includes 37 definitions, with the competing research ToV writer
+retired through the native app override (36 active registrations). Specialist
+batch/profile/brand production now has a case-bound app entry; source scout is
+still conditional/CLI-only. These source connections are not execution claims.
+T95's collector is integrated; T96's latest connected demonstration remains
+pending. Until that run supplies journals, the report has no runtime observations.

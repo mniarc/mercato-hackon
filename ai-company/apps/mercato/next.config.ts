@@ -5,6 +5,8 @@ import { telemetryServerExternalPackages } from '@open-mercato/telemetry/nextjs-
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const allowedDevOrigins = isDevelopment ? resolveAllowedDevOrigins() : []
+const nextDistDir = process.env.OM_NEXT_DIST_DIR || '.mercato/next'
+if (!/^\.mercato\/next(?:-[a-z0-9-]+)?$/.test(nextDistDir)) throw new Error('OM_NEXT_DIST_DIR must name a Next output directory under .mercato')
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -21,7 +23,7 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig & { agentRules?: boolean } = {
-  distDir: '.mercato/next',
+  distDir: nextDistDir,
   // Next 16.3+ has `next dev` auto-generate AGENTS.md/CLAUDE.md pointing agents
   // at node_modules/next/dist/docs. This repo owns its own agent-instruction
   // chain with a ratcheted byte budget (yarn agents:check-budget), so the

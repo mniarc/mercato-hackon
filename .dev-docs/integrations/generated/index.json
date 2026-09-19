@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T15:53:28.172Z",
-  "note": "Source snapshot of 35 agents registered by teammate agency_research (31) and agency_tov (4). Registration is not execution proof. Known standalone ToV production entry gaps remain explicit. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this initial teammate inventory. Refresh source mapping when teammate definitions change. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
+  "generatedAt": "2026-09-19T17:10:16.151Z",
+  "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
   "agents": [
     {
       "id": "agency_research.page_extractor",
@@ -50,6 +50,44 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
       "integrationIds": [
         "research-sources-to-audit"
+      ],
+      "fixture": "not_observed",
+      "live": "not_observed",
+      "observationCount": 0,
+      "last": null,
+      "proofRunIds": {
+        "fixture": [],
+        "live": []
+      }
+    },
+    {
+      "id": "agency_research.people_finder",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "integrationIds": [
+        "research-people-to-sources"
+      ],
+      "fixture": "not_observed",
+      "live": "not_observed",
+      "observationCount": 0,
+      "last": null,
+      "proofRunIds": {
+        "fixture": [],
+        "live": []
+      }
+    },
+    {
+      "id": "agency_research.channel_selector",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "integrationIds": [
+        "research-people-to-sources"
       ],
       "fixture": "not_observed",
       "live": "not_observed",
@@ -461,14 +499,11 @@
     },
     {
       "id": "agency_research.tov_writer",
-      "processId": "agency_operations.client-submission.native.v1",
+      "processId": "retired.sole-tov-boundary",
       "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
-      "connection": "connected",
-      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
-      "integrationIds": [
-        "accepted-brief-to-strategy-pair-review"
-      ],
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules.ts",
+      "notes": "Source definition retained for teammate history, but the app override registers it as null. It is intentionally unreachable: agency_tov is the sole ToV producer and strategy consumes its exact saved version.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -596,13 +631,14 @@
       "id": "agency_tov.batch_analyst",
       "processId": "agency_operations.tov-research.v1",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "gap",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientArtifactService.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
       "integrationIds": [
-        "material-to-tov-profile"
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
       ],
-      "notes": "Internal native workflow exists, but current portal only calls submitSupplement; no non-test production caller of submitMaterial was found.",
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -616,13 +652,14 @@
       "id": "agency_tov.profile_synthesizer",
       "processId": "agency_operations.tov-research.v1",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "gap",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientArtifactService.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
       "integrationIds": [
-        "material-to-tov-profile"
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
       ],
-      "notes": "Internal native workflow exists, but current portal only calls submitSupplement; no non-test production caller of submitMaterial was found.",
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -636,13 +673,14 @@
       "id": "agency_tov.brand_synthesizer",
       "processId": "agency_operations.tov-research.v1",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "gap",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientArtifactService.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
       "integrationIds": [
-        "material-to-tov-profile"
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
       ],
-      "notes": "Internal native workflow exists, but current portal only calls submitSupplement; no non-test production caller of submitMaterial was found.",
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -681,6 +719,22 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "fixture": "not_observed",
+      "live": "not_observed",
+      "observationCount": 0,
+      "last": null,
+      "proofRunIds": {
+        "fixture": [],
+        "live": []
+      }
+    },
+    {
+      "id": "research-people-to-sources",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -838,10 +892,27 @@
       "id": "material-to-tov-profile",
       "processId": "agency_operations.tov-research.v1",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
-      "connection": "gap",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientArtifactService.ts",
-      "notes": "Native ToV pipeline and persisted read surface exist; production event caller is absent. Canonical research uses its own tov_writer, not this profile.",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/researchService.ts",
+      "notes": "Authorized staff intake supplies a normalized, case-bound public-post corpus to the owned native pipeline. Source wiring is not runtime proof.",
+      "fixture": "not_observed",
+      "live": "not_observed",
+      "observationCount": 0,
+      "last": null,
+      "proofRunIds": {
+        "fixture": [],
+        "live": []
+      }
+    },
+    {
+      "id": "specialist-tov-to-strategy",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/activity.ts",
+      "notes": "Consumes the exact saved agency_tov KLI-TOV reference after the native wait/resume boundary; model completion alone does not prove this handoff.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,

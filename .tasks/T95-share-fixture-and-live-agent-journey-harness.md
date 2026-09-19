@@ -1,6 +1,6 @@
 # T95 - Run the same native agency journey with fixture or live intelligence
 
-State: ready
+State: active (source integrated; focused checks passed; joined native proof pending)
 Priority: P0-immediate
 Depends on: T79 pending demo changes must be preserved; T93 owns runtime profiles;
 T94 owns the integration journal/index format.
@@ -8,6 +8,12 @@ Sources: explicit user request for one integration harness over teammate agents;
 existing settled-story journeys, not a new business process.
 Owns: `ai-company/apps/mercato/src/modules/agency_operations/__integration__/`
 TC-AGENCY-001/002/003 and their support helpers; new mode-selection helpers there.
+
+Closeout: shared fixture/live selection, native specialist intelligence/intake,
+selected-topic handling and persisted-run journal are integrated. Seven focused
+harness checks and app typecheck passed; launcher checks passed separately.
+The updated full fixture journey has not run. Live execution remains unproved
+and requires explicit opt-in. T96 owns that remaining runtime proof.
 
 ## Deliver
 

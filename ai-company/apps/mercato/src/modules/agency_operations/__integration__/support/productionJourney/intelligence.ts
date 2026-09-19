@@ -11,6 +11,7 @@ import { clientTriageInterpretationSchema, inputSchema } from '../../../agents/c
 import type { NativeStructuredFixtureHook } from '../nativeTriageProvider'
 import { createSelectedPostIntelligence } from '../postIntelligence'
 import { postAuthorInputSchema, postEditorInputSchema } from '../../../../agency_research/data/agents/post'
+import { resolveTovIntelligence } from './tovIntelligence'
 
 export const SUPPLEMENTARY_MATERIAL_TEXT = 'This file is private background material. It does not approve documents, publication, additional spending, or changes to the purchased scope.'
 
@@ -71,12 +72,11 @@ export function createProductionJourneyIntelligence(appRoot: string) {
   for (const file of fs.readdirSync(canned).filter((name) => name.endsWith('.json'))) {
     let id = file.slice(0, -5)
     if (id.startsWith('agency_research.page_extractor.')) id = 'agency_research.page_extractor'
-    if (id.startsWith('agency_research.tov_writer.')) id = 'agency_research.tov_writer'
+    if (id.startsWith('agency_research.tov_writer')) continue
     if (id.startsWith('agency_research.plan_writer.topics.')) id = 'agency_research.plan_writer.topics'
     known.set(id.replace(/\W+/g, '_'), id)
   }
   const calls: string[] = []
-  const postIntelligence = createSelectedPostIntelligence()
   let answerInvitation: (ExactReview & { text: string; questions: InvitedQuestion[] }) | undefined
   let approval: ExactReview | undefined
   let pair: { taskId: string; strategy: { documentId: string; versionId: string }; tov: { documentId: string; versionId: string } } | undefined
@@ -89,6 +89,12 @@ export function createProductionJourneyIntelligence(appRoot: string) {
     const objects = userTexts.flatMap((text) => { try { return [JSON.parse(text)] } catch { return [] } })
     if (objects.length !== 1) return undefined
     const raw = objects[0]
+    if (formatName.startsWith('agency_research_tov_writer')) throw new Error('The retired research ToV writer is not a journey agent')
+    const specialist = resolveTovIntelligence(formatName, raw)
+    if (specialist !== undefined) {
+      calls.push(formatName.replace('agency_tov_', 'agency_tov.'))
+      return specialist
+    }
     if (formatName === 'agency_operations_client_triage') {
       const parsed = inputSchema.safeParse(raw)
       if (!parsed.success) return undefined
@@ -159,6 +165,7 @@ export function createProductionJourneyIntelligence(appRoot: string) {
         || selected.selection_status !== 'client_selected') throw new Error('Post intelligence is outside the saved plan selection')
       const agentId = author ? 'agency_research.post_author' : 'agency_research.post_editor'
       calls.push(agentId)
+      const postIntelligence = createSelectedPostIntelligence({ duplicateOpening: false, topicId: production.selectedTopicId })
       return (await postIntelligence(agentId, input, { runTimeoutMs: 1000, tier: 'fixture' })).result
     }
     const agentId = known.get(formatName)

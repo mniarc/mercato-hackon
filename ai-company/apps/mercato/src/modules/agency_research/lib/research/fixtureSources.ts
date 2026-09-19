@@ -23,8 +23,11 @@ export function fileSearch(file: string): SearchWeb {
 export function configuredFixtureSources(order?: OrderData): { fetchPage: FetchPage; searchWeb: SearchWeb; pages?: string[]; socialPosts?: SocialPost[] } | null {
   const dir = process.env.AGENCY_TEST_RESEARCH_FIXTURE_DIR?.trim()
   if (!dir) return null
-  if (process.env.NODE_ENV === 'production' || process.env.AGENCY_TEST_NATIVE_TRIAGE !== '1' || !path.isAbsolute(dir)) {
-    throw new Error('[internal] research fixture sources require explicit native test mode, a non-production runtime and an absolute fixture directory')
+  const fixtureIntelligence = process.env.AGENCY_TEST_NATIVE_TRIAGE === '1'
+  const authorizedLiveJourney = process.env.AGENCY_JOURNEY_INTELLIGENCE === 'live'
+    && process.env.AGENCY_ALLOW_LIVE === '1'
+  if (process.env.NODE_ENV === 'production' || (!fixtureIntelligence && !authorizedLiveJourney) || !path.isAbsolute(dir)) {
+    throw new Error('[internal] research fixture sources require explicit authorized journey mode, a non-production runtime and an absolute fixture directory')
   }
   const searchFile = path.join(dir, 'search.json')
   const sources = { fetchPage: fileFetcher(dir), searchWeb: fs.existsSync(searchFile) ? fileSearch(searchFile) : async () => [] }

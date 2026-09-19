@@ -1,23 +1,31 @@
 import { postAuthorInputSchema, postAuthorResult, postEditorInputSchema, postEditorResult } from '../../../agency_research/data/agents/post'
+import { idPrefixes } from '../../../agency_research/data/templates'
 import { RESEARCH_POST_AUTHOR_AGENT_ID, RESEARCH_POST_EDITOR_AGENT_ID } from '../../../agency_research/lib/agents/ids.post'
+import { mintId } from '../../../agency_research/lib/research/ids'
 import type { ResearchAgentRunner } from '../../../agency_research/lib/research/pipeline'
 
-/** Local intelligence only: bind the draft to the actual selected TOP02 instruction.
- * The first draft repeats its opening; the real editor/repair loop must remove it.
+/** Local intelligence only: bind the draft to the actual selected topic instruction.
+ * Recovery fixtures may repeat the opening; the primary demo supplies a clean draft.
  * No document, QA result, readiness flag or acceptance record is persisted here.
  */
-export function createSelectedPostIntelligence(options: { exhaustRepairs?: boolean } = {}): ResearchAgentRunner {
+export function createSelectedPostIntelligence(options: { exhaustRepairs?: boolean; duplicateOpening?: boolean; topicId?: string } = {}): ResearchAgentRunner {
   return async (agentId, raw) => {
     if (agentId === RESEARCH_POST_AUTHOR_AGENT_ID) {
       const input = postAuthorInputSchema.parse(raw)
-      if (input.selected_item.topic_id !== 'TOP02' || input.selected_item.selection_status !== 'client_selected') {
-        throw new Error('The post intelligence fixture requires the real explicit TOP02 selection')
+      if (input.selected_item.topic_id !== (options.topicId ?? 'TOP02') || input.selected_item.selection_status !== 'client_selected') {
+        throw new Error('The post intelligence fixture requires the real explicit registered topic selection')
       }
-      const repaired = !options.exhaustRepairs && input.repair_findings.length > 0
+      const repeated = options.exhaustRepairs || (options.duplicateOpening !== false && input.repair_findings.length === 0)
       const opening = input.selected_item.audience_question
       const evidence = input.evidence_payload.filter((card) => card.kind === 'source_claim')
       if (!evidence.length) throw new Error('The selected instruction must carry real source evidence')
-      const text = [opening, ...(!repaired ? [opening] : []), input.selected_item.main_message,
+      const copyChecks = 'qaChecklist' in input.tov
+        ? input.tov.qaChecklist.map((question, index) => ({
+            id: mintId(idPrefixes.copyCheck, index, '-'),
+            question,
+          }))
+        : input.tov.copy_checks
+      const text = [opening, ...(repeated ? [opening] : []), input.selected_item.main_message,
         ...evidence.map((card) => card.text), input.reader_value.title,
         ...input.reader_value.items.map((item) => `- ${item}`)].join('\n\n')
       return { usage: null, result: postAuthorResult.parse({ kind: 'research', data: {
@@ -28,7 +36,7 @@ export function createSelectedPostIntelligence(options: { exhaustRepairs?: boole
           limitation: card.limitations.join('; ') || 'Deklaracja źródła, nie niezależna weryfikacja.',
           used_within_evidence: true, source_relationship: 'Treść z zamrożonej karty dowodowej instrukcji.' })),
         links_and_mentions: [], client_note: 'Szkic demonstracyjny oparty na wybranym temacie i jego instrukcji. Wymaga akceptacji treści; nie zezwala na publikację.',
-        self_check: { copy_checks: input.tov.copy_checks.map((check) => ({ id: check.id, result: 'not_applicable', evidence: 'Lokalna odpowiedź demonstracyjna, nie ocena modelu.' })),
+        self_check: { copy_checks: copyChecks.map((check) => ({ id: check.id, result: 'not_applicable', evidence: `Lokalna odpowiedź demonstracyjna, nie ocena modelu: ${check.question}` })),
           instruction_alignment: input.selected_item.topic_id, factual_scope: 'Tylko zamrożone karty instrukcji.',
           tone_of_voice: 'Lokalna odpowiedź demonstracyjna.', format: 'Tekst bez nowych adresów i liczb.', links: 'Brak nowych odnośników.',
           evidence_limitations: evidence.flatMap((card) => card.limitations) },
@@ -45,7 +53,7 @@ export function createSelectedPostIntelligence(options: { exhaustRepairs?: boole
         findings: repeated ? [{ code: 'other', severity: 'blocker', fragment: opening,
           issue: 'Otwarcie występuje dwa razy.', fix_hint: 'Usuń drugie wystąpienie otwarcia, zachowując dowody i temat.' }] : [],
         copy_checks: input.copy_checks.map((check) => ({ id: check.id, result: 'not_applicable', evidence: 'Deterministyczna inteligencja demonstracyjna.' })),
-        summary: repeated ? 'Usuń powtórzone otwarcie.' : 'Powtórzenie usunięte; wynik demonstracyjny podlega rzeczywistym walidatorom.',
+        summary: repeated ? 'Usuń powtórzone otwarcie.' : 'Brak powtórzonego otwarcia; wynik demonstracyjny podlega rzeczywistym walidatorom.',
       } }) }
     }
     throw new Error(`Unexpected agent in selected-post intelligence fixture: ${agentId}`)

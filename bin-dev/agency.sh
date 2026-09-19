@@ -6,14 +6,17 @@ help_text='Usage: agency.sh <command> [launcher arguments]
   start    Run yarn dev:agency
   status   Run yarn dev:agency:status
   demo     Run yarn test:agency:demo (headed, with screenshots)
+  setup | migrate | cli    Forward to the same agency launcher
+  manual-fixture          Persistent unpaid manual app (5004), provider and workers
+  manual-live --allow-live Persistent manual app (5006), explicit paid-model opt-in
   help     Show this help
 
 Arguments after the command are forwarded unchanged, for example:
   agency.sh start --journey production
   agency.sh demo --journey production
 
-The local app uses http://localhost:5002. These aliases reuse the existing
-persistent agency launcher; they do not build, reset, seed, or enable paid calls.'
+Default development uses http://localhost:5002. Manual profiles have separate
+persistent databases. Setup initializes only the named profile; no command resets it.'
 
 command_name=${1:-help}
 case "$command_name" in
@@ -21,14 +24,7 @@ case "$command_name" in
     printf '%s\n' "$help_text"
     exit 0
     ;;
-  start)
-    script_name=dev:agency
-    ;;
-  status)
-    script_name=dev:agency:status
-    ;;
-  demo)
-    script_name=test:agency:demo
+  start|status|setup|migrate|cli|demo|manual-fixture|manual-live)
     ;;
   *)
     printf 'Unknown command: %s\n\n%s\n' "$command_name" "$help_text" >&2
@@ -39,4 +35,9 @@ shift
 
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd "$script_dir/../ai-company"
-exec yarn "$script_name" "$@"
+case "$command_name" in
+  demo) exec yarn test:agency:demo "$@" ;;
+  manual-fixture) exec node scripts/agency-dev.mjs start --profile fixture "$@" ;;
+  manual-live) exec node scripts/agency-dev.mjs start --profile live "$@" ;;
+  *) exec node scripts/agency-dev.mjs "$command_name" "$@" ;;
+esac

@@ -22,13 +22,11 @@ import { withClient } from '@open-mercato/core/helpers/integration/dbFixtures'
 import { getTokenScope } from '@open-mercato/core/helpers/integration/generalFixtures'
 import { findInstanceUserTask, pollWorkflowInstance } from '@open-mercato/core/helpers/integration/workflowsFixtures'
 import { drainIntegrationQueue } from '@open-mercato/core/helpers/integration/queue'
-import { workflowDefinitionDataSchema } from '@open-mercato/core/modules/workflows/data/validators'
-import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
+import { configureCurrentTriageJourney, removeProductionJourneyDefinition } from './support/productionJourney/setup'
 import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
 import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
-import { createPlanReviewFixture, createPostReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
-import { publicationPreparationPreparedSchema } from '../../agency_research/lib/publicationPreparation/contracts'
+import { createPlanReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
 import { postExecutionOutcomeSchema } from '../../agency_research/lib/postExecution/contracts'
 import { POST_EXECUTION_RESULT_KEY } from '../lib/postExecution/contracts'
 import { demoPurchaseReceiptSchema, type DemoPurchaseReceipt } from '../lib/orderBootstrap/contracts'
@@ -279,10 +277,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     let nativeRecovery: { workflowInstanceId: string; submissionId: string } | null = null
     let briefReview: BriefReviewFixture | null = null
     let planReview: PlanReviewFixture | null = null
-    let nativeProcess: { workflowDefinitionId: string; workflowId: string; version: number } | undefined
-    let postInstruction: { instructionVersionId: string; selectionSubmissionId: string } | undefined
     let planSubmissionId: string | undefined
-    let publicationPreparation: ReturnType<typeof publicationPreparationPreparedSchema.parse> | undefined
+    let ownedTriageDefinitionIds: string[] = []
     let purchaseScope: PurchaseFixtureScope | undefined
     let purchase: DemoPurchaseReceipt | undefined
     let resources: CreatedResources = {
@@ -309,6 +305,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         }
         await deleteCreatedDatabaseRows(resources, tenantId, organizationId)
         if (purchaseScope) await deletePurchaseJourneyRecords(request, adminToken, purchaseScope)
+        for (const id of ownedTriageDefinitionIds) await removeProductionJourneyDefinition({ id, tenantId, organizationId })
         if (customerUserId && customerRoleId) {
           const response = await apiRequest(request, 'PUT', `/api/customer_accounts/admin/users/${customerUserId}`, {
             token: provisioningToken,
@@ -337,28 +334,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
               [tenantId, organizationId, provider.baseUrl]))
             expect(Number(externalOverrides.rows[0].count), 'Native post proof requires loopback-only provider overrides').toBe(0)
           }
-          type NativeDefinition = {
-            id: string; workflowId: string; version: number; tenantId: string | null; organizationId: string | null
-            enabled: boolean; lifecycle: string; definition: unknown; grantedFeatures: string[] | null
-          }
-          let selected: NativeDefinition | undefined
-          for (let offset = 0; ; offset += 100) {
-            const query = new URLSearchParams({ workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, enabled: 'true', lifecycle: 'published', limit: '100', offset: String(offset) })
-            const response = await apiRequest(request, 'GET', `/api/workflows/definitions?${query}`, { token: adminToken })
-            expect(response.ok(), 'Native triage definition lookup should succeed').toBeTruthy()
-            const definitions = await response.json() as { data: NativeDefinition[]; pagination: { hasMore: boolean } }
-            for (const definition of definitions.data) {
-              if (definition.workflowId === NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
-                && definition.tenantId === tenantId && definition.organizationId === organizationId
-                && definition.enabled && definition.lifecycle === 'published'
-                && (!selected || definition.version > selected.version)) selected = definition
-            }
-            if (!definitions.pagination.hasMore) break
-          }
-          if (!selected) throw new Error('Native triage has no enabled published definition in this scope. Run agency_operations configure-triage for the persistent development runtime before the demo.')
-          expect(workflowDefinitionDataSchema.parse(selected.definition)).toEqual(workflowDefinitionDataSchema.parse(nativeClientSubmissionDefinition))
-          expect(selected.grantedFeatures).toContain('agent_orchestrator.agents.run')
-          nativeProcess = { workflowDefinitionId: selected.id, workflowId: selected.workflowId, version: selected.version }
+          ownedTriageDefinitionIds = await configureCurrentTriageJourney({ tenantId, organizationId, userId: provisioningUserId })
         })
       }
       const intakeIdentity = await runDemoPhase('Prepare fixtures', 'Fixture ready', async () => {
@@ -431,7 +407,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             sameSite: 'Lax',
           },
         ])
-        // Payment UI and retry are TC003's proof. This journey needs only a real paid case.
+        // The primary TC002 journey proves signup and payment retry. Recovery needs only a real paid case.
         const created = await page.request.post(new URL('/api/agency/portal/purchases', BASE_URL).toString(), { data: {
           requestId: randomUUID(), offerVersion: demoOffer.offerVersion, termsVersion: demoOffer.termsVersion, acceptedTerms: true,
           buyer: { brandDisplayName: brand, brandWebsiteUrl: 'https://example.test', market: 'Polska', language: 'polski',
@@ -471,10 +447,12 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           return url.pathname === '/api/agency/portal/materials'
             && response.request().method() === 'POST'
         })
-        await page.getByRole('button', { name: 'Submit material', exact: true }).click()
+        await page.locator('form').filter({
+          has: page.getByLabel('Message about this material (optional)', { exact: true }),
+        }).getByRole('button', { name: 'Submit material', exact: true }).click()
         const submissionResponse = await submissionResponsePromise
-        expect(submissionResponse.status(), 'Portal material submission should return 201').toBe(
-          201,
+        expect(submissionResponse.status(), 'Portal material submission should acknowledge native dispatch').toBe(
+          202,
         )
         const result = supplementaryMaterialResultSchema.parse(await submissionResponse.json())
         expect(result).toMatchObject({
@@ -593,87 +571,31 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         expect((await page.request.get(`${endpoint}/${randomUUID()}`)).status()).toBe(404)
       })
 
-      await runDemoPhase('Review the saved brief', 'Exact brief response received once', async () => {
+      await runDemoPhase('Prepare employee research evidence', 'Saved research available for employee drilldown', async () => {
         briefReview = await createBriefReviewFixture({
           caseId: intakeResult.caseId, tenantId, organizationId, userId: provisioningUserId,
           customerEntityId: customerEntityId!, customerUserId: customerUserId!,
         })
-        await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${briefReview.taskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
-        await expect(page.getByTitle('Brief — version 1.0', { exact: true }).contentFrame()
-          .getByRole('heading', { name: 'Demo brief ready for your review' })).toBeVisible()
-        await capture('brief-review')
-        const received = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/agency/cases/${intakeResult.caseId}/requests` && response.request().method() === 'POST')
-        await page.getByRole('button', { name: 'Accept', exact: true }).click()
-        const response = await received
-        expect(response.status(), await response.text()).toBe(201)
-        const receipt = await response.json() as { requestId: string; status: string }
-        expect(receipt.status).toBe('response_received')
-        await expect(page.getByText('Your decision has been sent and is awaiting processing.')).toBeVisible()
-        const replay = await page.request.post(response.url(), { data: response.request().postDataJSON() })
-        expect(replay.status()).toBe(200)
-        expect(await replay.json()).toMatchObject({ requestId: receipt.requestId, replayed: true })
-        const original = await withClient(async (client) => client.query<{ original: { reviewResponse: { versionId: string; documentId: string; kind: string } } }>(
-          'SELECT original FROM agency_client_submissions WHERE id=$1 AND case_id=$2 AND tenant_id=$3 AND organization_id=$4',
-          [receipt.requestId, intakeResult.caseId, tenantId, organizationId],
-        ))
-        expect(original.rows[0].original.reviewResponse).toMatchObject({ versionId: briefReview.versionId, documentId: briefReview.documentId, kind: 'approval' })
-        await capture('brief-response-received')
       })
 
-      if (provider) {
-        await runDemoPhase('Approve plan and choose a topic', 'Exact plan choice compiled into a saved post instruction', async () => {
+      if (provider && nativePost) {
+        await runDemoPhase('Prepare native post QA exception', 'Client choice dispatched to the real post producer', async () => {
           planReview = await createPlanReviewFixture({ brief: briefReview!, userId: provisioningUserId, customerUserId: customerUserId! })
           provider.allowPlanApproval({ documentId: planReview.documentId, versionId: planReview.versionId,
             taskId: planReview.taskId, selectedTopicId: planReview.selectedTopicId })
-          await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${planReview.taskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
-          await expect(page.getByRole('heading', { name: 'Review your content plan', exact: true })).toBeVisible()
-          expect(planReview.selectedTopicId).not.toBe(planReview.recommendedTopicId)
-          await page.getByRole('checkbox', { name: 'I approve this exact plan version', exact: true }).check()
-          await page.locator('[data-crud-field-id="selectedTopicId"]').getByRole('combobox').click()
-          await page.getByRole('option', { name: new RegExp(`\\(${planReview.selectedTopicId}\\)$`) }).click()
-          await capture('plan-explicit-topic-choice')
-          const endpoint = `/api/agency/plan-reviews/${planReview.taskId}`
-          const received = page.waitForResponse((response) => new URL(response.url()).pathname === endpoint && response.request().method() === 'POST')
-          await page.getByRole('button', { name: 'Send response', exact: true }).click()
-          const response = await received
+          const response = await page.request.post(new URL(`/api/agency/plan-reviews/${planReview.taskId}`, BASE_URL).toString(), {
+            data: { channel: 'portal', kind: 'approval', externalEventId: randomUUID(),
+              plan: { documentId: planReview.documentId, versionId: planReview.versionId },
+              approvePlan: true, selectedTopicId: planReview.selectedTopicId },
+          })
           expect(response.ok(), await response.text()).toBeTruthy()
-          const receipt = await response.json() as { requestId: string; status: string }
-          expect(receipt.status).toBe('response_received')
+          const receipt = await response.json() as { requestId: string }
           planSubmissionId = receipt.requestId
-          if (nativePost) provider.allowPostProduction({ caseId: intakeResult.caseId, planVersion: planReview.version,
+          provider.allowPostProduction({ caseId: intakeResult.caseId, planVersion: planReview.version,
             selectedTopicId: planReview.selectedTopicId, selectionSubmissionId: receipt.requestId })
           await drainIntegrationQueue('workflow-invoke-agent')
-          const plan = planReview
-          await expect.poll(async () => withClient(async (client) => {
-            const rows = await client.query<{ status: string; summary: { result?: unknown } }>(
-              "SELECT status,summary FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND step_id='6.7' ORDER BY created_at DESC LIMIT 1",
-              [tenantId, organizationId, intakeResult.caseId])
-            return rows.rows[0]
-          }), { timeout: 30_000 }).toMatchObject({ status: 'done', summary: { result: {
-            status: 'ready', planVersionId: plan.versionId, selectedTopicId: plan.selectedTopicId, selectionSubmissionId: receipt.requestId,
-          } } })
-          const saved = await withClient(async (client) => {
-            const approved = await client.query<{ approval_records: unknown[] }>(
-              'SELECT approval_records FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
-              [plan.versionId, tenantId, organizationId, intakeResult.caseId])
-            const instruction = await client.query<{ id: string; data: unknown; input_versions: unknown[]; simulation_flag: boolean; approval_records: unknown[] }>(
-              "SELECT id,data,input_versions,simulation_flag,approval_records FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-ZLECENIE-POSTU' ORDER BY version_no DESC LIMIT 1",
-              [tenantId, organizationId, intakeResult.caseId])
-            return { approved: approved.rows[0], instruction: instruction.rows[0] }
-          })
-          expect(saved.approved.approval_records).toEqual(expect.arrayContaining([expect.objectContaining({
-            documentVersionId: plan.versionId, selectedTopicId: plan.selectedTopicId, approvePlan: true,
-            source: expect.objectContaining({ submissionId: receipt.requestId, invitationTaskId: plan.taskId }),
-          })]))
-          expect(saved.instruction).toMatchObject({ data: { selected_item: { topic_id: plan.selectedTopicId } }, simulation_flag: false, approval_records: [] })
-          expect(saved.instruction.input_versions).toEqual(expect.arrayContaining([
-            expect.objectContaining({ document_id: `KLI-PLAN@${intakeResult.caseId}`, version: plan.version }),
-          ]))
-          expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(1)
-          postInstruction = { instructionVersionId: saved.instruction.id, selectionSubmissionId: receipt.requestId }
-          await capture('plan-response-compiled')
         })
-        if (nativePost) await runDemoPhase('Ask about a native post QA exception', 'Exact-post answer received; native employee exception remains open', async () => {
+        await runDemoPhase('Ask about a native post QA exception', 'Exact-post answer received; native employee exception remains open', async () => {
           await drainIntegrationQueue('workflow-activities')
           const source = await withClient(async (client) => client.query<{ workflow_instance_id: string }>(
             'SELECT workflow_instance_id FROM agency_client_submissions WHERE id=$1 AND case_id=$2 AND tenant_id=$3 AND organization_id=$4',
@@ -736,78 +658,6 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           expect(retained.exception.data).toMatchObject({ resolution: { state: 'open' } })
           await capture('post-question-answer-received')
         })
-        await runDemoPhase('Review post content', 'Exact post content accepted without publication permission', async () => {
-          if (nativePost) console.log('[TC-AGENCY-001] Separate successful producer fixture follows; the employee answer did not resolve or resume the native exception')
-          const post = await createPostReviewFixture({ plan: planReview!, ...postInstruction!, process: nativeProcess!, userId: provisioningUserId })
-          provider.allowPostApproval(post)
-          const taskUrl = new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${post.taskId}`, BASE_URL).toString()
-          await page.goto(taskUrl, { waitUntil: 'domcontentloaded' })
-          await expect(page.getByRole('heading', { name: 'Review your post', exact: true })).toBeVisible()
-          await expect(page.getByText('Content approval applies only to this version. It does not authorize publication.', { exact: true })).toBeVisible()
-          await page.getByRole('checkbox', { name: 'I approve the content of this exact post version', exact: true }).check()
-          await capture('post-content-review')
-          const endpoint = `/api/agency/post-reviews/${post.taskId}`
-          const received = page.waitForResponse((response) => new URL(response.url()).pathname === endpoint && response.request().method() === 'POST')
-          await page.getByRole('button', { name: 'Send response', exact: true }).click()
-          const response = await received
-          expect(response.ok(), await response.text()).toBeTruthy()
-          const receipt = await response.json() as { requestId: string; status: string }
-          expect(receipt.status).toBe('response_received')
-          await drainIntegrationQueue('workflow-invoke-agent')
-          const accepted = () => withClient(async (client) => {
-            const row = await client.query<{ status: string; approval_records: unknown[]; data: unknown }>(
-              'SELECT status,approval_records,data FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
-              [post.versionId, tenantId, organizationId, intakeResult.caseId])
-            return row.rows[0]
-          })
-          await expect.poll(accepted, { timeout: 30_000 }).toMatchObject({ status: 'approved', approval_records: [expect.objectContaining({
-            scope: 'post_content', documentId: post.documentId, documentVersionId: post.versionId, version: post.version,
-            person: customerUserId, qaTaskRunId: post.qaTaskRunId,
-            source: expect.objectContaining({ kind: 'agency_post_acceptance', submissionId: receipt.requestId, invitationTaskId: post.taskId }),
-          })] })
-          expect((await accepted()).data).toMatchObject({ target: { publication_allowed: false, publication_status: 'not_requested', target_account_id: null }, qa: { publication_gate: 'blocked' } })
-          const readPreparation = () => withClient(async (client) => {
-            const rows = await client.query<{ result: unknown }>(
-              `SELECT w.context->'agencyPublicationPreparation'->'result' AS result
-               FROM workflow_instances w JOIN agency_client_submissions s ON s.workflow_instance_id=w.id
-               WHERE s.id=$1 AND s.case_id=$2 AND s.tenant_id=$3 AND s.organization_id=$4
-                 AND w.tenant_id=$3 AND w.organization_id=$4`,
-              [receipt.requestId, intakeResult.caseId, tenantId, organizationId])
-            return rows.rows[0]?.result
-          })
-          await expect.poll(readPreparation, { timeout: 30_000 }).toMatchObject({ status: 'prepared',
-            orderRef: intakeResult.caseId, postVersionId: post.versionId, acceptanceSubmissionId: receipt.requestId,
-            contentHash: post.contentHash, contentApproval: 'valid', publicationConsent: 'missing', canSend: false })
-          const preparation = publicationPreparationPreparedSchema.parse(await readPreparation())
-          publicationPreparation = preparation
-          const publication = await withClient(async (client) => {
-            const rows = await client.query<{ id: string; template_id: string; data: unknown; input_versions: unknown[] }>(
-              'SELECT id,template_id,data,input_versions FROM agency_research_document_versions WHERE id=ANY($1::uuid[]) AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
-              [[preparation.instructionVersionId, preparation.configVersionId], tenantId, organizationId, intakeResult.caseId])
-            const confirmations = await client.query<{ count: string }>(
-              "SELECT count(*) FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-POTWIERDZENIE-PUBLIKACJI'",
-              [tenantId, organizationId, intakeResult.caseId])
-            return { rows: rows.rows, confirmations: Number(confirmations.rows[0].count) }
-          })
-          const instruction = publication.rows.find((row) => row.id === preparation.instructionVersionId)!
-          expect(instruction).toMatchObject({ template_id: 'WZR-ZLECENIE-PUBLIKACJI', data: {
-            post_ref: { document_ref: `KLI-POST@${intakeResult.caseId}`, content_version: post.version, content_hash: post.contentHash },
-            payload: { text: post.text }, content_approval_check: { state: 'valid', checked_content_version: post.version },
-            publication_consent_check: { state: 'missing', consent_ref_or_null: null },
-            execution_guard: { reservation_state: 'none', attempt_refs: [], prior_outcome: 'none' },
-            preflight: { state: 'not_ready' },
-          } })
-          expect(instruction.input_versions).toEqual(expect.arrayContaining([expect.objectContaining({
-            document_id: `KLI-POST@${intakeResult.caseId}`, version: post.version, status: 'approved',
-          })]))
-          expect(publication.rows.find((row) => row.id === preparation.configVersionId)?.template_id).toBe('WZR-KONFIG-PUBLIKACJI')
-          expect(publication.confirmations).toBe(0)
-          console.log('[TC-AGENCY-001] Publication instruction prepared from accepted content; consent missing, no send or reservation')
-          await page.goto(taskUrl, { waitUntil: 'domcontentloaded' })
-          await expect(page.getByText(`Acceptance recorded for version ${post.version}.`, { exact: true })).toBeVisible()
-          expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(2)
-          await capture('post-content-acceptance-recorded')
-        })
       }
 
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
@@ -825,16 +675,6 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await expect(caseLink).toBeVisible()
         await caseLink.click()
         await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
-        if (publicationPreparation) {
-          const response = await page.request.get(new URL(`/api/agency_operations/cases/${intakeResult.caseId}`, BASE_URL).toString())
-          expect(response.ok(), 'Employee case projection should expose publication preparation').toBeTruthy()
-          const projection = await response.json() as { submissions: Array<{ submissionId: string; publicationPreparation?: unknown }> }
-          expect(projection.submissions.find((submission) => submission.submissionId === publicationPreparation!.acceptanceSubmissionId)?.publicationPreparation)
-            .toMatchObject({ status: 'prepared', instructionVersionId: publicationPreparation.instructionVersionId,
-              contentApproval: 'valid', publicationConsent: 'missing', canSend: false })
-          await expect(page.getByRole('heading', { name: 'Publication preparation', level: 3, exact: true })).toBeVisible()
-          await expect(page.getByText('Preparation does not authorize sending. Missing destination, access and publication consent remain explicit.', { exact: true })).toBeVisible()
-        }
         if (briefReview) {
           await expect(page.getByText('Persisted research work', { exact: true })).toBeVisible()
           await page.getByRole('button', { name: briefReview.versionId, exact: true }).first().click()

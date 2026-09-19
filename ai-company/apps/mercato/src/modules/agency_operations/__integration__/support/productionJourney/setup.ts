@@ -15,11 +15,17 @@ function backend() {
 export async function configureProductionJourney(input: Parameters<Backend['configureProductionJourney']>[0]) {
   return (await backend()).configureProductionJourney(input)
 }
+export async function configureCurrentTriageJourney(input: Parameters<Backend['configureCurrentTriageJourney']>[0]) {
+  return (await backend()).configureCurrentTriageJourney(input)
+}
 export async function configureFullProductionJourney(input: Omit<Parameters<Backend['configureProductionJourney']>[0], 'includePost'>) {
   return (await backend()).configureProductionJourney({ ...input, includePost: true })
 }
 export async function readProducedBrief(...input: Parameters<Backend['readProducedBrief']>) {
   return (await backend()).readProducedBrief(...input)
+}
+export async function readSpecialistForCase(input: Parameters<Backend['readSpecialistForCase']>[0]) {
+  return (await backend()).readSpecialistForCase(input)
 }
 export async function removeProductionJourneyDefinition(input: Parameters<Backend['removeProductionJourneyDefinition']>[0]) {
   return (await backend()).removeProductionJourneyDefinition(input)
