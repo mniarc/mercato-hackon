@@ -1,0 +1,5 @@
+{
+  "https://makeitflow.pl/index.php": { "file": "pages/home.md", "access": "full", "title": "Centrum Badawcze FLOW — opis i FAQ" },
+  "https://makeitflow.pl/projekty/flowco-ai": { "file": "pages/flowco.md", "access": "full", "title": "Flowco.AI (ta sama warstwa FAQ)" },
+  "https://makeitflow.pl/promocje-konsumenckie": { "access": "unavailable", "error": "title only, no readable content" }
+}

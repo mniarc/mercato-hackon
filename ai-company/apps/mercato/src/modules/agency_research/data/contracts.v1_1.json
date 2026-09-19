@@ -1,0 +1,2376 @@
+[
+ {
+  "id": "WZR-ZRODLA",
+  "name": "Rejestr źródeł, faktów i materiału do komunikacji",
+  "output_id": "WEW-ZRODLA",
+  "owner": "Agent źródeł",
+  "process": "3.2",
+  "inputs": [
+   {
+    "id": "WEW-DANE-ZAMOWIENIA",
+    "required_state": "zwalidowane",
+    "needed_fields": [
+     "brand",
+     "market_language",
+     "official_social"
+    ]
+   },
+   {
+    "id": "STD-OFERTA",
+    "required_state": "wersja zamówiona",
+    "needed_fields": [
+     "unit",
+     "included",
+     "excluded"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "aktywne",
+    "needed_fields": [
+     "research",
+     "document_input",
+     "permissions"
+    ]
+   },
+   {
+    "id": "WE-KLIENT",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "attachments",
+     "content"
+    ]
+   },
+   {
+    "id": "WE-SYSTEM",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "source_reads"
+    ]
+   }
+  ],
+  "purpose": "Przekazać treść dowodów, a nie samą listę linków. Dalszy agent ma móc napisać strategię i post bez ponownego otwierania stron.",
+  "client_view_limit": "Wewnętrzny rejestr. Klient widzi tylko źródła przypisane do przedstawionych wniosków.",
+  "fields": [
+   {
+    "key": "sources",
+    "label": "Źródła i dostęp",
+    "priority": "must",
+    "type": "array",
+    "description": "Dla źródła: source_id, URL/nazwa pliku, wydawca, rodzaj, data pobrania, data publikacji jeśli znana, sekcja, dostęp full/partial/unavailable, zakres przeczytanej treści.",
+    "completion_rule": "Każdy adres ma wynik dostępu. Nieudane pobranie nie jest przeczytanym źródłem. Duplikaty podstron oznaczone.",
+    "source": "WEW-DANE-ZAMOWIENIA.brand; WEW-DANE-ZAMOWIENIA.official_social; WE-KLIENT.attachments; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-KONKURENCJA",
+     "KLI-BRIEF",
+     "WEW-ZLECENIE-POSTU"
+    ],
+    "missing_action": "Nie zastępuj braku danymi modelu. Wskaż konkretną alternatywę lub lukę.",
+    "source_refs": [
+     "WEW-DANE-ZAMOWIENIA.brand",
+     "WEW-DANE-ZAMOWIENIA.official_social",
+     "WE-KLIENT.attachments",
+     "WE-SYSTEM.source_reads"
+    ],
+    "nested_contract": {
+     "item_required": [
+      "source_id",
+      "canonical_source_id",
+      "independent_material_id",
+      "url_or_file",
+      "publisher",
+      "retrieved_at",
+      "published_at",
+      "access",
+      "read_scope",
+      "source_visibility",
+      "duplicate_of"
+     ],
+     "nullable": [
+      "published_at",
+      "duplicate_of"
+     ],
+     "rule": "canonical_source_id groups alternative URLs/copies of one source; independent_material_id identifies a genuinely independent text/material. The same FAQ, excerpts or mirrored URL count once. access=full/partial/unavailable describes what was actually read."
+    }
+   },
+   {
+    "key": "facts",
+    "label": "Bank atomowych faktów i twierdzeń",
+    "priority": "must",
+    "type": "array",
+    "description": "fact_id, jedna teza, source_id i lokalizator, krótka parafraza, rodzaj observed/first_party_claim/case_evidence, zakres zastosowania i ograniczenie.",
+    "completion_rule": "Jedna pozycja = jedno twierdzenie. Deklaracja własna firmy nie jest niezależnym dowodem wyniku.",
+    "source": "self.sources; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-KONKURENCJA",
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-STRATEGIA",
+     "KLI-TOV",
+     "KLI-PLAN",
+     "WEW-ZLECENIE-POSTU"
+    ],
+    "missing_action": "Brak dowodu oznacz jako hipotezę lub pomiń twierdzenie.",
+    "source_refs": [
+     "self.sources",
+     "WE-SYSTEM.source_reads"
+    ]
+   },
+   {
+    "key": "proof_cards",
+    "label": "Karty dowodów kompetencji",
+    "priority": "must",
+    "type": "array",
+    "description": "Karty z proof_id i wariantem declaration/observed_artifact/measured_case/external_confirmation; treść wsparcia, actual_action i observed_result mogą być null zgodnie z wariantem; fact_ids, ograniczenia oraz oddzielne warunki użycia.",
+    "completion_rule": "Zastosuj warunki wariantu. Deklaracja metody nie wymaga fikcyjnego działania ani wyniku. Brak wyniku nie blokuje udokumentowanej obietnicy procesu, ale blokuje claim efektu. Zgoda na publikację postu pozostaje odrębnym rekordem.",
+    "source": "self.facts; WE-KLIENT.attachments; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-KONKURENCJA",
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-STRATEGIA",
+     "KLI-TOV",
+     "KLI-PLAN",
+     "WEW-ZLECENIE-POSTU"
+    ],
+    "missing_action": "Jeśli brak case, wykorzystaj udokumentowaną metodę i zawęź obietnicę; poproś klienta o case przed zamrożeniem.",
+    "source_refs": [
+     "self.facts",
+     "WE-KLIENT.attachments",
+     "WE-SYSTEM.source_reads"
+    ],
+    "nested_contract": {
+     "variants": [
+      "declaration",
+      "observed_artifact",
+      "measured_case",
+      "external_confirmation"
+     ],
+     "common": [
+      "proof_id",
+      "proof_type",
+      "problem",
+      "actual_action",
+      "artifact_or_method",
+      "observed_result",
+      "fact_ids",
+      "limitations",
+      "source_visibility",
+      "allowed_use",
+      "use_basis_ref",
+      "client_name_permission",
+      "quote_permission"
+     ],
+     "nullable": [
+      "problem",
+      "actual_action",
+      "artifact_or_method",
+      "observed_result",
+      "use_basis_ref"
+     ],
+     "variant_rules": {
+      "declaration": "Records that a method/service is declared; actual_action and observed_result may be null. Does not prove implementation or effect.",
+      "observed_artifact": "Requires an actually observed deliverable/method artifact and source ref; observed_result may be null. Proves artifact, not business effect.",
+      "measured_case": "Requires actual action, observed result, result source, measurement context and limitations; causal effect only with suitable evidence.",
+      "external_confirmation": "Requires external source, what exactly it confirms and limits; independence never inferred from a repost."
+     },
+     "no_auto_promotion": "A client approval or public availability cannot change proof_type, fill a missing result or create a publication permission."
+    }
+   },
+   {
+    "key": "language_samples",
+    "label": "Próbka aktualnego języka",
+    "priority": "must",
+    "type": "array",
+    "description": "sample_id, krótki fragment/parafraza, źródło, kanał, odbiorca sugerowany przez tekst, sytuacja, cechy językowe i zaobserwowana funkcja.",
+    "completion_rule": "Minimum robocze: 5 różnych materiałów, jeśli dostępne. Ograniczona próbka jawna. Kilka URL z tym samym FAQ to jeden materiał. Licz tylko unikalne independent_material_id; duplikaty wskazują canonical_source_id.",
+    "source": "self.sources; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-KONKURENCJA",
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-TOV"
+    ],
+    "missing_action": "Nie blokuj nowego ToV przez małą próbkę: oznacz nowe zasady jako propozycję, nie odtworzenie istniejącego stylu.",
+    "source_refs": [
+     "self.sources",
+     "WE-SYSTEM.source_reads"
+    ],
+    "nested_contract": {
+     "item_required": [
+      "sample_id",
+      "independent_material_id",
+      "canonical_source_id",
+      "source_id",
+      "excerpt_or_paraphrase",
+      "channel",
+      "linguistic_features",
+      "sample_limit"
+     ],
+     "counting_rule": "Minimum robocze 5 dotyczy unique independent_material_id, nie liczby sample_id, URL ani fragmentów. Mniejsza dostępna próba jest jawna i nie blokuje projektu nowego głosu."
+    }
+   },
+   {
+    "key": "audience_signals",
+    "label": "Sygnały problemów i sytuacji zakupu",
+    "priority": "must",
+    "type": "array",
+    "description": "signal_id, rola/organizacja, sytuacja wyzwalająca potrzebę, problem, koszt lub ryzyko, obiekcja, dosłowna wypowiedź albo jawna interpretacja, fact_ids.",
+    "completion_rule": "Opis firmy nie zastępuje głosu jej klientów. Zaznacz, które sygnały są jedynie hipotezami dostawcy.",
+    "source": "self.facts; self.proof_cards; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-KONKURENCJA"
+    ],
+    "missing_action": "Brak bezpośredniego głosu klienta → pytania w briefie, bez deklaracji zwalidowanego ICP.",
+    "source_refs": [
+     "self.facts",
+     "self.proof_cards",
+     "WE-SYSTEM.source_reads"
+    ]
+   },
+   {
+    "key": "content_bank",
+    "label": "Zalążki tematów możliwych do rozwinięcia",
+    "priority": "must",
+    "type": "array",
+    "description": "seed_id, temat/problem, przydatna konkretna wiedza lub procedura, dozwolona teza, źródła, możliwy przykład, czego nie wolno obiecać.",
+    "completion_rule": "Przed Q-FREEZE bank wspiera 12 różnych wykonalnych pytań/ujęć zgodnie z coverage.plan_capacity. To nie wymóg 12 niezależnych case studies. Każdy planowany claim ma treść dowodu; proposed_utility odróżnione od source_claim. Nie odkładaj pokrycia planu na późniejszy research.",
+    "source": "self.facts; self.proof_cards; WE-SYSTEM.source_reads",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-USTALENIA",
+     "KLI-STRATEGIA",
+     "KLI-PLAN",
+     "WEW-ZLECENIE-POSTU"
+    ],
+    "missing_action": "Przed zamrożeniem uzupełnij bank. Po zamrożeniu wybierz temat z wystarczającymi dowodami.",
+    "source_refs": [
+     "self.facts",
+     "self.proof_cards",
+     "WE-SYSTEM.source_reads"
+    ],
+    "nested_contract": {
+     "item_required": [
+      "seed_id",
+      "audience_question",
+      "angle",
+      "source_claim",
+      "proposed_utility",
+      "fact_ids",
+      "proof_ids",
+      "provenance",
+      "reuse_of_evidence",
+      "prohibited_claims",
+      "readiness"
+     ],
+     "rules": [
+      "source_claim is the exact supported content with its limitations; proposed_utility is an analytical/creative explanation, checklist or question, explicitly marked as such.",
+      "A proposed utility does not become a sourced recommendation or validated method. Factual/technical advice needs a source.",
+      "The same evidence may support different genuinely useful questions; reuse_of_evidence names shared IDs and explains the different use.",
+      "ready requires the substantive material to be present, not a future research task."
+     ]
+    }
+   },
+   {
+    "key": "conflicts",
+    "label": "Sprzeczności i nieaktualność",
+    "priority": "must",
+    "type": "array",
+    "description": "conflict_id, sprzeczne fakty, daty, możliwy wpływ na materiał, pytanie do rozstrzygnięcia, stan.",
+    "completion_rule": "Pusta lista dozwolona tylko po sprawdzeniu. Sprzecznego faktu nie awansuj do claimu.",
+    "source": "self.sources; self.facts",
+    "consumed_by": [
+     "WEW-AUDYT",
+     "WEW-USTALENIA",
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Spór o fakt istotny dla obietnicy wymaga odpowiedzi klienta albo pominięcia obietnicy.",
+    "source_refs": [
+     "self.sources",
+     "self.facts"
+    ]
+   },
+   {
+    "key": "coverage",
+    "label": "Pokrycie potrzeb kolejnych dokumentów",
+    "priority": "must",
+    "type": "array",
+    "description": "Potrzeba: segment, problem, zakup, oferta, mechanizm, dowód, alternatywy, język, CTA. Dla każdej: complete/partial/missing, IDs materiałów, znaczenie luki, właściciel uzupełnienia.",
+    "completion_rule": "Nie stosuj ogólnego procentu jako zgody na dalszą pracę. Oceń pole po polu.",
+    "source": "self.facts; self.proof_cards; self.language_samples; self.audience_signals; self.content_bank; self.conflicts; STD-OFERTA.unit",
+    "consumed_by": [
+     "O-3.7",
+     "WEW-AUDYT",
+     "WEW-USTALENIA",
+     "KLI-PLAN",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Luka blokująca trafia do źródeł lub briefu; luka opcjonalna pozostaje jawna.",
+    "source_refs": [
+     "self.facts",
+     "self.proof_cards",
+     "self.language_samples",
+     "self.audience_signals",
+     "self.content_bank",
+     "self.conflicts",
+     "STD-OFERTA.unit"
+    ],
+    "nested_contract": {
+     "item_variants": [
+      "requirement_coverage",
+      "plan_capacity"
+     ],
+     "requirement_coverage": [
+      "requirement",
+      "readiness",
+      "evidence_ids",
+      "gap",
+      "owner"
+     ],
+     "plan_capacity": [
+      "required_topics",
+      "supported_angles",
+      "distinct_count",
+      "ready_count",
+      "unsupported_angles",
+      "readiness"
+     ],
+     "supported_angle": [
+      "angle_id",
+      "audience_question",
+      "distinct_value",
+      "seed_ids",
+      "fact_ids",
+      "proof_ids",
+      "reuse_of_evidence",
+      "readiness"
+     ],
+     "rule": "One plan_capacity row is required before Q-FREEZE. required_topics equals the pinned pilot offer (currently 12). ready_count and distinct_count must both reach required_topics. These are evidence-capacity sketches, not a second calendar or 12 finished posts."
+    }
+   }
+  ],
+  "quality_gates": [
+   "Każda teza ma pochodzenie i granicę użycia.",
+   "Dostęp partial nie udaje pełnego audytu.",
+   "Bank treści zawiera treść dowodów, nie tylko URL."
+  ],
+  "handoff": [
+   {
+    "consumer": "WEW-AUDYT",
+    "consumer_template_id": "WZR-AUDYT",
+    "fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "audience_signals",
+     "content_bank",
+     "conflicts",
+     "coverage"
+    ],
+    "ready_when": "zebrane i opisane",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-KONKURENCJA",
+    "consumer_template_id": "WZR-KONKURENCJA",
+    "fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "audience_signals"
+    ],
+    "ready_when": "zebrane",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-USTALENIA",
+    "consumer_template_id": "WZR-USTALENIA",
+    "fields": [
+     "coverage",
+     "conflicts",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "content_bank"
+    ],
+    "ready_when": "QA źródeł",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-BRIEF",
+    "consumer_template_id": "WZR-BRIEF",
+    "fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "conflicts"
+    ],
+    "ready_when": "dostępne",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-STRATEGIA",
+    "consumer_template_id": "WZR-STRATEGIA",
+    "fields": [
+     "facts",
+     "proof_cards",
+     "content_bank"
+    ],
+    "ready_when": "zamrożony pakiet",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-TOV",
+    "consumer_template_id": "WZR-TOV",
+    "fields": [
+     "language_samples",
+     "facts",
+     "proof_cards"
+    ],
+    "ready_when": "zamrożony pakiet",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PLAN",
+    "consumer_template_id": "WZR-PLAN",
+    "fields": [
+     "content_bank",
+     "facts",
+     "proof_cards",
+     "coverage"
+    ],
+    "ready_when": "zamrożony pakiet",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-ZLECENIE-POSTU",
+    "consumer_template_id": "WZR-ZLECENIE-POSTU",
+    "fields": [
+     "content_bank",
+     "facts",
+     "proof_cards",
+     "sources"
+    ],
+    "ready_when": "zamrożone",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PAKIET",
+    "consumer_template_id": "WZR-PAKIET",
+    "fields": [
+     "coverage"
+    ],
+    "ready_when": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Nie kopiuj pełnych stron.",
+   "Nie twórz drugiego banku faktów w strategii; odsyłaj przez fact_id."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "internal_only",
+   "source_fields": [],
+   "word_limit": null,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Klient widzi wyłącznie krótkie przypisy źródeł wspierających przedstawione wnioski, nigdy cały rejestr."
+  }
+ },
+ {
+  "id": "WZR-AUDYT",
+  "name": "Audyt obecnej komunikacji i zdolności do uzasadnienia obietnic",
+  "output_id": "WEW-AUDYT",
+  "owner": "Agent audytu",
+  "process": "3.3",
+  "inputs": [
+   {
+    "id": "WEW-ZRODLA",
+    "required_state": "zebrane i opisane",
+    "needed_fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "audience_signals",
+     "content_bank",
+     "conflicts",
+     "coverage"
+    ]
+   }
+  ],
+  "purpose": "Rozpoznać stan obecny, mocne materiały i luki. Nie wybierać za klienta jego przyszłej wizji.",
+  "client_view_limit": "Podsumowanie do 450 słów: 3 mocne strony, 3 problemy i ich konsekwencje; pełne obserwacje wewnętrzne.",
+  "fields": [
+   {
+    "key": "offer_map",
+    "label": "Mapa faktycznej oferty",
+    "priority": "must",
+    "type": "array",
+    "description": "Oferta/usługa, dla kogo jest opisana, rozwiązywany problem, rezultat, mechanizm pracy, ograniczenia, fact_ids.",
+    "completion_rule": "Oddziel usługę badawczą, projektową i wdrożeniową od ich pakietu. Nie dodawaj niepotwierdzonych kompetencji.",
+    "source": "WEW-ZRODLA.facts",
+    "consumed_by": [
+     "WEW-KONKURENCJA",
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Brak priorytetu sprzedaży jest pytaniem do klienta, nie wyborem na podstawie częstotliwości słów.",
+    "source_refs": [
+     "WEW-ZRODLA.facts"
+    ]
+   },
+   {
+    "key": "buyer_map",
+    "label": "Mapa osób i sytuacji zakupowych",
+    "priority": "must",
+    "type": "array",
+    "description": "Rola inicjatora, użytkownika, decydenta; moment zakupu; zadanie do wykonania; obiekcje; kryteria wyboru; status evidence/hypothesis.",
+    "completion_rule": "Uzupełnij co najmniej jeden spójny scenariusz zamiast listy wszystkich możliwych odbiorców.",
+    "source": "WEW-ZRODLA.audience_signals",
+    "consumed_by": [
+     "WEW-KONKURENCJA",
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Pytaj o priorytet i realne przykłady w briefie.",
+    "source_refs": [
+     "WEW-ZRODLA.audience_signals"
+    ]
+   },
+   {
+    "key": "message_map",
+    "label": "Obecna obietnica i uzasadnienie",
+    "priority": "must",
+    "type": "array",
+    "description": "Komunikat, odbiorca, korzyść, mechanizm, dowód, ogólnik/nadmierna obietnica, fact_ids.",
+    "completion_rule": "Rozdziel kategorię, korzyść i dowód. Hasło nie jest UVP ani udokumentowanym rezultatem.",
+    "source": "WEW-ZRODLA.facts; WEW-ZRODLA.proof_cards",
+    "consumed_by": [
+     "WEW-KONKURENCJA",
+     "KLI-STRATEGIA",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Słaby dowód → oznacz ograniczenie; nie dopisuj przewagi.",
+    "source_refs": [
+     "WEW-ZRODLA.facts",
+     "WEW-ZRODLA.proof_cards"
+    ]
+   },
+   {
+    "key": "voice_audit",
+    "label": "Jak firma mówi obecnie",
+    "priority": "must",
+    "type": "object",
+    "description": "Formalność, bezpośredniość, poziom techniczny, emocje, pewność tez, powtarzalne zwroty, rozbieżności między kanałami, sample_ids.",
+    "completion_rule": "Każda cecha ma przykład lub informację, że próba jest niewystarczająca.",
+    "source": "WEW-ZRODLA.language_samples",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-BRIEF",
+     "KLI-TOV"
+    ],
+    "missing_action": "Mała próbka ogranicza wniosek o obecnym głosie, nie wyklucza zaprojektowania przyszłego.",
+    "source_refs": [
+     "WEW-ZRODLA.language_samples"
+    ]
+   },
+   {
+    "key": "journey",
+    "label": "Droga od zainteresowania do kontaktu",
+    "priority": "must",
+    "type": "array",
+    "description": "Etap potrzeby, materiał/strona, obietnica, CTA i działający cel, tarcie, możliwa poprawa, fact_ids.",
+    "completion_rule": "Sprawdzaj istniejące punkty kontaktu; nie oceniaj konwersji bez danych.",
+    "source": "WEW-ZRODLA.sources; WEW-ZRODLA.facts",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Nieznany wynik kanału oznacz jako nieznany. CTA do nieistniejącego zasobu jest niedozwolone.",
+    "source_refs": [
+     "WEW-ZRODLA.sources",
+     "WEW-ZRODLA.facts"
+    ]
+   },
+   {
+    "key": "relationship",
+    "label": "Widoczne budowanie i utrzymanie relacji",
+    "priority": "should",
+    "type": "array",
+    "description": "Dowody zaufania, onboarding, edukacja, obsługa po projekcie, powrót klientów; źródło lub brak danych.",
+    "completion_rule": "Brak publicznej wzmianki nie oznacza, że firma nie ma procesu.",
+    "source": "WEW-ZRODLA.facts",
+    "consumed_by": [],
+    "missing_action": "Wpisz brak danych; nie blokuj pojedynczego postu.",
+    "source_refs": [
+     "WEW-ZRODLA.facts"
+    ]
+   },
+   {
+    "key": "gaps",
+    "label": "Luki i priorytety audytu",
+    "priority": "must",
+    "type": "array",
+    "description": "gap_id, obserwacja, wpływ biznesowy jako hipoteza, dowód, priorytet, konieczna decyzja lub materiał, krok docelowy.",
+    "completion_rule": "3–5 najistotniejszych luk z konkretną konsekwencją. Nie lista estetycznych gustów audytora.",
+    "source": "self.offer_map; self.buyer_map; self.message_map; self.voice_audit; self.journey; WEW-ZRODLA.coverage",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-STRATEGIA",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Pytanie lub ograniczenie; nie naprawiaj w ramach audytu niezamówionej strony.",
+    "source_refs": [
+     "self.offer_map",
+     "self.buyer_map",
+     "self.message_map",
+     "self.voice_audit",
+     "self.journey",
+     "WEW-ZRODLA.coverage"
+    ]
+   },
+   {
+    "key": "reusable_assets",
+    "label": "Zasoby do ponownego użycia",
+    "priority": "must",
+    "type": "array",
+    "description": "Nazwa konkretnego materiału/metody, value_for_audience, proof/seed_ids, dostępność i ograniczenia wykorzystania.",
+    "completion_rule": "Wskaż, co można wykorzystać w strategii i poście, nie tylko co trzeba poprawić.",
+    "source": "WEW-ZRODLA.content_bank; WEW-ZRODLA.proof_cards",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-STRATEGIA",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Jeśli brak, zamów na etapie briefu minimalny przykład lub wybierz treść metodologiczną.",
+    "source_refs": [
+     "WEW-ZRODLA.content_bank",
+     "WEW-ZRODLA.proof_cards"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Każda ocena oddziela obserwację od rekomendacji.",
+   "Audyt nie ustala przyszłych celów klienta.",
+   "Każda luka istotna dla produkcji ma odbiorcę w WEW-USTALENIA."
+  ],
+  "handoff": [
+   {
+    "consumer": "WEW-KONKURENCJA",
+    "consumer_template_id": "WZR-KONKURENCJA",
+    "fields": [
+     "offer_map",
+     "buyer_map",
+     "message_map"
+    ],
+    "ready_when": "roboczy do porównania",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-USTALENIA",
+    "consumer_template_id": "WZR-USTALENIA",
+    "fields": [
+     "offer_map",
+     "buyer_map",
+     "voice_audit",
+     "journey",
+     "gaps",
+     "reusable_assets"
+    ],
+    "ready_when": "po analizie",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-BRIEF",
+    "consumer_template_id": "WZR-BRIEF",
+    "fields": [
+     "offer_map",
+     "buyer_map",
+     "voice_audit",
+     "journey"
+    ],
+    "ready_when": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-STRATEGIA",
+    "consumer_template_id": "WZR-STRATEGIA",
+    "fields": [
+     "offer_map",
+     "buyer_map",
+     "message_map",
+     "gaps",
+     "reusable_assets"
+    ],
+    "ready_when": "QA",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-TOV",
+    "consumer_template_id": "WZR-TOV",
+    "fields": [
+     "voice_audit"
+    ],
+    "ready_when": "QA",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PAKIET",
+    "consumer_template_id": "WZR-PAKIET",
+    "fields": [
+     "gaps",
+     "message_map",
+     "reusable_assets"
+    ],
+    "ready_when": "QA passed w 3.7",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Nie kopiuj faktów z rejestru źródeł.",
+   "Wnioski dla klienta streszczają obserwacje, nie powielają pełnego audytu."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "summary",
+   "source_fields": [
+    "offer_map",
+    "message_map",
+    "voice_audit",
+    "journey",
+    "gaps",
+    "reusable_assets"
+   ],
+   "word_limit": 450,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "3 mocne strony i 3 problemy z konsekwencją; krótkie źródło przy wniosku, bez pełnych kart i technicznych ID."
+  }
+ },
+ {
+  "id": "WZR-KONKURENCJA",
+  "name": "Analiza alternatyw i wiarygodności wyróżnienia",
+  "output_id": "WEW-KONKURENCJA",
+  "owner": "Agent researchu i koordynator audytu",
+  "process": "3.4–3.5",
+  "inputs": [
+   {
+    "id": "WEW-DANE-ZAMOWIENIA",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "brand",
+     "market_language"
+    ]
+   },
+   {
+    "id": "WEW-ZRODLA",
+    "required_state": "zebrane",
+    "needed_fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "audience_signals"
+    ]
+   },
+   {
+    "id": "WEW-AUDYT",
+    "required_state": "roboczy do porównania",
+    "needed_fields": [
+     "offer_map",
+     "buyer_map",
+     "message_map"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "research"
+    ]
+   },
+   {
+    "id": "WE-SYSTEM",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "source_reads"
+    ]
+   }
+  ],
+  "purpose": "Pokazać, co jest standardem kategorii, jakie alternatywy rozważa nabywca i jaką przewagę można uczciwie obiecać.",
+  "client_view_limit": "Maks. 3 karty firm i jedno podsumowanie do 350 słów. Różnice porównujemy w tabeli.",
+  "fields": [
+   {
+    "key": "selection",
+    "label": "Dobór konkurentów",
+    "priority": "must",
+    "type": "array",
+    "description": "Nazwa, URL, typ konkurencji, wspólny odbiorca/problem/zakres, różnice skali i rynku, powód włączenia.",
+    "completion_rule": "Do 3 firm. Bliskość kategorii nie oznacza faktycznego udziału w tych samych przetargach.",
+    "source": "WEW-DANE-ZAMOWIENIA.market_language; WEW-AUDYT.offer_map; WEW-AUDYT.buyer_map; WE-SYSTEM.source_reads",
+    "consumed_by": [],
+    "missing_action": "Jeśli klient wskazuje inną kategorię, doprecyzuj segment przed zamrożeniem researchu.",
+    "source_refs": [
+     "WEW-DANE-ZAMOWIENIA.market_language",
+     "WEW-AUDYT.offer_map",
+     "WEW-AUDYT.buyer_map",
+     "WE-SYSTEM.source_reads"
+    ]
+   },
+   {
+    "key": "cards",
+    "label": "Porównywalne karty konkurentów",
+    "priority": "must",
+    "type": "array",
+    "description": "Dla każdej firmy: buyer/problem, kategoria, usługa, obietnica, mechanizm, dowód, CTA, styl, publicznie widoczne kanały, fact_ids i braki.",
+    "completion_rule": "Te same kryteria dla wszystkich. Nieznana cecha to unknown, nie „brak”. Przed ready źródła i atomowe twierdzenia odczytane w tym kroku muszą być dopisane przez właściciela do aktualnej WEW-ZRODLA; fact_ids/source_ids kart rozwiązują się do tej przypiętej wersji. Odczyt narzędzia sam nie zastępuje przekazanego banku.",
+    "source": "self.selection; WE-SYSTEM.source_reads; WEW-ZRODLA.sources; WEW-ZRODLA.facts",
+    "consumed_by": [],
+    "missing_action": "Brak strony opisz; nie uzupełniaj jej z pamięci modelu.",
+    "source_refs": [
+     "self.selection",
+     "WE-SYSTEM.source_reads",
+     "WEW-ZRODLA.sources",
+     "WEW-ZRODLA.facts"
+    ]
+   },
+   {
+    "key": "parity_claims",
+    "label": "Obietnice powszechne w kategorii",
+    "priority": "must",
+    "type": "array",
+    "description": "claim, firmy które go komunikują, dowody, dlaczego nie wystarcza jako wyróżnik.",
+    "completion_rule": "Co najmniej 2 konkretne podobieństwa, jeśli materiał je potwierdza.",
+    "source": "self.cards",
+    "consumed_by": [
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Nie ogłaszaj UVP wyłącznie z deklaracji typu kompleksowość, jakość, badania, AI.",
+    "source_refs": [
+     "self.cards"
+    ]
+   },
+   {
+    "key": "alternative_routes",
+    "label": "Inne sposoby rozwiązania potrzeby",
+    "priority": "should",
+    "type": "array",
+    "description": "Własny zespół, software house, osobny badacz/projektant, brak działania; kiedy wybór ma sens i jego kompromisy.",
+    "completion_rule": "Oznacz hipotezę, jeśli brak danych kupujących. Nie deprecjonuj alternatyw.",
+    "source": "WEW-AUDYT.offer_map; WEW-AUDYT.buyer_map; self.cards",
+    "consumed_by": [
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Można pozostawić hipotezę do potwierdzenia w briefie.",
+    "source_refs": [
+     "WEW-AUDYT.offer_map",
+     "WEW-AUDYT.buyer_map",
+     "self.cards"
+    ]
+   },
+   {
+    "key": "difference_candidates",
+    "label": "Kandydaci na wyróżnik",
+    "priority": "must",
+    "type": "array",
+    "description": "candidate_id, konkretna cecha/mechanizm klienta, korzyść dla odbiorcy, proof_ids, porównanie z alternatywą, czego jeszcze nie wiemy, dozwolona siła claimu.",
+    "completion_rule": "2–3 kandydatów; każdy może być nieunikalny. Brak claimu u konkurenta nie dowodzi wyłączności.",
+    "source": "WEW-AUDYT.message_map; WEW-ZRODLA.proof_cards; self.cards; self.parity_claims",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-STRATEGIA",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Jeśli nie ma uzasadnionej różnicy, rekomenduj węższy segment/mechanizm i test, nie marketingową deklarację „jedyni”.",
+    "source_refs": [
+     "WEW-AUDYT.message_map",
+     "WEW-ZRODLA.proof_cards",
+     "self.cards",
+     "self.parity_claims"
+    ]
+   },
+   {
+    "key": "channels",
+    "label": "Kanały i granice oceny skuteczności",
+    "priority": "should",
+    "type": "array",
+    "description": "Firma, publiczna aktywność, próbka, daty, metryki widoczne, czego nie wiemy o leadach/kosztach/konwersji.",
+    "completion_rule": "Aktywność i reakcje ≠ efektywność biznesowa.",
+    "source": "WE-SYSTEM.source_reads; self.cards",
+    "consumed_by": [],
+    "missing_action": "Brak danych nie tworzy rankingu ROI.",
+    "source_refs": [
+     "WE-SYSTEM.source_reads",
+     "self.cards"
+    ]
+   },
+   {
+    "key": "implications",
+    "label": "Wnioski dla decyzji strategicznej",
+    "priority": "must",
+    "type": "array",
+    "description": "Wniosek, ograniczenie, docelowe pole strategii, potrzebna odpowiedź klienta, evidence_ids.",
+    "completion_rule": "3–5 wniosków, bez pisania finalnej strategii.",
+    "source": "self.cards; self.parity_claims; self.alternative_routes; self.difference_candidates",
+    "consumed_by": [
+     "WEW-USTALENIA",
+     "KLI-STRATEGIA",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Luki przenieś do mapy ustaleń przed etapem strategii.",
+    "source_refs": [
+     "self.cards",
+     "self.parity_claims",
+     "self.alternative_routes",
+     "self.difference_candidates"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Kryteria porównania są wspólne.",
+   "Brak publicznej wzmianki nie jest negatywnym dowodem.",
+   "Kandydat UVP łączy mechanizm, korzyść i pochodzenie, nie tylko przymiotnik."
+  ],
+  "handoff": [
+   {
+    "consumer": "WEW-USTALENIA",
+    "consumer_template_id": "WZR-USTALENIA",
+    "fields": [
+     "implications",
+     "difference_candidates"
+    ],
+    "ready_when": "po porównaniu",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-STRATEGIA",
+    "consumer_template_id": "WZR-STRATEGIA",
+    "fields": [
+     "parity_claims",
+     "difference_candidates",
+     "alternative_routes",
+     "implications"
+    ],
+    "ready_when": "QA",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PAKIET",
+    "consumer_template_id": "WZR-PAKIET",
+    "fields": [
+     "implications",
+     "difference_candidates"
+    ],
+    "ready_when": "QA passed w 3.7",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Nie kopiuj całych opisów konkurentów do strategii.",
+   "Nie rób osobnych raportów dla trzech identycznych kryteriów."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "comparison",
+   "source_fields": [
+    "selection",
+    "cards",
+    "parity_claims",
+    "difference_candidates",
+    "implications"
+   ],
+   "word_limit": 350,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Maks. 3 firmy; tabela firma / wspólna potrzeba / obietnica i mechanizm / dowód i ograniczenie / znaczenie dla wyboru. Limit słów dotyczy podsumowania; karty maks. 5 krótkich komórek na firmę."
+  }
+ },
+ {
+  "id": "WZR-USTALENIA",
+  "name": "Mapa gotowości briefu i dalszych materiałów",
+  "output_id": "WEW-USTALENIA",
+  "owner": "Agent analityczny",
+  "process": "3.6",
+  "inputs": [
+   {
+    "id": "WEW-ZRODLA",
+    "required_state": "QA źródeł",
+    "needed_fields": [
+     "coverage",
+     "conflicts",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "content_bank"
+    ]
+   },
+   {
+    "id": "WEW-AUDYT",
+    "required_state": "po analizie",
+    "needed_fields": [
+     "offer_map",
+     "buyer_map",
+     "voice_audit",
+     "journey",
+     "gaps",
+     "reusable_assets"
+    ]
+   },
+   {
+    "id": "WEW-KONKURENCJA",
+    "required_state": "po porównaniu",
+    "needed_fields": [
+     "implications",
+     "difference_candidates"
+    ]
+   },
+   {
+    "id": "STD-PROCES",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "gates",
+     "when_information_missing"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "question_batch_max",
+     "questions_rule"
+    ]
+   }
+  ],
+  "purpose": "Zamienić materiał badawczy w propozycje pól briefu, pytania i warunki gotowości strategii.",
+  "client_view_limit": "Rejestr wewnętrzny. Klient dostaje maks. 8 najważniejszych pytań naraz, z podpowiedzią i powodem.",
+  "fields": [
+   {
+    "key": "field_map",
+    "label": "Mapowanie danych do pól briefu",
+    "priority": "must",
+    "type": "array",
+    "description": "Docelowy field_key WZR-BRIEF, proponowana wartość, evidence_ids, provenance, readiness, decision_state, priorytet i powód. Pochodzenie danych i stan gotowości są oddzielnymi osiami.",
+    "completion_rule": "Nie zmieniaj hipotezy audytora w decyzję klienta. Wszystkie pola Must briefu mają mapowanie.",
+    "source": "WEW-AUDYT.offer_map; WEW-AUDYT.buyer_map; WEW-AUDYT.voice_audit; WEW-AUDYT.journey; WEW-AUDYT.gaps; WEW-ZRODLA.facts; WEW-ZRODLA.proof_cards; WEW-ZRODLA.conflicts; WEW-KONKURENCJA.implications; WEW-KONKURENCJA.difference_candidates",
+    "consumed_by": [
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Brakujące pole musi trafić do questions lub jawnego ograniczenia.",
+    "source_refs": [
+     "WEW-AUDYT.offer_map",
+     "WEW-AUDYT.buyer_map",
+     "WEW-AUDYT.voice_audit",
+     "WEW-AUDYT.journey",
+     "WEW-AUDYT.gaps",
+     "WEW-ZRODLA.facts",
+     "WEW-ZRODLA.proof_cards",
+     "WEW-ZRODLA.conflicts",
+     "WEW-KONKURENCJA.implications",
+     "WEW-KONKURENCJA.difference_candidates"
+    ],
+    "nested_contract": {
+     "item_required": [
+      "field_key",
+      "proposed_value",
+      "evidence_ids",
+      "provenance",
+      "readiness",
+      "decision_state",
+      "priority",
+      "reason"
+     ],
+     "provenance": [
+      "observed",
+      "inferred",
+      "client_answer",
+      "synthetic",
+      "creative_proposal"
+     ],
+     "readiness": [
+      "pending",
+      "ready",
+      "conditional",
+      "blocked"
+     ],
+     "decision_state": [
+      "not_required",
+      "awaiting_client",
+      "client_selected",
+      "simulated_selection"
+     ],
+     "rule": "client_selected requires a real decision ref/version; simulated_selection remains synthetic and cannot satisfy production approval. A ready hypothesis remains a hypothesis."
+    }
+   },
+   {
+    "key": "questions",
+    "label": "Pytania do klienta",
+    "priority": "must",
+    "type": "array",
+    "description": "question_id, jedno pytanie, podpowiedź na podstawie researchu, dlaczego potrzebne, pole briefu, must/should/could, skutek braku odpowiedzi.",
+    "completion_rule": "W jednym pytaniu jedna decyzja. Nie pytaj drugi raz o adres WWW ani fakty już dostarczone.",
+    "source": "self.field_map; STD-LIMITY.question_batch_max; STD-LIMITY.questions_rule",
+    "consumed_by": [
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Zbierz brakujące Must przed strategią, chyba że klient jawnie dopuści nieblokujące założenie.",
+    "source_refs": [
+     "self.field_map",
+     "STD-LIMITY.question_batch_max",
+     "STD-LIMITY.questions_rule"
+    ]
+   },
+   {
+    "key": "evidence_requests",
+    "label": "Prośby o brakujące dowody",
+    "priority": "must",
+    "type": "array",
+    "description": "Konkretny case, przykład pracy, zdanie klienta, obiekcja, wynik lub ograniczenie publikacji; claim, który ma wesprzeć; możliwy wariant bez tego dowodu.",
+    "completion_rule": "Proś o najmniejszy przydatny materiał. Nie wymagaj eksportu całego CRM do jednego postu.",
+    "source": "WEW-ZRODLA.coverage; WEW-ZRODLA.proof_cards; WEW-AUDYT.reusable_assets",
+    "consumed_by": [
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Brak dowodu → słabsza/inna obietnica lub blokada użycia konkretnego claimu.",
+    "source_refs": [
+     "WEW-ZRODLA.coverage",
+     "WEW-ZRODLA.proof_cards",
+     "WEW-AUDYT.reusable_assets"
+    ]
+   },
+   {
+    "key": "readiness",
+    "label": "Gotowość poszczególnych rezultatów",
+    "priority": "must",
+    "type": "array",
+    "description": "Wynik: UVP, strategia, ToV, plan, post. Dla każdego pola wejściowe, ready/conditional/blocked, brak i właściciel.",
+    "completion_rule": "Wystarczalność oceniana osobno. Brak CRM nie musi blokować ToV; brak odbiorcy może blokować strategię.",
+    "source": "self.field_map; self.questions; self.evidence_requests; WEW-ZRODLA.coverage; WEW-ZRODLA.content_bank; STD-PROCES.gates",
+    "consumed_by": [
+     "O-3.7",
+     "O-4.2",
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Wskazuj krok uzupełnienia; nie zamawiaj automatycznie szerokiego researchu.",
+    "source_refs": [
+     "self.field_map",
+     "self.questions",
+     "self.evidence_requests",
+     "WEW-ZRODLA.coverage",
+     "WEW-ZRODLA.content_bank",
+     "STD-PROCES.gates"
+    ]
+   },
+   {
+    "key": "research_return",
+    "label": "Zadania uzupełnienia researchu",
+    "priority": "should",
+    "type": "array",
+    "description": "Pytanie badawcze, źródło do sprawdzenia, spodziewany rezultat, krok właścicielski, limit, warunek zatrzymania.",
+    "completion_rule": "Wyłącznie konkretny brak, który może zmienić decyzję.",
+    "source": "self.readiness; STD-PROCES.when_information_missing",
+    "consumed_by": [
+     "3.2",
+     "3.4",
+     "4.5",
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Po zamrożeniu brak trafia do odrębnej decyzji, nie do ukrytego browsingu stratega.",
+    "source_refs": [
+     "self.readiness",
+     "STD-PROCES.when_information_missing"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Każde Must briefu ma wartość albo konkretne pytanie.",
+   "Pytania nie dublują odczytanych danych.",
+   "Ograniczenia researchu są przekazane dalej."
+  ],
+  "handoff": [
+   {
+    "consumer": "KLI-BRIEF",
+    "consumer_template_id": "WZR-BRIEF",
+    "fields": [
+     "field_map",
+     "questions",
+     "evidence_requests",
+     "readiness",
+     "research_return"
+    ],
+    "ready_when": "QA wewnętrzne",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Nie twórz drugiego audytu w tym dokumencie.",
+   "Nie wysyłaj klientowi całego rejestru zamiast krótkiego briefu."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "questions",
+   "source_fields": [
+    "questions",
+    "evidence_requests"
+   ],
+   "word_limit": null,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Maks. 8 pytań jednocześnie, po jednej decyzji na pytanie. Każde ma podpowiedź i jednozdaniowy powód; materiał dowodowy żądany tylko gdy zmieni konkretną decyzję."
+  }
+ },
+ {
+  "id": "WZR-BRIEF",
+  "name": "Brief potrzeb, wyborów i granic komunikacji",
+  "output_id": "KLI-BRIEF",
+  "owner": "Agent briefu + klient",
+  "process": "4.1–4.6",
+  "inputs": [
+   {
+    "id": "WEW-DANE-ZAMOWIENIA",
+    "required_state": "zwalidowane",
+    "needed_fields": [
+     "product_selection",
+     "brand",
+     "market_language"
+    ]
+   },
+   {
+    "id": "WEW-USTALENIA",
+    "required_state": "QA wewnętrzne",
+    "needed_fields": [
+     "field_map",
+     "questions",
+     "evidence_requests",
+     "readiness",
+     "research_return"
+    ]
+   },
+   {
+    "id": "WEW-ZRODLA",
+    "required_state": "dostępne",
+    "needed_fields": [
+     "sources",
+     "facts",
+     "proof_cards",
+     "language_samples",
+     "conflicts"
+    ]
+   },
+   {
+    "id": "WEW-AUDYT",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "offer_map",
+     "buyer_map",
+     "voice_audit",
+     "journey"
+    ]
+   },
+   {
+    "id": "WE-KLIENT",
+    "required_state": "oryginalna odpowiedź",
+    "needed_fields": [
+     "decisions",
+     "content",
+     "attachments",
+     "sender"
+    ]
+   },
+   {
+    "id": "STD-PROCES",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "gates",
+     "versioning"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "client_text_budgets",
+     "question_batch_max",
+     "questions_rule"
+    ]
+   }
+  ],
+  "purpose": "Uzgodnić przyszły cel i priorytety, których nie da się wyczytać ze strony. Nie zlecać klientowi napisania strategii za agencję.",
+  "client_view_limit": "Widok klienta 500–700 słów, bez technicznej metryki; 6–8 pytań Must w pierwszym kontakcie, reszta w razie potrzeby.",
+  "fields": [
+   {
+    "key": "priority_offer",
+    "label": "Co teraz promujemy",
+    "priority": "must",
+    "type": "object",
+    "description": "Jedna priorytetowa oferta/problem do komunikacji, rezultat dla odbiorcy, usługi poza tym kierunkiem.",
+    "completion_rule": "Klient wybiera spośród propozycji opartych na audycie. Nie promujemy całej listy usług równocześnie.",
+    "source": "WEW-AUDYT.offer_map; WEW-USTALENIA.field_map; WE-KLIENT.decisions",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "WEW-ZMIANY"
+    ],
+    "missing_action": "Pytaj: którą potrzebę klienta mamy teraz obsługiwać w komunikacji?",
+    "source_refs": [
+     "WEW-AUDYT.offer_map",
+     "WEW-USTALENIA.field_map",
+     "WE-KLIENT.decisions"
+    ]
+   },
+   {
+    "key": "priority_audience",
+    "label": "Do kogo kierujemy komunikację",
+    "priority": "must",
+    "type": "object",
+    "description": "Jedna wybrana grupa główna i docelowa rola; osobno opisowe twierdzenia o sytuacji zakupu, zadaniu i kryteriach wyboru z indywidualnym statusem wiedzy.",
+    "completion_rule": "Must dotyczy decyzji o priorytetowym segmencie i roli docelowej. Nie wymaga zbadanych kryteriów zakupu. Sytuacja, zadanie i 2–3 kryteria mogą być unknown lub jawną hipotezą. Zgoda na segment nie potwierdza zachowania kupujących.",
+    "source": "WEW-AUDYT.buyer_map; WEW-USTALENIA.field_map; WE-KLIENT.decisions; WE-KLIENT.content",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "KLI-TOV",
+     "KLI-PLAN",
+     "WEW-ZMIANY"
+    ],
+    "missing_action": "Brak wyboru priorytetu blokuje strategię. Brak dowodów kryteriów zakupu pozostaje jawnym ograniczeniem zgodnym z buyer_reality; nie wymuszaj odpowiedzi ani badań pierwotnych.",
+    "source_refs": [
+     "WEW-AUDYT.buyer_map",
+     "WEW-USTALENIA.field_map",
+     "WE-KLIENT.decisions",
+     "WE-KLIENT.content"
+    ],
+    "nested_contract": {
+     "priority_choice": [
+      "segment",
+      "target_role",
+      "decision_ref",
+      "decision_version",
+      "decision_state"
+     ],
+     "buyer_claims": [
+      "component",
+      "value",
+      "knowledge_status",
+      "provenance",
+      "evidence_ids",
+      "allowed_use"
+     ],
+     "knowledge_status": [
+      "evidence",
+      "client_declaration",
+      "hypothesis",
+      "unknown"
+     ],
+     "rule": "Actual decision-maker and target role are not assumed identical. Only decision_ref supports the choice; each buyer claim carries its own evidence status."
+    }
+   },
+   {
+    "key": "business_direction",
+    "label": "Cel biznesowy i oczekiwany kierunek marki",
+    "priority": "must",
+    "type": "object",
+    "description": "Co ma się zmienić, z czego w stronę czego idziemy, horyzont, rola komunikacji i czego nie obiecujemy.",
+    "completion_rule": "Cel klienta, nie automatyczne odwzorowanie obecnej strony. Brak baseline pozostaje jawny.",
+    "source": "WEW-USTALENIA.field_map; WE-KLIENT.decisions; WE-KLIENT.content",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "WEW-ZMIANY"
+    ],
+    "missing_action": "Nie wybieraj wizji bez klienta. W symulacji oznacz SIM, bez prawdziwej akceptacji.",
+    "source_refs": [
+     "WEW-USTALENIA.field_map",
+     "WE-KLIENT.decisions",
+     "WE-KLIENT.content"
+    ]
+   },
+   {
+    "key": "buyer_reality",
+    "label": "Rzeczywiste obiekcje i decyzje zakupowe",
+    "priority": "should",
+    "type": "array",
+    "description": "2–3 sytuacje: dlaczego klient przychodzi, czego się boi, z kim porównuje, co zdecydowało o wyborze. Status: bezpośredni przykład / ogólna deklaracja / hipoteza.",
+    "completion_rule": "Brak danych akceptowalny jako ograniczenie; nie przedstawiaj wymyślonego insightu jako badania klientów.",
+    "source": "WEW-AUDYT.buyer_map; WE-KLIENT.content; WE-KLIENT.attachments",
+    "consumed_by": [
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Użyj jawnych hipotez do późniejszego testu; zawęź siłę obietnic.",
+    "source_refs": [
+     "WEW-AUDYT.buyer_map",
+     "WE-KLIENT.content",
+     "WE-KLIENT.attachments"
+    ]
+   },
+   {
+    "key": "promise_constraints",
+    "label": "Co możemy wiarygodnie obiecać",
+    "priority": "must",
+    "type": "object",
+    "description": "Potwierdzone możliwości, granice wyniku, zakazane obietnice, dozwolone proof_ids, prawo do wykorzystania nazw/cytatów.",
+    "completion_rule": "Nie podawaj liczb bez danych. Potwierdzenie klienta nie zastępuje niezależnego badania efektu.",
+    "source": "WEW-ZRODLA.proof_cards; WEW-USTALENIA.evidence_requests; WE-KLIENT.decisions; WE-KLIENT.content",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "KLI-TOV",
+     "WEW-ZLECENIE-POSTU",
+     "WEW-ZMIANY"
+    ],
+    "missing_action": "Brak praw do przykładu → nie używaj go w publikacji.",
+    "source_refs": [
+     "WEW-ZRODLA.proof_cards",
+     "WEW-USTALENIA.evidence_requests",
+     "WE-KLIENT.decisions",
+     "WE-KLIENT.content"
+    ],
+    "nested_contract": {
+     "required": [
+      "capabilities",
+      "result_limits",
+      "prohibited_claims",
+      "allowed_proof_ids",
+      "rights_by_proof"
+     ],
+     "rights_item": [
+      "proof_id",
+      "source_visibility",
+      "allowed_use",
+      "use_basis_ref",
+      "client_name_permission",
+      "quote_permission"
+     ],
+     "rule": "Approval of this brief does not authorize publishing a post; unknown name/quote rights block that use only. Public paraphrase needs a stated basis and must not exaggerate the source."
+    }
+   },
+   {
+    "key": "voice_preferences",
+    "label": "Preferencje i granice głosu",
+    "priority": "must",
+    "type": "object",
+    "description": "Proponowane cechy i granice pożądanego głosu, stosunek do formalności/jargonu/humoru oraz krótka para przykładów. Oddziel proposed_examples od rzeczywistego client_selection i decision_version.",
+    "completion_rule": "Agent proponuje parę przykładów na tych samych faktach. Brak wyboru nie jest odrzuconym/zaakceptowanym przykładem. Można przygotować ToV jako creative_proposal do późniejszej akceptacji, bez udawania istniejącej preferencji.",
+    "source": "WEW-AUDYT.voice_audit; WEW-ZRODLA.language_samples; WEW-USTALENIA.field_map; WE-KLIENT.decisions",
+    "consumed_by": [
+     "KLI-TOV",
+     "WEW-ZMIANY"
+    ],
+    "missing_action": "Przedstaw parę przykładów do wyboru; jawne nowe zasady wymagają późniejszej akceptacji.",
+    "source_refs": [
+     "WEW-AUDYT.voice_audit",
+     "WEW-ZRODLA.language_samples",
+     "WEW-USTALENIA.field_map",
+     "WE-KLIENT.decisions"
+    ],
+    "nested_contract": {
+     "required": [
+      "desired_traits",
+      "unwanted_traits",
+      "style_preferences",
+      "proposed_examples",
+      "client_selection",
+      "decision_version",
+      "decision_state"
+     ],
+     "nullable": [
+      "client_selection",
+      "decision_version"
+     ],
+     "decision_state": [
+      "awaiting_client",
+      "client_selected",
+      "simulated_selection"
+     ],
+     "rule": "A draft with an explicit unresolved preference can be conditional. Only real client selection records accepted/rejected examples; synthetic choices remain synthetic."
+    }
+   },
+   {
+    "key": "channel_and_cta",
+    "label": "Kanał, odbiorca publikacji i rzeczywisty następny krok",
+    "priority": "must",
+    "type": "object",
+    "description": "Jeden kanał, jego rola, treść CTA i dokładny istniejący URL/kontakt. Oddziel widoczność celu, sprawdzenie działania, właściciela reakcji i gotowość draftu/publikacji.",
+    "completion_rule": "Do draftu wystarcza potwierdzony istniejący cel albo jawnie niewysyłana propozycja; nie przedstawiaj propozycji zasobu jako istniejącego faktu. Przed publikacją CTA użyte w poście ma sprawdzony cel i wymagany owner; brak połączenia konta może czekać do P8.",
+    "source": "WEW-AUDYT.journey; WEW-ZRODLA.facts; WE-KLIENT.decisions; WE-KLIENT.content",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "KLI-PLAN",
+     "WEW-ZLECENIE-POSTU",
+     "WEW-ZMIANY",
+     "WEW-KONFIG-PUBLIKACJI"
+    ],
+    "missing_action": "Brak konta może czekać do P8. Brak sensownego CTA wyjaśnij przed produkcją.",
+    "source_refs": [
+     "WEW-AUDYT.journey",
+     "WEW-ZRODLA.facts",
+     "WE-KLIENT.decisions",
+     "WE-KLIENT.content"
+    ],
+    "nested_contract": {
+     "required": [
+      "channel",
+      "audience_context",
+      "cta_text",
+      "destination",
+      "destination_visibility",
+      "destination_functionality",
+      "owner",
+      "required_owner_before_publish",
+      "draft_readiness",
+      "publication_readiness",
+      "limits"
+     ],
+     "destination_visibility": [
+      "observed",
+      "not_observed",
+      "unknown"
+     ],
+     "destination_functionality": [
+      "verified",
+      "failed",
+      "not_checked"
+     ],
+     "readiness": [
+      "pending",
+      "ready",
+      "conditional",
+      "blocked"
+     ],
+     "nullable": [
+      "owner"
+     ],
+     "rule": "A visible address is not proof that the form/contact works. A draft is not publication-ready. When CTA invites a client response, required_owner_before_publish=true; owner must be named/assigned before sending."
+    }
+   },
+   {
+    "key": "success_and_limits",
+    "label": "Miara powodzenia i ograniczenia",
+    "priority": "should",
+    "type": "object",
+    "description": "Kierunkowy cel komunikacyjny, proponowana miara i jej definicja, baseline jeśli dostępny, ograniczenia czasu/budżetu/zasobów.",
+    "completion_rule": "Brak danych = brak danych. Pojedynczy post nie gwarantuje leadów; stały monitoring poza produktem.",
+    "source": "WE-KLIENT.content; WE-KLIENT.decisions; self.business_direction",
+    "consumed_by": [
+     "KLI-STRATEGIA"
+    ],
+    "missing_action": "Ustal propozycję pomiaru bez zmyślania celu liczbowego.",
+    "source_refs": [
+     "WE-KLIENT.content",
+     "WE-KLIENT.decisions",
+     "self.business_direction"
+    ]
+   },
+   {
+    "key": "assets_and_permissions",
+    "label": "Materiały dodatkowe i wykorzystanie",
+    "priority": "should",
+    "type": "array",
+    "description": "Dla materiału: pochodzenie, source_visibility, allowed_use z podstawą, client_name_permission, quote_permission i wspierany claim. Zgoda publikacyjna postu pozostaje osobnym zdarzeniem.",
+    "completion_rule": "To opcja przy briefie, nie obowiązek przy mailu potwierdzającym zakup.",
+    "source": "WEW-ZRODLA.sources; WEW-ZRODLA.proof_cards; WE-KLIENT.attachments; WE-KLIENT.decisions",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "WEW-ZLECENIE-POSTU"
+    ],
+    "missing_action": "Nie wykorzystuj publicznie materiału o niejasnym statusie.",
+    "source_refs": [
+     "WEW-ZRODLA.sources",
+     "WEW-ZRODLA.proof_cards",
+     "WE-KLIENT.attachments",
+     "WE-KLIENT.decisions"
+    ],
+    "nested_contract": {
+     "item_required": [
+      "asset_id",
+      "source_ref",
+      "source_visibility",
+      "allowed_use",
+      "use_basis_ref",
+      "client_name_permission",
+      "quote_permission",
+      "supported_claim_ids"
+     ],
+     "rule": "Do not infer permission from public visibility. Unknown permission excludes the affected use, not all unrelated evidence. No publication_approval is synthesized here."
+    }
+   },
+   {
+    "key": "open_assumptions",
+    "label": "Otwarte założenia i wybory do potwierdzenia",
+    "priority": "must",
+    "type": "array",
+    "description": "Assumption_id, treść, wpływ, właściciel decyzji, dozwolone użycie, deadline logiczny przed danym krokiem.",
+    "completion_rule": "Pusta lista możliwa. Każde SIM pozostaje SIM nawet po syntetycznej akceptacji.",
+    "source": "WEW-USTALENIA.field_map; WEW-USTALENIA.readiness; WEW-USTALENIA.research_return; WEW-ZRODLA.conflicts; WE-KLIENT.content; WE-KLIENT.decisions",
+    "consumed_by": [
+     "KLI-STRATEGIA",
+     "KLI-TOV",
+     "WEW-ZMIANY",
+     "KLI-PAKIET"
+    ],
+    "missing_action": "Krytyczne założenie blokuje; niekrytyczne klient może przyjąć jawnie.",
+    "source_refs": [
+     "WEW-USTALENIA.field_map",
+     "WEW-USTALENIA.readiness",
+     "WEW-USTALENIA.research_return",
+     "WEW-ZRODLA.conflicts",
+     "WE-KLIENT.content",
+     "WE-KLIENT.decisions"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Główna oferta, odbiorca i kierunek są ustalone.",
+   "Założenia i prawa do dowodów są jawne.",
+   "Akceptacja briefu dotyczy jego wersji; nie jest zgodą na post."
+  ],
+  "handoff": [
+   {
+    "consumer": "KLI-STRATEGIA",
+    "consumer_template_id": "WZR-STRATEGIA",
+    "fields": [
+     "priority_offer",
+     "priority_audience",
+     "business_direction",
+     "buyer_reality",
+     "promise_constraints",
+     "channel_and_cta",
+     "success_and_limits",
+     "assets_and_permissions",
+     "open_assumptions"
+    ],
+    "ready_when": "zaakceptowany; w teście SIM",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-TOV",
+    "consumer_template_id": "WZR-TOV",
+    "fields": [
+     "voice_preferences",
+     "priority_audience",
+     "promise_constraints",
+     "open_assumptions"
+    ],
+    "ready_when": "zaakceptowany/SIM",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PLAN",
+    "consumer_template_id": "WZR-PLAN",
+    "fields": [
+     "priority_audience",
+     "channel_and_cta"
+    ],
+    "ready_when": "zaakceptowany/SIM",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-ZLECENIE-POSTU",
+    "consumer_template_id": "WZR-ZLECENIE-POSTU",
+    "fields": [
+     "channel_and_cta",
+     "promise_constraints",
+     "assets_and_permissions"
+    ],
+    "ready_when": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-ZMIANY",
+    "consumer_template_id": "WZR-ZMIANY",
+    "fields": [
+     "priority_offer",
+     "priority_audience",
+     "business_direction",
+     "voice_preferences",
+     "channel_and_cta",
+     "promise_constraints",
+     "open_assumptions"
+    ],
+    "ready_when": "aktualna wersja; status jawny",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-KONFIG-PUBLIKACJI",
+    "consumer_template_id": "WZR-KONFIG-PUBLIKACJI",
+    "fields": [
+     "channel_and_cta"
+    ],
+    "ready_when": "zatwierdzona wersja lub jawna propozycja do wyjaśnienia",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-PAKIET",
+    "consumer_template_id": "WZR-PAKIET",
+    "fields": [
+     "$envelope.document_id",
+     "$envelope.version",
+     "$envelope.status",
+     "open_assumptions"
+    ],
+    "ready_when": "zaakceptowana finalna wersja",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Danych firmy i kupionego zakresu nie pytaj ponownie.",
+   "Klient nie ma sam pisać UVP, filarów ani strategii."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "client_document",
+   "source_fields": [
+    "priority_offer",
+    "priority_audience",
+    "business_direction",
+    "buyer_reality",
+    "promise_constraints",
+    "voice_preferences",
+    "channel_and_cta",
+    "success_and_limits",
+    "assets_and_permissions",
+    "open_assumptions"
+   ],
+   "word_limit": 700,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Pierwszy kontakt obejmuje maks. 8 rzeczywistych decyzji/braków, nie 10 formularzowych sekcji naraz. Już znane dane są wypełnione. Widoczne niewiadome i propozycje są napisane językiem klienta."
+  }
+ },
+ {
+  "id": "WZR-ZAMOWIENIE",
+  "name": "Formularz zakupu pakietu dla jednej marki",
+  "output_id": "WEW-DANE-ZAMOWIENIA",
+  "owner": "Sprzedaż — formularz zakupu i walidator danych",
+  "process": "1.3–1.4; konsumpcja 2.2–2.3 i 3.2",
+  "inputs": [
+   {
+    "id": "STD-OFERTA",
+    "required_state": "zatwierdzony standard dostępny w sprzedaży",
+    "needed_fields": [
+     "product_id",
+     "name",
+     "price_net_pln",
+     "price_status",
+     "unit",
+     "included",
+     "excluded",
+     "revisions",
+     "client_minimum",
+     "channel_readiness",
+     "billing",
+     "offer_configuration_state"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "document_input"
+    ]
+   },
+   {
+    "id": "WE-KLIENT",
+    "required_state": "dane podane przez kupującego",
+    "needed_fields": [
+     "contact",
+     "brand",
+     "market_language",
+     "billing",
+     "decisions",
+     "official_social",
+     "content"
+    ]
+   },
+   {
+    "id": "WE-SYSTEM",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "event_metadata",
+     "approval_events"
+    ]
+   }
+  ],
+  "purpose": "Zebrać minimum do zawarcia i opłacenia zamówienia oraz uruchomienia audytu, bez ankiety strategicznej i przesyłania dokumentów.",
+  "client_view_limit": "Jedna krótka strona: produkt i cena z katalogu, dane zakupu oraz opcjonalny cel w jednym zdaniu. Dane rozliczeniowe według wybranego typu nabywcy.",
+  "fields": [
+   {
+    "key": "product_selection",
+    "label": "Wybrany produkt i warunki z katalogu",
+    "priority": "must",
+    "type": "object: sku, offer_version, price_net, currency, tax_rule_ref, result_limits",
+    "description": "Wybór jednego dostępnego SKU; cena i parametry są kopiowane z wersji STD-OFERTA, nie wpisywane przez klienta.",
+    "completion_rule": "Identyczny SKU, wersja i cena w formularzu, zamówieniu i checkout. Nie dopisywać negocjowanych rezultatów. Cennik w tym zestawie jest propozycją pilota. Checkout wymaga zatwierdzonej konfiguracji produkcyjnej SKU/ceny/zakresu; sam wzór ani SIM jej nie aktywuje.",
+    "source": "STD-OFERTA.product_id; STD-OFERTA.price_net_pln; STD-OFERTA.price_status; STD-OFERTA.unit; WE-KLIENT.decisions; STD-OFERTA.offer_configuration_state",
+    "consumed_by": [
+     "KLI-BRIEF",
+     "WEW-ZGLOSZENIE",
+     "WEW-KONFIG-PUBLIKACJI"
+    ],
+    "missing_action": "Zablokuj zakup, jeśli SKU/wersja/cena nie są dostępne lub jednoznaczne.",
+    "source_refs": [
+     "STD-OFERTA.product_id",
+     "STD-OFERTA.price_net_pln",
+     "STD-OFERTA.price_status",
+     "STD-OFERTA.unit",
+     "WE-KLIENT.decisions",
+     "STD-OFERTA.offer_configuration_state"
+    ]
+   },
+   {
+    "key": "brand",
+    "label": "Marka objęta usługą",
+    "priority": "must",
+    "type": "object: display_name, website_url",
+    "description": "Nazwa marki oraz jeden kanoniczny adres jej publicznej strony.",
+    "completion_rule": "WWW ma poprawny format; system zapisuje wynik sprawdzenia dostępności. Nie zakładać, że spółka rozliczeniowa ma tę samą nazwę co marka.",
+    "source": "WE-KLIENT.brand",
+    "consumed_by": [
+     "WEW-ZRODLA",
+     "WEW-KONKURENCJA",
+     "KLI-BRIEF",
+     "WEW-ZGLOSZENIE",
+     "WEW-KONFIG-PUBLIKACJI"
+    ],
+    "missing_action": "Poproś o nazwę i WWW przed zakupem; niedostępność strony wymaga wyjaśnienia, nie wymyślenia audytu.",
+    "source_refs": [
+     "WE-KLIENT.brand"
+    ]
+   },
+   {
+    "key": "market_language",
+    "label": "Rynek i język usługi",
+    "priority": "must",
+    "type": "object: market, language",
+    "description": "Jeden rynek odbiorców i jeden język przygotowywanych materiałów spośród wspieranych w ofercie.",
+    "completion_rule": "Wartości zgodne z ograniczeniami SKU. Rynek jest obszarem geograficznym, nie branżą klienta.",
+    "source": "WE-KLIENT.market_language; STD-OFERTA.unit",
+    "consumed_by": [
+     "WEW-ZRODLA",
+     "WEW-KONKURENCJA",
+     "KLI-BRIEF"
+    ],
+    "missing_action": "Poproś o wybór; nie domyślaj się rynku z domeny WWW.",
+    "source_refs": [
+     "WE-KLIENT.market_language",
+     "STD-OFERTA.unit"
+    ]
+   },
+   {
+    "key": "buyer_contact",
+    "label": "Kontakt do kupującego",
+    "priority": "must",
+    "type": "object: name, email, contact_id_or_null",
+    "description": "Osoba składająca zamówienie i kontakt potrzebny do potwierdzenia zakupu.",
+    "completion_rule": "Email przechodzi walidację formatu; rzeczywiste ID kontaktu tylko z systemu. Rola decydenta nie wynika automatycznie z nazwiska.",
+    "source": "WE-KLIENT.contact",
+    "consumed_by": [
+     "WEW-ZGLOSZENIE",
+     "WEW-KONFIG-PUBLIKACJI"
+    ],
+    "missing_action": "Wstrzymaj checkout do uzupełnienia kontaktu.",
+    "source_refs": [
+     "WE-KLIENT.contact"
+    ]
+   },
+   {
+    "key": "billing",
+    "label": "Dane nabywcy do rozliczenia",
+    "priority": "must",
+    "type": "object: buyer_type, legal_name, country, billing_address, tax_id_or_not_applicable",
+    "description": "Dane wymagane przez obsługiwany wariant zakupu i dostawcę rozliczenia.",
+    "completion_rule": "Warunkowa kompletność według buyer_type i kraju; nazwa marki nie zastępuje danych nabywcy.",
+    "source": "WE-KLIENT.billing; STD-OFERTA.billing",
+    "consumed_by": [],
+    "missing_action": "Wstrzymaj checkout; nie generuj NIP, adresu ani nazwy prawnej z modelu.",
+    "source_refs": [
+     "WE-KLIENT.billing",
+     "STD-OFERTA.billing"
+    ]
+   },
+   {
+    "key": "terms_confirmation",
+    "label": "Potwierdzenie warunków przez kupującego",
+    "priority": "must",
+    "type": "object: terms_version, state, event_ref_or_null",
+    "description": "Referencja do rzeczywistego zdarzenia przyjęcia opublikowanych warunków.",
+    "completion_rule": "State to provided albo not_provided. Provided wymaga zdarzenia interfejsu dla tej wersji warunków. Nie jest to akceptacja przyszłych materiałów.",
+    "source": "WE-SYSTEM.approval_events; WE-SYSTEM.event_metadata",
+    "consumed_by": [],
+    "missing_action": "Bez potwierdzenia nie uruchamiaj checkout; symulacja pozostaje not_provided.",
+    "source_refs": [
+     "WE-SYSTEM.approval_events",
+     "WE-SYSTEM.event_metadata"
+    ]
+   },
+   {
+    "key": "official_social",
+    "label": "Oficjalny profil społecznościowy do audytu",
+    "priority": "should",
+    "type": "object: url_or_null, platform_or_null, provenance",
+    "description": "Jeden profil marki, jeśli istnieje. Klient może podać link; agent potwierdza związek profilu ze stroną.",
+    "completion_rule": "Brak profilu oznacz none_provided; nie żądaj dostępu ani hasła.",
+    "source": "WE-KLIENT.official_social",
+    "consumed_by": [
+     "WEW-ZRODLA"
+    ],
+    "missing_action": "Oznacz brak; agent może znaleźć profil w ramach 3.2. Brak nie blokuje samego zakupu.",
+    "source_refs": [
+     "WE-KLIENT.official_social"
+    ]
+   },
+   {
+    "key": "purchase_goal",
+    "label": "Powód zakupu w jednym zdaniu",
+    "priority": "could",
+    "type": "string|null; max 240 znaków",
+    "description": "Opcjonalne oczekiwanie, np. uporządkowanie komunikacji przed nową ofertą.",
+    "completion_rule": "Traktuj jako wstępne zgłoszenie, nie zatwierdzony brief.",
+    "source": "WE-KLIENT.content; WE-KLIENT.decisions",
+    "consumed_by": [],
+    "missing_action": "Pozostaw null i ustal cel w procesie briefu; nie zadawaj tu pełnej ankiety.",
+    "source_refs": [
+     "WE-KLIENT.content",
+     "WE-KLIENT.decisions"
+    ]
+   },
+   {
+    "key": "validation_result",
+    "label": "Wynik walidacji danych zakupu",
+    "priority": "must",
+    "type": "object: status, errors[], validated_at_or_null",
+    "description": "Deterministyczna lista niespełnionych reguł, z nazwami pól i komunikatami dla klienta.",
+    "completion_rule": "Status valid wyłącznie po sprawdzeniu wszystkich wymaganych pól; valid nie oznacza opłacenia.",
+    "source": "self.product_selection; self.brand; self.market_language; self.buyer_contact; self.billing; self.terms_confirmation; STD-OFERTA.channel_readiness",
+    "consumed_by": [],
+    "missing_action": "Zablokuj przejście do 1.4, dopóki errors nie jest puste.",
+    "source_refs": [
+     "self.product_selection",
+     "self.brand",
+     "self.market_language",
+     "self.buyer_contact",
+     "self.billing",
+     "self.terms_confirmation",
+     "STD-OFERTA.channel_readiness"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Nie ma pytań o strategię, załączników ani prośby o dostęp do kont.",
+   "Ceny, zakres i warunki są przypięte do wersji katalogu; nie pochodzą z odpowiedzi LLM.",
+   "Zamówienie pozostaje nieopłacone aż do zweryfikowanego zdarzenia operatora w 2.1."
+  ],
+  "handoff": [
+   {
+    "consumer": "1.4",
+    "fields": [
+     "product_selection",
+     "brand",
+     "market_language",
+     "buyer_contact",
+     "billing",
+     "terms_confirmation",
+     "validation_result"
+    ],
+    "ready_when": "Wymagane pola kompletne, terms_confirmation=provided i validation_result=valid."
+   },
+   {
+    "consumer": "3.2",
+    "fields": [
+     "brand",
+     "market_language",
+     "official_social"
+    ],
+    "ready_when": "Dodatkowo zdarzenie gotowości O-2.3; sam formularz nie uruchamia płatnej realizacji."
+   },
+   {
+    "consumer": "WEW-ZRODLA",
+    "consumer_template_id": "WZR-ZRODLA",
+    "fields": [
+     "brand",
+     "market_language",
+     "official_social"
+    ],
+    "ready_when": "zwalidowane",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-KONKURENCJA",
+    "consumer_template_id": "WZR-KONKURENCJA",
+    "fields": [
+     "brand",
+     "market_language"
+    ],
+    "ready_when": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "KLI-BRIEF",
+    "consumer_template_id": "WZR-BRIEF",
+    "fields": [
+     "product_selection",
+     "brand",
+     "market_language"
+    ],
+    "ready_when": "zwalidowane",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-ZGLOSZENIE",
+    "consumer_template_id": "WZR-ZGLOSZENIE",
+    "fields": [
+     "buyer_contact",
+     "brand",
+     "product_selection"
+    ],
+    "ready_when": "istniejące zamówienie lub brak przed zakupem",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   },
+   {
+    "consumer": "WEW-KONFIG-PUBLIKACJI",
+    "consumer_template_id": "WZR-KONFIG-PUBLIKACJI",
+    "fields": [
+     "brand",
+     "product_selection",
+     "buyer_contact"
+    ],
+    "ready_when": "opłacone zamówienie gotowe do realizacji",
+    "contract": "Exact field paths pinned to a version; compilation does not itself grant readiness or approval."
+   }
+  ],
+  "do_not_duplicate": [
+   "Nie kopiować pełnych warunków produktu; zapisać referencję wersji.",
+   "Nie powielać briefu ani danych przyszłej publikacji.",
+   "Nie zapisywać numerów kart ani danych uwierzytelniających."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "form",
+   "source_fields": [
+    "product_selection",
+    "brand",
+    "market_language",
+    "buyer_contact",
+    "billing",
+    "terms_confirmation",
+    "official_social",
+    "purchase_goal"
+   ],
+   "word_limit": null,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Krótki formularz zakupowy. validation_result jako błędy przy polach. Bez briefu i danych integracji. Propozycja pilota nie jest aktywną ofertą sprzedaży."
+  }
+ },
+ {
+  "id": "WZR-ESKALACJA",
+  "name": "Zadanie rozstrzygnięcia wyjątku przez pracownika",
+  "output_id": "WEW-ESKALACJA",
+  "owner": "Orkiestrator i pracownik odpowiedzialny za typ wyjątku",
+  "process": "E.1–E.3",
+  "inputs": [
+   {
+    "id": "STD-PROCES",
+    "required_state": "obowiązująca wersja",
+    "needed_fields": [
+     "scope_control",
+     "when_information_missing",
+     "publication_safety",
+     "gates",
+     "sequence"
+    ]
+   },
+   {
+    "id": "WEW-ZMIANY",
+    "required_state": "exception, jeśli dotyczy zgłoszenia",
+    "needed_fields": [
+     "request_ref",
+     "scope_check",
+     "dependency_impact",
+     "approval_impact",
+     "routing",
+     "execution_outcome"
+    ]
+   },
+   {
+    "id": "STD-LIMITY",
+    "required_state": "obowiązująca wersja",
+    "needed_fields": [
+     "generation",
+     "cost"
+    ]
+   },
+   {
+    "id": "WE-SYSTEM",
+    "required_state": "aktualna przypięta wersja; wejście zewnętrzne może jawnie być unknown/null",
+    "needed_fields": [
+     "process_state",
+     "worker_registry",
+     "escalation_resolution",
+     "publication_registry",
+     "publication_result"
+    ]
+   }
+  ],
+  "purpose": "Przekazać pracownikowi sprawę możliwą do rozstrzygnięcia bez odtwarzania całej historii oraz umożliwić bezpieczny powrót do automatycznego procesu.",
+  "client_view_limit": "Klient widzi status, konkretny powód oczekiwania i ewentualne pytanie; nie otrzymuje wewnętrznych logów ani kluczy integracji.",
+  "fields": [
+   {
+    "key": "exception_type",
+    "label": "Rodzaj i powód wyjątku",
+    "priority": "must",
+    "type": "object: code, summary, trigger_step",
+    "description": "scope_dispute / source_conflict / integration_failure / publication_unknown / invalid_state / budget_exhausted.",
+    "completion_rule": "Powód podaje obserwowany problem, a nie ogólne „AI nie wie”.",
+    "source": "WEW-ZMIANY.scope_check; WEW-ZMIANY.routing; WE-SYSTEM.process_state; WE-SYSTEM.publication_result; STD-LIMITY.generation; STD-LIMITY.cost",
+    "consumed_by": [],
+    "missing_action": "Bez konkretnego triggera nie twórz pustej kolejki zadań.",
+    "source_refs": [
+     "WEW-ZMIANY.scope_check",
+     "WEW-ZMIANY.routing",
+     "WE-SYSTEM.process_state",
+     "WE-SYSTEM.publication_result",
+     "STD-LIMITY.generation",
+     "STD-LIMITY.cost"
+    ]
+   },
+   {
+    "key": "evidence",
+    "label": "Dowody i dotychczasowe próby",
+    "priority": "must",
+    "type": "array: {ref, fact, occurred_at_or_unknown}",
+    "description": "Referencje do zgłoszenia, błędu adaptera, wyniku weryfikacji lub sprzecznych źródeł.",
+    "completion_rule": "Zapis prób obejmuje rozróżnienie pewnego braku wysyłki i nieznanego wyniku. Usuń sekrety.",
+    "source": "WEW-ZMIANY.request_ref; WEW-ZMIANY.scope_check; WE-SYSTEM.process_state; WE-SYSTEM.publication_registry; WE-SYSTEM.publication_result",
+    "consumed_by": [],
+    "missing_action": "Uzupełnij minimalny dowód przed eskalacją; niedostępność dowodu oznacz jawnie.",
+    "source_refs": [
+     "WEW-ZMIANY.request_ref",
+     "WEW-ZMIANY.scope_check",
+     "WE-SYSTEM.process_state",
+     "WE-SYSTEM.publication_registry",
+     "WE-SYSTEM.publication_result"
+    ]
+   },
+   {
+    "key": "assignment",
+    "label": "Właściciel po stronie firmy",
+    "priority": "must",
+    "type": "object: role, employee_id_or_unassigned, queue, assigned_at_or_null",
+    "description": "Konkretna uprawniona rola i osoba albo jawna kolejka nieprzypisanych.",
+    "completion_rule": "Agent nie podszywa się pod pracownika. unassigned wymaga kolejki z właścicielem organizacyjnym.",
+    "source": "WE-SYSTEM.worker_registry",
+    "consumed_by": [],
+    "missing_action": "Zachowaj blocked; pokaż potrzebę przypisania, nie wybieraj fikcyjnego pracownika.",
+    "source_refs": [
+     "WE-SYSTEM.worker_registry"
+    ]
+   },
+   {
+    "key": "hold",
+    "label": "Zakres wstrzymania",
+    "priority": "must",
+    "type": "object: blocked_task_refs[], independent_task_refs[], external_action_lock",
+    "description": "Wstrzymaj tylko zależne działania; przy nieznanej publikacji blokada ponownej wysyłki.",
+    "completion_rule": "Wskazanie zadań, nie nieokreślone „zlecenie wstrzymane”.",
+    "source": "WEW-ZMIANY.dependency_impact; WEW-ZMIANY.approval_impact; WE-SYSTEM.process_state; WE-SYSTEM.publication_registry",
+    "consumed_by": [],
+    "missing_action": "Jeśli nie można ustalić wpływu, zabezpiecz dotkniętą akcję i eskaluj stan procesu.",
+    "source_refs": [
+     "WEW-ZMIANY.dependency_impact",
+     "WEW-ZMIANY.approval_impact",
+     "WE-SYSTEM.process_state",
+     "WE-SYSTEM.publication_registry"
+    ]
+   },
+   {
+    "key": "decision_question",
+    "label": "Jedno pytanie do rozstrzygnięcia",
+    "priority": "must",
+    "type": "string; max 400 znaków",
+    "description": "Co pracownik ma ustalić lub naprawić, np. czy post faktycznie powstał po timeout.",
+    "completion_rule": "Odpowiedź musi dawać się przyporządkować do allowed_resolutions.",
+    "source": "self.exception_type; self.evidence; self.allowed_resolutions",
+    "consumed_by": [],
+    "missing_action": "Doprecyzuj pytanie przed oznaczeniem sprawy jako gotowej do obsługi.",
+    "source_refs": [
+     "self.exception_type",
+     "self.evidence",
+     "self.allowed_resolutions"
+    ]
+   },
+   {
+    "key": "allowed_resolutions",
+    "label": "Dozwolone rozstrzygnięcia",
+    "priority": "must",
+    "type": "array: {code, required_evidence, permitted_next_step}",
+    "description": "Opcje z reguł procesu, np. verify_published / prove_not_sent / keep_blocked / correct_configuration.",
+    "completion_rule": "Żadna opcja nie rozszerza zakupionego zakresu ani nie tworzy zgody klienta.",
+    "source": "STD-PROCES.scope_control; STD-PROCES.when_information_missing; STD-PROCES.publication_safety; STD-PROCES.sequence",
+    "consumed_by": [],
+    "missing_action": "Jeśli wyjątek nie ma ścieżki, właściciel procesu definiuje ją jawnie; agent nie improwizuje.",
+    "source_refs": [
+     "STD-PROCES.scope_control",
+     "STD-PROCES.when_information_missing",
+     "STD-PROCES.publication_safety",
+     "STD-PROCES.sequence"
+    ]
+   },
+   {
+    "key": "resolution",
+    "label": "Rzeczywiste rozstrzygnięcie pracownika",
+    "priority": "must",
+    "type": "object: state, selected_code_or_null, actor_ref_or_null, rationale_or_null, evidence_refs[]",
+    "description": "pending / resolved / rejected_invalid. Część wypełniana dopiero po rzeczywistej czynności człowieka.",
+    "completion_rule": "resolved wymaga uprawnionego wykonawcy, kodu, uzasadnienia i dowodów wymaganych dla opcji.",
+    "source": "WE-SYSTEM.escalation_resolution; WE-SYSTEM.worker_registry",
+    "consumed_by": [],
+    "missing_action": "Pozostaw pending i blokadę; syntetyczna odpowiedź nie stanowi realnego rozstrzygnięcia.",
+    "source_refs": [
+     "WE-SYSTEM.escalation_resolution",
+     "WE-SYSTEM.worker_registry"
+    ]
+   },
+   {
+    "key": "resume",
+    "label": "Kontrola i miejsce wznowienia",
+    "priority": "must",
+    "type": "object: next_step_or_null, gates[], state, resume_event_ref_or_null",
+    "description": "E.3 sprawdza warunki po rozstrzygnięciu, a następnie uruchamia jedno dozwolone zadanie.",
+    "completion_rule": "Resolved nie oznacza automatycznie, że wszystkie bramki publikacji są spełnione.",
+    "source": "self.resolution; self.hold; WE-SYSTEM.process_state; STD-PROCES.gates; STD-PROCES.sequence",
+    "consumed_by": [],
+    "missing_action": "Każda niespełniona bramka utrzymuje blocked.",
+    "source_refs": [
+     "self.resolution",
+     "self.hold",
+     "WE-SYSTEM.process_state",
+     "STD-PROCES.gates",
+     "STD-PROCES.sequence"
+    ]
+   },
+   {
+    "key": "client_update",
+    "label": "Komunikat o statusie dla klienta",
+    "priority": "should",
+    "type": "object: needed, message_or_null, delivery_ref_or_null",
+    "description": "Informacja przydatna klientowi, np. problem z połączeniem publikacyjnym.",
+    "completion_rule": "Nie obiecuj terminu, jeśli pracownik go nie podał; nie żądaj ponownego wysłania już dostępnych danych.",
+    "source": "self.exception_type; self.hold; self.resolution",
+    "consumed_by": [],
+    "missing_action": "Jeżeli klient musi zareagować, sformułuj jedną konkretną prośbę; brak wysyłki pozostaje jawny.",
+    "source_refs": [
+     "self.exception_type",
+     "self.hold",
+     "self.resolution"
+    ]
+   }
+  ],
+  "quality_gates": [
+   "Brak eskalacji dla każdej zwykłej akceptacji klienta.",
+   "Jednoznaczna prośba poza zakresem otrzymuje automatyczne wyjaśnienie; pracownik potrzebny przy rzeczywistym sporze/wyjątku.",
+   "Nieznany wynik publikacji nie jest zgodą na ponowienie."
+  ],
+  "handoff": [
+   {
+    "consumer": "E.2",
+    "fields": [
+     "exception_type",
+     "evidence",
+     "assignment",
+     "hold",
+     "decision_question",
+     "allowed_resolutions"
+    ],
+    "ready_when": "Sprawa ma właściciela/kolejkę oraz konkretne pytanie i dowody."
+   },
+   {
+    "consumer": "E.3",
+    "fields": [
+     "resolution",
+     "resume"
+    ],
+    "ready_when": "Prawdziwe rozstrzygnięcie uprawnionego pracownika i wszystkie wymagane dowody; w przeciwnym razie bez wznowienia."
+   }
+  ],
+  "do_not_duplicate": [
+   "Pełny log techniczny przez bezpieczną referencję, nie przez wklejenie tokenów.",
+   "Nie kopiować całego pakietu dokumentów.",
+   "Nie zapisywać nowej strategii w polu rozstrzygnięcia; skierować do właściwego etapu."
+  ],
+  "definition_version": "1.1",
+  "input_contract": "Kompiluj wyłącznie zadeklarowane pola z przypiętych input_versions. Brak pola to jawny brak, nie zgoda na domysł. Stany i warunki decyzji zależą od bramki; SIM nigdy nie jest zgodą produkcyjną.",
+  "client_projection": {
+   "mode": "status",
+   "source_fields": [
+    "client_update"
+   ],
+   "word_limit": null,
+   "word_count_rule": "Count rendered client prose after removing technical IDs and URLs; whitespace-separated visible tokens. Table prose counts unless its separate row budget is explicitly stated. A view does not overwrite canonical data.",
+   "omit": [
+    "envelope technical metadata",
+    "source_refs",
+    "raw evidence registry",
+    "internal status enums",
+    "internal QA logs",
+    "secrets"
+   ],
+   "render_rule": "Krótki status oraz konieczna reakcja klienta, bez logów, sekretów ani nazw wewnętrznych kolejek."
+  }
+ }
+]

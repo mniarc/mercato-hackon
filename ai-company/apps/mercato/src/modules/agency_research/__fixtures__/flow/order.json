@@ -1,0 +1,9 @@
+{
+  "product_selection": { "sku": "START-KOMUNIKACJI-PL-01", "offer_version": "v1", "price_net": 2500, "currency": "PLN", "result_limits": { "topics": 12 } },
+  "brand": { "display_name": "FLOW Centrum Badawcze", "website_url": "https://makeitflow.pl/index.php" },
+  "market_language": { "market": "Polska", "language": "pl" },
+  "buyer_contact": { "name": "not_provided", "email": "not_provided", "contact_id": null },
+  "official_social": { "url": "https://www.linkedin.com/company/flow-centrum-badawcze/", "platform": "LinkedIn", "provenance": "client_provided" },
+  "purchase_goal": "Wyjaśnić, jak FLOW pomaga dojść od problemu biznesowego do uzasadnionego rozwiązania cyfrowego.",
+  "terms_confirmation": { "terms_version": "START-KOMUNIKACJI-PL-01", "state": "provided", "event_ref": null }
+}
