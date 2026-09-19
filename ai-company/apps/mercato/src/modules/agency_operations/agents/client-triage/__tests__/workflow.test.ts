@@ -8,7 +8,7 @@ import { STRATEGY_EXECUTION_FUNCTION, STRATEGY_EXECUTION_RESULT_KEY } from '../.
 import {
   CLIENT_TRIAGE_INPUT_KEY, CLIENT_TRIAGE_INTERPRETATION_KEY,
   PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION,
-  ACCEPT_BRIEF_FUNCTION,
+  ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION,
   nativeClientSubmissionDefinition,
 } from '../workflow'
 
@@ -46,14 +46,19 @@ test('passes the stored original through native input mapping and projects the s
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
-    .toEqual(['answer', 'clarify', 'approve', 'unapplied'].map((kind) => expect.objectContaining({
-      toStepId: kind === 'answer' ? 'answered' : kind === 'clarify' ? 'client_reply' : kind === 'approve' ? 'brief_accepted' : 'unapplied',
-      condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: kind },
+    .toEqual(['answered', 'client_reply', 'brief_accepted', 'strategy_pair_decision', 'unapplied'].map((target) => expect.objectContaining({
+      toStepId: target,
+      condition: ['brief_accepted', 'strategy_pair_decision'].includes(target)
+        ? { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: target }
+        : { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: target === 'answered' ? 'answer' : target === 'client_reply' ? 'clarify' : 'unapplied' },
     })))
   expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.transitionId === 'approve_brief')).toMatchObject({
     activities: [{ activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_BRIEF_FUNCTION, args: {} } }],
   })
   expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === 'client_reply')).toMatchObject({
     stepType: 'WAIT_FOR_SIGNAL', signalConfig: { signalName: CLIENT_REPLY_SIGNAL },
+  })
+  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.transitionId === 'approve_strategy_pair')).toMatchObject({
+    activities: [{ activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_STRATEGY_PAIR_FUNCTION, args: {} } }],
   })
 })

@@ -139,6 +139,20 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.strategyExecution} title={translate(`${key}.strategyExecution.title`)} />
               </div>
             ) : null}
+            {submission.strategyPairContinuation ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.strategyPair.title`)}</h3>
+                <StatusBadge variant={submission.strategyPairContinuation.status === 'accepted' ? 'success' : 'warning'}>
+                  {translate(`${key}.strategyPair.${submission.strategyPairContinuation.status}`)}
+                </StatusBadge>
+                {submission.strategyPairContinuation.status === 'partial' ? <p className="text-sm">{translate(`${key}.strategyPair.followUp`)}</p> : null}
+                {submission.strategyPairContinuation.status === 'accepted' ? (
+                  <p className="text-sm">{translate(`${key}.strategyPair.planning.${submission.strategyPairContinuation.planningReadiness.status}`)}</p>
+                ) : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.strategyPair.noExecution`)}</p>
+                <JsonDisplay data={submission.strategyPairContinuation} title={translate(`${key}.strategyPair.title`)} />
+              </div>
+            ) : null}
             {submission.tasks.map((task) => (
               <div key={task.id} className="flex flex-wrap items-center gap-2">
                 <Button type="button" asChild variant="outline">

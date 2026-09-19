@@ -8,3 +8,7 @@ export type { StrategyReadiness, StrategyReadinessRequest, StrategyReadinessReas
 export type { StrategyReviewProjection, StrategyReviewQa, StrategyReviewVersion } from '../strategyReview/types'
 export { strategyExecutionRequestSchema, strategyExecutionOutcomeSchema } from '../strategyExecution/contracts'
 export type { StrategyExecutionRequest, StrategyExecutionResult } from '../strategyExecution/contracts'
+export { acceptStrategyPairInputSchema, strategyPairAcceptanceReceiptSchema, strategyPairAcceptanceRecordSchema, strategyPairAcceptanceRequestSchema } from '../strategyPairAcceptance/contracts'
+export type { AcceptStrategyPairInput, StrategyPairAcceptanceReceipt, StrategyPairAcceptanceRequest, StrategyPairAcceptanceState } from '../strategyPairAcceptance/contracts'
+export { planningReadinessRequestSchema } from '../planningReadiness/contracts'
+export type { PlanningReadinessRequest, PlanningReadiness } from '../planningReadiness/contracts'

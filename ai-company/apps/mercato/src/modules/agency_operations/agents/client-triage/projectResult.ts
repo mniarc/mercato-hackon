@@ -29,12 +29,13 @@ export function projectClientTriageResult(
   } else if (recommendation !== 'approve' && !interpretation.responseMessage) {
     unappliedReason = 'missing_response'
   } else {
-    const targetStepId = recommendation === 'answer' ? 'answered' : recommendation === 'clarify' ? 'client_reply' : 'brief_accepted'
-    if (!allowedTargets.includes(targetStepId)) {
+    const approvalTargets = allowedTargets.filter((target) => target === 'brief_accepted' || target === 'strategy_pair_decision')
+    const targetStepId = recommendation === 'answer' ? 'answered' : recommendation === 'clarify' ? 'client_reply' : approvalTargets.length === 1 ? approvalTargets[0] : null
+    if (!targetStepId || !allowedTargets.includes(targetStepId)) {
       unappliedReason = 'target_not_authorized'
     } else {
       disposition = recommendation === 'approve'
-        ? { kind: 'approve', targetStepId: 'brief_accepted' }
+        ? { kind: 'approve', targetStepId: targetStepId as 'brief_accepted' | 'strategy_pair_decision' }
         : recommendation === 'answer'
         ? { kind: 'answer', targetStepId: 'answered' }
         : { kind: 'clarify', targetStepId: 'client_reply' }

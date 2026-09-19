@@ -194,3 +194,47 @@ test('retains a saved interrupted activation and rejects malformed execution out
   expect(projectSubmissionProcess(submission, workflow('completed', { agencyStrategyExecution: { result: { status: 'completed', orderRef: caseId } } }), []).strategyExecution)
     .toBeNull()
 })
+
+const pairCumulative = {
+  status: 'partial', orderRef: caseId,
+  pair: {
+    strategy: { documentId: caseId, versionId: submissionId, version: '2.0' },
+    tov: { documentId: customerEntityId, versionId: instanceId, version: '1.0' },
+  },
+  brief: { documentId: caseId, versionId: customerEntityId, version: '1.0' },
+  remainingDocuments: ['tov'],
+}
+const pairContinuation = {
+  status: 'partial', orderRef: caseId, cumulative: pairCumulative,
+  followUpTask: { workflowInstanceId: instanceId, taskId: submissionId, replayed: false },
+}
+
+test('projects saved partial pair approval and its follow-up without exposing unrelated native receipt internals', () => {
+  const saved = workflow('strategy_pair_partial', { agencyStrategyPairContinuation: { result: {
+    ...pairContinuation, cumulative: { ...pairCumulative, acceptances: { strategy: { source: { agentRunId: 'private-native-reference' } } } },
+  } } }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toEqual(pairContinuation)
+  saved.context = { agencyStrategyPairContinuation: { result: { ...pairContinuation, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+  saved.context = { agencyStrategyPairContinuation: { result: { ...pairContinuation, cumulative: { ...pairCumulative, orderRef: customerEntityId } } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+  saved.context = { agencyStrategyPairContinuation: { result: pairContinuation } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+})
+
+test('retains accepted-pair planning blockers and never invents continuation from workflow completion', () => {
+  const accepted = {
+    status: 'accepted', orderRef: caseId,
+    cumulative: { ...pairCumulative, status: 'accepted', remainingDocuments: [] },
+    planningReadiness: { status: 'not_ready', orderRef: caseId, reason: 'missing_process_configuration' },
+  }
+  const saved = workflow('strategy_pair_accepted', { agencyStrategyPairContinuation: { result: accepted } }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toEqual(accepted)
+  saved.context = { agencyStrategyPairContinuation: { result: { ...accepted, planningReadiness: { ...accepted.planningReadiness, orderRef: customerEntityId } } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+  saved.context = { agencyStrategyPairContinuation: { result: { status: 'accepted', orderRef: caseId } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+  saved.context = {}
+  expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
+})

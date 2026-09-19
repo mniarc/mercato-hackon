@@ -6,6 +6,8 @@ import type { PostReviewProjection } from '../postReview/types'
 import type { StrategyReadiness, StrategyReadinessRequest } from '../strategyReadiness/contracts'
 import type { StrategyReviewProjection } from '../strategyReview/types'
 import type { StrategyExecutionRequest, StrategyExecutionResult } from '../strategyExecution/contracts'
+import type { AcceptStrategyPairInput, StrategyPairAcceptanceReceipt, StrategyPairAcceptanceRequest, StrategyPairAcceptanceState } from '../strategyPairAcceptance/contracts'
+import type { PlanningReadinessRequest, PlanningReadiness } from '../planningReadiness/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -139,6 +141,9 @@ export interface AgencyResearchService {
   getPostReview(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<PostReviewProjection | null>
   /** Trusted caller verifies the saved response and native task/contact binding. */
   acceptBrief(input: AcceptBriefInput): Promise<BriefAcceptanceReceipt>
+  acceptStrategyPair(input: AcceptStrategyPairInput): Promise<StrategyPairAcceptanceReceipt>
+  getStrategyPairAcceptance(scope: { tenantId: string; organizationId: string }, input: StrategyPairAcceptanceRequest): Promise<StrategyPairAcceptanceState>
+  getPlanningReadiness(scope: { tenantId: string; organizationId: string }, input: PlanningReadinessRequest): Promise<PlanningReadiness>
   /** Exact stored acceptance receipt, including historical accepted versions. */
   getBriefAcceptance(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<BriefAcceptanceProjection | null>
   /** Read-only readiness for the accepted brief and its frozen analysis dependencies. */

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { ClientCaseIdentity } from './clientCaseQuery'
-import { briefAcceptanceReceiptSchema } from '@/modules/agency_research/lib/contracts'
+import { briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema } from '@/modules/agency_research/lib/contracts'
+import { strategyPairRequestSchema } from '../strategyPairReview/contracts'
 
 export const CLIENT_SUBMISSION_SERVICE = 'agencyClientSubmissionService'
 export const clientSubmissionRequestSchema = z.object({
@@ -8,6 +9,8 @@ export const clientSubmissionRequestSchema = z.object({
   text: z.string().max(20000).optional(),
   materialAttachmentId: z.uuid().optional(),
   documentVersionReference: z.uuid().optional().describe('Unverified caller reference; never grants access or authorizes approval.'),
+  strategyReviewResponse: strategyPairRequestSchema.safeExtend({ taskId: z.uuid() }).optional()
+    .describe('Original response to an exact invited strategy/ToV pair; not acceptance authority.'),
   reviewResponse: z.object({
     taskId: z.uuid(),
     channel: z.literal('portal'),
@@ -35,7 +38,8 @@ export const clientSubmissionDispositionSchema = z.discriminatedUnion('effectsAp
   clientSubmissionDispositionBaseSchema.extend({ effectsApplied: z.literal(false) }),
   clientSubmissionDispositionBaseSchema.extend({
     effectsApplied: z.literal(true), kind: z.literal('approve'), source: z.literal('native_agent'),
-    workerId: z.literal('agency_operations.client_triage'), acceptance: briefAcceptanceReceiptSchema,
+    workerId: z.literal('agency_operations.client_triage'),
+    acceptance: z.discriminatedUnion('status', [briefAcceptanceReceiptSchema, strategyPairAcceptanceReceiptSchema]),
   }),
 ])
 

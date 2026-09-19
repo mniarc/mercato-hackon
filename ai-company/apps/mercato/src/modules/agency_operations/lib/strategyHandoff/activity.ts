@@ -30,7 +30,7 @@ export function createStrategyReadinessHandoff(container: AppContainer) {
     }, undefined, scope)
     const saved = z.object({ result: clientSubmissionDispositionSchema })
       .parse(sourceWorkflow?.context?.[CLIENT_TRIAGE_RESULT_KEY]).result
-    if (!saved.effectsApplied || saved.kind !== 'approve') {
+    if (!saved.effectsApplied || saved.kind !== 'approve' || saved.acceptance.status !== 'accepted') {
       throw new Error('[internal] Strategy readiness requires a persisted brief acceptance')
     }
     const receipt = saved.acceptance

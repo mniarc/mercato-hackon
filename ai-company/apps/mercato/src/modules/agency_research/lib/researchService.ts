@@ -15,6 +15,9 @@ import { firstContactQuestions } from './research/render/brief'
 import { readBriefReview } from './briefReview/read'
 import { acceptBrief } from './briefAcceptance/accept'
 import { readBriefAcceptance } from './briefAcceptance/read'
+import { acceptStrategyPair } from './strategyPairAcceptance/accept'
+import { readStrategyPairAcceptance } from './strategyPairAcceptance/read'
+import { readPlanningReadiness } from './planningReadiness/read'
 import { readResearchException } from './exceptionReview/read'
 import { readPostReview } from './postReview/read'
 import { resolveStrategyReadiness } from './strategyReadiness'
@@ -397,6 +400,15 @@ export function createAgencyResearchService(container: Container): AgencyResearc
     },
     async acceptBrief(input) {
       return acceptBrief(container as AppContainer, input)
+    },
+    async acceptStrategyPair(input) {
+      return acceptStrategyPair(container as AppContainer, input)
+    },
+    async getStrategyPairAcceptance(scope, input) {
+      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPlanningReadiness(scope, input) {
+      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
     },
     async getBriefAcceptance(scope, orderRef, versionId) {
       return readBriefAcceptance((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)

@@ -1,4 +1,12 @@
 {
+  "agencyOperations.cases.process.strategyPair.title": "Saved strategy / tone-of-voice decision",
+  "agencyOperations.cases.process.strategyPair.partial": "One document still needs client approval.",
+  "agencyOperations.cases.process.strategyPair.accepted": "Both documents have recorded client approval.",
+  "agencyOperations.cases.process.strategyPair.not_ready": "The pair cannot continue from this saved decision.",
+  "agencyOperations.cases.process.strategyPair.noExecution": "This is the saved continuation result, not evidence that planning has run.",
+  "agencyOperations.cases.process.strategyPair.followUp": "A follow-up client review task was created.",
+  "agencyOperations.cases.process.strategyPair.planning.ready": "Planning prerequisites were ready at this decision.",
+  "agencyOperations.cases.process.strategyPair.planning.not_ready": "Planning prerequisites were not ready at this decision.",
   "agencyOperations.cases.actions.open": "Open",
   "agencyOperations.cases.escalation.action": "Request human attention",
   "agencyOperations.cases.escalation.description": "Send an exceptional case to the employee work inbox. Routine agent work stays automated.",

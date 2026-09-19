@@ -116,3 +116,27 @@ test.each([
   expect(screen.getByText(JSON.stringify(strategyExecution))).toBeTruthy()
   expect(apiCall).toHaveBeenCalledTimes(1)
 })
+
+test.each([
+  { status: 'not_ready', orderRef: 'case-id', reason: 'pair_not_current', cumulative: { status: 'not_ready', orderRef: 'case-id', reason: 'pair_not_current' } },
+  { status: 'partial', orderRef: 'case-id', cumulative: { status: 'partial', remainingDocuments: ['tov'] }, followUpTask: { workflowInstanceId: 'follow-up-workflow', taskId: 'client-task', replayed: false } },
+  { status: 'accepted', orderRef: 'case-id', cumulative: { status: 'accepted', remainingDocuments: [] }, planningReadiness: { status: 'not_ready', reason: 'missing_process_configuration' } },
+  { status: 'accepted', orderRef: 'case-id', cumulative: { status: 'accepted', remainingDocuments: [] }, planningReadiness: { status: 'ready', process: { workflowId: 'configured-planning', version: 1 } } },
+])('shows the saved pair continuation $status without implying planning execution', async (strategyPairContinuation) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], strategyPairContinuation }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.strategyPair.${strategyPairContinuation.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.strategyPair.noExecution')).toBeTruthy()
+  expect(screen.getByText(JSON.stringify(strategyPairContinuation))).toBeTruthy()
+  if (strategyPairContinuation.status === 'partial') {
+    expect(screen.getByText('agencyOperations.cases.process.strategyPair.followUp')).toBeTruthy()
+    expect(screen.queryByText('agencyOperations.cases.process.strategyPair.planning.ready')).toBeNull()
+  }
+  if (strategyPairContinuation.status === 'accepted') {
+    expect(screen.getByText(`agencyOperations.cases.process.strategyPair.planning.${strategyPairContinuation.planningReadiness!.status}`)).toBeTruthy()
+    expect(screen.queryByText('agencyOperations.cases.process.strategyPair.followUp')).toBeNull()
+  }
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})

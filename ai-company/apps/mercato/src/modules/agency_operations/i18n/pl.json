@@ -1,4 +1,12 @@
 {
+  "agencyOperations.cases.process.strategyPair.title": "Zapisana decyzja o strategii i tonie komunikacji",
+  "agencyOperations.cases.process.strategyPair.partial": "Jeden dokument nadal wymaga akceptacji klienta.",
+  "agencyOperations.cases.process.strategyPair.accepted": "Oba dokumenty mają zapisaną akceptację klienta.",
+  "agencyOperations.cases.process.strategyPair.not_ready": "Nie można kontynuować pracy nad parą na podstawie tej decyzji.",
+  "agencyOperations.cases.process.strategyPair.noExecution": "To zapisany wynik przekazania, nie potwierdzenie wykonania planowania.",
+  "agencyOperations.cases.process.strategyPair.followUp": "Utworzono kolejne zadanie przeglądu dla klienta.",
+  "agencyOperations.cases.process.strategyPair.planning.ready": "W chwili decyzji spełniono warunki rozpoczęcia planowania.",
+  "agencyOperations.cases.process.strategyPair.planning.not_ready": "W chwili decyzji nie spełniono warunków rozpoczęcia planowania.",
   "agencyOperations.cases.actions.open": "Otwórz",
   "agencyOperations.cases.escalation.action": "Poproś o interwencję pracownika",
   "agencyOperations.cases.escalation.description": "Przekaż wyjątkową sprawę do skrzynki zadań pracowników. Zwykła praca agentów pozostaje automatyczna.",

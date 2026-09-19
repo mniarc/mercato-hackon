@@ -4,6 +4,7 @@ import { strategyExecutionOutcomeSchema } from '@/modules/agency_research/lib/co
 export const STRATEGY_EXECUTION_FUNCTION = 'agency_operations.runAcceptedStrategy'
 export const STRATEGY_EXECUTION_RESULT_KEY = 'agencyStrategyExecution'
 export const STRATEGY_EXECUTION_STEP_ID = 'strategy_execution'
+export const STRATEGY_REVIEW_HANDOFF_FUNCTION = 'agency_operations.handoffStrategyReview'
 
 // Saved native activity result read model. orderRef is the owning agency case ID.
 export const strategyExecutionActivityResultSchema = z.discriminatedUnion('status', [

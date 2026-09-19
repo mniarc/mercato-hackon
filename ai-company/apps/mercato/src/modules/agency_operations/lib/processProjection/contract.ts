@@ -26,6 +26,32 @@ export const caseStrategyHandoffSchema = z.discriminatedUnion('status', [
   }),
 ])
 
+const pairDocumentReferenceSchema = z.object({ documentId: z.uuid(), versionId: z.uuid(), version: z.string() })
+const pairAcceptanceSchema = z.object({
+  orderRef: z.string().min(1),
+  pair: z.object({ strategy: pairDocumentReferenceSchema, tov: pairDocumentReferenceSchema }),
+  brief: pairDocumentReferenceSchema,
+  remainingDocuments: z.array(z.enum(['strategy', 'tov'])),
+})
+const pairNotReadySchema = z.object({ status: z.literal('not_ready'), orderRef: z.string().min(1), reason: z.string().min(1) })
+
+export const caseStrategyPairContinuationSchema = z.discriminatedUnion('status', [
+  pairNotReadySchema.extend({ cumulative: pairNotReadySchema }),
+  z.object({
+    status: z.literal('partial'), orderRef: z.string().min(1),
+    cumulative: pairAcceptanceSchema.extend({ status: z.literal('partial') }),
+    followUpTask: z.object({ workflowInstanceId: z.uuid(), taskId: z.uuid(), replayed: z.boolean() }),
+  }),
+  z.object({
+    status: z.literal('accepted'), orderRef: z.string().min(1),
+    cumulative: pairAcceptanceSchema.extend({ status: z.literal('accepted') }),
+    planningReadiness: z.discriminatedUnion('status', [
+      pairNotReadySchema,
+      z.object({ status: z.literal('ready'), orderRef: z.string().min(1), process: strategyProcessReferenceSchema }),
+    ]),
+  }),
+])
+
 export const caseProcessSubmissionSchema = z.object({
   submissionId: z.uuid(),
   eventId: z.string(),
@@ -46,6 +72,7 @@ export const caseProcessSubmissionSchema = z.object({
   interpretation: clientTriageInterpretationSchema.nullable(),
   strategyHandoff: caseStrategyHandoffSchema.nullable().optional(),
   strategyExecution: strategyExecutionActivityResultSchema.nullable().optional(),
+  strategyPairContinuation: caseStrategyPairContinuationSchema.nullable().optional(),
   tasks: z.array(z.object({
     id: z.uuid(),
     status: z.string(),

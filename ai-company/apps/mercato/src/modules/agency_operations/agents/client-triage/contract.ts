@@ -44,7 +44,7 @@ export const clientTriageResultSchema = z.object({
   disposition: z.discriminatedUnion('kind', [
     z.object({ kind: z.literal('answer'), targetStepId: z.literal('answered') }).strict(),
     z.object({ kind: z.literal('clarify'), targetStepId: z.literal('client_reply') }).strict(),
-    z.object({ kind: z.literal('approve'), targetStepId: z.literal('brief_accepted') }).strict(),
+    z.object({ kind: z.literal('approve'), targetStepId: z.enum(['brief_accepted', 'strategy_pair_decision']) }).strict(),
   ]).nullable(),
   unappliedReason: z.enum(['unsupported_disposition', 'mixed_dispositions', 'uncertainty_not_clarified', 'target_not_authorized', 'missing_response']).nullable(),
   effectsApplied: z.literal(false),
@@ -53,6 +53,6 @@ export const clientTriageResultSchema = z.object({
 export type ClientTriageInterpretation = z.infer<typeof clientTriageInterpretationSchema>
 export type ClientTriageScope = z.infer<typeof clientTriageScopeSchema>
 export type ClientTriageResult = z.infer<typeof clientTriageResultSchema>
-export type ClientTriageAllowedTarget = 'answered' | 'client_reply' | 'brief_accepted'
+export type ClientTriageAllowedTarget = 'answered' | 'client_reply' | 'brief_accepted' | 'strategy_pair_decision'
 
 export const outputSchema = clientTriageInterpretationSchema

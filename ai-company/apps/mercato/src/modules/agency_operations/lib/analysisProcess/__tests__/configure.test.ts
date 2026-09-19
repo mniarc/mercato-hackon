@@ -3,8 +3,10 @@ import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 
 const authorize = jest.fn()
 const configureBriefReview = jest.fn()
+const configureStrategyPairReview = jest.fn()
 jest.mock('@open-mercato/core/modules/workflows/lib/definition-grant', () => ({ authorizeWorkflowGrantChange: (...args: unknown[]) => authorize(...args) }))
 jest.mock('../../briefStrategyProcess/configure', () => ({ configureBriefReviewWorkflow: (...args: unknown[]) => configureBriefReview(...args) }))
+jest.mock('../../strategyPairReview/configure', () => ({ configureStrategyPairReviewWorkflow: (...args: unknown[]) => configureStrategyPairReview(...args) }))
 import { configureAgencyAnalysisProcess, AGENCY_ANALYSIS_GRANTED_FEATURES } from '../configure'
 import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../workflow'
 
@@ -53,6 +55,7 @@ it('pins a separately authorized strategy cap without changing the analysis cap'
   const policy = { ...input.policy, through: '4.2', strategyExecution: { maxCostPln: 3 } }
   await configureAgencyAnalysisProcess(container, { ...input, policy })
   expect(upsertOwnedDefinition.mock.calls[0][1].definition.transitions[1].activities[0].config.args.policy).toEqual(policy)
+  expect(configureStrategyPairReview).toHaveBeenCalledWith(container, expect.objectContaining({ userId: input.userId }))
 })
 
 it.each([0, -1])('rejects a nonpositive strategy cap %s', async (maxCostPln) => {
