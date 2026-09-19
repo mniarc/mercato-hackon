@@ -1,5 +1,11 @@
 import { z } from 'zod'
 import { orderDataSchema } from '../../data/schemas/zamowienie'
+import type { AcceptBriefInput, BriefAcceptanceReceipt, BriefAcceptanceProjection } from '../briefAcceptance/contracts'
+import type { ResearchExceptionProjection } from '../exceptionReview/read'
+import type { PostReviewProjection } from '../postReview/types'
+import type { StrategyReadiness, StrategyReadinessRequest } from '../strategyReadiness/contracts'
+import type { StrategyReviewProjection } from '../strategyReview/types'
+import type { StrategyExecutionRequest, StrategyExecutionResult } from '../strategyExecution/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -121,10 +127,24 @@ export type BriefReviewProjection = {
 
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
+  /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
+  runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */
   getBriefReview(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<BriefReviewProjection | null>
+  /** Exact strategy/ToV pair and persisted QA evidence; not customer acceptance. */
+  getStrategyReview(scope: { tenantId: string; organizationId: string }, orderRef: string, strategyVersionId: string, tovVersionId: string): Promise<StrategyReviewProjection | null>
+  /** Exact post and editorial QA evidence; never publication consent. */
+  getPostReview(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<PostReviewProjection | null>
+  /** Trusted caller verifies the saved response and native task/contact binding. */
+  acceptBrief(input: AcceptBriefInput): Promise<BriefAcceptanceReceipt>
+  /** Exact stored acceptance receipt, including historical accepted versions. */
+  getBriefAcceptance(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<BriefAcceptanceProjection | null>
+  /** Read-only readiness for the accepted brief and its frozen analysis dependencies. */
+  getStrategyReadiness(scope: { tenantId: string; organizationId: string }, input: StrategyReadinessRequest): Promise<StrategyReadiness>
+  /** Staff-only exception projection; caller establishes case access. */
+  getExceptionReview(scope: { tenantId: string; organizationId: string }, orderRef: string, versionId: string): Promise<ResearchExceptionProjection | null>
   status(scope: { tenantId: string; organizationId: string }, orderRef: string): Promise<{
     documents: { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null }[]
     taskRuns: { id: string; stepId: string; attempt: number; status: string; costPln: number; outputVersionId: string | null; error: string | null }[]

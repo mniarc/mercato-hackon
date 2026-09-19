@@ -8,6 +8,16 @@ import type { SearchWeb } from '../firecrawl'
 import type { Ledger, LedgerEvent } from '../ledger'
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from '../pipeline'
 
+export type StrategyExecutionInput = InputVersion & { versionId: string; data: unknown }
+export type StrategyExecutionInputs = {
+  brief: StrategyExecutionInput
+  zrodla: StrategyExecutionInput
+  audyt: StrategyExecutionInput
+  konkurencja: StrategyExecutionInput
+  ustalenia: StrategyExecutionInput
+}
+export type StrategyExecutionOutputs = { strategy: StrategyExecutionInput | null; tov: StrategyExecutionInput | null }
+
 /**
  * What every process step receives. A step: loads its pinned inputs through the
  * store, calls its pure pipeline function, saves one document version and one
@@ -41,6 +51,12 @@ export type StepContext = {
   attempt: number
   /** 6.5 — the topic the client selected (`TOP01`…); when absent the recommendation is taken as a simulated selection. */
   selectedTopicId?: string | null
+  /** Phase-only strategy execution: the accepted/frozen foundation never follows current pointers. */
+  strategyInputs?: StrategyExecutionInputs
+  /** Shared across shallow repair contexts; only this execution's generated pair. */
+  strategyOutputs?: StrategyExecutionOutputs
+  /** Snapshot of the existing QA repair limit taken when the phase starts. */
+  strategyQaRepairAttempts?: number
 }
 
 export type StepOutcome = {

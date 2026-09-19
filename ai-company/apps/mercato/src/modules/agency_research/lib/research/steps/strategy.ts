@@ -16,7 +16,8 @@ import {
 } from '../../../data/agents/strategy'
 import { idPrefixes, limits } from '../../../data/templates'
 import { RESEARCH_STRATEGY_WRITER_AGENT_ID } from '../../agents/ids.strategy'
-import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
+import { finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
+import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion } from './strategyInputs'
 import { GateError, type GateIssue } from '../gate'
 import { mintId, resolveId } from '../ids'
 import type { Ledger } from '../ledger'
@@ -466,13 +467,13 @@ const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ docume
 
 /** The strategy's inputs per the WZR-STRATEGIA handoff: the brief, the register, the audit, the comparison, and the previous strategy on a revision. */
 export async function runStrategyStep(ctx: StepContext): Promise<StepOutcome> {
-  const brief = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-BRIEF')
-  const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
-  const audyt = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-AUDYT')
+  const brief = await readStrategyFoundation(ctx, 'brief')
+  const zrodla = await readStrategyFoundation(ctx, 'zrodla')
+  const audyt = await readStrategyFoundation(ctx, 'audyt')
   if (!brief || !zrodla || !audyt) throw new Error('[internal] 5.2 needs current KLI-BRIEF, WEW-ZRODLA and WEW-AUDYT versions — run the process through 4.2 first')
-  const konkurencja = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
-  const ustalenia = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-USTALENIA')
-  const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
+  const konkurencja = await readStrategyFoundation(ctx, 'konkurencja')
+  const ustalenia = await readStrategyFoundation(ctx, 'ustalenia')
+  const previous = await readStrategyPairVersion(ctx, 'strategy')
   const inputVersions: InputVersion[] = [ctx.orderVersion, pin(brief), pin(zrodla), pin(audyt), ...(konkurencja ? [pin(konkurencja)] : []), ...(ustalenia ? [pin(ustalenia)] : []), ...(previous ? [pin(previous)] : [])]
   const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '5.2', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run.id)
@@ -509,6 +510,7 @@ export async function runStrategyStep(ctx: StepContext): Promise<StepOutcome> {
       simulation: simulation !== null,
     })
     ctx.documentVersionIds.push(saved.version.id)
+    if (ctx.strategyInputs) recordStrategyPairVersion(ctx, 'strategy', { document_id: saved.envelope.document_id, version: saved.envelope.version, status: saved.envelope.status, versionId: saved.version.id, data: saved.version.data })
     await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats: result.stats }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
   } catch (error) {
