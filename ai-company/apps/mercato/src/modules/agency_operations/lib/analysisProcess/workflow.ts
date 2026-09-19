@@ -2,6 +2,7 @@ import type { WorkflowDefinitionData } from '@open-mercato/core/modules/workflow
 import { analysisExecutionPolicySchema, type AnalysisExecutionPolicy } from './contracts'
 import { createResearchExceptionFragment, RESEARCH_EXCEPTION_STEP_ID } from '../researchException/workflow'
 import { RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../researchException/contracts'
+import { SOURCE_CLARIFICATION_STEP, SOURCE_RESPONSE_STEP, SOURCE_RESPONSE_FUNCTION, SOURCE_RESPONSE_KEY } from '../sourceClarification/contracts'
 
 export const AGENCY_ANALYSIS_WORKFLOW_ID = 'agency_operations.analysis.v1'
 export const AGENCY_ANALYSIS_WORKER_ID = 'agency_operations.agent-worker.analysis.v1'
@@ -21,6 +22,20 @@ export function createAgencyAnalysisWorkflowDefinition(rawPolicy: AnalysisExecut
     { stepId: 'start', stepName: 'Approved analysis received', stepType: 'START' },
     { stepId: 'research', stepName: 'Run agency research', stepType: 'AUTOMATED' },
     { stepId: 'result', stepName: 'Research outcome saved', stepType: 'AUTOMATED' },
+    { stepId: SOURCE_CLARIFICATION_STEP, stepName: 'Correct the research source / Popraw źródło do analizy', stepType: 'USER_TASK', userTaskConfig: {
+      assignedTo: '{{context.submittedByCustomerUserId}}', assigneeKind: 'customer',
+      entityBindings: [{ entityType: 'customers:customer_company_profile', idPath: '{{context.customerEntityId}}' }],
+      instructions: {
+        en: 'The supplied sources did not provide readable, grounded material. Confirm the correct company website URL and add any explanation. This does not approve content or start another paid run.',
+        pl: 'Podane źródła nie dostarczyły czytelnych, potwierdzonych materiałów. Podaj prawidłowy adres strony firmy i ewentualne wyjaśnienie. Odpowiedź nie zatwierdza treści ani nie uruchamia kolejnego płatnego wykonania.',
+      },
+      formSchema: { fields: [
+        { name: 'sourceUrl', type: 'url', label: 'Company website / Strona firmy', required: true },
+        { name: 'sourceNote', type: 'textarea', label: 'Explanation / Wyjaśnienie' },
+      ] },
+    } },
+    { stepId: 'source_response_checked', stepName: 'Source response recorded in shared intake', stepType: 'AUTOMATED' },
+    { stepId: SOURCE_RESPONSE_STEP, stepName: 'Source correction received; authorized research restart available', stepType: 'END' },
     { stepId: 'exception_checked', stepName: 'Research exception handoff', stepType: 'AUTOMATED' },
     ...exception.steps,
     ...(handoffBrief ? [{ stepId: 'brief_handoff', stepName: 'Client brief invitation saved', stepType: 'AUTOMATED' as const }] : []),
@@ -40,7 +55,18 @@ export function createAgencyAnalysisWorkflowDefinition(rawPolicy: AnalysisExecut
       }],
     },
     {
-      transitionId: 'prepare_exception', fromStepId: 'result', toStepId: 'exception_checked', trigger: 'auto',
+      transitionId: 'request_source_clarification', fromStepId: 'result', toStepId: SOURCE_CLARIFICATION_STEP, trigger: 'auto', priority: 100,
+      condition: { field: `${AGENCY_ANALYSIS_RESULT_KEY}.result.sourceClarification.reason`, operator: '=', value: 'insufficient_source_evidence' },
+    },
+    { transitionId: 'receive_source_clarification', fromStepId: SOURCE_CLARIFICATION_STEP, toStepId: 'source_response_checked', trigger: 'auto',
+      activities: [{ activityId: 'source_response', activityName: SOURCE_RESPONSE_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: SOURCE_RESPONSE_FUNCTION, args: {} } }] },
+    { transitionId: 'source_correction_received', fromStepId: 'source_response_checked', toStepId: SOURCE_RESPONSE_STEP, trigger: 'auto',
+      condition: { field: `${SOURCE_RESPONSE_KEY}.result.state`, operator: '=', value: 'received' } },
+    { transitionId: 'source_correction_unclear', fromStepId: 'source_response_checked', toStepId: SOURCE_CLARIFICATION_STEP, trigger: 'auto',
+      condition: { field: `${SOURCE_RESPONSE_KEY}.result.state`, operator: '=', value: 'needs_correction' } },
+    {
+      transitionId: 'prepare_exception', fromStepId: 'result', toStepId: 'exception_checked', trigger: 'auto', priority: 10,
       activities: [{ activityId: 'research_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
         config: { functionName: RESEARCH_EXCEPTION_HANDOFF_FUNCTION, args: {} } }],
     },

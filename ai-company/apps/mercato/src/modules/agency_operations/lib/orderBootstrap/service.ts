@@ -19,6 +19,7 @@ import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '.
 import { paymentConfirmationStateSchema, type PaymentConfirmationState } from '../paymentConfirmation/contracts'
 import { dispatchPaymentConfirmation } from '../paymentConfirmation/dispatch'
 import { readPurchaseHistory } from './purchaseSnapshot'
+import { preparePaymentException } from './paymentException'
 
 function requireEnabled(): void {
   if (!isDemoPurchaseEnabled()) throw new CrudHttpError(403, { error: 'Demo purchases are disabled.' })
@@ -70,15 +71,22 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
     const config = await readDemoPurchaseConfiguration(container, scope)
     return { sales: createNativeDemoSales(container, config), gateway: createDemoPaymentGateway(container, scope) }
   }
-  async function locked<T>(identity: PurchaseIdentity, run: () => Promise<T>): Promise<T> {
+  type RecordPaymentException = (order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction) => Promise<void>
+  async function locked<T>(identity: PurchaseIdentity, run: (recordException: RecordPaymentException) => Promise<T>): Promise<T> {
     requireEnabled()
     purchaseIdentitySchema.parse(identity)
     // Sales/payment commands use their own transactions. Locking the customer user
     // serializes our requests without deadlocking their native parent-order locks.
-    return container.resolve<EntityManager>('em').fork().transactional(async (em) => {
+    const dispatch: Array<() => Promise<void>> = []
+    const result = await container.resolve<EntityManager>('em').fork().transactional(async (em) => {
       await activeCustomer(identity, em, true)
-      return run()
+      return run(async (order, payment, transaction) => {
+        const launch = await preparePaymentException(container, em, order, payment, transaction)
+        if (launch) dispatch.push(launch)
+      })
     })
+    for (const launch of dispatch) await launch()
+    return result
   }
   return {
     async start(identity, rawInput) {
@@ -86,7 +94,7 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       if (input.offerVersion !== demoOffer.offerVersion || input.termsVersion !== demoOffer.termsVersion) {
         throw new CrudHttpError(409, { error: 'Reload the current demo offer and terms before purchasing.' })
       }
-      return locked(identity, async () => {
+      return locked(identity, async (recordException) => {
         const { sales, gateway } = await dependencies(identity)
         const order = await sales.ensureOrder(identity, input)
         assertPurchaseOwner(order, identity)
@@ -95,12 +103,13 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         }
         const payment = await sales.ensurePayment(order)
         const transaction = await gateway.ensureSession(order, payment)
+        await recordException(order, payment, transaction)
         return purchaseReceipt(order, payment, transaction)
       })
     },
     async retryPayment(identity, orderId, rawInput) {
       const input = demoPaymentRetrySchema.parse(rawInput)
-      return locked(identity, async () => {
+      return locked(identity, async (recordException) => {
         const { sales, gateway } = await dependencies(identity)
         const order = await sales.loadOrder(orderId)
         assertPurchaseOwner(order, identity)
@@ -108,6 +117,11 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         if (binding.caseId || binding.workflowInstanceId) throw new CrudHttpError(409, { error: 'This purchase is already activated.' })
         const payment = await sales.loadPayment(orderId)
         if (!payment) throw new CrudHttpError(409, { error: 'Start this purchase payment first.' })
+        const current = await gateway.read(payment.id)
+        if (current && !matchesDemoPayment(order, payment, current)) {
+          await recordException(order, payment, current)
+          return purchaseReceipt(order, payment, current)
+        }
         return purchaseReceipt(order, payment, await gateway.retrySession(order, payment, input.providerSessionId))
       })
     },
@@ -115,7 +129,7 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       let launch: (() => Promise<void>) | undefined
       let confirmationWork: (() => Promise<PaymentConfirmationState>) | undefined
       let activationFailure: unknown
-      const receipt = await locked(identity, async () => {
+      const receipt = await locked(identity, async (recordException) => {
         const { sales, gateway } = await dependencies(identity)
         let order = await sales.loadOrder(orderId)
         assertPurchaseOwner(order, identity)
@@ -125,9 +139,13 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         let transaction = await gateway.read(payment.id)
         if (!transaction) throw new CrudHttpError(409, { error: 'Start this purchase payment session first.' })
         const currentReceipt = purchaseReceipt(order, payment, transaction)
+        await recordException(order, payment, transaction)
         if (!currentReceipt.canConfirmPayment && !isVerifiedDemoCapture(order, payment, transaction)) return currentReceipt
         if (currentReceipt.canConfirmPayment) transaction = await gateway.confirm(transaction)
-        if (!isVerifiedDemoCapture(order, payment, transaction)) return purchaseReceipt(order, payment, transaction)
+        if (!isVerifiedDemoCapture(order, payment, transaction)) {
+          await recordException(order, payment, transaction)
+          return purchaseReceipt(order, payment, transaction)
+        }
         await sales.reconcileCaptured(payment)
 
         const existingConfirmation = binding.paymentConfirmation

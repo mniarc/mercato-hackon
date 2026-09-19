@@ -4,6 +4,21 @@ import { render, screen } from '@testing-library/react'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { AgencyCaseProcess } from '../AgencyCaseProcess'
 
+jest.mock('../AgencySourceRecoveryAction', () => ({ AgencySourceRecoveryAction: ({ caseId, workflowInstanceId }: { caseId: string; workflowInstanceId: string }) => <button>{`resume-source:${caseId}:${workflowInstanceId}`}</button> }))
+
+test('offers source recovery only for the completed customer correction, not a generic failed analysis', async () => {
+  const analysis = { id: 'analysis-1', workflowId: 'agency_operations.analysis.v1', version: 1,
+    status: 'COMPLETED', currentStepId: 'source_response_saved', awaitingFollowUp: false, result: null, error: null }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, result: { ...process, analysis } } as never)
+  const view = render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByRole('button', { name: 'resume-source:case-id:analysis-1' })).toBeTruthy()
+  view.unmount()
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, result: { ...process, analysis: { ...analysis, status: 'FAILED', currentStepId: 'analysis' } } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  await screen.findByText('FAILED · analysis')
+  expect(screen.queryByRole('button', { name: 'resume-source:case-id:analysis-1' })).toBeNull()
+})
+
 test('links a saved specialist wait to intake for the same case', async () => {
   jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
     ...process, submissions: [{ ...process.submissions[0], strategyExecution: {

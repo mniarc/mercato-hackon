@@ -9,6 +9,7 @@ import { createDemoPaymentGateway, isVerifiedDemoCapture } from '../payment'
 import { demoOffer } from '../demoOffer'
 import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../../paidCaseAnalysis/bootstrap'
 import { dispatchPaymentConfirmation } from '../../paymentConfirmation/dispatch'
+import { preparePaymentException } from '../paymentException'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('../configure', () => ({ readDemoPurchaseConfiguration: jest.fn(async () => ({})) }))
@@ -17,6 +18,7 @@ jest.mock('../nativeSales', () => ({ ...jest.requireActual('../nativeSales'), cr
 jest.mock('../payment', () => ({ ...jest.requireActual('../payment'), createDemoPaymentGateway: jest.fn() }))
 jest.mock('../../paidCaseAnalysis/bootstrap', () => ({ createPaidCaseAnalysisBootstrap: jest.fn(), createPaidCaseAnalysisReader: jest.fn() }))
 jest.mock('../../paymentConfirmation/dispatch', () => ({ dispatchPaymentConfirmation: jest.fn() }))
+jest.mock('../paymentException', () => ({ preparePaymentException: jest.fn(async () => null) }))
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const identity = { tenantId: uuid(1), organizationId: uuid(2), customerEntityId: uuid(3), customerUserId: uuid(4) }
@@ -279,6 +281,40 @@ test('a cancelled payment returns its real receipt without confirmation or servi
   expect(reconcileCaptured).not.toHaveBeenCalled()
   expect(activate).not.toHaveBeenCalled()
   expect(startPaidAnalysis).not.toHaveBeenCalled()
+})
+
+test('a payment mismatch stays blocked and sends its employee exception only after commit; GET never dispatches', async () => {
+  let transactionOpen = false
+  em.transactional.mockImplementationOnce(async (fn) => {
+    transactionOpen = true
+    const result = await fn(em)
+    transactionOpen = false
+    return result
+  })
+  const dispatch = jest.fn(async () => { expect(transactionOpen).toBe(false) })
+  jest.mocked(preparePaymentException).mockResolvedValueOnce(dispatch)
+  transaction.amount = '2400'
+  const service = createDemoPurchaseService(container, activate)
+  await expect(service.confirm(identity, order.id)).resolves.toMatchObject({ status: 'blocked', caseId: null, canConfirmPayment: false })
+  expect(preparePaymentException).toHaveBeenCalledWith(container, em, order, payment, transaction)
+  expect(dispatch).toHaveBeenCalledTimes(1)
+  expect(confirmGateway).not.toHaveBeenCalled()
+  expect(reconcileCaptured).not.toHaveBeenCalled()
+  expect(activate).not.toHaveBeenCalled()
+  expect(startPaidAnalysis).not.toHaveBeenCalled()
+  expect(dispatchPaymentConfirmation).not.toHaveBeenCalled()
+  await service.read(identity, order.id)
+  expect(preparePaymentException).toHaveBeenCalledTimes(1)
+})
+
+test('retry of a mismatched transaction records an exception instead of replacing or activating it', async () => {
+  transaction.unifiedStatus = 'failed'
+  transaction.currencyCode = 'EUR'
+  await expect(createDemoPurchaseService(container, activate).retryPayment(identity, order.id, { providerSessionId: 'mock_session' }))
+    .resolves.toMatchObject({ status: 'blocked', caseId: null, canConfirmPayment: false })
+  expect(preparePaymentException).toHaveBeenCalledWith(container, em, order, payment, transaction)
+  expect(retrySession).not.toHaveBeenCalled()
+  expect(activate).not.toHaveBeenCalled()
 })
 
 test('confirmation eligibility follows actual session and verified capture, not a generic blocked label', () => {

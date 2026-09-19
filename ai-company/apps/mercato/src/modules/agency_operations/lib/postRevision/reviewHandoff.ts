@@ -39,7 +39,7 @@ export function createPostRevisionReviewHandoff(container: AppContainer) {
     if (result.escalationVersionId) return blocked('research_exception')
     if (result.status === 'paused_budget') return blocked(result.status)
     if (!result.readyForReview || result.qaVerdict !== 'pass_for_draft' || !result.qaTaskRunId
-      || !result.postVersionId || result.postVersionId === result.previousPostVersionId) return blocked('revised_post_not_reviewable')
+      || !result.postVersionId || result.postVersionId === result.previousPostVersionId) return blocked(result.evidencePendingReason ?? 'revised_post_not_reviewable')
     if (!result.documentVersionIds.includes(result.postVersionId) || !result.taskRunIds.includes(result.qaTaskRunId)) {
       throw new Error('[internal] Revised post and QA are not saved revision outputs')
     }

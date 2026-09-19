@@ -4,6 +4,7 @@ import { startNativeTriageProvider } from '../nativeTriageProvider'
 import { createProductionJourneyIntelligence } from './intelligence'
 
 export type JourneyMode = 'fixture' | 'live'
+export type JourneyIntelligence = Omit<ReturnType<typeof createProductionJourneyIntelligence>, 'resolveStructured'> & { mode: JourneyMode }
 export function readJourneyMode(env: NodeJS.ProcessEnv = process.env): JourneyMode {
   const mode = env.AGENCY_JOURNEY_INTELLIGENCE ?? 'fixture'
   if (mode !== 'fixture' && mode !== 'live') throw new Error('Select fixture or live journey intelligence')
@@ -43,13 +44,13 @@ export function readClientJourneyInput(mode: JourneyMode): ClientJourneyInput | 
 
 export async function startJourneyIntelligence(appRoot: string, mode: JourneyMode) {
   if (mode === 'fixture') {
-    const intelligence = createProductionJourneyIntelligence(appRoot)
+    const intelligence = { ...createProductionJourneyIntelligence(appRoot), mode: 'fixture' as const }
     const provider = await startNativeTriageProvider(5003, { resolveStructured: intelligence.resolveStructured })
     return { mode, intelligence, baseUrl: provider.baseUrl, close: () => provider.close() }
   }
   const ignore = () => undefined
-  const intelligence: Omit<ReturnType<typeof createProductionJourneyIntelligence>, 'resolveStructured'> = {
-    calls: [], allowMaterial: ignore, allowAnswers: ignore, allowBriefApproval: ignore,
+  const intelligence: JourneyIntelligence = {
+    mode: 'live', calls: [], allowMaterial: ignore, allowAnswers: ignore, allowBriefApproval: ignore,
     allowPairApproval: ignore, allowPairCorrection: ignore, allowPlanApproval: ignore, allowPostProduction: ignore, allowPostApproval: ignore,
   }
   return { mode, intelligence, baseUrl: null, close: async () => undefined }

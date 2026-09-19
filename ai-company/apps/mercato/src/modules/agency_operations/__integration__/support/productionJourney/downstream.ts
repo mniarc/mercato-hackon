@@ -4,7 +4,7 @@ import { PLAN_REVIEW_CONTEXT_KEY, PLAN_REVIEW_WORKFLOW_ID, planReviewInvitationS
 import type { PostReviewService } from '../../../lib/postReview/contracts'
 import type { CaseProcessResponse } from '../../../lib/processProjection/contract'
 import { publicationPreparationPreparedSchema } from '../../../../agency_research/lib/publicationPreparation/contracts'
-import type { createProductionJourneyIntelligence } from './intelligence'
+import type { JourneyIntelligence } from './mode'
 import { readInvitation, type JourneyScope } from './records'
 
 type Input = {
@@ -15,7 +15,7 @@ type Input = {
   caseId: string
   baseUrl: string
   orgSlug: string
-  intelligence: Omit<ReturnType<typeof createProductionJourneyIntelligence>, 'resolveStructured'>
+  intelligence: JourneyIntelligence
   selectedTopicId: string
   continueNativeResponse: () => Promise<void>
   capture: (name: string) => Promise<void>
@@ -88,7 +88,9 @@ export async function completeProducedPostJourney(input: Input) {
     const preparation = publicationPreparationPreparedSchema.parse(accepted?.publicationPreparation)
     expect(preparation).toMatchObject({ orderRef: caseId, postVersionId: approved.postVersionId,
       acceptanceSubmissionId: approved.submissionId, contentApproval: 'valid', publicationConsent: 'missing', canSend: false })
-    expect(intelligence.calls).toEqual(expect.arrayContaining(['agency_research.post_author', 'agency_research.post_editor']))
+    if (intelligence.mode === 'fixture') {
+      expect(intelligence.calls).toEqual(expect.arrayContaining(['agency_research.post_author', 'agency_research.post_editor']))
+    }
     console.log(`[TC-AGENCY-002] Publication preparation saved as ${preparation.instructionVersionId}; sending disabled, no publication consent invented.`)
     return preparation
   })

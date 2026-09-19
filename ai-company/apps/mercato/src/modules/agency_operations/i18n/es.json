@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.sourceRecovery.ready": "El cliente guardó los datos corregidos de las fuentes. Reanude el análisis con la configuración de ejecución existente.",
+  "agencyOperations.cases.process.sourceRecovery.resume": "Reanudar análisis de fuentes",
+  "agencyOperations.cases.process.sourceRecovery.resuming": "Reanudando…",
+  "agencyOperations.cases.process.sourceRecovery.failed": "No se pudo reanudar el análisis de fuentes. Actualice el caso y revise su estado actual.",
+  "agencyOperations.cases.process.sourceRecovery.unavailable": "El caso actual no tiene una corrección de fuentes completada que permita reanudar el análisis.",
   "agencyOperations.cases.researchLineage.title": "Document lineage",
   "agencyOperations.cases.researchLineage.back": "Back to previous version",
   "agencyOperations.cases.researchLineage.history": "Version history",

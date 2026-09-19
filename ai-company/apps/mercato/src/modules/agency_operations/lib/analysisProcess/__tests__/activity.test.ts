@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { workflowStepSchema, workflowTransitionSchema } from '@open-mercato/core/modules/workflows/data/validators'
-import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { WorkflowDefinition, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 
 const findOne = jest.fn()
@@ -10,6 +10,8 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryp
 import { createAnalysisWorkflowActivity, parseAnalysisMaterial } from '../activity'
 import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_RESULT_KEY, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 import type { AnalysisExecutionPolicy } from '../contracts'
+import { InsufficientSourceEvidenceError } from '@/modules/agency_research/lib/research/sourceOutcome'
+import { SOURCE_CORRECTION_KEY, SOURCE_CLARIFICATION_STEP, SOURCE_RESPONSE_STEP } from '../../sourceClarification/contracts'
 import { loadCaseMaterialSources } from '../materialSources'
 jest.mock('../materialSources', () => ({ loadCaseMaterialSources: jest.fn() }))
 
@@ -172,6 +174,53 @@ it.each([
 it('does not claim brief-ready delivery when the service requires client data', async () => {
   run.mockResolvedValue({ ...result, completedThrough: '4.2', briefQaVerdict: 'needs_client_data' })
   await expect(createAnalysisWorkflowActivity(container)({ caseId, policy: { ...policy, through: '4.2' } }, context())).resolves.toMatchObject({ state: 'waiting', briefQaVerdict: 'needs_client_data' })
+})
+
+it('turns only persisted insufficient-source evidence into a real customer clarification', async () => {
+  findOne.mockImplementation(async (_em: unknown, entity: unknown) => entity === WorkflowDefinition
+    ? { definition: createAgencyAnalysisWorkflowDefinition(policy) }
+    : { id: caseId, materialAttachmentId: 'attachment-1', definitionId: stepInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: 2 })
+  const error = new InsufficientSourceEvidenceError(['S01'])
+  error.persisted = { taskRunIds: ['source-run'], documentVersionIds: ['order-version'], agentRunIds: [], spentPln: 0 }
+  run.mockRejectedValue(error)
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).resolves.toMatchObject({
+    state: 'waiting', completedThrough: null, taskRunIds: ['source-run'],
+    sourceClarification: { reason: 'insufficient_source_evidence', sourceIds: ['S01'] },
+  })
+  run.mockRejectedValue(new Error('provider offline'))
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toThrow('provider offline')
+  run.mockRejectedValue(error)
+  findOne.mockImplementation(async (_em: unknown, entity: unknown) => entity === WorkflowDefinition
+    ? { definition: { steps: [] } } : { id: caseId, materialAttachmentId: 'attachment-1', definitionId: stepInstanceId })
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toBe(error)
+})
+
+it('uses the corrected URL only on an explicitly authorized restart, preserving purchased terms', async () => {
+  const execution = context()
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: stepInstanceId, by: userId, attempt: 1, resumeFrom: '3.2' }
+  execution.workflowInstance.context[SOURCE_CORRECTION_KEY] = {
+    workflowInstanceId: stepInstanceId, taskId: stepInstanceId, submissionId: stepInstanceId, websiteUrl: 'https://correct.test/company',
+  }
+  findOne.mockImplementation(async (_em: unknown, entity: unknown) => entity === AgentRun ? null : entity === WorkflowInstance
+    ? { id: stepInstanceId, metadata: { entityType: 'agency_operations:agency_case', entityId: caseId } }
+    : { id: caseId, materialAttachmentId: 'attachment-1' })
+  await createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)
+  expect(run.mock.calls[0][0].request).toMatchObject({
+    order: { ...material.order, brand: { ...material.order.brand, website_url: 'https://correct.test/company' } },
+    pages: undefined, resumeFrom: '3.2', maxCostPln: policy.maxCostPln,
+  })
+  expect(material.order.brand.website_url).toBe('https://example.test')
+})
+
+it('asks through a customer task and records a response without rerunning research or approving content', () => {
+  const definition = createAgencyAnalysisWorkflowDefinition(policy)
+  expect(definition.steps.find((step) => step.stepId === SOURCE_CLARIFICATION_STEP)).toMatchObject({
+    stepType: 'USER_TASK', userTaskConfig: { assigneeKind: 'customer', assignedTo: '{{context.submittedByCustomerUserId}}' },
+  })
+  expect(definition.transitions.find((transition) => transition.transitionId === 'request_source_clarification')).toMatchObject({ priority: 100 })
+  expect(definition.transitions.find((transition) => transition.transitionId === 'source_correction_unclear')?.toStepId).toBe(SOURCE_CLARIFICATION_STEP)
+  expect(definition.steps.find((step) => step.stepId === SOURCE_RESPONSE_STEP)?.stepType).toBe('END')
+  expect(definition.transitions.some((transition) => transition.fromStepId === SOURCE_RESPONSE_STEP)).toBe(false)
 })
 
 it('requires opt-in and refuses terminal workflows', async () => {

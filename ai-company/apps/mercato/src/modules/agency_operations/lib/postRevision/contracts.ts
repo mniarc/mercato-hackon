@@ -12,7 +12,9 @@ export const postRevisionUnavailableSchema = z.object({
   status: z.literal('not_configured'), orderRef: z.string().min(1),
   reason: z.enum(['missing_process_configuration', 'missing_post_revision_authorization', 'execution_disabled']),
 })
-export const postRevisionActivityResultSchema = z.union([postRevisionUnavailableSchema, postRevisionResultSchema])
+export const postRevisionActivityResultSchema = z.union([postRevisionUnavailableSchema,
+  postRevisionResultSchema.and(z.object({ evidencePendingReason: z.string().optional() })),
+])
 export type NativePostRevisionResult = z.infer<typeof postRevisionActivityResultSchema>
 
 export const postRevisionReviewHandoffResultSchema = z.discriminatedUnion('status', [

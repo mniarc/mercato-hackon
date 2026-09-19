@@ -15,7 +15,7 @@ test('manual profiles isolate persistent state and keep fixture intelligence loc
   assert.equal(fixture.OPENROUTER_BASE_URL, 'http://127.0.0.1:5005/v1')
   assert.equal(fixture.AGENCY_TOV_EXECUTION_ENABLED, 'true')
   for (const key of ['OM_AI_AGENCY_OPERATIONS_BASE_URL', 'OM_AI_AGENCY_RESEARCH_BASE_URL',
-    'OM_AI_AGENCY_TOV_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL']) {
+    'OM_AI_AGENCY_TOV_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL', 'AGENCY_TOV_AI_BASE_URL']) {
     assert.equal(fixture[key], 'http://127.0.0.1:5005/v1', key)
   }
   assert.equal(live.AGENCY_TOV_EXECUTION_ENABLED, 'false')
@@ -89,8 +89,21 @@ test('manual live ToV forwards explicit configuration only after paid execution 
     assert.equal(agencyManualEnvironment({}, { ...enabled, AGENCY_TOV_EXECUTION_ENABLED: 'false' }, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'false')
     assert.throws(() => agencyManualEnvironment({}, enabled, 'live', { action }), /--allow-live/)
     assert.throws(() => agencyManualEnvironment({}, { AGENCY_TOV_EXECUTION_ENABLED: 'true' }, 'live', options), /private central OpenRouter/)
+    for (const host of ['localhost', '127.0.0.1', '[::1]']) {
+      assert.throws(() => agencyManualEnvironment({ AGENCY_TOV_AI_BASE_URL: `http://${host}:5005/v1` }, enabled, 'live', options), /loopback.*AGENCY_TOV_AI_BASE_URL/)
+    }
   }
   assert.equal(agencyManualEnvironment({}, enabled, 'live', { action: 'setup' }).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+})
+
+test('fixture profiles pin the native ToV endpoint over inherited live configuration', () => {
+  const inherited = { AGENCY_TOV_AI_BASE_URL: 'https://provider.example.test/v1' }
+  const preset = agencyJourneyPreset('production')
+  const automated = agencyEnvironment({ ...inherited, ...preset }, preset)
+  assert.equal(automated.AGENCY_TOV_AI_BASE_URL, 'http://127.0.0.1:5003/v1')
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(automated))
+  assert.throws(() => assertUnpaidDemoEnvironment({ ...automated, ...inherited }), /cannot use live execution/)
+  assert.equal(agencyManualEnvironment(inherited, {}, 'fixture').AGENCY_TOV_AI_BASE_URL, 'http://127.0.0.1:5005/v1')
 })
 
 test('explicit journey arguments route start and test without changing the default', () => {
@@ -279,5 +292,6 @@ test('live production journey requires explicit opt-in, private central provider
   assert.throws(() => assertLiveJourneyEnvironment({ ...env, AGENCY_ALLOW_LIVE: '0' }), /requires explicit/)
   assert.throws(() => assertLiveJourneyEnvironment({ ...env, AGENCY_TEST_NATIVE_TRIAGE: '1' }), /refuses fixture-native/)
   assert.throws(() => assertLiveJourneyEnvironment({ ...env, OPENROUTER_BASE_URL: 'https://gateway.example.test/v1' }), /refuses custom provider endpoint/)
+  assert.throws(() => assertLiveJourneyEnvironment({ ...env, AGENCY_TOV_AI_BASE_URL: 'http://127.0.0.1:5005/v1' }), /refuses custom provider endpoint AGENCY_TOV_AI_BASE_URL/)
   assert.throws(() => assertLiveJourneyEnvironment({ ...env, AGENCY_JOURNEY_POLICY_FILE: fixtureDirectory }), /existing absolute file/)
 })

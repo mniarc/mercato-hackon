@@ -49,3 +49,12 @@ test('preserves recoverable configuration reasons but rejects malformed persiste
   await expect(createPostRevisionReviewHandoff(container as never)({}, context)).rejects.toThrow()
   expect(invite).not.toHaveBeenCalled()
 })
+
+test('shows the actual evidence prerequisite instead of inviting an unreviewed revision', async () => {
+  arrange({ ...completed, readyForReview: false, qaVerdict: 'needs_fix', evidencePendingReason: 'requested_source_unavailable' })
+  await expect(createPostRevisionReviewHandoff(container as never)({}, context)).resolves.toMatchObject({
+    status: 'blocked', reason: 'requested_source_unavailable', invitation: null,
+    revision: { submissionId, previousPostVersionId, postVersionId, evidencePendingReason: 'requested_source_unavailable' },
+  })
+  expect(invite).not.toHaveBeenCalled()
+})
