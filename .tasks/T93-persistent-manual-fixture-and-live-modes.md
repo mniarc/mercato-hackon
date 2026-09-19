@@ -1,6 +1,6 @@
 # T93 — Persistent manual fixture and live walkthrough modes
 
-State: source implemented; persistent native/manual proof pending
+State: active
 Source: requested manual customer → agency → employee walkthrough; F01–F33 implemented paths.
 
 Extend the existing agency launcher with isolated, persistent manual fixture and
@@ -18,6 +18,9 @@ paid calls. Native workflow policies remain explicit staff configuration.
 Done: source checks pass, unpaid persistent manual flow is proved without the
 automated runner, and live configuration is prepared but never claimed live-proved.
 
-Launcher syntax and focused profile/default/mode tests pass (13/13). No manual profile
-has been started or paid call made. CLI/profile contract is in existing manual-qa.md;
-automated same-journey fixture/live source is integrated under T95; joined proof remains.
+Launcher syntax and focused profile/default/mode tests pass (13/13). On 2026-09-19,
+fixture-profile native init/configuration, local provider preflight/readiness,
+persistent native queue workers and app startup passed (app 5004/provider 5005).
+The separate database is retained. No customer clickthrough or paid call was made;
+full manual flow and live proof remain pending. CLI/profile restart requirements
+are in manual-qa.md; automated fixture/live source is integrated under T95.

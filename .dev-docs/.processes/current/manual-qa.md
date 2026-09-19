@@ -10,6 +10,8 @@ From the `App/` root in PowerShell, with the checkout installed:
 
 ```powershell
 & .\bin-dev\agency.ps1 status --profile fixture
+$env:AGENCY_MANUAL_TENANT_ID = '<tenant-id printed by status>'
+$env:AGENCY_MANUAL_ORGANIZATION_ID = '<organization-id printed by status>'
 & .\bin-dev\agency.ps1 manual-fixture
 ```
 
@@ -26,6 +28,7 @@ and staff sessions. These are local routes, not a remotely accessible deployment
 | Customer tasks and reviews | `/acme-corp/portal/tasks`; open the actual assigned task |
 | Staff sign-in | `/login` |
 | Employee inbox / cases | `/backend/work-inbox`, `/backend/agency-operations/cases` |
+| Staff specialist ToV intake | `/backend/agency-operations/tov-intakes` |
 
 `acme-corp` is the local organization slug; use the configured slug elsewhere.
 The documented local seed staff login is `admin@acme.com` / `secret`, not a
@@ -53,7 +56,9 @@ attachments, cache, email capture and Next output. Generated module registration
 and installed packages are shared: prepare them once with the runtime owner before
 starting profiles; the manual launcher does not regenerate them. Ctrl+C stops only
 its app, native queue workers and optional fixture companion; PostgreSQL/data remain.
-Source implementation is prepared; persistent manual runtime proof is still pending.
+Manual fixture setup, local provider readiness, native queue-worker startup and
+app startup passed on 2026-09-19. Full manual clickthrough and live-model proof
+remain pending. Do not launch a duplicate while the runtime owner keeps it running.
 
 First-time fixture setup from `App/` (never a reset):
 
@@ -66,10 +71,14 @@ $env:AGENCY_MANUAL_ORGANIZATION_ID = '<organization-id>'
 $manualStaffId = '<authorized-staff-id>'
 & .\bin-dev\agency.ps1 cli --profile fixture agency_operations configure-demo-purchase --tenant $env:AGENCY_MANUAL_TENANT_ID --organization $env:AGENCY_MANUAL_ORGANIZATION_ID --user $manualStaffId
 & .\bin-dev\agency.ps1 cli --profile fixture agency_operations configure-triage --tenant $env:AGENCY_MANUAL_TENANT_ID --organization $env:AGENCY_MANUAL_ORGANIZATION_ID --user $manualStaffId
+& .\bin-dev\agency.ps1 cli --profile fixture agency_operations configure-tov --tenant $env:AGENCY_MANUAL_TENANT_ID --organization $env:AGENCY_MANUAL_ORGANIZATION_ID --user $manualStaffId
+& .\bin-dev\agency.ps1 cli --profile fixture agency_operations configure-employee-questions --tenant $env:AGENCY_MANUAL_TENANT_ID --organization $env:AGENCY_MANUAL_ORGANIZATION_ID --user $manualStaffId
 & .\bin-dev\agency.ps1 cli --profile fixture agency_operations configure-analysis --tenant $env:AGENCY_MANUAL_TENANT_ID --organization $env:AGENCY_MANUAL_ORGANIZATION_ID --user $manualStaffId --policy-file '<approved-policy.json>'
 & .\bin-dev\agency.ps1 manual-fixture
 ```
 
+On later restarts, repeat only `status`, the two scope environment assignments
+and `manual-fixture` in the new terminal; keep the initialized database/configuration.
 Use the explicit policy contract in [agent configuration](agent-runs.md), matching
 the actual demo offer/product version and configured phase budgets. Configure
 employee-question/review capabilities required by that policy through their existing
@@ -153,7 +162,9 @@ fixture error; report its exact unsupported input or failed step.
    accepts `?caseId=<actual-id>`). Upload a small supported text file and optional
    message. It supplements the same case; do not submit internal agent JSON.
 4. **Customer tasks:** when real research creates questions, answer them. Review
-   the resulting brief and explicitly accept it; then review and accept the
+   the resulting brief and explicitly accept it. Staff upload the normalized
+   public-post corpus for that same case at `/backend/agency-operations/tov-intakes`;
+   the authoritative specialist result is required. Then review and accept the
    strategy/ToV pair, select a plan topic, and review the generated post. Use the
    actual invitation each time, not guessed task IDs or fabricated approvals.
 5. **Employee:** open the same case and inspect its saved process, research ledger

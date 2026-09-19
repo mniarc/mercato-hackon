@@ -89,14 +89,17 @@ Do not share tokens or bypass verification. Staff visibility still requires perm
    exact-version/target publication consent uses its own customer task when needed.
    Inspect preparation, not a send: content approval alone grants no publication consent.
 
-## Persistent manual modes: prepared, not yet proved
+## Persistent manual modes
 
-The working tree includes isolated manual fixture **5004** (provider 5005) and
-manual live **5006** profiles. Neither has been started/proved by this delivery.
-They are not plug-and-play: follow the [operator walkthrough](../.dev-docs/.processes/current/manual-qa.md)
-for `setup --profile fixture`, actual tenant/organization/staff IDs, approved
-catalogue/policy configuration and review capabilities, then `manual-fixture`.
+Manual fixture **http://localhost:5004** (provider 5005) passed native setup,
+workflow configuration, provider and persistent queue-worker/app startup on
+2026-09-19. Full manual clickthrough remains unproved; manual live **5006** has
+not been started. Follow the [operator walkthrough](../.dev-docs/.processes/current/manual-qa.md)
+for first-time setup/configuration. On restart, run `status --profile fixture`,
+set `AGENCY_MANUAL_TENANT_ID` and `AGENCY_MANUAL_ORGANIZATION_ID` to that profile's
+printed IDs, then `manual-fixture`; do not start a duplicate app.
 Each profile retains its own database, queues, attachments and email capture.
+Manual signup verification uses `ai-company/apps/mercato/.mercato/agency-manual-fixture/email-capture.jsonl`.
 
 Manual fixtures currently support the representative FLOW corpus, exact invited
 `QID: answer`/question-bound answers, and the actual selected topic `TOP02`.
