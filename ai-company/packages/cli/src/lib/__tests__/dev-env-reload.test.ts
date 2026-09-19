@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { createDevEnvReloader, resolveDevEnvFilePaths, watchDevRuntimeFiles } from '../dev-env-reload'
+import { createDevEnvReloader, resolveDevEnvFilePaths, watchDevEnvFiles, watchDevRuntimeFiles } from '../dev-env-reload'
 import { normalizeTestPath } from './path-helpers'
 
 describe('dev env reload helpers', () => {
@@ -59,6 +59,46 @@ describe('dev env reload helpers', () => {
     expect(environment.DATABASE_URL).toBe('postgres://changed-database')
     expect(environment.SHELL_VALUE).toBe('shell-value')
     expect(environment.REMOVED_LATER).toBeUndefined()
+  })
+
+  it('ignores access-only env notifications but reports content changes, creation and deletion', () => {
+    const envFile = path.join(appDir, '.env')
+    const localFile = path.join(appDir, '.env.local')
+    fs.writeFileSync(envFile, 'FIXTURE_ONLY=initial\n')
+    const listeners: Array<(eventType: string, fileName: string) => void> = []
+    const watch = jest.spyOn(fs, 'watch').mockImplementation(((_directory: unknown, listener: (eventType: string, fileName: string) => void) => {
+      listeners.push(listener)
+      return { close: jest.fn() }
+    }) as never)
+    jest.useFakeTimers()
+    const changed = jest.fn()
+    const stop = watchDevEnvFiles(appDir, changed, { debounceMs: 10 })
+    const notify = (fileName: string, eventType = 'change') => {
+      listeners.forEach((listener) => listener(eventType, fileName))
+      jest.advanceTimersByTime(10)
+    }
+
+    try {
+      // Reproduce the notification produced by Windows after access metadata changes.
+      fs.readFileSync(envFile)
+      notify('.env')
+      expect(changed).not.toHaveBeenCalled()
+
+      fs.writeFileSync(envFile, 'FIXTURE_ONLY=changed\n')
+      notify('.env')
+      notify('.env')
+      expect(changed.mock.calls).toEqual([[envFile]])
+
+      fs.writeFileSync(localFile, 'FIXTURE_ONLY=local\n')
+      notify('.env.local', 'rename')
+      fs.unlinkSync(envFile)
+      notify('.env', 'rename')
+      expect(changed.mock.calls).toEqual([[envFile], [localFile], [envFile]])
+    } finally {
+      stop()
+      watch.mockRestore()
+      jest.useRealTimers()
+    }
   })
 
   it('watches generated runtime files when explicitly requested', async () => {
