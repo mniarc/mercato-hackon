@@ -25,3 +25,7 @@ export async function createPlanReviewFixture(input: Parameters<Backend['createP
 export async function deletePlanReviewFixture(fixture: PlanReviewFixture): Promise<void> {
   return (await loadBackend()).deletePlanReviewFixture(fixture)
 }
+
+export async function createPostReviewFixture(input: Parameters<Backend['createPostReviewFixture']>[0]) {
+  return (await loadBackend()).createPostReviewFixture(input)
+}

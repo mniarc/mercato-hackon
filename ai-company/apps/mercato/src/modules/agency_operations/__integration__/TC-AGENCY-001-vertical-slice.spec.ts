@@ -27,7 +27,7 @@ import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID 
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
 import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
 import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
-import { createPlanReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
+import { createPlanReviewFixture, createPostReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -241,7 +241,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     page,
     request,
   }, testInfo) => {
-    test.setTimeout(240_000)
+    test.setTimeout(480_000)
 
     let screenshotSequence = 0
     const capture = async (label: string) => {
@@ -270,6 +270,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     let nativeRecovery: { workflowInstanceId: string; submissionId: string } | null = null
     let briefReview: BriefReviewFixture | null = null
     let planReview: PlanReviewFixture | null = null
+    let nativeProcess: { workflowDefinitionId: string; workflowId: string; version: number } | undefined
+    let postInstruction: { instructionVersionId: string; selectionSubmissionId: string } | undefined
     let resources: CreatedResources = {
       caseId: null,
       attachmentId: null,
@@ -307,7 +309,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await runDemoPhase('Check native triage configuration', 'Native triage ready with local intelligence only', async () => {
           expect(process.env.OPENROUTER_BASE_URL).toBe(provider.baseUrl)
           type NativeDefinition = {
-            workflowId: string; version: number; tenantId: string | null; organizationId: string | null
+            id: string; workflowId: string; version: number; tenantId: string | null; organizationId: string | null
             enabled: boolean; lifecycle: string; definition: unknown; grantedFeatures: string[] | null
           }
           let selected: NativeDefinition | undefined
@@ -327,6 +329,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           if (!selected) throw new Error('Native triage has no enabled published definition in this scope. Run agency_operations configure-triage for the persistent development runtime before the demo.')
           expect(workflowDefinitionDataSchema.parse(selected.definition)).toEqual(workflowDefinitionDataSchema.parse(nativeClientSubmissionDefinition))
           expect(selected.grantedFeatures).toContain('agent_orchestrator.agents.run')
+          nativeProcess = { workflowDefinitionId: selected.id, workflowId: selected.workflowId, version: selected.version }
         })
       }
       const intakeIdentity = await runDemoPhase('Prepare fixtures', 'Fixture ready', async () => {
@@ -611,8 +614,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             const approved = await client.query<{ approval_records: unknown[] }>(
               'SELECT approval_records FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
               [plan.versionId, tenantId, organizationId, intakeResult.caseId])
-            const instruction = await client.query<{ data: unknown; input_versions: unknown[]; simulation_flag: boolean; approval_records: unknown[] }>(
-              "SELECT data,input_versions,simulation_flag,approval_records FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-ZLECENIE-POSTU' ORDER BY version_no DESC LIMIT 1",
+            const instruction = await client.query<{ id: string; data: unknown; input_versions: unknown[]; simulation_flag: boolean; approval_records: unknown[] }>(
+              "SELECT id,data,input_versions,simulation_flag,approval_records FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-ZLECENIE-POSTU' ORDER BY version_no DESC LIMIT 1",
               [tenantId, organizationId, intakeResult.caseId])
             return { approved: approved.rows[0], instruction: instruction.rows[0] }
           })
@@ -625,7 +628,42 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             expect.objectContaining({ document_id: `KLI-PLAN@${intakeResult.caseId}`, version: plan.version }),
           ]))
           expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(1)
+          postInstruction = { instructionVersionId: saved.instruction.id, selectionSubmissionId: receipt.requestId }
           await capture('plan-response-compiled')
+        })
+        await runDemoPhase('Review post content', 'Exact post content accepted without publication permission', async () => {
+          const post = await createPostReviewFixture({ plan: planReview!, ...postInstruction!, process: nativeProcess!, userId: provisioningUserId })
+          provider.allowPostApproval(post)
+          const taskUrl = new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${post.taskId}`, BASE_URL).toString()
+          await page.goto(taskUrl, { waitUntil: 'domcontentloaded' })
+          await expect(page.getByRole('heading', { name: 'Review your post', exact: true })).toBeVisible()
+          await expect(page.getByText('Content approval applies only to this version. It does not authorize publication.', { exact: true })).toBeVisible()
+          await page.getByRole('checkbox', { name: 'I approve the content of this exact post version', exact: true }).check()
+          await capture('post-content-review')
+          const endpoint = `/api/agency/post-reviews/${post.taskId}`
+          const received = page.waitForResponse((response) => new URL(response.url()).pathname === endpoint && response.request().method() === 'POST')
+          await page.getByRole('button', { name: 'Send response', exact: true }).click()
+          const response = await received
+          expect(response.ok(), await response.text()).toBeTruthy()
+          const receipt = await response.json() as { requestId: string; status: string }
+          expect(receipt.status).toBe('response_received')
+          await drainIntegrationQueue('workflow-invoke-agent')
+          const accepted = () => withClient(async (client) => {
+            const row = await client.query<{ status: string; approval_records: unknown[]; data: unknown }>(
+              'SELECT status,approval_records,data FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
+              [post.versionId, tenantId, organizationId, intakeResult.caseId])
+            return row.rows[0]
+          })
+          await expect.poll(accepted, { timeout: 30_000 }).toMatchObject({ status: 'approved', approval_records: [expect.objectContaining({
+            scope: 'post_content', documentId: post.documentId, documentVersionId: post.versionId, version: post.version,
+            person: customerUserId, qaTaskRunId: post.qaTaskRunId,
+            source: expect.objectContaining({ kind: 'agency_post_acceptance', submissionId: receipt.requestId, invitationTaskId: post.taskId }),
+          })] })
+          expect((await accepted()).data).toMatchObject({ target: { publication_allowed: false, publication_status: 'not_requested', target_account_id: null }, qa: { publication_gate: 'blocked' } })
+          await page.goto(taskUrl, { waitUntil: 'domcontentloaded' })
+          await expect(page.getByText(`Acceptance recorded for version ${post.version}.`, { exact: true })).toBeVisible()
+          expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(2)
+          await capture('post-content-acceptance-recorded')
         })
       }
 

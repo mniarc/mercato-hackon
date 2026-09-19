@@ -23,6 +23,7 @@ const requestSchema = z.object({
 export async function startNativeTriageProvider(port = 5003) {
   const calls: Array<{ status: number; disposition?: 'answer' | 'clarify' | 'approve' }> = []
   let expectedPlan: { documentId: string; versionId: string; taskId: string; selectedTopicId: string } | undefined
+  let expectedPost: { documentId: string; versionId: string; taskId: string } | undefined
   let pendingFailure = false
   const server = createServer(async (request, response) => {
     const send = (status: number, payload: unknown) => {
@@ -59,14 +60,28 @@ export async function startNativeTriageProvider(port = 5003) {
           } catch { return false }
         })
       const markers = Object.entries(NATIVE_TRIAGE_FIXTURE_MARKERS).filter(([, marker]) => input.includes(marker))
-      if ((!planApproval && markers.length !== 1) || (planApproval && markers.length)) return fail(400, 'One explicit triage fixture marker or registered exact plan approval required')
-      const disposition = planApproval ? 'approve' : markers[0][0] as 'answer' | 'clarify'
+      const postApproval = userMessages.flatMap((message) => typeof message.content === 'string' ? [message.content] : message.content.flatMap((part) => part.text ? [part.text] : []))
+        .some((text) => {
+          if (!expectedPost) return false
+          try {
+            const candidate = inputSchema.safeParse(JSON.parse(text))
+            if (!candidate.success) return false
+            const original = candidate.data.original
+            const review = original.postReviewResponse
+            return review?.kind === 'approval' && review.approveContent === true && review.taskId === expectedPost.taskId
+              && review.post.documentId === expectedPost.documentId && review.post.versionId === expectedPost.versionId
+              && original.documentVersionReference === expectedPost.versionId
+          } catch { return false }
+        })
+      const approval = planApproval || postApproval
+      if ((!approval && markers.length !== 1) || (approval && markers.length)) return fail(400, 'One explicit triage fixture marker or registered exact review approval required')
+      const disposition = approval ? 'approve' : markers[0][0] as 'answer' | 'clarify'
       if (pendingFailure) {
         pendingFailure = false
         return fail(400, 'Deliberate non-retryable triage fixture failure')
       }
       const interpretation = clientTriageInterpretationSchema.parse({
-        parts: [{ intent: planApproval ? 'approval' : 'question', summary: 'Explicit demonstration submission', rationale: 'Deterministic intelligence fixture, not live inference.', needsClarification: disposition === 'clarify', recommendedDisposition: disposition }],
+        parts: [{ intent: approval ? 'approval' : 'question', summary: 'Explicit demonstration submission', rationale: 'Deterministic intelligence fixture, not live inference.', needsClarification: disposition === 'clarify', recommendedDisposition: disposition }],
         rationale: 'Deterministic intelligence fixture, not live inference.', recommendedDisposition: disposition,
         responseMessage: disposition === 'clarify' ? 'Which outcome would you like us to work on?' : 'Your submission is available for review.',
       })
@@ -93,6 +108,7 @@ export async function startNativeTriageProvider(port = 5003) {
     baseUrl: `http://127.0.0.1:${address.port}/v1`, calls,
     failNext: () => { pendingFailure = true },
     allowPlanApproval: (plan: NonNullable<typeof expectedPlan>) => { expectedPlan = { ...plan } },
+    allowPostApproval: (post: NonNullable<typeof expectedPost>) => { expectedPost = { ...post } },
     close: () => new Promise<void>((resolve, reject) => {
       server.close((error) => error ? reject(error) : resolve())
       server.closeIdleConnections()
