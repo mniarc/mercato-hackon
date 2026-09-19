@@ -92,13 +92,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/post.ts",
               "note": "Author produces full text/CTA, claims map and instruction-approved links/mentions."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: post_author wrote KLI-POST with hook, argument, CTA live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); brief/pair/plan acceptance was simulated by the CLI (simulation_flag); the agents ran live, the client decision did not. Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -109,13 +113,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/post.ts",
               "note": "Frozen instruction inputs constrain topic, audience, language and claims; exact versions persisted."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live post keeps topic, audience, language and evidence ids of the instruction; pins document versions - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -126,13 +134,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/postExecution/run.ts",
               "note": "Saved versions and task/AgentRun IDs retain author, sources and selected instruction/topic lineage."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live version row records author agent run ids, claim sources and the selected topic - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -162,13 +174,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
               "note": "Each repaired draft goes through independent editor and new review; no extra publication is created."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live post saved as a proposal for QA/acceptance; one publication document - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         }

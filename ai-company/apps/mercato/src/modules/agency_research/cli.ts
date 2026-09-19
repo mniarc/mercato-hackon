@@ -21,6 +21,7 @@ import { fileCache } from './lib/research/fileCache'
 import { currentInputVersion, orderStatus, type ResearchScope } from './lib/store'
 import { AgencyResearchDocumentVersion } from './data/entities'
 import { researchSteps, type ResearchStep } from './lib/contracts'
+import { exportOrderJournal } from './lib/journal/exportJournal'
 
 /** `--key value` pairs; a `--flag` followed by another option or nothing is `'true'`. */
 function parseArgs(args: string[]): Record<string, string> {
@@ -288,6 +289,29 @@ const escalations: ModuleCli = {
   },
 }
 
-const agencyResearchCliCommands: ModuleCli[] = [run, status, escalations]
+/**
+ * yarn mercato agency_research journal --order-ref <ref> [--journey <id>] [--out <file.jsonl>]
+ * — the order's persisted task runs, agent runs and handoffs as integration-evidence
+ * events (`.dev-docs/integrations`). Feed the file to that CLI with `--journal`.
+ */
+const journal: ModuleCli = {
+  command: 'journal',
+  async run(rest: string[]) {
+    const args = parseArgs(rest ?? [])
+    const orderRef = args['order-ref']
+    if (!orderRef) throw new Error('[internal] --order-ref is required')
+    const db = await connectDb()
+    const scope = await resolveScope(db, args)
+    const journey = args.journey ?? (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(orderRef) ? 'agency-case-analysis' : 'agency-research-cli')
+    const { events, agentRuns, unknownAgentRuns } = await exportOrderJournal(db.em, scope, orderRef, journey)
+    const out = args.out ?? path.join(process.cwd(), '.mercato', 'agency-research', 'journals', `${orderRef}.jsonl`)
+    fs.mkdirSync(path.dirname(out), { recursive: true })
+    fs.writeFileSync(out, events.map((event) => `${JSON.stringify(event)}\n`).join(''), 'utf8')
+    const handoffs = events.filter((event) => event.integrationId && event.phase === 'completed').length
+    console.log(`Order ${orderRef}: ${events.length} events, ${agentRuns} agent runs, ${handoffs} completed handoffs${unknownAgentRuns ? `, ${unknownAgentRuns} agent run ids without a row` : ''} → ${out}`)
+  },
+}
+
+const agencyResearchCliCommands: ModuleCli[] = [run, status, escalations, journal]
 
 export default agencyResearchCliCommands

@@ -12,13 +12,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
               "note": "Exact-version independent editor plus deterministic instruction/facts/ToV/channel/link/mention gates."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: post_editor QA bound to the KLI-POST version, checked instruction, facts, TOV, strategy, channel limits, links live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -52,13 +56,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: actual post-author and post-editor worker calls produced one post, native QA saved pass_for_draft, and the positive result opened client review without a manual employee approval. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live verdict pass_for_draft handed the version to 7.4 - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -90,13 +98,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: actual post-author and post-editor worker calls produced one post, native QA saved pass_for_draft, and the positive result opened client review without a manual employee approval. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: 7.3 ran as agent + validator, no employee approval - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         }

@@ -11,13 +11,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
               "note": "Writer and schema produce positioning, value proposition, proof architecture, pillars and creative boundaries."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: strategy_writer.* produced KLI-STRATEGIA with positioning, promise, differentiator conditions, role of communication, pillars and boundaries live - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); brief/pair/plan acceptance was simulated by the CLI (simulation_flag); the agents ran live, the client decision did not. Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -28,13 +32,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
               "note": "Writer receives pinned brief/analysis and persists exact inputVersions and grounded evidence IDs."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live strategy pins brief/analysis versions and cites source ids with rationale - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36); brief/pair/plan acceptance was simulated by the CLI (simulation_flag); the agents ran live, the client decision did not. Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -45,13 +53,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
               "note": "Deterministic support-level and uniqueness checks retain limitations rather than promote unproved claims."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live strategy marks unconfirmed assumptions; proof_messages carry evidence ids - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -62,13 +74,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
               "note": "QA explicitly identifies tactical content posing as strategy; post authoring remains separate."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: live strategy leaves hook/argument/CTA to plan and post (validated by schema) - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "unknown",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         },
@@ -83,13 +99,17 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
               "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: an actually produced strategy and TOV existed as a versioned paired proposal before consent; the positive gated pair reached one shared native review and both exact versions required explicit client approval. Local intelligence fixture, not live-model proof."
+            },
+            {
+              "path": ".dev-docs/integrations/generated/index.json",
+              "note": "Live-model proof: each live strategy version saved as draft with its own version_no (17 versions), no acceptance recorded - live run on order demo-open-mercato-3 (CLI, agent orchestrator + OpenRouter, 2026-09-19 02:00-06:40, final pass 06:36). Journal exported from persisted task/agent runs by 'yarn mercato agency_research journal'."
             }
           ],
           "missing": [],
           "verification": {
             "focused": "unknown",
             "nativeApp": "passed",
-            "liveModel": "unknown"
+            "liveModel": "passed"
           },
           "externalDecision": []
         }
