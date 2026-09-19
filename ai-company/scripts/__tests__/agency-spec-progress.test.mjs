@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
-import { buildReport, extractReferences, formatReport, loadReport, defaultAppRoot } from '../agency-spec-progress.mjs'
+import { buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot } from '../agency-spec-progress.mjs'
 
 const story = (id, domain = 'domain') => ({ path: `.specs/user-stories/${domain}/${id}.md`, text: `# ${id}` })
 const task = (id, text) => ({ path: `.tasks/${id}-task.md`, text })
@@ -83,4 +83,60 @@ test('teammate task prefixes are included when present in the checkout', () => {
   assert.deepEqual(report.stories[0].taskIds, ['RES-01'])
   assert.equal(report.totals.documentedVerified, 0)
   assert.match(report.interpretation, /remote branches are not inspected/)
+})
+
+test('hierarchy retains source categories, feature names and distinct child stories without inventing epics', () => {
+  const specStory = (id, text) => ({ ...story(id, 'g-client'), text: `---\nid: ${id}\ncategory: G — Obsługa klienta\n---\n# ${id} · Triaż\n\n### Nazwa funkcjonalności\n\nTriaż intencji\n\n### User story\n\n${text}\n\n### Kryteria akceptacji\n\n1. Evidence` })
+  const report = buildReport({
+    storyFiles: [specStory('F42-1', 'Jako klient chcę przekazać pytanie.'), specStory('F42-2', 'Jako agent chcę zapisać wynik.')],
+    taskFiles: [
+      task('T15', 'State: done (bounded scaffold)\nSources: F42-1'),
+      task('T16', 'State: done\nSources: F42-1'),
+      task('T19', 'State: active\nSources: F42-1'),
+      task('T30', 'State: blocked\nSources: F42-2'),
+    ], adrFiles: [],
+  })
+  assert.deepEqual(report.hierarchy[0].categories, ['G — Obsługa klienta'])
+  assert.deepEqual(report.hierarchy[0].epics, [])
+  assert.equal(report.hierarchy[0].features[0].id, 'F42')
+  assert.deepEqual(report.hierarchy[0].features[0].titles, ['Triaż intencji'])
+  assert.equal(report.totals.storiesWithDoneTaskEvidence, 1)
+  assert.equal(report.totals.featuresWithDoneTaskEvidence, 1)
+  assert.equal(report.totals.linkedDoneTaskCount, 2)
+  assert.deepEqual(report.domains[0].blockedTasks, ['T30'])
+  assert.equal(report.stories[0].userStory, 'Jako klient chcę przekazać pytanie.')
+  assert.equal(report.stories[0].taskEvidence[0].stateLabel, 'done (bounded scaffold)')
+  assert.equal(report.totals.documentedVerified, 0)
+  const selected = selectHierarchy(report, { story: 'F42-2' })
+  assert.equal(selected.stories, 1)
+  assert.equal(selected.storiesWithDoneTaskEvidence, 0)
+  assert.deepEqual(selected.linkedTasks.map((entry) => entry.id), ['T30'])
+  assert.match(formatDetails(selected), /T30=blocked/)
+  assert.doesNotMatch(formatDetails(selected), /T15/)
+})
+
+test('teammate heading anchors are explicit fallback; DONE prose does not override active metadata', () => {
+  const report = buildReport({
+    storyFiles: [story('F06-1'), story('F06-2'), story('F07-1')],
+    taskFiles: [task('RES-01', '# RES-01 — F06 source research\n\nState: active\nOwns: `agency_research/**`\n\n## Proof\nDONE all tests; next F07.')],
+    adrFiles: [],
+  })
+  assert.deepEqual(report.tasks[0].storyIds, ['F06-1', 'F06-2'])
+  assert.equal(report.tasks[0].state, 'active')
+  assert.equal(report.tasks[0].mappingBasis, 'title-fallback')
+  assert.equal(report.stories[0].mappingEvidence[0].kind, 'task-title')
+  assert.equal(report.stories[0].mappingEvidence[0].line, 1)
+  assert.equal(report.tasks[0].owns, '`agency_research/**`')
+  assert.deepEqual(report.storiesWithoutTasks, ['F07-1'])
+  assert.equal(report.totals.storiesWithDoneTaskEvidence, 0)
+  assert.match(formatDetails(selectHierarchy(report, { feature: 'F06' })), /RES-01=active \[title link\]/)
+})
+
+test('filters keep exact feature boundaries, reject unknown IDs and conflicting options', () => {
+  const report = buildReport({ storyFiles: [story('F01-1'), story('F10-1')], taskFiles: [], adrFiles: [] })
+  assert.equal(selectHierarchy(report, { feature: 'F01' }).stories, 1)
+  assert.throws(() => selectHierarchy(report, { feature: 'F99' }), /No canonical story/)
+  assert.deepEqual(parseOptions(['--json', '--feature', 'F01']), { json: true, details: false, help: false, feature: 'F01' })
+  assert.throws(() => parseOptions(['--story', 'F01']), /needs Fnn-n/)
+  assert.throws(() => parseOptions(['--feature', 'F01', '--story', 'F01-1']), /not both/)
 })
