@@ -9,14 +9,14 @@ See [testing](testing.md) for installation/runtime details and
 From the `App/` root in PowerShell, with the checkout installed:
 
 ```powershell
-& .\bin-dev\agency.ps1 status --profile fixture
-$env:AGENCY_MANUAL_TENANT_ID = '<tenant-id printed by status>'
-$env:AGENCY_MANUAL_ORGANIZATION_ID = '<organization-id printed by status>'
 & .\bin-dev\agency.ps1 manual-fixture
 ```
 
 Start only if the runtime owner confirms no app already owns the port. Leave its
-terminal running. Use `http://localhost:5004` for manual fixture mode, not `127.0.0.1`; the latter can
+terminal running. Startup reuses the sole active local scope and prints customer
+and staff URLs. With several scopes, use `status --profile fixture` and explicitly
+set both `AGENCY_MANUAL_TENANT_ID` and `AGENCY_MANUAL_ORGANIZATION_ID` first.
+Use `http://localhost:5004` for manual fixture mode, not `127.0.0.1`; the latter can
 leave development pages unhydrated. Use separate browser profiles for customer
 and staff sessions. These are local routes, not a remotely accessible deployment.
 
@@ -77,8 +77,8 @@ $manualStaffId = '<authorized-staff-id>'
 & .\bin-dev\agency.ps1 manual-fixture
 ```
 
-On later restarts, repeat only `status`, the two scope environment assignments
-and `manual-fixture` in the new terminal; keep the initialized database/configuration.
+On later restarts, run only `manual-fixture`; keep the initialized database/configuration.
+Scope environment assignments are needed only when choosing among several scopes.
 Use the explicit policy contract in [agent configuration](agent-runs.md), matching
 the actual demo offer/product version and configured phase budgets. Configure
 employee-question/review capabilities required by that policy through their existing

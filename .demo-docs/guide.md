@@ -95,9 +95,18 @@ Manual fixture **http://localhost:5004** (provider 5005) passed native setup,
 workflow configuration, provider and persistent queue-worker/app startup on
 2026-09-19. Full manual clickthrough remains unproved; manual live **5006** has
 not been started. Follow the [operator walkthrough](../.dev-docs/.processes/current/manual-qa.md)
-for first-time setup/configuration. On restart, run `status --profile fixture`,
-set `AGENCY_MANUAL_TENANT_ID` and `AGENCY_MANUAL_ORGANIZATION_ID` to that profile's
-printed IDs, then `manual-fixture`; do not start a duplicate app.
+for first-time setup/configuration. Subsequent starts need one command from `App/`:
+
+```powershell
+& .\bin-dev\agency.ps1 manual-fixture
+```
+
+On Bash use `sh bin-dev/agency.sh manual-fixture`. This starts customer and employee
+views in the **same app** and prints their URLs; use separate browser profiles.
+It reuses the sole active local scope. If several scopes exist, run
+`status --profile fixture`, then explicitly set both `AGENCY_MANUAL_TENANT_ID` and
+`AGENCY_MANUAL_ORGANIZATION_ID` to the intended printed IDs. It never chooses the
+first tenant arbitrarily or configures policies/approvals. Do not start a duplicate app.
 Each profile retains its own database, queues, attachments and email capture.
 Manual signup verification uses `ai-company/apps/mercato/.mercato/agency-manual-fixture/email-capture.jsonl`.
 

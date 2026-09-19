@@ -3,7 +3,7 @@ import test from 'node:test'
 import path from 'node:path'
 import {
   agencyEnvironment, agencyJourneyPreset, assertLiveJourneyEnvironment, assertUnpaidDemoEnvironment, parseAgencyInvocation,
-  agencyManualEnvironment, agencyManualProfile,
+  agencyManualEnvironment, agencyManualProfile, resolveManualScope, manualEntryUrls,
 } from '../agency-dev.mjs'
 
 test('manual profiles isolate persistent state and keep fixture intelligence local', () => {
@@ -28,8 +28,35 @@ test('manual profiles isolate persistent state and keep fixture intelligence loc
   assert.notEqual(fixture.OM_NEXT_DIST_DIR, live.OM_NEXT_DIST_DIR)
   assert.equal(fixture.OM_INTEGRATION_EXACT_SPEC, undefined)
   assert.equal(live.AGENCY_TEST_NATIVE_TRIAGE, undefined)
-  assert.throws(() => agencyManualEnvironment({}, {}, 'fixture'), /requires AGENCY_MANUAL_TENANT_ID/)
+  assert.doesNotThrow(() => agencyManualEnvironment({}, {}, 'fixture'))
   assert.throws(() => agencyManualProfile('unknown'), /must be fixture or live/)
+})
+
+test('manual startup resolves one native scope even with several staff identities', () => {
+  const row = { tenant_id: 'tenant-a', organization_id: 'org-a', organization_slug: 'acme-corp' }
+  const selected = resolveManualScope([{ ...row, staff_user_id: 'admin' }, { ...row, staff_user_id: 'superadmin' }])
+  assert.deepEqual(selected, { tenantId: 'tenant-a', organizationId: 'org-a', organizationSlug: 'acme-corp' })
+  assert.deepEqual(manualEntryUrls('http://localhost:5004', selected.organizationSlug), {
+    customer: 'http://localhost:5004/acme-corp/portal/login', staff: 'http://localhost:5004/login',
+    cases: 'http://localhost:5004/backend/agency-operations/cases', inbox: 'http://localhost:5004/backend/work-inbox',
+  })
+  assert.equal(manualEntryUrls('http://localhost:5004', null).customer, null)
+})
+
+test('manual startup requires explicit choice across scopes and rejects stale or partial selections', () => {
+  const rows = [
+    { tenant_id: 'tenant-a', organization_id: 'org-a', organization_slug: 'first' },
+    { tenant_id: 'tenant-b', organization_id: 'org-b', organization_slug: 'second' },
+  ]
+  assert.throws(() => resolveManualScope(rows), /2 available scopes; no scope was selected/)
+  assert.throws(() => resolveManualScope([]), /0 available scopes/)
+  assert.throws(() => resolveManualScope(rows, { AGENCY_MANUAL_TENANT_ID: 'tenant-a' }), /requires both IDs/)
+  assert.throws(() => resolveManualScope(rows, {
+    AGENCY_MANUAL_TENANT_ID: 'tenant-a', AGENCY_MANUAL_ORGANIZATION_ID: 'org-b',
+  }), /unavailable in this profile's database/)
+  assert.deepEqual(resolveManualScope(rows, {
+    AGENCY_MANUAL_TENANT_ID: 'tenant-b', AGENCY_MANUAL_ORGANIZATION_ID: 'org-b',
+  }), { tenantId: 'tenant-b', organizationId: 'org-b', organizationSlug: 'second' })
 })
 
 test('manual live start and CLI require human opt-in and central private configuration', () => {

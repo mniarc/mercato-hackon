@@ -331,9 +331,6 @@ export function agencyManualEnvironment(shared, existing, profile, { action = 's
       OM_AI_AGENCY_OPERATIONS_BASE_URL: endpoint, OM_AI_AGENCY_RESEARCH_BASE_URL: endpoint,
       OM_AI_AGENCY_TOV_BASE_URL: endpoint,
       AGENCY_OPERATIONS_AI_BASE_URL: endpoint, AGENCY_RESEARCH_AI_BASE_URL: endpoint })
-    if (action === 'start' && (!settings.AGENCY_MANUAL_TENANT_ID || !settings.AGENCY_MANUAL_ORGANIZATION_ID)) {
-      throw new Error('Manual fixture start requires AGENCY_MANUAL_TENANT_ID and AGENCY_MANUAL_ORGANIZATION_ID from its own initialized database. Run setup --profile fixture first.')
-    }
   } else {
     for (const key of Object.keys(env)) if (key.startsWith('AGENCY_TEST_')) delete env[key]
     env.OM_AGENCY_TRIAGE_MODE = 'live'
@@ -376,11 +373,45 @@ async function withDatabase(env, operation) {
   try { return await operation(client) } finally { await client.end() }
 }
 
-async function printManualScopes(client) {
-  const { rows } = await client.query(`SELECT DISTINCT u.tenant_id, u.organization_id, u.id AS staff_user_id, r.name AS role
+async function manualScopeIdentities(client) {
+  const { rows } = await client.query(`SELECT DISTINCT u.tenant_id, u.organization_id, o.slug AS organization_slug, u.id AS staff_user_id, r.name AS role
     FROM users u JOIN user_roles ur ON ur.user_id = u.id JOIN roles r ON r.id = ur.role_id
+    JOIN organizations o ON o.id = u.organization_id AND o.tenant_id = u.tenant_id
+    JOIN tenants t ON t.id = u.tenant_id
     WHERE u.deleted_at IS NULL AND ur.deleted_at IS NULL AND r.deleted_at IS NULL
+      AND o.deleted_at IS NULL AND o.is_active = true AND t.deleted_at IS NULL AND t.is_active = true
       AND r.name IN ('admin', 'superadmin') AND u.tenant_id IS NOT NULL AND u.organization_id IS NOT NULL`)
+  return rows
+}
+
+export function resolveManualScope(rows, settings = {}) {
+  const tenantId = nonEmpty(settings.AGENCY_MANUAL_TENANT_ID)
+  const organizationId = nonEmpty(settings.AGENCY_MANUAL_ORGANIZATION_ID)
+  const selectionHelp = 'Run status --profile fixture (or live), then set both AGENCY_MANUAL_TENANT_ID and AGENCY_MANUAL_ORGANIZATION_ID to the intended scope.'
+  if (Boolean(tenantId) !== Boolean(organizationId)) throw new Error(`Manual scope selection requires both IDs. ${selectionHelp}`)
+  const scopes = [...new Map(rows.map((row) => [`${row.tenant_id}/${row.organization_id}`, {
+    tenantId: row.tenant_id, organizationId: row.organization_id, organizationSlug: row.organization_slug,
+  }])).values()]
+  if (tenantId) {
+    const selected = scopes.find((scope) => scope.tenantId === tenantId && scope.organizationId === organizationId)
+    if (!selected) throw new Error(`Selected manual scope is unavailable in this profile's database. ${selectionHelp}`)
+    return selected
+  }
+  if (scopes.length !== 1) throw new Error(`Manual profile has ${scopes.length} available scopes; no scope was selected. ${selectionHelp}`)
+  return scopes[0]
+}
+
+export function manualEntryUrls(baseUrl, organizationSlug) {
+  return {
+    customer: organizationSlug ? `${baseUrl}/${encodeURIComponent(organizationSlug)}/portal/login` : null,
+    staff: `${baseUrl}/login`,
+    cases: `${baseUrl}/backend/agency-operations/cases`,
+    inbox: `${baseUrl}/backend/work-inbox`,
+  }
+}
+
+async function printManualScopes(client) {
+  const rows = await manualScopeIdentities(client)
   console.log('Local configuration identities (choose the intended scope; no policy is configured automatically):')
   for (const row of rows) console.log(JSON.stringify(row))
 }
@@ -521,6 +552,13 @@ async function main() {
     console.log('[agency-dev] Reusing database; no initialization, migration, or production build.')
   }
   if (action !== 'start') return
+  if (profile) {
+    const scope = await withDatabase(env, async (client) => resolveManualScope(await manualScopeIdentities(client), env))
+    Object.assign(env, { AGENCY_MANUAL_TENANT_ID: scope.tenantId, AGENCY_MANUAL_ORGANIZATION_ID: scope.organizationId })
+    const urls = manualEntryUrls(env.BASE_URL, scope.organizationSlug)
+    console.log(`[agency-dev] Manual scope: tenant ${scope.tenantId}, organization ${scope.organizationId}. No policy or approval is created.`)
+    console.log(`Customer: ${urls.customer ?? 'Set an organization slug before opening its customer portal.'}\nStaff sign-in: ${urls.staff}\nAgency cases: ${urls.cases}\nEmployee inbox: ${urls.inbox}\nUse separate browser profiles; both perspectives share this app and database.`)
+  }
   console.log(`[agency-dev] Starting Open Mercato HMR at ${env.BASE_URL}. Ctrl+C stops the app; PostgreSQL and data remain.`)
   if (profile) {
     if (typeof terminateProcessTree !== 'function') throw new Error('Refresh the native CLI package before using persistent manual profiles.')

@@ -15,7 +15,7 @@ Usage: agency.ps1 <command> [launcher arguments]
   status   Run yarn dev:agency:status
   demo     Run yarn test:agency:demo (headed, with screenshots)
   setup | migrate | cli    Forward to the same agency launcher
-  manual-fixture          Persistent unpaid manual app (5004), provider and workers
+  manual-fixture          Customer + staff app (5004), unpaid provider and workers
   manual-live --allow-live Persistent manual app (5006), explicit paid-model opt-in
   help     Show this help
 
@@ -25,6 +25,8 @@ Arguments after the command are forwarded unchanged, for example:
 
 Default development uses http://localhost:5002. Manual profiles have separate
 persistent databases. Setup initializes only the named profile; no command resets it.
+Manual startup reuses the sole local scope; if there are several, select both
+AGENCY_MANUAL_TENANT_ID and AGENCY_MANUAL_ORGANIZATION_ID from status --profile fixture.
 '@
 
 if ($Command -in @('help', '-h', '--help')) {
