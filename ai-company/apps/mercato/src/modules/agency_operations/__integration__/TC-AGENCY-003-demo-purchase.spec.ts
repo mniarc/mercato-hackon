@@ -6,7 +6,7 @@ import {
   createCustomerCompanyFixture, createCustomerUserFixture, deleteCustomerCompanyFixture,
   deleteCustomerUserFixture, portalLogin,
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
-import { configurePurchaseJourney } from './support/purchaseJourney/setup'
+import { configurePurchaseJourney, failPurchaseJourneyPayment } from './support/purchaseJourney/setup'
 import { deletePurchaseJourneyRecords, readPurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
 
 export const integrationMeta = {
@@ -36,7 +36,7 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
     await current?.()
   })
 
-  test('customer confirms a demo payment and opens the one agency case awaiting execution', async ({ page, request }, testInfo) => {
+  test('customer retries a failed demo payment on the same order and opens one agency case', async ({ page, request }, testInfo) => {
     test.setTimeout(180_000)
     const adminToken = await getAuthToken(request, 'admin')
     const provisioningToken = await getAuthToken(request, 'superadmin')
@@ -113,6 +113,31 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       return receipt
     })
 
+    const replacement = await test.step('Fail the native test attempt and retry through the customer portal', async () => {
+      const failed = await failPurchaseJourneyPayment(request, { tenantId, organizationId, providerSessionId: pending.providerSessionId! })
+      expect(failed.status(), await failed.text()).toBe(202)
+      const purchasePath = `${PURCHASES}/${pending.orderId}`
+      const refreshedResponse = page.waitForResponse((item) => new URL(item.url()).pathname === purchasePath && item.request().method() === 'GET')
+      await page.getByRole('button', { name: /Refresh payment status|Odśwież stan płatności/ }).click()
+      const refreshed = await refreshedResponse
+      expect(refreshed.ok(), await refreshed.text()).toBeTruthy()
+      expect(await refreshed.json()).toMatchObject({ orderId: pending.orderId, paymentId: pending.paymentId,
+        providerSessionId: pending.providerSessionId, status: 'blocked', canRetryPayment: true, caseId: null, workflowInstanceId: null })
+      await checkpoint(page, testInfo, '03-failed-test-payment-retry-available')
+
+      const retryResponse = page.waitForResponse((item) => new URL(item.url()).pathname === `${purchasePath}/retry` && item.request().method() === 'POST')
+      await page.getByRole('button', { name: /Retry failed test payment|Ponów nieudaną płatność testową/ }).click()
+      const retried = await retryResponse
+      expect(retried.ok(), await retried.text()).toBeTruthy()
+      const receipt = await retried.json() as Receipt
+      expect(receipt).toMatchObject({ orderId: pending.orderId, paymentId: pending.paymentId,
+        status: 'pending_payment', caseId: null, workflowInstanceId: null })
+      expect(receipt.providerSessionId).toBeTruthy()
+      expect(receipt.providerSessionId).not.toBe(pending.providerSessionId)
+      await checkpoint(page, testInfo, '04-same-order-replacement-payment-pending')
+      return receipt
+    })
+
     const paid = await test.step('Confirm zero-charge payment through the native gateway', async () => {
       const confirmationPath = `${PURCHASES}/${pending.orderId}/confirm`
       const confirmationResponse = page.waitForResponse((item) => new URL(item.url()).pathname === confirmationPath && item.request().method() === 'POST')
@@ -120,7 +145,8 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       const response = await confirmationResponse
       expect(response.ok(), await response.text()).toBeTruthy()
       const receipt = await response.json() as Receipt
-      expect(receipt).toMatchObject({ status: 'paid', orderId: pending.orderId, paymentId: pending.paymentId })
+      expect(receipt).toMatchObject({ status: 'paid', orderId: pending.orderId, paymentId: pending.paymentId,
+        providerSessionId: replacement.providerSessionId })
       expect(receipt.caseId).toBeTruthy()
       expect(receipt.workflowInstanceId).toBeTruthy()
       // One API retry proves delivery idempotence without replaying the browser journey.
@@ -130,7 +156,7 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       expect(replay.ok(), await replay.text()).toBeTruthy()
       expect(await replay.json()).toEqual(receipt)
       await expect(page.getByRole('link', { name: /Open your agency case|Otwórz sprawę agencji/ })).toBeVisible()
-      await checkpoint(page, testInfo, '03-test-payment-confirmed')
+      await checkpoint(page, testInfo, '05-test-payment-confirmed')
       return receipt
     })
 
@@ -147,15 +173,24 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       expect(records.orders).toHaveLength(1)
       expect(records.payments).toHaveLength(1)
       expect(records.cases).toHaveLength(1)
-      expect(records.payments[0]).toMatchObject({ id: paid.paymentId, order_id: paid.orderId, provider_key: 'mock_processing', unified_status: 'captured' })
+      expect(records.orders[0]).toMatchObject({ id: pending.orderId, currency_code: 'PLN' })
+      expect(Number(records.orders[0].grand_total_gross_amount)).toBe(2500)
+      expect(records.payments[0]).toMatchObject({ id: paid.paymentId, order_id: paid.orderId, currency_code: 'PLN' })
       expect(Number(records.payments[0].captured_amount)).toBe(2500)
+      expect(records.attempts).toHaveLength(2)
+      expect(records.attempts).toEqual(expect.arrayContaining([
+        expect.objectContaining({ payment_id: paid.paymentId, provider_key: 'mock_processing',
+          provider_session_id: pending.providerSessionId, unified_status: 'failed' }),
+        expect.objectContaining({ payment_id: paid.paymentId, provider_key: 'mock_processing',
+          provider_session_id: replacement.providerSessionId, unified_status: 'captured' }),
+      ]))
       expect(records.cases[0]).toMatchObject({ id: paid.caseId, workflow_instance_id: paid.workflowInstanceId,
         workflow_id: 'agency_operations.demo-purchase.v1', current_step_id: 'awaiting_execution' })
       // Native WAIT_FOR_SIGNAL can remain RUNNING. The exact waiting step, not
       // a generic workflow status, proves this purchase has not been fulfilled.
       expect(['RUNNING', 'PAUSED']).toContain(records.cases[0].workflow_status)
       expect(visibleCase.workflow?.status).toBe(records.cases[0].workflow_status)
-      await checkpoint(page, testInfo, '04-real-case-awaiting-execution')
+      await checkpoint(page, testInfo, '06-real-case-awaiting-execution')
     })
   })
 })

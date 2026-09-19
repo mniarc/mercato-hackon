@@ -25,15 +25,20 @@ export async function readPurchaseJourneyRecords(scope: PurchaseFixtureScope) {
        LEFT JOIN workflow_instances w ON w.id=c.workflow_instance_id AND w.tenant_id=c.tenant_id AND w.organization_id=c.organization_id
        WHERE c.tenant_id=$1 AND c.organization_id=$2 AND c.customer_entity_id=$3
        AND c.submitted_by_customer_user_id=$4 AND c.deleted_at IS NULL`, params)
-    const payments = await client.query<{ id: string; order_id: string; amount: string; captured_amount: string; currency_code: string;
-      gateway_id: string | null; provider_key: string | null; unified_status: string | null; gateway_captured_amount: string | null }>(
-      `SELECT p.id,p.order_id,p.amount,p.captured_amount,p.currency_code,g.id AS gateway_id,g.provider_key,
-       g.unified_status,g.captured_amount AS gateway_captured_amount FROM sales_payments p
+    const payments = await client.query<{ id: string; order_id: string; amount: string; captured_amount: string; currency_code: string }>(
+      `SELECT p.id,p.order_id,p.amount,p.captured_amount,p.currency_code FROM sales_payments p
        JOIN sales_orders o ON o.id=p.order_id AND o.tenant_id=p.tenant_id AND o.organization_id=p.organization_id
-       LEFT JOIN gateway_transactions g ON g.payment_id=p.id AND g.tenant_id=p.tenant_id AND g.organization_id=p.organization_id AND g.deleted_at IS NULL
        WHERE o.tenant_id=$1 AND o.organization_id=$2 AND o.customer_entity_id=$3
        AND p.deleted_at IS NULL`, purchaseParams)
-    return { orders: orders.rows, quotes: quotes.rows, cases: cases.rows, payments: payments.rows }
+    const attempts = await client.query<{ id: string; payment_id: string; provider_session_id: string;
+      provider_key: string; unified_status: string; captured_amount: string | null }>(
+      `SELECT g.id,g.payment_id,g.provider_session_id,g.provider_key,g.unified_status,g.captured_amount
+       FROM gateway_transactions g
+       JOIN sales_payments p ON p.id=g.payment_id AND p.tenant_id=g.tenant_id AND p.organization_id=g.organization_id
+       JOIN sales_orders o ON o.id=p.order_id AND o.tenant_id=p.tenant_id AND o.organization_id=p.organization_id
+       WHERE o.tenant_id=$1 AND o.organization_id=$2 AND o.customer_entity_id=$3
+       AND g.deleted_at IS NULL`, purchaseParams)
+    return { orders: orders.rows, quotes: quotes.rows, cases: cases.rows, payments: payments.rows, attempts: attempts.rows }
   })
 }
 
@@ -51,13 +56,12 @@ export async function deletePurchaseJourneyRecords(request: APIRequestContext, a
       await client.query('DELETE FROM agency_cases WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND customer_entity_id=$4',
         [item.id, scope.tenantId, scope.organizationId, scope.customerEntityId])
     }
-    for (const payment of records.payments) {
-      if (!payment.gateway_id) continue
-      const params = [payment.gateway_id, scope.tenantId, scope.organizationId]
+    for (const attempt of records.attempts) {
+      const params = [attempt.id, scope.tenantId, scope.organizationId]
       await client.query('DELETE FROM gateway_session_initializations WHERE gateway_transaction_id=$1 AND tenant_id=$2 AND organization_id=$3', params)
       await client.query('DELETE FROM gateway_payment_operations WHERE transaction_id=$1 AND tenant_id=$2 AND organization_id=$3', params)
-      await client.query('DELETE FROM gateway_webhook_events WHERE idempotency_key=$1 AND tenant_id=$2 AND organization_id=$3 AND provider_key=$4',
-        [`agency-demo-capture:${payment.gateway_id}`, scope.tenantId, scope.organizationId, 'mock_processing'])
+      await client.query('DELETE FROM gateway_webhook_events WHERE idempotency_key=ANY($1::text[]) AND tenant_id=$2 AND organization_id=$3 AND provider_key=$4',
+        [[`agency-demo-capture:${attempt.id}`, `agency-demo-failure:${attempt.provider_session_id}`], scope.tenantId, scope.organizationId, 'mock_processing'])
       await client.query('DELETE FROM gateway_transactions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3', params)
     }
   })

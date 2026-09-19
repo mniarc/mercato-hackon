@@ -7,14 +7,14 @@ import type { GatewayTransaction } from '@open-mercato/core/modules/payment_gate
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import {
-  demoPurchaseRequestSchema, purchaseIdentitySchema,
+  demoPurchaseRequestSchema, demoPaymentRetrySchema, purchaseIdentitySchema,
   type ActivatePaidPurchase, type DemoPurchaseReceipt, type DemoPurchaseService, type PurchaseIdentity,
 } from './contracts'
 import { createActivatePaidPurchase } from './activate'
 import { readDemoPurchaseConfiguration } from './configure'
 import { demoOffer, isDemoPurchaseEnabled } from './demoOffer'
 import { createNativeDemoSales, purchaseRequestHash, readPurchaseBinding } from './nativeSales'
-import { createDemoPaymentGateway, isVerifiedDemoCapture, matchesDemoPayment } from './payment'
+import { createDemoPaymentGateway, isRetryableDemoPayment, isVerifiedDemoCapture, matchesDemoPayment } from './payment'
 
 function requireEnabled(): void {
   if (!isDemoPurchaseEnabled()) throw new CrudHttpError(403, { error: 'Demo purchases are disabled.' })
@@ -42,7 +42,8 @@ export function purchaseReceipt(order: SalesOrder, payment: SalesPayment, transa
       : { ...base, status: 'blocked', reason: 'Test payment captured; purchase activation needs confirmation retry.' }
   }
   if (!['pending', 'authorized'].includes(transaction.unifiedStatus)) {
-    return { ...base, status: 'blocked', reason: `Native test payment is ${transaction.unifiedStatus}.` }
+    return { ...base, status: 'blocked', reason: `Native test payment is ${transaction.unifiedStatus}.`,
+      canRetryPayment: !binding.caseId && !binding.workflowInstanceId && isRetryableDemoPayment(order, payment, transaction) }
   }
   return { ...base, status: 'pending_payment' }
 }
@@ -88,6 +89,19 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         const payment = await sales.ensurePayment(order)
         const transaction = await gateway.ensureSession(order, payment)
         return purchaseReceipt(order, payment, transaction)
+      })
+    },
+    async retryPayment(identity, orderId, rawInput) {
+      const input = demoPaymentRetrySchema.parse(rawInput)
+      return locked(identity, async () => {
+        const { sales, gateway } = await dependencies(identity)
+        const order = await sales.loadOrder(orderId)
+        assertPurchaseOwner(order, identity)
+        const binding = readPurchaseBinding(order)
+        if (binding.caseId || binding.workflowInstanceId) throw new CrudHttpError(409, { error: 'This purchase is already activated.' })
+        const payment = await sales.loadPayment(orderId)
+        if (!payment) throw new CrudHttpError(409, { error: 'Start this purchase payment first.' })
+        return purchaseReceipt(order, payment, await gateway.retrySession(order, payment, input.providerSessionId))
       })
     },
     async confirm(identity, orderId) {

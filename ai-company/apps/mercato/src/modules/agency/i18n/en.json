@@ -82,6 +82,8 @@
   "agency.purchase.openCase": "Open your agency case",
   "agency.purchase.confirm": "Confirm test payment — no charge",
   "agency.purchase.retryConfirm": "Retry confirmation — no charge",
+  "agency.purchase.retryPayment": "Retry failed test payment — no charge",
+  "agency.purchase.paymentFailed": "The test payment failed. You can retry on this same order; no agency work has started.",
   "agency.purchase.refresh": "Refresh payment status",
   "agency.purchase.back": "Back to offer",
   "agency.postReview.title": "Review your post",

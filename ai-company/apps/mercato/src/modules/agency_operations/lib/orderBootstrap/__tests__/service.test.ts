@@ -24,7 +24,7 @@ const em = { fork: () => em, transactional: jest.fn(async (fn: (manager: unknown
 const container = { resolve: (name: string) => name === 'em' ? em : undefined } as unknown as AwilixContainer
 let order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction
 const ensureOrder = jest.fn(), ensurePayment = jest.fn(), loadOrder = jest.fn(), loadPayment = jest.fn(), reconcileCaptured = jest.fn(), saveActivation = jest.fn()
-const readGateway = jest.fn(), ensureSession = jest.fn(), confirmGateway = jest.fn(), activate = jest.fn()
+const readGateway = jest.fn(), ensureSession = jest.fn(), retrySession = jest.fn(), confirmGateway = jest.fn(), activate = jest.fn()
 const previousFlag = process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED
 
 beforeEach(() => {
@@ -52,7 +52,7 @@ beforeEach(() => {
     return order
   })
   jest.mocked(createNativeDemoSales).mockReturnValue({ ensureOrder, loadOrder, ensurePayment, loadPayment, reconcileCaptured, saveActivation })
-  jest.mocked(createDemoPaymentGateway).mockReturnValue({ read: readGateway, ensureSession, confirm: confirmGateway })
+  jest.mocked(createDemoPaymentGateway).mockReturnValue({ read: readGateway, ensureSession, retrySession, confirm: confirmGateway })
 })
 
 afterAll(() => {
@@ -65,6 +65,26 @@ test('starts a pending native payment, never activating on initiation', async ()
   expect(await service.start(identity, input)).toMatchObject({ orderId: order.id, paymentId: payment.id, status: 'pending_payment', caseId: null })
   expect(activate).not.toHaveBeenCalled()
   expect(em.transactional).toHaveBeenCalledTimes(1)
+})
+
+test('failed-payment retry keeps the purchase identity and never activates before capture', async () => {
+  const service = createDemoPurchaseService(container, activate)
+  transaction.unifiedStatus = 'failed'
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canRetryPayment: true })
+  const replacement = Object.assign(new GatewayTransaction(), transaction, { id: uuid(30), providerSessionId: 'replacement_session', unifiedStatus: 'pending' })
+  retrySession.mockResolvedValue(replacement)
+  expect(await service.retryPayment(identity, order.id, { providerSessionId: 'mock_session' })).toMatchObject({
+    orderId: order.id, paymentId: payment.id, status: 'pending_payment', providerSessionId: 'replacement_session', caseId: null,
+  })
+  expect(retrySession).toHaveBeenCalledWith(order, payment, 'mock_session')
+  expect(ensureOrder).not.toHaveBeenCalled()
+  expect(ensurePayment).not.toHaveBeenCalled()
+  expect(activate).not.toHaveBeenCalled()
+  expect(reconcileCaptured).not.toHaveBeenCalled()
+  await expect(service.retryPayment({ ...identity, customerUserId: uuid(90) }, order.id, { providerSessionId: 'mock_session' })).rejects.toThrow()
+  order.metadata = { agencyPurchase: { ...order.metadata?.agencyPurchase as object, caseId: uuid(9), workflowInstanceId: uuid(10) } }
+  await expect(service.retryPayment(identity, order.id, { providerSessionId: 'mock_session' })).rejects.toMatchObject({ status: 409 })
+  expect(retrySession).toHaveBeenCalledTimes(1)
 })
 
 test('native pending payment leaves its amount unallocated until verified capture reconciliation', async () => {

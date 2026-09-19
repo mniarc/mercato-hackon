@@ -82,6 +82,8 @@
   "agency.purchase.openCase": "Otwórz sprawę agencji",
   "agency.purchase.confirm": "Potwierdź płatność testową — bez opłat",
   "agency.purchase.retryConfirm": "Ponów potwierdzenie — bez opłat",
+  "agency.purchase.retryPayment": "Ponów nieudaną płatność testową — bez opłat",
+  "agency.purchase.paymentFailed": "Płatność testowa nie powiodła się. Możesz ponowić ją w tym samym zamówieniu; praca agencji jeszcze się nie rozpoczęła.",
   "agency.purchase.refresh": "Odśwież stan płatności",
   "agency.purchase.back": "Do oferty",
   "agency.postReview.title": "Sprawdź swój post",

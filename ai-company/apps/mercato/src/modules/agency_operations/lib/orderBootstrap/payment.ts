@@ -28,6 +28,11 @@ export function isVerifiedDemoCapture(order: SalesOrder, payment: SalesPayment, 
     && transaction.unifiedStatus === 'captured' && Number(transaction.capturedAmount) === demoOffer.amount
 }
 
+export function isRetryableDemoPayment(order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction): boolean {
+  return matchesDemoPayment(order, payment, transaction) && transaction.unifiedStatus === 'failed'
+    && Boolean(transaction.providerSessionId) && Number(transaction.capturedAmount) === 0 && Number(payment.capturedAmount) === 0
+}
+
 export function createDemoPaymentGateway(container: AwilixContainer, scope: { tenantId: string; organizationId: string }) {
   // Confirmation holds a customer lock in a native transaction. The gateway
   // service writes there; a detached read would still see its old pending state.
@@ -36,18 +41,32 @@ export function createDemoPaymentGateway(container: AwilixContainer, scope: { te
   async function read(paymentId: string): Promise<GatewayTransaction | null> {
     return manager().findOne(GatewayTransaction, {
       paymentId, providerKey: demoOffer.provider, ...scope, deletedAt: null,
-    })
+    }, { orderBy: { createdAt: 'desc', id: 'desc' } })
   }
-  async function ensureSession(order: SalesOrder, payment: SalesPayment): Promise<GatewayTransaction> {
-    const existing = await read(payment.id)
-    if (existing) return existing
+  async function createSession(order: SalesOrder, payment: SalesPayment, idempotencyKey: string): Promise<GatewayTransaction> {
     const result = await gateway.createPaymentSession({
       ...scope, providerKey: demoOffer.provider, paymentId: payment.id, orderId: order.id,
-      idempotencyKey: `agency-demo:${payment.id}`, amount: demoOffer.amount,
+      idempotencyKey, amount: demoOffer.amount,
       currencyCode: demoOffer.currency, captureMethod: 'manual', description: demoOffer.name,
       metadata: { demoOnly: true, orderId: order.id, source: 'agency-demo-purchase' },
     })
     return result.transaction
+  }
+  async function ensureSession(order: SalesOrder, payment: SalesPayment): Promise<GatewayTransaction> {
+    return await read(payment.id) ?? createSession(order, payment, `agency-demo:${payment.id}`)
+  }
+  async function retrySession(order: SalesOrder, payment: SalesPayment, providerSessionId: string): Promise<GatewayTransaction> {
+    const previous = await manager().findOne(GatewayTransaction, {
+      paymentId: payment.id, providerKey: demoOffer.provider, providerSessionId, ...scope, deletedAt: null,
+    })
+    if (!previous || !isRetryableDemoPayment(order, payment, previous)) {
+      throw new CrudHttpError(409, { error: 'Only this order’s failed, uncaptured demo payment can be retried.' })
+    }
+    const current = await read(payment.id)
+    // Replay of an earlier failed attempt must not create another session,
+    // including when its replacement has since failed too.
+    if (current && current.id !== previous.id) return current
+    return createSession(order, payment, `agency-demo:${payment.id}:retry:${previous.id}`)
   }
   async function confirm(transaction: GatewayTransaction): Promise<GatewayTransaction> {
     if (!isDemoPurchaseEnabled() || transaction.providerKey !== demoOffer.provider) {
@@ -80,5 +99,5 @@ export function createDemoPaymentGateway(container: AwilixContainer, scope: { te
     if (!updated) throw new Error('The native gateway transaction disappeared.')
     return updated
   }
-  return { read, ensureSession, confirm }
+  return { read, ensureSession, retrySession, confirm }
 }

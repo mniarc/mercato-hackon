@@ -114,7 +114,7 @@ export default function AgencyOrderPage({ params }: Props) {
     }
   }
 
-  if (receipt) return <DemoPurchaseStatus receipt={receipt} orgSlug={orgSlug} enabled={offer?.enabled === true} busy={busy} error={error} confirm={purchase.confirm} refresh={purchase.refresh} />
+  if (receipt) return <DemoPurchaseStatus receipt={receipt} orgSlug={orgSlug} enabled={offer?.enabled === true} busy={busy} error={error} confirm={purchase.confirm} refresh={purchase.refresh} retryPayment={purchase.retryPayment} />
   if (loading) return <LoadingMessage label={t('agency.purchase.loading', 'Loading the demo offer…')} />
   if (!offer) return <ErrorMessage label={error ?? t('agency.purchase.loadError', 'The demo offer is unavailable. Reload this page to try again.')} />
 
