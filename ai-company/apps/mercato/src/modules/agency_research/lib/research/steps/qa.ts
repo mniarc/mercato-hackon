@@ -233,8 +233,7 @@ export function mergeQaVerdict(agent: QaResult, validator: QaFinding[]): QaResul
   const toFix = blocking.some((f) => (f.owner === 'agent' || f.owner === 'research') && f.fix_step)
   // The agent's own verdict is advisory: with no blocking finding the analysis is ready.
   const verdict: QaResult['verdict'] = exception ? 'exception' : toFix ? 'to_fix' : 'ready'
-  // Decide over every finding, but keep blocking ones within the stored cap so the
-  // repair loop (which routes repairs off the stored findings) never loses a fix target.
+  // Decide before truncation; prioritize blocking findings for repair routing.
   const findings = [...blocking, ...all.filter((f) => f.severity !== 'blocking')].slice(0, 20)
   return qaResultSchema.parse({ verdict, findings, summary: agent.summary })
 }

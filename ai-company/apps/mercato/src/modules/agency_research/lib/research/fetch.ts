@@ -171,9 +171,7 @@ export async function collectSources(order: OrderFacts, opts: CollectOptions): P
   const publisher = order.brand
 
   const record = (page: FetchedPage, kind: string, channel: string, origin: CollectedSource['origin'], verbatim = false): CollectedSource => {
-    // Corpus posts and other already-clean text are stored verbatim: boilerplate
-    // stripping is for fetched web pages, and altering the text here would break
-    // the verbatim quote-grounding gate that reads it back.
+    // Preserve corpus quotes; strip boilerplate only from fetched pages.
     const cleaned = page.markdown ? (verbatim ? page.markdown : stripBoilerplate(page.markdown)) : null
     let text = cleaned && cleaned.length > 0 ? cleaned : null
     let access: CollectedSource['access'] = text ? 'full' : 'unavailable'

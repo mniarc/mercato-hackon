@@ -59,20 +59,22 @@ function asCount(value: unknown): number {
 }
 
 function asDate(value: unknown): string | null {
-  if (typeof value === 'number') return new Date(value < 1e12 ? value * 1000 : value).toISOString()
-  if (typeof value === 'string') {
+  let timestamp: number
+  if (typeof value === 'number') {
+    timestamp = value < 1e12 ? value * 1000 : value
+  } else if (typeof value === 'string') {
     const trimmed = value.trim()
-    const parsed = Date.parse(trimmed)
-    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString()
-    // Some scrapers serialise the epoch as a string; treat a bare, epoch-scale
-    // number (seconds or milliseconds) the same way the numeric branch does.
     if (/^\d+$/.test(trimmed) && Number(trimmed) >= 1e9) {
       const epoch = Number(trimmed)
-      return new Date(epoch < 1e12 ? epoch * 1000 : epoch).toISOString()
+      timestamp = epoch < 1e12 ? epoch * 1000 : epoch
+    } else {
+      timestamp = Date.parse(trimmed)
     }
+  } else {
     return null
   }
-  return null
+  const date = new Date(timestamp)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
 export function normalizeGenericPosts(items: unknown[], opts: GenericNormalizeOptions): NormalizeResult {

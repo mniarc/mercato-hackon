@@ -44,18 +44,19 @@ function count(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : 0
 }
 
-/**
- * Apify exports `postedAt.date` as a zone-less "YYYY-MM-DD HH:MM:SS" string;
- * normalise it (and the epoch fallback) to one ISO-8601 form so `postedAt` sorts
- * and ranges consistently with every other source (see `groupByProfile` /
- * `profileMetaFor`, which compare it as a plain string).
- */
 function normalizePostedAt(postedAt: ApifyLinkedInPostItem['postedAt']): string {
-  if (postedAt?.date) {
-    const parsed = Date.parse(postedAt.date)
-    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString()
+  if (typeof postedAt?.timestamp === 'number') {
+    const date = new Date(postedAt.timestamp)
+    if (!Number.isNaN(date.getTime())) return date.toISOString()
   }
-  if (typeof postedAt?.timestamp === 'number') return new Date(postedAt.timestamp).toISOString()
+  if (postedAt?.date) {
+    const raw = postedAt.date.trim()
+    const normalized = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(raw)
+      ? `${raw.replace(' ', 'T')}Z`
+      : raw
+    const date = new Date(normalized)
+    if (!Number.isNaN(date.getTime())) return date.toISOString()
+  }
   return ''
 }
 

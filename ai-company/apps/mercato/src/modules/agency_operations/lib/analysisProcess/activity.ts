@@ -68,9 +68,7 @@ export function resumePoint(taskRuns: Array<{ stepId: string; status: string }>)
   const ordered = [...taskRuns]
   const last = ordered[ordered.length - 1]
   const paused = [...ordered].reverse().find((run) => run.status === 'paused_budget')
-  // A repair loop in flight (a 3.7 verdict exists) resumes at the QA group, whatever
-  // step the repair was on — whether that step is still running or crashed into an
-  // E.1 exception (which, unlike a running step, is never itself a 3.x stepId).
+  // An interrupted repair resumes at QA, including crashes recorded as E.1.
   const repairing = [...ordered].reverse().find((run) => run.stepId === '3.7')?.status === 'to_fix'
   const inRepair = last.stepId.startsWith('3.') && repairing
   if (last.status === 'exception' && paused) return GROUP_OF[paused.stepId] ?? null
