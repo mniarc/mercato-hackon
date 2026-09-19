@@ -1,6 +1,11 @@
 # T70 - Revise the client's exact post and return it for review
 
-State: active
+State: done
+Verification evidence: `bb6dbba0e`; focused producer/QA, exact source binding,
+native routing and staff projection checks passed, with the corrected binding
+fixture rerun passing and app typecheck passing. The public service and G bridge
+are connected. Native joined post-correction and live-model proof remain
+unproved; neither is part of this task's bounded completion criteria.
 Depends on: T49 post producer and T50 exact review; explicit revision execution authority
 Owns: research producer `agency_research/lib/postRevision/**`; independent operations
 bridge `agency_operations/lib/postRevision/**`, minimal G routing/prompt/contracts,

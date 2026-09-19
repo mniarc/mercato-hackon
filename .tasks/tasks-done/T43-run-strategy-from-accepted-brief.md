@@ -1,11 +1,16 @@
 # T43 - Resume strategy from the accepted brief
 
-State: active
+State: done
+Verification evidence: `292656115` and T58's headed TC-AGENCY-002 proof run the
+teammate strategy/ToV phase after genuine brief acceptance, followed by explicit
+pair acceptance and a plan invitation. Focused strategyExecution checks cover
+exact inputs, rejected readiness, saved budget pauses and replay. Model/source
+fixtures were used; paid execution and full STD-LIMITY enforcement are not proved.
 Depends on: T41 exact acceptance; T42 readiness
 Sources: F20-1, F21-1, F22-1, F23-1
 Owns: `agency_research/lib/strategyExecution/**`; parallel owners extend existing `research/steps/{context,strategy,tov,strategyQa}.ts` and employee `agency_operations/lib/processProjection/**`, `AgencyCaseProcess.tsx` with adjacent tests; coordinator owns public service/native workflow wiring
 
-Next delivery: connect `agency_operations/lib/strategyExecution/**` to the existing native acceptance continuation. Read an explicit strategy spend authorization from the original process configuration; the analysis-only cap is not that authorization. Keep the same business process and no additional customer consent. Correlate execution to its acceptance, replay saved results, and expose an interrupted/partial attempt instead of starting another paid run. This technical execution seam does not claim complete STD-LIMITY enforcement (T24).
+Delivered native seam: `agency_operations/lib/strategyExecution/**` connects the existing native acceptance continuation. It reads explicit strategy spend authorization from the original process configuration; the analysis-only cap is not that authorization. It keeps the same business process, correlates execution to its acceptance, replays saved results, and exposes an interrupted/partial attempt instead of starting another paid run. This technical execution seam does not claim complete STD-LIMITY enforcement (T24).
 
 ## Deliver
 

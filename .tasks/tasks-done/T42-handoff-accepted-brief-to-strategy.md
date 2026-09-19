@@ -1,6 +1,10 @@
 # T42 - Hand off the accepted brief and frozen analysis
 
-State: active (readiness producer; connected invocation follows T41)
+State: done
+Verification evidence: `292656115` and T58's headed TC-AGENCY-002 proof connect
+the actual accepted brief and frozen analysis to strategy execution. Focused
+strategyReadiness checks cover exact pins, acceptance, scope and missing process
+configuration. This closes the readiness handoff, not all strategy alternatives.
 Depends on: T41 acceptance record; teammate persisted analysis package
 Sources: F12-3, F08-3, F20-1
 Owns: `agency_research/lib/strategyReadiness/**`, `agency_operations/lib/processProjection/**`, employee `AgencyCaseProcess.tsx` and adjacent tests; coordinator owns public contracts and native workflow call site

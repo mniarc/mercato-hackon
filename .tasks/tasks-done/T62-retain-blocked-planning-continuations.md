@@ -1,15 +1,19 @@
 # T62 - Keep blocked planning continuation visible
 
-State: active
+State: done
+Verification evidence: `292656115`; focused planning handoff, native graph,
+scoped process projection and staff component checks cover configuration,
+dependency, execution and QA holds. Blocked work waits; only an actual invitation
+ends review. Controlled producer resumption remains outside this bounded fix.
 Depends on: T60; existing planning phase and exact plan review
 Sources: F26-1 AC1-2; F27-1 AC4; F48-1 AC4; F50-2 AC1-2
 Owns: `agency_operations/lib/planningExecution/**`, `lib/processProjection/**`,
 existing `AgencyCaseProcess` staff component, relevant en/pl copy and focused
 checks; coordinator owns native graph and its routing check.
 
-The planning activity already records missing authorization, disabled execution,
-unready foundations and incomplete saved runs. Its review handoff currently
-returns no invitation and the native graph nevertheless ends at `plan_review`.
+The original gap was that planning recorded missing authorization, disabled
+execution, unready foundations and incomplete saved runs, but the native graph
+still ended at `plan_review` without an invitation.
 
 Return an explicit invited/blocked handoff preserving the original reason and
 saved activation reference. Identify permitted inspection of configuration,

@@ -1,6 +1,10 @@
 # T63 - Route exhausted brief author repairs to staff
 
-State: active
+State: done
+Verification evidence: `292656115`; focused `f09.test.ts` checks distinguish
+exhausted author repairs (one exact-version escalation) from ordinary client
+questions, and briefRevision exception-handoff checks preserve the saved result
+for the native employee route. No live exhaustion or controlled-resume claim.
 Depends on: T27 connected brief revision; existing E.1 employee handoff
 Sources: F09-3 AC2-5; F10-1 AC1; F48-1 AC1-4; F51-1 AC2-3
 Owns: `agency_research/lib/research/steps/briefQa.ts`, focused brief QA checks;

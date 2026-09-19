@@ -1,6 +1,10 @@
 # T41 - Record an authorized exact brief acceptance
 
-State: active
+State: done
+Verification evidence: `292656115` and T58's headed TC-AGENCY-002 proof exercise
+the original client response through native G to exact brief acceptance and its
+receipt. Existing focused acceptance checks cover replay, stale versions and
+foreign scope. Intelligence was substituted; no live-model or full-story claim.
 Depends on: T39 original response and invitation; native G interpretation
 Sources: F12-1, F12-2, F10-3, F42-1
 Owns: producer agent `agency_research/lib/briefAcceptance/**`; routing agent `agency_operations/agents/client-triage/**` except configuration and fixture; coordinator owns shared research contracts/service, DI, runtime and demo

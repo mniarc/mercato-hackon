@@ -1,6 +1,10 @@
 # T77 - Keep initial post-production holds visible and pending
 
-State: active
+State: done
+Verification evidence: `9d14fa5b7`; four focused suites (75 checks) passed across
+post handoff, native graph, scoped projection and staff case rendering. Missing
+or blocked output remains visible and waiting; only a genuine invitation ends
+review. This is not a producer-resume or full native exception-journey claim.
 Sources: F31-1 AC3-4; F32-1 AC1.
 Owns: operations postExecution review handoff/contracts, existing case projection/UI;
 separate graph owner handles native G transitions and their focused checks.

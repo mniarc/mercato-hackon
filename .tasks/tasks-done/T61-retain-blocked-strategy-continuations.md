@@ -1,6 +1,10 @@
 # T61 - Keep blocked strategy continuation actionable
 
-State: active
+State: done
+Verification evidence: `292656115`; focused strategy handoff, native graph,
+scoped process projection and staff component checks cover retained reasons and
+waiting instead of a false successful review. This proves the bounded routing
+and visibility fix, not controlled producer resumption or a live recovery run.
 Depends on: T60; existing strategy execution and review handoff
 Sources: F20-1 AC3; F48-1 AC2-4; F50-2 AC1-2
 Owns: `agency_operations/lib/strategyExecution/**`, `lib/processProjection/**`,
