@@ -352,6 +352,7 @@ export function agencyManualEnvironment(shared, existing, profile, { action = 's
       for (const key of ['OM_AGENT_RUN_TIMEOUT_MS', 'OM_AGENT_PROVIDER_RETRY_MAX', 'OM_AGENT_PROVIDER_RETRY_BASE_MS']) {
         if (!/^\d+$/.test(env[key] ?? '') || Number(env[key]) <= 0) throw new Error(`Live manual profile requires explicit ${key}.`)
       }
+      env.AGENCY_TOV_EXECUTION_ENABLED = nonEmpty(settings.AGENCY_TOV_EXECUTION_ENABLED) ?? 'false'
     }
   }
   return env

@@ -78,6 +78,21 @@ test('manual live start and CLI require human opt-in and central private configu
   assert.throws(() => parseAgencyInvocation(['cli', '--profile', 'fixture', '--allow-live', 'help']), /requires the live/)
 })
 
+test('manual live ToV forwards explicit configuration only after paid execution opt-in', () => {
+  const privateSettings = { OM_AI_PROVIDER: 'openrouter', OM_AI_MODEL: 'openrouter/example/model', OPENROUTER_API_KEY: 'private-test-only',
+    OM_AGENT_RUN_TIMEOUT_MS: '60000', OM_AGENT_PROVIDER_RETRY_MAX: '1', OM_AGENT_PROVIDER_RETRY_BASE_MS: '1000' }
+  const enabled = { ...privateSettings, AGENCY_TOV_EXECUTION_ENABLED: 'true' }
+  for (const action of ['start', 'cli']) {
+    const options = { action, allowLive: true }
+    assert.equal(agencyManualEnvironment({}, privateSettings, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+    assert.equal(agencyManualEnvironment({}, enabled, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'true')
+    assert.equal(agencyManualEnvironment({}, { ...enabled, AGENCY_TOV_EXECUTION_ENABLED: 'false' }, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+    assert.throws(() => agencyManualEnvironment({}, enabled, 'live', { action }), /--allow-live/)
+    assert.throws(() => agencyManualEnvironment({}, { AGENCY_TOV_EXECUTION_ENABLED: 'true' }, 'live', options), /private central OpenRouter/)
+  }
+  assert.equal(agencyManualEnvironment({}, enabled, 'live', { action: 'setup' }).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+})
+
 test('explicit journey arguments route start and test without changing the default', () => {
   assert.deepEqual(parseAgencyInvocation([]), { action: 'start', flags: [], journey: null })
   assert.deepEqual(parseAgencyInvocation(['start', '--journey=production']), { action: 'start', flags: [], journey: 'production' })

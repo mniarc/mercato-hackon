@@ -1,10 +1,14 @@
 import { mkdir, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { implementationStates, summarizeCoverage, verificationKinds } from './assessments.mjs'
+import { implementationStates, summarizeCoverage, trialReadinessActionRoles, trialReadinessKinds, trialReadinessLabels, verificationKinds } from './assessments.mjs'
 import { defaultAppRoot } from './scanner.mjs'
 
 export function formatReport(report) {
   const total = report.totals
+  const partialCriteria = report.stories.flatMap((s) => s.criteria).filter((c) => c.implementation === 'partial')
+  const partialByKind = trialReadinessKinds
+    .map((k) => ({ kind: k, label: trialReadinessLabels[k], role: trialReadinessActionRoles[k], count: partialCriteria.filter((c) => c.trialReadiness?.kind === k).length }))
+    .filter((item) => item.count > 0)
   const lines = [
     'Agency spec progress (current checkout, including uncommitted files; no remote branch scan)',
     'Documentation-derived; not product-completion %.',
@@ -13,6 +17,8 @@ export function formatReport(report) {
     `Acceptance criteria: ${total.coverage.criteria.total}; ${implementationStates.map((state) => `${state} ${total.coverage.criteria[state]}`).join('; ')}.`,
     `Recorded criterion proof: focused ${total.coverage.verification.focused.passed}; native app/fixture ${total.coverage.verification.nativeApp.passed}; live model ${total.coverage.verification.liveModel.passed}. These can overlap; live calls are not a feature-completion gate.`,
     `Criteria awaiting external decisions: ${total.coverage.criteriaWithExternalDecisions}. Proposed scope is reported separately, not automatically missing.`,
+    `Criteria readiness & action roles: ${trialReadinessKinds.filter((k) => (total.coverage.trialReadiness?.[k] ?? 0) > 0).map((k) => `${trialReadinessLabels[k]} [${trialReadinessActionRoles[k]}]: ${total.coverage.trialReadiness[k]}`).join('; ')}.`,
+    `Why criteria are partial (${partialCriteria.length} criteria): ${partialByKind.map((item) => `${item.label} [${item.role}]: ${item.count}`).join('; ')}.`,
     `Story mapping: ${total.mapped}/${total.stories} (${total.mappedPercent ?? 'n/a'}%); task-linked: ${total.taskLinked}/${total.stories}.`,
     `Done tasks: ${total.doneTasks}/${total.tasks} (${total.doneTasksPercent ?? 'n/a'}% of recorded tasks, including tasks-done archive and bounded/scaffold work).`,
     `Legacy task-metadata full-story claims: ${total.documentedVerified}; without such a claim: ${total.unassessed}. Separate from the AC assessments above.`,
