@@ -115,5 +115,6 @@
   "agency.materials.status.WAITING_FOR_ACTIVITIES": "Material received and accepted for background processing. The result is not ready yet.",
   "agency.materials.status.PAUSED": "Material received. Processing is paused; your agency can review the case.",
   "agency.materials.status.FAILED": "Material received, but processing failed. Your agency can review the case.",
-  "agency.materials.status.CANCELLED": "Material received, but processing was cancelled. Your agency can review the case."
+  "agency.materials.status.CANCELLED": "Material received, but processing was cancelled. Your agency can review the case.",
+  "agency.review.clarificationOnly": "Add the missing information in comments. Acceptance is available only after the brief passes review."
 }

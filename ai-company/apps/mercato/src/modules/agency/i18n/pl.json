@@ -115,5 +115,6 @@
   "agency.materials.status.WAITING_FOR_ACTIVITIES": "Materiał został przyjęty do przetwarzania w tle. Wynik nie jest jeszcze gotowy.",
   "agency.materials.status.PAUSED": "Materiał został przyjęty. Przetwarzanie jest wstrzymane; agencja może sprawdzić sprawę.",
   "agency.materials.status.FAILED": "Materiał został przyjęty, ale przetwarzanie nie powiodło się. Agencja może sprawdzić sprawę.",
-  "agency.materials.status.CANCELLED": "Materiał został przyjęty, ale przetwarzanie zostało anulowane. Agencja może sprawdzić sprawę."
+  "agency.materials.status.CANCELLED": "Materiał został przyjęty, ale przetwarzanie zostało anulowane. Agencja może sprawdzić sprawę.",
+  "agency.review.clarificationOnly": "Uzupełnij brakujące informacje w komentarzach. Akceptacja będzie dostępna dopiero po sprawdzeniu briefu."
 }

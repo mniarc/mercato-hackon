@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@open-mercato/ui/primitives/alert'
 import { Label } from '@open-mercato/ui/primitives/label'
 import { Textarea } from '@open-mercato/ui/primitives/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@open-mercato/ui/primitives/select'
-import { canAcceptDocument, type DocumentReview as Review } from '../data/document-review'
+import { canAcceptDocument, canCommentDocument, type DocumentReview as Review } from '../data/document-review'
 
 type Annotation = { id: string; quote: string; text: string }
 
@@ -84,7 +84,7 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
   const [topicId, setTopicId] = React.useState('')
   const [focusId, setFocusId] = React.useState<string | null>(null)
 
-  const available = canRespond && !submitted && review.isCurrent && review.status === 'ready_for_review'
+  const available = canRespond && !submitted && canCommentDocument(review)
   const canAccept = available && loaded && canAcceptDocument(review, topicId)
   const hasComments = annotations.some((annotation) => annotation.text.trim().length > 0)
 
@@ -245,6 +245,9 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
             <Alert status="information"><AlertDescription>{t(!review.isCurrent || review.status === 'needs_review' ? 'agency.review.stale' : 'agency.review.readOnly')}</AlertDescription></Alert>
           ) : (
             <div className="space-y-4 border-t border-border pt-4">
+              {review.status === 'needs_review' ? (
+                <Alert status="information"><AlertDescription>{t('agency.review.clarificationOnly')}</AlertDescription></Alert>
+              ) : null}
               <p className="text-sm text-muted-foreground">{t('agency.review.versionHint', { version: review.version })}</p>
               <div className="flex justify-end">
                 <Button type="button" disabled={submitting || !canAccept} onClick={() => { void onRespond('accept', topicId, '') }}>

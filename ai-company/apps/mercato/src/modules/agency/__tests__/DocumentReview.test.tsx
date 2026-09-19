@@ -24,10 +24,6 @@ function mount(overrides: Partial<React.ComponentProps<typeof DocumentReview>> =
   return onRespond
 }
 
-// The selection -> highlight -> comment flow drives the iframe's live contentDocument
-// selection, which jsdom does not implement for srcdoc frames; it is verified manually
-// in the portal. These tests cover the surrounding contract that jsdom can observe.
-
 test('renders received HTML in a same-origin sandboxed iframe and accepts only after loading', async () => {
   const respond = mount()
   const frame = screen.getByTitle('Brief — wersja 2')
@@ -47,7 +43,33 @@ test('shows the side comments panel with an empty hint and a disabled send butto
   expect(screen.getByRole('button', { name: pl['agency.review.sendComments'] })).toBeDisabled()
 })
 
-test.each([{ isCurrent: false }, { status: 'needs_review' as const }])('stale documents remain visible without actions: %j', (override) => {
+test('a current brief needing clarification accepts annotated comments but never acceptance', async () => {
+  const respond = mount({ review: { ...review, status: 'needs_review' } })
+  const frame = screen.getByTitle('Brief — wersja 2') as HTMLIFrameElement
+  const doc = frame.contentDocument!
+  doc.body.innerHTML = '<p>Cel i odbiorcy</p>'
+  fireEvent.load(frame)
+  expect(screen.getByRole('button', { name: pl['agency.review.accept'] })).toBeDisabled()
+  expect(screen.getByText(pl['agency.review.clarificationOnly'])).toBeTruthy()
+  const range = doc.createRange()
+  range.selectNodeContents(doc.body.firstChild!)
+  Object.defineProperty(range, 'getBoundingClientRect', { value: () => ({ bottom: 10, left: 0 }) })
+  doc.getSelection()!.addRange(range)
+  fireEvent.mouseUp(doc)
+  fireEvent.click(await screen.findByRole('button', { name: pl['agency.review.addComment'] }))
+  fireEvent.change(screen.getByRole('textbox', { name: pl['agency.review.commentPlaceholder'] }), { target: { value: 'Odbiorcami są lokalne sklepy.' } })
+  fireEvent.click(screen.getByRole('button', { name: pl['agency.review.sendComments'] }))
+  await waitFor(() => expect(respond).toHaveBeenCalledWith('comments', '', expect.stringContaining('Odbiorcami są lokalne sklepy.')))
+  expect(respond).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  { isCurrent: false },
+  { isCurrent: false, status: 'needs_review' as const },
+  { status: 'approved' as const },
+  { status: 'blocked' as const },
+  { status: 'draft' as const },
+])('stale or non-actionable documents remain visible without actions: %j', (override) => {
   mount({ review: { ...review, ...override } })
   expect(screen.getByTitle('Brief — wersja 2')).toBeTruthy()
   expect(screen.queryByRole('button', { name: pl['agency.review.accept'] })).toBeNull()

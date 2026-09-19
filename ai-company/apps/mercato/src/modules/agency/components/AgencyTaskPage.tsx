@@ -12,7 +12,7 @@ import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'
 import { DocumentReview } from './DocumentReview'
-import { buildReviewRequest, readDocumentReview } from '../data/document-review'
+import { buildReviewRequest, canAcceptDocument, canCommentDocument, readDocumentReview } from '../data/document-review'
 
 const StandardTaskPage = dynamic(() => import('@open-mercato/core/modules/workflows/frontend/[orgSlug]/portal/tasks/[id]/page'))
 
@@ -69,7 +69,8 @@ function TaskLoader({ params }: Props) {
 
   const respond = async (action: 'accept' | 'comments', topicId: string, comments: string) => {
     if (!review || !detail?.canComplete || !detail.task || !['PENDING', 'IN_PROGRESS'].includes(detail.task.status)
-      || !review.isCurrent || review.status !== 'ready_for_review' || inFlight.current || submitted || failed || refreshing) return false
+      || !(action === 'comments' ? canCommentDocument(review) : canAcceptDocument(review, topicId))
+      || inFlight.current || submitted || failed || refreshing) return false
     inFlight.current = true
     setSubmitting(true)
     setError(null)

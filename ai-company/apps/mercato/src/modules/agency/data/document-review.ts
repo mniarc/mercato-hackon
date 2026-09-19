@@ -39,8 +39,14 @@ export function canAcceptDocument(review: DocumentReview, topicId: string) {
   return review.templateId !== 'WZR-PLAN'
 }
 
+export function canCommentDocument(review: DocumentReview) {
+  return review.isCurrent && (review.status === 'ready_for_review'
+    || (review.status === 'needs_review' && review.templateId === 'WZR-BRIEF' && review.mode === 'content'))
+}
+
 export function buildReviewRequest(review: DocumentReview, action: 'accept' | 'comments', topicId: string, body: string, externalEventId: string) {
   if (action === 'accept' && !canAcceptDocument(review, topicId)) throw new Error('[internal] Document is not ready for approval')
+  if (action === 'comments' && !canCommentDocument(review)) throw new Error('[internal] Document is not available for comments')
   if (action === 'comments' && !body.trim()) throw new Error('[internal] Comments are required')
   return {
     channel: 'portal' as const,
