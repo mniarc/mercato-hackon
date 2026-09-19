@@ -161,8 +161,16 @@ export function reclassifyProductionFindings(findings: QaFinding[]): QaFinding[]
 export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaData, ustalenia?: UstaleniaData | null): QaFinding[] {
   const byId = new Map(zrodla.facts.map((fact) => [fact.fact_id, fact]))
   const awaitingClient = new Set<string>((ustalenia?.field_map ?? []).filter((row) => row.decision_state === 'awaiting_client').map((row) => row.field_key))
-  return findings.map((f) => {
+  const recordedConflicts = new Set(zrodla.conflicts.map((conflict) => conflict.conflict_id))
+  return findings.map((raw) => {
+    // The QA agent sometimes prefixes paths with the input key it read them from.
+    const f = /^documents\./.test(raw.path) ? { ...raw, path: raw.path.replace(/^documents\./, '') } : raw
     if (f.owner === 'client' || f.owner === 'staff') return f
+    // A conflict the register already records is the register doing its job; which side is true is the client's answer.
+    const conflictId = f.path.match(/\b(X\d{2,})\b/)?.[1] ?? f.gap.match(/\bconflicts?\W+(X\d{2,})\b/i)?.[1]
+    if (conflictId && recordedConflicts.has(conflictId)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: `conflict ${conflictId} is recorded in the register with its question; the client resolves it` }
+    }
     // A findings-map row already waiting for the client is a question by definition, not a missing field an agent forgot.
     const fieldKey = f.path.match(/^WEW-USTALENIA\.field_map[.[]\s*['"]?(\w+)/)?.[1]
     if (f.code === 'missing_must_field' && fieldKey && awaitingClient.has(fieldKey)) {
