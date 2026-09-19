@@ -198,6 +198,8 @@ export function createActivityWorkerHandler(
     logger.debug('Processing activity', { activityId: payload.activityId, jobId: ctx.jobId })
 
     try {
+      await awaitStepParkingCommit(em, payload.workflowInstanceId)
+
       // Fetch workflow instance
       const instance = await em.findOne(WorkflowInstance, {
         id: payload.workflowInstanceId,
@@ -371,7 +373,7 @@ const RESOLVED_STEP_ATTEMPT_STATUSES: ReadonlySet<StepInstanceStatus> = new Set<
 /**
  * Block until the transaction that parks the step has committed.
  *
- * `executeInvokeAgent` enqueues this job from INSIDE the workflow execution
+ * Async activities are enqueued from INSIDE the workflow execution
  * transaction, so the worker — reading on its own connection — can observe a
  * snapshot taken before the step was ever entered. The executor holds a
  * `PESSIMISTIC_WRITE` lock on the instance row for the whole of that
@@ -379,15 +381,15 @@ const RESOLVED_STEP_ATTEMPT_STATUSES: ReadonlySet<StepInstanceStatus> = new Set<
  * advanced `current_step_id` to it before the step's activities run, so
  * requesting the SAME lock here waits for that transaction to finish and then
  * reads its committed result. No polling, no sleep, no timing window: the lock
- * IS the happens-before edge between "the step parked" and "the agent may run".
+ * IS the happens-before edge between "the step parked" and "the activity may run".
  *
- * The lock is released immediately (the transaction only reads), so the agent
+ * The lock is released immediately (the transaction only reads), so the activity
  * run itself never holds it. A no-op when the entity manager cannot open a
  * transaction, or is already inside one — an outer transaction has a fixed
  * snapshot the barrier could not refresh anyway, and holding a row lock for the
  * length of an LLM run would be far worse than the race it guards.
  */
-async function awaitStepParkingCommit(em: EntityManager, instanceId: string): Promise<void> {
+export async function awaitStepParkingCommit(em: EntityManager, instanceId: string): Promise<void> {
   const scopedEm = em as EntityManager & {
     transactional?: <TResult>(callback: (trx: EntityManager) => Promise<TResult>) => Promise<TResult>
     isInTransaction?: () => boolean

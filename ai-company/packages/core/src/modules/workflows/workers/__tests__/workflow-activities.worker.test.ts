@@ -21,10 +21,12 @@ jest.mock('../../lib/workflow-executor', () => ({
   resumeWorkflowAfterActivities: jest.fn(async () => undefined),
 }))
 
-import { EntityManager } from '@mikro-orm/core'
+import { EntityManager, LockMode } from '@mikro-orm/core'
+import type { AwilixContainer } from 'awilix'
 import type { JobContext, QueuedJob } from '@open-mercato/queue'
 import { WorkflowInstance } from '../../data/entities'
 import handleWorkflowActivityJob from '../workflow-activities.worker'
+import { createActivityWorkerHandler } from '../../lib/activity-worker-handler'
 import { logWorkflowEvent } from '../../lib/event-logger'
 import type { WorkflowActivityJob, WorkflowActivityJobActivity } from '../../lib/activity-queue-types'
 
@@ -113,6 +115,41 @@ describe('workflow-activities worker (registry dispatch)', () => {
         }),
       })
     )
+  })
+
+  test.each(['auto-discovered', 'factory'] as const)('%s waits for parking commit before fetching or executing, then releases the barrier', async (entryPoint) => {
+    let releaseCommit!: () => void
+    let markBarrierEntered!: () => void
+    const commit = new Promise<void>((resolve) => { releaseCommit = resolve })
+    const barrierEntered = new Promise<void>((resolve) => { markBarrierEntered = resolve })
+    let lockReleased = false
+    const lockedRead = jest.fn(async () => {
+      markBarrierEntered()
+      await commit
+      return mockInstance
+    })
+    mockEm.transactional = jest.fn(async (callback: (trx: EntityManager) => Promise<unknown>) => {
+      const result = await callback({ findOne: lockedRead } as unknown as EntityManager)
+      lockReleased = true
+      return result
+    }) as unknown as jest.Mocked<EntityManager>['transactional']
+    const send = jest.fn(async () => {
+      expect(lockReleased).toBe(true)
+    })
+    resolvables.emailService = { send }
+    const ctx = makeCtx()
+    const handler = entryPoint === 'factory'
+      ? createActivityWorkerHandler(mockEm, ctx as unknown as AwilixContainer)
+      : handleWorkflowActivityJob
+    const processing = handler(makeJob(makePayload({ activityType: 'SEND_EMAIL', activityConfig: { to: 'user@example.com', subject: 'Hello', body: 'Hi' } })), ctx)
+    await barrierEntered
+    expect(mockEm.findOne).not.toHaveBeenCalled()
+    expect(send).not.toHaveBeenCalled()
+    expect(lockedRead).toHaveBeenCalledWith(WorkflowInstance, { id: 'instance-1' }, { lockMode: LockMode.PESSIMISTIC_WRITE })
+    releaseCommit()
+    await processing
+    expect(send).toHaveBeenCalledTimes(1)
+    expect(mockEm.findOne).toHaveBeenCalledWith(WorkflowInstance, { id: 'instance-1', tenantId: 'tenant-1', organizationId: 'org-1' })
   })
 
   test('refuses SET_VARIABLE with the registry non-capable reason', async () => {
