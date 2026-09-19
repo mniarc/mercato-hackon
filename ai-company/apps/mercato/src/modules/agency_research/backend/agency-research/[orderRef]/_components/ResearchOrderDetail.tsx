@@ -13,11 +13,12 @@ import { SectionHeader } from '@open-mercato/ui/backend/SectionHeader'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { StatusBadge, type StatusBadgeVariant } from '@open-mercato/ui/primitives/status-badge'
 import { formatDateTime, runStatusVariant } from '../../_components/ResearchOrdersTable'
+import { StepsAsCode } from './StepsAsCode'
 
 type TaskRun = {
   id: string; stepId: string; attempt: number; status: string; runner: string
   costPln: number; agentRuns: number; outputVersionId: string | null
-  error: string | null; createdAt: string; finishedAt: string | null
+  error: string | null; qaResult?: unknown; createdAt: string; finishedAt: string | null
 }
 type LedgerDocument = { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null; updatedAt: string | null }
 type AgentRun = { id: string; agentId: string; stepId: string | null; status: string; model: string | null; inputTokens: number | null; outputTokens: number | null; costMinor: number | null; createdAt: string; completedAt: string | null }
@@ -182,6 +183,8 @@ export function ResearchOrderDetail({ orderRef }: { orderRef?: string }) {
         </p>
         <p className="text-sm text-muted-foreground">{translate(`${key}.noApproval`)}</p>
       </section>
+
+      <StepsAsCode runs={ledger.taskRuns} agentRuns={(ledger.agentRuns ?? []).map((run) => ({ id: run.id, agentId: run.agentId, stepId: run.stepId, status: run.status, createdAt: run.createdAt }))} totalPln={ledger.totalPln} />
 
       <section className="space-y-4 rounded-lg border bg-card p-6">
         <SectionHeader title={translate(`${key}.documents.title`)} />
