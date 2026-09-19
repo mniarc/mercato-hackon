@@ -1,4 +1,8 @@
 {
+  "agencyOperations.cases.process.publicationPreparation.title": "Publication preparation",
+  "agencyOperations.cases.process.publicationPreparation.prepared": "Internal instruction saved for the accepted post version.",
+  "agencyOperations.cases.process.publicationPreparation.not_ready": "Publication preparation needs the required accepted inputs.",
+  "agencyOperations.cases.process.publicationPreparation.noSend": "Preparation does not authorize sending. Missing destination, access and publication consent remain explicit.",
   "agencyOperations.cases.process.postExecution.title": "Saved post and editor outcome",
   "agencyOperations.cases.process.postExecution.completed": "Post authoring and editor checks finished. See the saved QA verdict.",
   "agencyOperations.cases.process.postExecution.paused_budget": "Post production paused at the configured spending limit.",

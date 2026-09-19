@@ -50,12 +50,15 @@ import { createPostReviewService } from './lib/postReview/service'
 import { POST_REVIEW_SERVICE, POST_RESPONSE_FUNCTION } from './lib/postReview/contracts'
 import { createPostReviewHandoff } from './lib/postExecution/reviewHandoff'
 import { POST_REVIEW_HANDOFF_FUNCTION } from './lib/postApproval/contracts'
+import { createPublicationPreparationHandoff } from './lib/publicationPreparation/handoff'
+import { PUBLICATION_PREPARATION_FUNCTION } from './lib/publicationPreparation/contracts'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [`workflowFunction:${PUBLICATION_PREPARATION_FUNCTION}`]: asFunction(() => createPublicationPreparationHandoff(container)).scoped(),
     [POST_REVIEW_SERVICE]: asFunction(() => createPostReviewService(container)).scoped(),
     [`workflowFunction:${POST_RESPONSE_FUNCTION}`]: asFunction(
       () => container.resolve<ReturnType<typeof createPostReviewService>>(POST_REVIEW_SERVICE).receiveResponse,

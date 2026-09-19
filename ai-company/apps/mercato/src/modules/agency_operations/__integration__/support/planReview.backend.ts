@@ -10,12 +10,14 @@ import { orderOf, brief, strategia, tov, zrodla } from '../../../agency_research
 import { orderDataSchema } from '../../../agency_research/data/schemas/zamowienie'
 import { konkurencjaDataSchema } from '../../../agency_research/data/schemas/konkurencja'
 import { planDataSchema } from '../../../agency_research/data/schemas/plan'
+import { postDataSchema } from '../../../agency_research/data/schemas/post'
 import { AgencyResearchDocumentVersion } from '../../../agency_research/data/entities'
 import type { InputVersion, TemplateId } from '../../../agency_research/data/schemas/envelope'
 import { briefAcceptanceRecordSchema } from '../../../agency_research/lib/briefAcceptance/contracts'
 import { strategyPairAcceptanceRecordSchema } from '../../../agency_research/lib/strategyPairAcceptance/contracts'
 import { documentIdFor } from '../../../agency_research/lib/research/envelope'
 import { createLedger } from '../../../agency_research/lib/research/ledger'
+import { contentHashOf } from '../../../agency_research/lib/research/publication'
 import { runPlanStep } from '../../../agency_research/lib/research/steps/plan'
 import { runPlanQaLoop } from '../../../agency_research/lib/research/steps/planQa'
 import { runPostStep } from '../../../agency_research/lib/research/steps/post'
@@ -164,7 +166,9 @@ export async function createPostReviewFixture(input: {
     const invitation = await container.resolve<PostReviewService>(POST_REVIEW_SERVICE).invite({
       ...scope, caseId: fixture.caseId, postVersionId: post.id, userId: input.userId,
     })
-    return { ...invitation, documentId: post.documentId, versionId: post.id, version: postOutputs.post.version, qaTaskRunId: qa.taskRunId }
+    const content = postDataSchema.parse(post.data)
+    return { ...invitation, documentId: post.documentId, versionId: post.id, version: postOutputs.post.version, qaTaskRunId: qa.taskRunId,
+      text: content.text, contentHash: contentHashOf(content) }
   } finally { await container.dispose() }
 }
 
@@ -181,8 +185,8 @@ export async function deletePlanReviewFixture(fixture: PlanReviewFixture): Promi
       await client.query('DELETE FROM workflow_instances WHERE id=$1 AND tenant_id=$2 AND organization_id=$3', [id, ...scope])
     }
     // All rows for this new compiler output belong to this fixture's unique case.
-    await client.query("DELETE FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA'))", [...scope, fixture.caseId, fixture.versionIds])
-    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7','7.2','7.3','E.1'))", [...scope, fixture.caseId, fixture.taskRunIds])
-    await client.query("DELETE FROM agency_research_documents WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA'))", [...scope, fixture.caseId, fixture.documentIds])
+    await client.query("DELETE FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA','WZR-KONFIG-PUBLIKACJI','WZR-ZLECENIE-PUBLIKACJI'))", [...scope, fixture.caseId, fixture.versionIds])
+    await client.query("DELETE FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR step_id IN ('6.2','6.3','6.7','7.2','7.3','7.7','E.1'))", [...scope, fixture.caseId, fixture.taskRunIds])
+    await client.query("DELETE FROM agency_research_documents WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND (id=ANY($4::uuid[]) OR template_id IN ('WZR-PLAN','WZR-ZLECENIE-POSTU','WZR-POST','WZR-ESKALACJA','WZR-KONFIG-PUBLIKACJI','WZR-ZLECENIE-PUBLIKACJI'))", [...scope, fixture.caseId, fixture.documentIds])
   })
 }

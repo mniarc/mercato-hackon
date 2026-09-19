@@ -28,6 +28,7 @@ import { startNativeTriageProvider } from './support/nativeTriageProvider'
 import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
 import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
 import { createPlanReviewFixture, createPostReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
+import { publicationPreparationPreparedSchema } from '../../agency_research/lib/publicationPreparation/contracts'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -272,6 +273,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     let planReview: PlanReviewFixture | null = null
     let nativeProcess: { workflowDefinitionId: string; workflowId: string; version: number } | undefined
     let postInstruction: { instructionVersionId: string; selectionSubmissionId: string } | undefined
+    let publicationPreparation: ReturnType<typeof publicationPreparationPreparedSchema.parse> | undefined
     let resources: CreatedResources = {
       caseId: null,
       attachmentId: null,
@@ -660,6 +662,43 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             source: expect.objectContaining({ kind: 'agency_post_acceptance', submissionId: receipt.requestId, invitationTaskId: post.taskId }),
           })] })
           expect((await accepted()).data).toMatchObject({ target: { publication_allowed: false, publication_status: 'not_requested', target_account_id: null }, qa: { publication_gate: 'blocked' } })
+          const readPreparation = () => withClient(async (client) => {
+            const rows = await client.query<{ result: unknown }>(
+              `SELECT w.context->'agencyPublicationPreparation'->'result' AS result
+               FROM workflow_instances w JOIN agency_client_submissions s ON s.workflow_instance_id=w.id
+               WHERE s.id=$1 AND s.case_id=$2 AND s.tenant_id=$3 AND s.organization_id=$4
+                 AND w.tenant_id=$3 AND w.organization_id=$4`,
+              [receipt.requestId, intakeResult.caseId, tenantId, organizationId])
+            return rows.rows[0]?.result
+          })
+          await expect.poll(readPreparation, { timeout: 30_000 }).toMatchObject({ status: 'prepared',
+            orderRef: intakeResult.caseId, postVersionId: post.versionId, acceptanceSubmissionId: receipt.requestId,
+            contentHash: post.contentHash, contentApproval: 'valid', publicationConsent: 'missing', canSend: false })
+          const preparation = publicationPreparationPreparedSchema.parse(await readPreparation())
+          publicationPreparation = preparation
+          const publication = await withClient(async (client) => {
+            const rows = await client.query<{ id: string; template_id: string; data: unknown; input_versions: unknown[] }>(
+              'SELECT id,template_id,data,input_versions FROM agency_research_document_versions WHERE id=ANY($1::uuid[]) AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
+              [[preparation.instructionVersionId, preparation.configVersionId], tenantId, organizationId, intakeResult.caseId])
+            const confirmations = await client.query<{ count: string }>(
+              "SELECT count(*) FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-POTWIERDZENIE-PUBLIKACJI'",
+              [tenantId, organizationId, intakeResult.caseId])
+            return { rows: rows.rows, confirmations: Number(confirmations.rows[0].count) }
+          })
+          const instruction = publication.rows.find((row) => row.id === preparation.instructionVersionId)!
+          expect(instruction).toMatchObject({ template_id: 'WZR-ZLECENIE-PUBLIKACJI', data: {
+            post_ref: { document_ref: `KLI-POST@${intakeResult.caseId}`, content_version: post.version, content_hash: post.contentHash },
+            payload: { text: post.text }, content_approval_check: { state: 'valid', checked_content_version: post.version },
+            publication_consent_check: { state: 'missing', consent_ref_or_null: null },
+            execution_guard: { reservation_state: 'none', attempt_refs: [], prior_outcome: 'none' },
+            preflight: { state: 'not_ready' },
+          } })
+          expect(instruction.input_versions).toEqual(expect.arrayContaining([expect.objectContaining({
+            document_id: `KLI-POST@${intakeResult.caseId}`, version: post.version, status: 'approved',
+          })]))
+          expect(publication.rows.find((row) => row.id === preparation.configVersionId)?.template_id).toBe('WZR-KONFIG-PUBLIKACJI')
+          expect(publication.confirmations).toBe(0)
+          console.log('[TC-AGENCY-001] Publication instruction prepared from accepted content; consent missing, no send or reservation')
           await page.goto(taskUrl, { waitUntil: 'domcontentloaded' })
           await expect(page.getByText(`Acceptance recorded for version ${post.version}.`, { exact: true })).toBeVisible()
           expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(2)
@@ -681,6 +720,16 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await expect(caseLink).toBeVisible()
         await caseLink.click()
         await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
+        if (publicationPreparation) {
+          const response = await page.request.get(new URL(`/api/agency_operations/cases/${intakeResult.caseId}`, BASE_URL).toString())
+          expect(response.ok(), 'Employee case projection should expose publication preparation').toBeTruthy()
+          const projection = await response.json() as { submissions: Array<{ submissionId: string; publicationPreparation?: unknown }> }
+          expect(projection.submissions.find((submission) => submission.submissionId === publicationPreparation!.acceptanceSubmissionId)?.publicationPreparation)
+            .toMatchObject({ status: 'prepared', instructionVersionId: publicationPreparation.instructionVersionId,
+              contentApproval: 'valid', publicationConsent: 'missing', canSend: false })
+          await expect(page.getByRole('heading', { name: 'Publication preparation', level: 3, exact: true })).toBeVisible()
+          await expect(page.getByText('Preparation does not authorize sending. Missing destination, access and publication consent remain explicit.', { exact: true })).toBeVisible()
+        }
         if (briefReview) {
           await expect(page.getByText('Persisted research work', { exact: true })).toBeVisible()
           await page.getByRole('button', { name: briefReview.versionId, exact: true }).first().click()

@@ -183,6 +183,17 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.postExecution} title={translate(`${key}.postExecution.title`)} />
               </div>
             ) : null}
+            {submission.publicationPreparation ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.publicationPreparation.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.publicationPreparation.${submission.publicationPreparation.status}`)}</p>
+                {submission.publicationPreparation.status === 'not_ready' ? (
+                  <p className="text-sm text-muted-foreground">{submission.publicationPreparation.reason}</p>
+                ) : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.publicationPreparation.noSend`)}</p>
+                <JsonDisplay data={submission.publicationPreparation} title={translate(`${key}.publicationPreparation.title`)} />
+              </div>
+            ) : null}
             {submission.tasks.map((task) => (
               <div key={task.id} className="flex flex-wrap items-center gap-2">
                 <Button type="button" asChild variant="outline">
