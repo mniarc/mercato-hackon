@@ -1,44 +1,57 @@
-# T27 - Connect brief and strategy/ToV version review
+# T27 - Apply client answers and regenerate the brief
 
-State: active (brief review handoff T38/T39/T40; full acceptance and strategy pair remain pending)
-Depends on: T24, T26, T22; teammate ToV document service
-Owns: `agency_operations/lib/briefStrategyProcess/**`; narrow ToV process bridge
-  Next bounded F24-1 invitation/response: `agency_operations/lib/strategyPairReview/**`,
-  `agency/api/strategy-reviews/**`, `agency/components/strategy-review/**`;
-  coordinator owns shared G schema, DI and native handoff.
-Sources: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3, F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1
+State: active (scoped research/G integration approved; prerequisite for T58)
+Depends on: existing G submission/disposition, T38/T39/T40 review, teammate brief producers;
+T26 for targeted evidence supplements, T24 for authorized execution limits
+Owns: research-owned answer application and phase-only brief regeneration; existing
+`agency_operations/lib/briefStrategyProcess/**` native handoff. Coordinator assigns
+new exclusive paths and shared service/G contracts before implementation.
+Sources: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3;
+F11-1, F11-2 evidence-return boundary; F12-1, F12-2, F12-3 acceptance and current-analysis requirements
+
+Existing brief invitation, response receipt, acceptance/readiness and strategy-pair
+seams are reused (T38–T43, T47/T48), not rebuilt. Their existence does not prove
+that a client's missing answers update the brief.
+
+## Observed gap
+
+`agency_research/lib/research/steps/findings.ts` deliberately rejects model-invented
+client decisions. `brief.ts` copies decisions from the persisted findings map;
+`briefQa.ts` keeps unanswered required decisions at `needs_client_data`.
+`briefAcceptance/accept.ts` correctly requires exact positive QA. Current public
+research contracts expose initial execution/review/acceptance, but no production
+application of the saved client's answers into findings and targeted brief rerun.
+Receiving a comment or clarification therefore does not close this recovery loop.
 
 ## Deliver
 
-- Next bounded F24-1 slice: show the exact strategy/ToV pair and route the original
-  customer response into G through a native invitation. No implied pair acceptance
-  or planning activation; those remain separate authorized effects.
-- Parallel read-boundary slice: `agency_research/lib/strategyReview/**` exposes
-  exact strategy/ToV versions, their shared persisted 5.4 QA, client projections,
-  simulation/currentness and shared brief basis. Reuse teammate records; no
-  approval mutation, new producer or calls into `agency_tov`. Coordinator owns
-  public service exports/wiring and the later paired native invitation.
-- Start with verified evidence → brief draft/QA → customer discussion → authorized
-  exact-version brief acceptance; use T26 for targeted supplements and T22 for receipts.
-- Bind strategy authoring and teammate ToV revisions to that accepted brief and
-  actual strategy proposal; pair QA and the current complete pair gate precede planning.
-- Reuse saved G directives and native customer waits. Communication drafts explain
-  persisted state; neither discussion nor one ToV acceptance approves the whole pair.
+- Consume one authorized saved G directive tied to the original customer response,
+  case, exact brief and questions. Agent interpretation proposes the answered fields;
+  trusted code binds updates to that source. No second triage or invented decisions.
+- Apply answered values to versioned findings, retaining unanswered gaps and source
+  references. Reuse teammate 4.1/4.2 to create a new version of the same brief,
+  preserving unaffected content and previous history, without inherited approval.
+- Keep findings/analysis dependencies coherent with the 3.8 package required by
+  strategy readiness. A genuine evidence request uses T26's bounded 4.5 → 3.7/3.8
+  return; do not rerun the entire analysis or stamp a successful freeze.
+- Show the real next state in the existing portal: further questions for unresolved
+  client gaps, agent repair for drafting errors, or a fresh exact-version invitation
+  after positive QA. Answer receipt alone neither approves nor starts strategy.
 
 ## Done when
 
-- Deliver the brief gate first, then the pair gate. Focused tests show stale/partial
-  acceptance cannot advance the process and a valid exact current pair can.
+- One connected recovery begins with a genuinely produced `needs_client_data`
+  brief, takes the client's answers through G, and produces a new QA-assessed brief
+  with the answers visible. A sufficient answer enables a fresh invitation and
+  subsequent explicit acceptance; an unresolved gap remains a question.
+- A focused replay/current-version check proves the same directive cannot create
+  duplicate updates or approve stale/new content. T58 then consumes the genuine
+  accepted brief and current analysis; no separate duplicate demo matrix.
 
 ## Constraints
 
-- Do not rewrite teammate ToV or add its agents here. No second triage at F10-3/F25-1.
-- Reuse teammate `agencyResearchService.run` through `4.2` for brief drafting/QA;
-  our former brief-author and audit/brief QA scaffolds are retired.
-- Brief-specific delivery proceeds independently through T38/T39/T40. T22's ToV
-  invitation producer must not block this separate brief handoff.
-  `agencyResearchService.getClientView` provides current Markdown, not that
-  invitation. The teammate portal brief route still uses a customer-ID prefix
-  ownership convention, whereas analysis uses a case UUID for `orderRef`; do not
-  connect it by forging a prefixed ID or bypassing real case ownership. Agree the
-  existing portal producer/eligibility seam before implementing acceptance gates.
+- No seeded answered findings, accepted brief/pair, receipts or forced positive QA
+  to claim this path works. Substitute intelligence only in the connected proof.
+- No replacement research engine, portal or ToV rewrite; reuse native tasks and
+  teammate producers. Do not turn an in-scope correction into checkout, a round
+  limit, or routine staff approval. Missing execution authorization stays explicit.

@@ -32,6 +32,31 @@ real trust or persistence boundary and rely on established platform guarantees
 inside it. Add another validation layer only for a distinct, demonstrated risk,
 not to re-check the same fact.
 
+## Current delivery objective
+
+Deliver the connected agency slice through real teammate implementations: approved
+zero-charge demo purchase → persisted case; client answers → updated findings and
+QA-ready brief → explicit acceptance → strategy/ToV pair → plan invitation.
+Complete the normal-use holds and recoveries needed by this slice; preserve saved
+work, exact-version approvals and teammate Polish copy. Use T25, T27, T58, T59
+and T60 as the initial workstreams, not a promise that task counts equal completion.
+
+Parallel owners cover purchase, client-answer production, expected-outcome recovery
+and copy extraction where paths are independent. The coordinator owns shared
+contracts, runtime, integration and focused journey execution. Reassign completed
+agents to demonstrated missing dependencies, not speculative scaffolds or duplicate
+reviews. Record remaining story criteria separately from completed bounded tasks.
+
+Finish when the connected outcomes and their required alternative paths are proved
+on the persistent runtime and coherent verified changes are committed, or report
+the exact remaining external decisions after independent authorized work is exhausted.
+Fetch origin teammate branches every 45 minutes while this delivery run is active;
+integrate actual updates with ancestry and dirty work preserved. Unchanged refs
+require no rerun. No paid model calls, real payments/publication, automatic pushes
+or routine database resets. Local intelligence fixtures must not fabricate client decisions,
+approvals or successful producer results. The corresponding product goal is active;
+this process describes its work, not a separate background scheduler.
+
 Keep each capability collocated inside `agency_operations`. Portal and backend
 UI stay in self-contained feature directories. Domain code does not import UI,
 and integration-specific calls sit behind thin module-local bridges using public
@@ -41,8 +66,9 @@ be swapped; do not build speculative layering.
 ## Loop
 
 1. **Observe** — choose one user-visible outcome and identify the next real seam.
-   About every 30 minutes of active work, check teammate updates through the
-   integration process; their implementations replace overlapping scaffolds.
+   Check teammate updates every 45 minutes during the renewed delivery run, or
+   on an explicit handoff, through the integration process; their implementations
+   replace overlapping scaffolds. This cadence authorizes merges, not pushes.
 2. **Search** — perform the reuse-first check above and record relevant paths in
    the active task handoff.
 3. **Register** — create only the next small replayable tasks in `App/.tasks`.
@@ -71,9 +97,29 @@ handoff must not stop unrelated ready delivery. Prefer finishing and integrating
 usable work over opening more scaffolds. A goal names an observable product
 outcome and its stopping condition, not a task-count or documentation target.
 
-## Unattended integration watch
+For expected outcomes such as missing client input, budget pauses, rejected
+reviews, or exhausted repairs, trace producer → workflow → user surface → next
+authorized action. Internal exceptions are acceptable when handled at that
+boundary; a generic error or permanently blocked state does not implement a
+required recovery path. Task the missing spec behavior, not every `throw`, and
+keep technical failures distinct from normal product outcomes. A story is not
+complete until its required alternative paths work; task links and happy-path
+demos alone are not full-story coverage.
 
-Current requested window: 2026-09-19 02:56–08:56 UTC (04:56–10:56 Warsaw).
+Keep a separate direct agent on this recovery workstream during active delivery:
+explore one real non-happy path → reuse/register its concrete spec-linked task →
+implement the smallest authorized fix → hand off once for focused verification.
+Assign exclusive code paths before edits; the coordinator owns shared contracts
+and runtime. Continue to the next actionable gap, not repeated audits of handled
+errors. If product authority is missing, record that exact decision and take another
+independent ready path. Do not manufacture tasks merely to keep the agent occupied.
+
+## Unattended integration watch (finished)
+
+Completed window: 2026-09-19 02:56–08:56 UTC (04:56–10:56 Warsaw).
+The user ended that watch on return and later authorized a new 45-minute fetch/
+integration cadence above. The rules below describe the old window; its push
+permission and 30-minute schedule do not carry into the new run.
 Keep the broader delivery goal active; this window is not a promise to finish
 every story or a reason to manufacture more work.
 

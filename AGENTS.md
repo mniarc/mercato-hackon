@@ -15,6 +15,12 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
 - Give Git integration one named owner. Preserve teammate implementations over
   overlapping scaffolds and follow the integration process for branch selection,
   ancestry, dirty-work preservation, and scoped proof; fetching is not merging.
+- Preserve teammate-facing copy, including Polish text, verbatim when extracting
+  translation keys or variables. Change wording only for a requested product
+  change or necessary integration behavior; identify those changes explicitly.
+- During active delivery, dedicate a separate direct agent to expected-outcome
+  recovery using the delivery loop's exploration → task → implementation cycle.
+  Give it disjoint paths; do not replace missing spec flows with generic errors.
 - Give direct subagents disjoint paths. The coordinator owns shared/generated
   files, runtime state, and integration; review their handoff once, then rerun
   only checks affected by a real fix.

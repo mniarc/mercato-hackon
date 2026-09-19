@@ -35,9 +35,12 @@ runtime validation. Let useful parallel work finish unless it conflicts or is un
 
 ## Teammate branches
 
-- During active delivery, the Git owner fetches and compares `origin/main` and
-  the known teammate branches about every 30 minutes, and after a teammate
-  handoff. Keep the last check time in conversation state, not a new tracking
+- The user authorized a renewed 45-minute fetch/integration cadence for origin
+  teammate branches during the current delivery run. Merge actual new work at
+  safe coherent boundaries; unchanged refs require no review/test rerun.
+  This does not renew automatic push permission. Outside this run, obtain
+  direction before merging or pushing.
+  Keep the last check time in conversation state, not a new tracking
   document. Integrate new work at the next safe coherent boundary; the cadence
   never justifies overwriting dirty work or interrupting a running demo.
 - Treat teammate-owned implementations as authoritative over our overlapping

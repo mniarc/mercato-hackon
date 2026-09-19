@@ -62,6 +62,11 @@ State unproved runtime behavior plainly instead of presenting partial proof as a
    does not justify a rebuild, database recreation, or a full-suite run.
 
 Keep module activation flags identical for generation, app and runner. If changing
+native-fixture module discovery, use `node scripts/agency-dev.mjs cli generate`
+with the same `AGENCY_TEST_NATIVE_TRIAGE`/`AGENCY_TEST_NATIVE_POST` flags as the
+app. Bare `yarn generate` does not expand those launcher flags and can omit the
+research/orchestrator modules, causing legitimate RBAC failures afterward.
+If changing
 the generated module set leaves Next reporting a missing server module factory,
 restart the app with the matching flags; preserve the database. This is not a
 reason to regenerate the database or weaken a portal assertion.
