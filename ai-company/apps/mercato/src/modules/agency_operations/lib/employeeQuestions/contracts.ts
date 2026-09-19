@@ -27,6 +27,7 @@ export type EmployeeQuestionItem = {
 }
 export type EmployeeQuestionList = {
   configured: boolean;
+  documents: { versionId: string; documentCode: string; versionLabel: string }[];
   parents: { taskId: string; taskName: string; status: string; canAsk: boolean }[];
   questions: EmployeeQuestionItem[];
 }

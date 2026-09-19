@@ -680,7 +680,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           await page.getByRole('option', { name: 'Work exception / Wyjątek wykonania', exact: true }).click()
           const question = 'May we remove the duplicated opening from this exact post version?'
           await page.locator('[data-crud-field-id="question"]').getByRole('textbox').fill(question)
-          await page.locator('[data-crud-field-id="documentVersionId"]').getByRole('textbox').fill(production.postVersionId!)
+          await page.locator('[data-crud-field-id="documentVersionId"]').getByRole('combobox').click()
+          await page.getByRole('option', { name: /^KLI-POST · / }).click()
           const questionResponse = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/agency_operations/cases/${intakeResult.caseId}/questions` && response.request().method() === 'POST')
           await page.getByRole('button', { name: 'Ask the client', exact: true }).click()
           const asked = await questionResponse

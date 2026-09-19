@@ -17,11 +17,11 @@ const actor = { ...scope, caseId: uuid(3), userId: uuid(4), roleNames: ['employe
 const customerUserId = uuid(5), customerEntityId = uuid(6), parentId = uuid(7), parentWorkflowId = uuid(8), parentStepId = uuid(9), questionId = uuid(10), customerTaskId = uuid(11), submissionId = uuid(12), versionId = uuid(13)
 const request = { parentTaskId: parentId, eventId: 'question-1', question: 'What evidence can you provide?', documentVersionId: versionId }
 const binding = { ...request, caseId: actor.caseId, parentWorkflowInstanceId: parentWorkflowId, employeeUserId: actor.userId, customerUserId, customerEntityId }
-const executeWorkflow = jest.fn(), startWorkflow = jest.fn(), submit = jest.fn(), userHasAllFeatures = jest.fn(), getBriefReview = jest.fn(), getPostReview = jest.fn(), findById = jest.fn()
+const executeWorkflow = jest.fn(), startWorkflow = jest.fn(), submit = jest.fn(), userHasAllFeatures = jest.fn(), getBriefReview = jest.fn(), getPostReview = jest.fn(), researchStatus = jest.fn(), findById = jest.fn()
 const authoring = { findOwnedDefinition: jest.fn() }
 const em = { transactional: jest.fn(async (fn: (manager: unknown) => Promise<unknown>) => fn(em)) }
 const services: Record<string, unknown> = { em, rbacService: { userHasAllFeatures }, workflowExecutor: { startWorkflow, executeWorkflow }, workflowDefinitionAuthoring: authoring,
-  agencyClientSubmissionService: { submit }, agencyResearchService: { getBriefReview, getPostReview }, customerUserService: { findById } }
+  agencyClientSubmissionService: { submit }, agencyResearchService: { getBriefReview, getPostReview, status: researchStatus }, customerUserService: { findById } }
 const container = { resolve: (name: string) => services[name], hasRegistration: (name: string) => name in services } as unknown as AppContainer
 let parent: UserTask, parentWorkflow: WorkflowInstance, customerTask: UserTask, question: WorkflowInstance | null, submission: AgencyClientSubmission | null
 const workflowContext = { workflowInstance: { id: questionId, workflowId: EMPLOYEE_QUESTION_WORKFLOW_ID, ...scope } }
@@ -44,6 +44,7 @@ beforeEach(() => {
   userHasAllFeatures.mockResolvedValue(true)
   getBriefReview.mockResolvedValue({ orderRef: actor.caseId, versionId })
   getPostReview.mockResolvedValue(null)
+  researchStatus.mockResolvedValue({ documents: [] })
   findById.mockResolvedValue({ isActive: true, customerEntityId })
   authoring.findOwnedDefinition.mockResolvedValue({ enabled: true, metadata: { generatedBy: { module: 'agency_operations', ownerId: 'employee_question' } } })
   jest.mocked(gateTaskAction).mockResolvedValue({ allowed: true, task: parent, visibility: {} } as never)
@@ -134,6 +135,46 @@ test('only persisted assigned-customer answer enters G, using immutable binding 
   expect(executeWorkflow).not.toHaveBeenCalled()
 })
 
+test.each(['WZR-STRATEGIA', 'WZR-TOV', 'WZR-PLAN'])('binds a current %s and preserves replay and client answer after its version advances', async (templateId) => {
+  getBriefReview.mockResolvedValue(null)
+  researchStatus.mockResolvedValue({ documents: [{ templateId, versionId, versionNo: 1, status: 'blocked' }] })
+  const service = createEmployeeQuestionService(container)
+  await service.ask({ ...actor, ...request })
+  expect(researchStatus).toHaveBeenCalledWith(scope, actor.caseId)
+  researchStatus.mockResolvedValue({ documents: [{ templateId, versionId: uuid(14), versionNo: 2, status: 'draft' }] })
+  await expect(service.ask({ ...actor, ...request })).resolves.toMatchObject({ replayed: true })
+  expect(researchStatus).toHaveBeenCalledTimes(1)
+  await expect(service.ask({ ...actor, ...request, documentVersionId: uuid(14) })).rejects.toMatchObject({ status: 409 })
+  customerTask.status = 'COMPLETED'
+  customerTask.completedBy = customerUserId
+  customerTask.formData = { [EMPLOYEE_QUESTION_ANSWER_KEY]: 'This answer concerns the original version.' }
+  await service.receiveResponse({}, workflowContext)
+  expect(submit).toHaveBeenCalledWith({ ...scope, customerUserId, customerEntityId }, actor.caseId, expect.objectContaining({ documentVersionReference: versionId }))
+  expect(parent.status).toBe('PENDING')
+  expect(parentWorkflow.status).toBe('PAUSED')
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  question = null
+  await expect(service.ask({ ...actor, ...request, eventId: 'new-question' })).rejects.toMatchObject({ status: 404 })
+})
+
+test('offers only supported current case documents, without requiring QA approval', async () => {
+  const documents = ['BRIEF', 'POST', 'STRATEGIA', 'TOV', 'PLAN'].map((name, index) => ({
+    templateId: `WZR-${name}`, outputId: `KLI-${name}`, versionId: uuid(20 + index), versionNo: index + 1, status: index % 2 ? 'draft' : 'blocked',
+  }))
+  researchStatus.mockResolvedValue({ documents: [...documents,
+    { templateId: 'WZR-ZRODLA', outputId: 'WEW-ZRODLA', versionId, versionNo: 1, status: 'approved' },
+    { templateId: 'WZR-PLAN', outputId: 'KLI-PLAN', versionId: null, versionNo: null, status: 'draft' },
+  ] })
+  const service = createEmployeeQuestionService(container)
+  expect((await service.list(actor)).documents).toEqual(documents.map((document) => ({
+    versionId: document.versionId, documentCode: document.outputId, versionLabel: `${document.versionNo}.0`,
+  })))
+  expect(researchStatus).toHaveBeenCalledWith(scope, actor.caseId)
+  getBriefReview.mockResolvedValue(null)
+  await expect(service.ask({ ...actor, ...request })).rejects.toMatchObject({ status: 404 })
+  expect(startWorkflow).not.toHaveBeenCalled()
+})
+
 test('pending task or completion by another principal cannot manufacture a client response', async () => {
   question = savedQuestion()
   await expect(createEmployeeQuestionService(container).receiveResponse({}, workflowContext)).rejects.toMatchObject({ status: 404 })
@@ -153,7 +194,7 @@ test('saved customer answer remains visible when G receipt failed; invisible exc
   const result = await createEmployeeQuestionService(container).list(actor)
   expect(result.questions[0]).toMatchObject({ answer: 'Customer answer preserved', submissionId: null, workflowStatus: 'FAILED', parentTaskId: parentId })
   jest.mocked(decideTaskAccess).mockReturnValue({ visible: false, actable: false } as never)
-  expect(await createEmployeeQuestionService(container).list(actor)).toEqual({ configured: true, parents: [], questions: [] })
+  expect(await createEmployeeQuestionService(container).list(actor)).toEqual({ configured: true, documents: [], parents: [], questions: [] })
 })
 
 test('unconfigured questions have no enabled ask action and never create workflow definitions on demand', async () => {
