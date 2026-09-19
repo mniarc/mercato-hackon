@@ -46,6 +46,7 @@ export function createAgencyAnalysisWorkflowDefinition(rawPolicy: AnalysisExecut
     },
     { transitionId: 'assign_research_exception', fromStepId: 'exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
       condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    // Recording a continued hold is not permission to resume or spend again.
     ...exception.transitions,
     ...(handoffBrief ? [{
       transitionId: 'handoff_brief', fromStepId: 'exception_checked', toStepId: 'brief_handoff', trigger: 'auto' as const, condition: noException,

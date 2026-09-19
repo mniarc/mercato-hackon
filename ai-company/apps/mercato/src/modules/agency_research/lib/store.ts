@@ -266,3 +266,49 @@ export async function listOrders(em: EntityManager, scope: ResearchScope): Promi
   }
   return [...byRef.values()].sort((a, b) => (b.lastActivityAt?.getTime() ?? 0) - (a.lastActivityAt?.getTime() ?? 0))
 }
+
+export type LiveAgentRun = {
+  id: string
+  agentId: string
+  stepId: string | null
+  status: string
+  model: string | null
+  inputTokens: number | null
+  outputTokens: number | null
+  costMinor: number | null
+  createdAt: Date
+  completedAt: Date | null
+}
+
+/**
+ * The agent calls behind an order as they happen — including the ones still
+ * running, which no task run lists yet. Case-driven runs are linked through the
+ * case's workflow instance; CLI runs only through the ids the task runs saved.
+ * A read-only join over the orchestrator's table, newest first, capped.
+ */
+export async function liveAgentRuns(em: EntityManager, scope: ResearchScope, orderRef: string, limit = 80): Promise<LiveAgentRun[]> {
+  const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...scope, orderRef }, { fields: ['agentRunIds'] }, scope)
+  const known = [...new Set(runs.flatMap((run) => (Array.isArray(run.agentRunIds) ? run.agentRunIds : []) as string[]))]
+  const rows = await em.getConnection().execute<Array<Record<string, unknown>>>(
+    `select r.id, r.agent_id, r.step_id, r.status, r.model, r.input_tokens, r.output_tokens, r.cost_minor, r.created_at, r.completed_at
+       from agent_runs r
+      where r.tenant_id = ? and r.organization_id = ?
+        and (r.workflow_instance_id = (select c.workflow_instance_id from agency_cases c where c.id::text = ? and c.tenant_id = ? and c.organization_id = ?)
+             or r.id = any(?::uuid[]))
+      order by r.created_at desc
+      limit ?`,
+    [scope.tenantId, scope.organizationId, orderRef, scope.tenantId, scope.organizationId, known, limit],
+  )
+  return rows.map((row) => ({
+    id: String(row.id),
+    agentId: String(row.agent_id),
+    stepId: row.step_id ? String(row.step_id) : null,
+    status: String(row.status),
+    model: row.model ? String(row.model) : null,
+    inputTokens: row.input_tokens === null || row.input_tokens === undefined ? null : Number(row.input_tokens),
+    outputTokens: row.output_tokens === null || row.output_tokens === undefined ? null : Number(row.output_tokens),
+    costMinor: row.cost_minor === null || row.cost_minor === undefined ? null : Number(row.cost_minor),
+    createdAt: new Date(String(row.created_at)),
+    completedAt: row.completed_at ? new Date(String(row.completed_at)) : null,
+  }))
+}

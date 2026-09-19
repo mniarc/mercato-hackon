@@ -15,6 +15,7 @@ import { BudgetPausedError, createLedger, type LedgerEvent } from './research/le
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
+import type { TemplateId } from '../data/schemas/envelope'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
 import { readBriefReview } from './briefReview/read'
@@ -71,7 +72,7 @@ import { runPublicationConfirmationStep } from './research/steps/publicationConf
 import { runPackageStep } from './research/steps/package'
 import { runClosureStep } from './research/steps/closure'
 import { createOrchestratorRunner } from './runners'
-import { AgencyResearchDocumentVersion } from '../data/entities'
+import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../data/entities'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
 
 export { AGENCY_RESEARCH_SERVICE }
@@ -94,6 +95,8 @@ export type RunResearchOptions = {
   selectedTopicId?: string | null
   /** Search for competitors again instead of reusing the stored selection. */
   freshSelection?: boolean
+  /** Skip the chain groups before the one that holds this step (their stored versions are the inputs). */
+  resumeFrom?: ResearchStep | null
   maxCostPln?: number
   cache?: PipelineCache
   concurrency?: number
@@ -118,6 +121,23 @@ export function defaultModels(env: NodeJS.ProcessEnv = process.env): ModelSet {
 
 const stepOrder: ResearchStep[] = [...researchSteps]
 const reaches = (through: ResearchStep, step: ResearchStep) => stepOrder.indexOf(through) >= stepOrder.indexOf(step)
+/** The document a chain group leaves as its output; read back when a resumed run skips the group. */
+const groupOutput: Record<ResearchStep, TemplateId> = {
+  '3.2': 'WZR-ZRODLA', '3.5': 'WZR-KONKURENCJA', '3.8': 'WZR-USTALENIA', '4.2': 'WZR-BRIEF', '5.4': 'WZR-STRATEGIA',
+  '6.7': 'WZR-ZLECENIE-POSTU', '7.3': 'WZR-POST', '8.7': 'WZR-POTWIERDZENIE-PUBLIKACJI', '9.3': 'WZR-PAKIET',
+}
+
+/** Only the resumed groups (including their bounded author repairs), never another phase's workers. */
+export function resumedResearchTaskSteps(from: ResearchStep, through: ResearchStep): string[] {
+  const groups: Record<ResearchStep, string[]> = {
+    '3.2': ['3.1', '3.2'], '3.5': ['3.3', '3.4', '3.5'],
+    '3.8': ['3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8'],
+    '4.2': ['4.1', '4.2'], '5.4': ['5.1', '5.2', '5.3', '5.4'],
+    '6.7': ['6.1', '6.2', '6.3', '6.5', '6.7'], '7.3': ['7.1', '7.2', '7.3'],
+    '8.7': ['8.2', '8.3', '8.7'], '9.3': ['9.1', '9.3'],
+  }
+  return [...new Set(stepOrder.filter((step) => reaches(step, from) && reaches(through, step)).flatMap((step) => groups[step]))]
+}
 
 /** 3.2 as a step over the shared context: fetch → sources rows → pipeline → WEW-ZRODLA v1. */
 export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
@@ -323,9 +343,36 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
   ]
   let completedThrough: ResearchStep | null = null
   let currentStep: ResearchStep = '3.2'
+  if (opts.resumeFrom) {
+    // The authorized caller establishes recovery; do not sweep unrelated phase workers.
+    const orphaned = await em.find(AgencyResearchTaskRun, {
+      ...scope, orderRef, status: 'running', stepId: { $in: resumedResearchTaskSteps(opts.resumeFrom, opts.through) },
+    })
+    for (const run of orphaned) {
+      run.status = 'failed'
+      run.error = `[internal] superseded by a resumed run from ${opts.resumeFrom} at ${new Date().toISOString()}`
+      run.finishedAt = new Date()
+    }
+    if (orphaned.length) await em.flush()
+  }
   try {
     for (const { step, run } of chain) {
       if (!reaches(opts.through, step)) break
+      if (opts.resumeFrom && !reaches(step, opts.resumeFrom)) {
+        // Resumed run: this group already produced its current versions; the next group reads them from the store.
+        versionsByStep[step] = (await currentInputVersion(em, scope, orderRef, groupOutput[step]))?.versionId ?? null
+        if (step === '3.8') {
+          // Carry the saved gate into the resumed native result; skipping the
+          // analysis is not a new QA pass, nor should it erase the real one.
+          const qa = await em.findOne(AgencyResearchTaskRun, { ...scope, orderRef, stepId: '3.7' }, { orderBy: { createdAt: 'desc' } })
+          const verdict = (qa?.qaResult as { verdict?: unknown } | null)?.verdict
+          if (qa?.status === 'done' && verdict === 'ready') qaVerdict = 'ready'
+          else if (verdict === 'to_fix' || verdict === 'exception') qaVerdict = verdict
+        }
+        completedThrough = step
+        log(`resume: skipping ${step}, current versions stand`)
+        continue
+      }
       currentStep = step
       const outcome = await run(ctx)
       if (!outcome) break
@@ -384,6 +431,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         through: parsed.through,
         selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,
+        resumeFrom: parsed.resumeFrom ?? null,
         agentRunIds,
       })
       const { versionsByStep: _versionsByStep, ...result } = outcome

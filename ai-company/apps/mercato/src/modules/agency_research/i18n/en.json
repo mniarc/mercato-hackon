@@ -47,5 +47,16 @@
   "agencyResearch.orders.detail.runs.startedAt": "Started",
   "agencyResearch.orders.detail.runs.error": "Error",
   "agencyResearch.orders.detail.runs.output": "Output",
-  "agencyResearch.orders.detail.runs.open": "Open version"
+  "agencyResearch.orders.detail.runs.open": "Open version",
+  "agencyResearch.orders.detail.agents.title": "Agent calls",
+  "agencyResearch.orders.detail.agents.live": "live",
+  "agencyResearch.orders.detail.agents.summary": "{count} calls · {running} running · {cost} PLN so far",
+  "agencyResearch.orders.detail.agents.empty": "No agent calls yet.",
+  "agencyResearch.orders.detail.agents.startedAt": "Started",
+  "agencyResearch.orders.detail.agents.agent": "Agent",
+  "agencyResearch.orders.detail.agents.status": "Status",
+  "agencyResearch.orders.detail.agents.model": "Model",
+  "agencyResearch.orders.detail.agents.tokens": "Tokens in / out",
+  "agencyResearch.orders.detail.agents.cost": "Cost (PLN)",
+  "agencyResearch.orders.detail.agents.duration": "Duration"
 }

@@ -108,6 +108,7 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       })
     },
     async confirm(identity, orderId) {
+      let launch: (() => Promise<void>) | undefined
       const receipt = await locked(identity, async () => {
         const { sales, gateway } = await dependencies(identity)
         let order = await sales.loadOrder(orderId)
@@ -125,14 +126,20 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
           const activation = await activatePaidPurchase({ identity, caseId: binding.reservedCaseId,
             orderId, paymentId: payment.id, originalPurchase: binding.originalPurchase, termsAcceptedAt: binding.termsAcceptedAt })
           if (activation.caseId !== binding.reservedCaseId) throw new Error('Purchase activation returned an unexpected case.')
-          order = await sales.saveActivation(orderId, activation)
+          order = await sales.saveActivation(orderId, { caseId: activation.caseId, workflowInstanceId: activation.workflowInstanceId })
+          launch = activation.launch
         }
         payment = await sales.loadPayment(orderId)
         if (!payment) throw new Error('The native payment disappeared after reconciliation.')
         return purchaseReceipt(order, payment, transaction)
       })
-      // Payment/activation and its customer lock have committed before native
-      // research may be queued. Reconfirmation recovers this handoff idempotently.
+      // The research step is async and paid: dispatch it only once the purchase rows are committed.
+      if (launch) {
+        await launch()
+        return receipt.status === 'paid' ? { ...receipt, processing: await readPaidAnalysis(identity, orderId) } : receipt
+      }
+      // Reconfirmation recovers a committed, not-yet-dispatched activation;
+      // the bootstrap recognizes both current and historical purchase layouts.
       return receipt.status === 'paid' ? { ...receipt, processing: await startPaidAnalysis(identity, orderId) } : receipt
     },
     async read(identity, orderId) {

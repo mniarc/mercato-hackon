@@ -4,7 +4,7 @@ import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import type { OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { orderStatus } from '../../lib/store'
+import { liveAgentRuns, orderStatus } from '../../lib/store'
 
 /**
  * Staff read of an order's process state: every step execution with its
@@ -28,6 +28,19 @@ const taskRunSchema = z.object({
   finishedAt: z.string().nullable(),
 })
 
+const agentRunSchema = z.object({
+  id: z.string(),
+  agentId: z.string(),
+  stepId: z.string().nullable(),
+  status: z.string(),
+  model: z.string().nullable(),
+  inputTokens: z.number().int().nullable(),
+  outputTokens: z.number().int().nullable(),
+  costMinor: z.number().nullable(),
+  createdAt: z.string(),
+  completedAt: z.string().nullable(),
+})
+
 export const metadata = {
   GET: { requireAuth: true, requireFeatures: ['agency_research.documents.view'] },
 }
@@ -41,13 +54,15 @@ export async function GET(request: Request): Promise<Response> {
   const scope = { tenantId: auth.tenantId, organizationId: auth.orgId }
   const container = await createRequestContainer()
   const em = container.resolve<EntityManager>('em')
-  const status = await orderStatus(em, scope, query.data.order_ref)
+  const [status, agentRuns] = await Promise.all([orderStatus(em, scope, query.data.order_ref), liveAgentRuns(em, scope, query.data.order_ref)])
   return NextResponse.json({
     orderRef: query.data.order_ref,
     totalPln: status.totalPln,
     sources: status.sources,
     documents: status.documents.map((d) => ({ ...d, updatedAt: d.updatedAt ? d.updatedAt.toISOString() : null })),
     taskRuns: status.taskRuns.map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), finishedAt: r.finishedAt ? r.finishedAt.toISOString() : null })),
+    // The calls behind the steps, newest first, running ones included — what a ledger row cannot show until its step closes.
+    agentRuns: agentRuns.map((r) => ({ ...r, createdAt: r.createdAt.toISOString(), completedAt: r.completedAt ? r.completedAt.toISOString() : null })),
   })
 }
 
@@ -68,6 +83,7 @@ export const openApi: OpenApiRouteDoc = {
               z.object({ templateId: z.string(), outputId: z.string(), status: z.string(), versionNo: z.number().int().nullable(), versionId: z.string().nullable(), updatedAt: z.string().nullable() }),
             ),
             taskRuns: z.array(taskRunSchema),
+            agentRuns: z.array(agentRunSchema),
           }),
         },
       ],

@@ -104,6 +104,30 @@ it('refuses a whole-analysis rerun when service persistence outlived the native 
   expect(run).not.toHaveBeenCalled()
 })
 
+it('ordinary redelivery neither resumes a running producer nor re-spends a saved budget hold', async () => {
+  status.mockResolvedValue({ taskRuns: [{ id: 'existing-task', stepId: '3.2', status: 'running' }] })
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toMatchObject({ status: 409 })
+  const execution = context()
+  const saved = { ...result, completedThrough: null, caseId, requestedThrough: '3.8', state: 'waiting' }
+  execution.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] = { result: saved }
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: workflowId, by: userId, attempt: 1 }
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)).resolves.toEqual(saved)
+  expect(run).not.toHaveBeenCalled()
+})
+
+it('fixture analysis never resolves the paid social scraper even with a buyer profile', async () => {
+  const previousFixture = process.env.AGENCY_TEST_NATIVE_TRIAGE
+  process.env.AGENCY_TEST_NATIVE_TRIAGE = '1'
+  readScoped.mockResolvedValue({ buffer: Buffer.from(JSON.stringify({ ...material, order: { ...material.order, official_social: { url: 'https://www.linkedin.com/company/example/' } } })) })
+  try {
+    await createAnalysisWorkflowActivity(container)({ caseId, policy }, context())
+    expect(run.mock.calls[0][0].request).not.toHaveProperty('socialPosts')
+  } finally {
+    if (previousFixture === undefined) delete process.env.AGENCY_TEST_NATIVE_TRIAGE
+    else process.env.AGENCY_TEST_NATIVE_TRIAGE = previousFixture
+  }
+})
+
 it.each([
   { completedThrough: null },
   { completedThrough: '3.5' },
@@ -145,6 +169,7 @@ it('pins staff policy in the native activity and keeps incomplete work away from
   ] })
   expect(definition.steps.find((step) => step.stepId === 'waiting')!.stepType).toBe('WAIT_FOR_SIGNAL')
   expect(definition.transitions.some((transition) => transition.fromStepId === 'waiting')).toBe(false)
+  expect(definition.transitions.find((transition) => transition.transitionId === 'research_exception_keep_blocked')?.toStepId).toBe('waiting')
 })
 
 it('hands off saved brief outcomes through the native function before routing the research result', () => {

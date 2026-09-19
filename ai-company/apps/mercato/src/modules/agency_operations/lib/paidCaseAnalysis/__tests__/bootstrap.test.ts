@@ -9,7 +9,7 @@ import { DEMO_PURCHASE_WORKER_ID, DEMO_PURCHASE_WORKFLOW_ID } from '../../orderB
 import { readDemoPurchaseConfiguration } from '../../orderBootstrap/configure'
 import { createNativeDemoSales } from '../../orderBootstrap/nativeSales'
 import { createDemoPaymentGateway, isVerifiedDemoCapture } from '../../orderBootstrap/payment'
-import { AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from '../../analysisProcess/workflow'
+import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from '../../analysisProcess/workflow'
 import { createAnalysisWorkflowActivity } from '../../analysisProcess/activity'
 import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../bootstrap'
 import { mapPaidPurchaseMaterial } from '../material'
@@ -113,6 +113,21 @@ test('read-only purchase reload reports configured readiness without creating or
   expect(await createPaidCaseAnalysisReader(container)(identity, orderId)).toEqual({ state: 'ready', workflowInstanceId: purchaseWorkflowId })
   expect(startWorkflow).not.toHaveBeenCalled(); expect(executeWorkflow).not.toHaveBeenCalled(); expect(em.flush).not.toHaveBeenCalled()
   expect(agencyCase.workflowInstanceId).toBe(purchaseWorkflowId)
+})
+
+test('the teammate direct-analysis purchase layout projects the same case and verifies its separate original receipt', async () => {
+  agencyCase.agentWorkerId = AGENCY_ANALYSIS_WORKER_ID
+  agencyCase.materialFileName = 'analysis-order.json'
+  purchaseWorkflow.workflowId = AGENCY_ANALYSIS_WORKFLOW_ID
+  purchaseWorkflow.status = 'WAITING_FOR_ACTIVITIES'
+  purchaseWorkflow.metadata = { entityType: 'agency_operations:agency_case', entityId: caseId }
+  purchaseWorkflow.context = { caseId, purchase: { orderId, paymentId, demoOnly: true, materialHash: 'analysis-order-hash',
+    receiptAttachmentId: uuid(24), receiptHash: origin.materialHash } }
+  expect(await createPaidCaseAnalysisReader(container)(identity, orderId)).toMatchObject({ state: 'started', workflowInstanceId: purchaseWorkflowId, replayed: true })
+  expect(await createPaidCaseAnalysisBootstrap(container)(identity, orderId)).toMatchObject({ state: 'started', workflowInstanceId: purchaseWorkflowId, replayed: true })
+  expect(readScoped).toHaveBeenCalledWith(expect.objectContaining({ attachmentId: uuid(24), requirePrivatePartition: true }))
+  expect(agencyCase.materialAttachmentId).toBe(uuid(22))
+  expect(startWorkflow).not.toHaveBeenCalled(); expect(executeWorkflow).not.toHaveBeenCalled()
 })
 
 test('literal buyer fields map into teammate input only with the exact paid case and matching explicit product policy', () => {

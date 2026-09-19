@@ -194,6 +194,25 @@ test('a confirmation retry after activation failure reuses the reserved case ide
   expect(activate.mock.calls.map(([value]) => value.caseId)).toEqual([uuid(9), uuid(9)])
 })
 
+test('direct teammate activation launches once after commit and returns current processing without a second bootstrap', async () => {
+  let transactionOpen = false
+  em.transactional.mockImplementationOnce(async (fn) => {
+    transactionOpen = true
+    const result = await fn(em)
+    transactionOpen = false
+    return result
+  })
+  const launch = jest.fn(async () => { expect(transactionOpen).toBe(false) })
+  activate.mockResolvedValueOnce({ caseId: uuid(9), workflowInstanceId: uuid(10), launch })
+  readPaidAnalysis.mockResolvedValue({ state: 'started', workflowInstanceId: uuid(10), nativeStatus: 'WAITING_FOR_ACTIVITIES', replayed: true })
+  expect(await createDemoPurchaseService(container, activate).confirm(identity, order.id)).toMatchObject({
+    status: 'paid', processing: { state: 'started', workflowInstanceId: uuid(10) },
+  })
+  expect(launch).toHaveBeenCalledTimes(1)
+  expect(startPaidAnalysis).not.toHaveBeenCalled()
+  expect(saveActivation).toHaveBeenCalledWith(order.id, { caseId: uuid(9), workflowInstanceId: uuid(10) })
+})
+
 test('foreign ownership and mismatched native payment cannot activate', async () => {
   const service = createDemoPurchaseService(container, activate)
   await expect(service.confirm({ ...identity, customerUserId: uuid(90) }, order.id)).rejects.toThrow()

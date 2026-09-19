@@ -1,4 +1,6 @@
 import { isDeepStrictEqual } from 'node:util'
+import { createHash } from 'node:crypto'
+import { z } from 'zod'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
@@ -45,9 +47,37 @@ function createPaidCaseAnalysisAccess(container: AppContainer, dispatch: boolean
       }, dispatch ? { lockMode: LockMode.PESSIMISTIC_WRITE } : undefined, scope)
       if (!agencyCase) conflict()
       const purchaseWorkflow = await findOneWithDecryption(tx, WorkflowInstance, {
-        ...scope, id: binding.workflowInstanceId, workflowId: DEMO_PURCHASE_WORKFLOW_ID, deletedAt: null,
+        ...scope, id: binding.workflowInstanceId, deletedAt: null,
       }, undefined, scope)
-      if (!purchaseWorkflow || purchaseWorkflow.context.caseId !== agencyCase.id || purchaseWorkflow.context.orderId !== order.id
+      if (purchaseWorkflow?.workflowId === AGENCY_ANALYSIS_WORKFLOW_ID) {
+        // New teammate activation uses the analysis workflow itself; do not
+        // run the legacy awaiting-execution bootstrap a second time.
+        const origin = z.object({ orderId: z.uuid(), paymentId: z.uuid(), demoOnly: z.literal(true),
+          materialHash: z.string().min(1), receiptAttachmentId: z.uuid().optional(), receiptHash: z.string().optional() })
+          .safeParse(purchaseWorkflow.context.purchase)
+        if (!origin.success || origin.data.orderId !== order.id || origin.data.paymentId !== payment.id
+          || purchaseWorkflow.context.caseId !== agencyCase.id || agencyCase.agentWorkerId !== AGENCY_ANALYSIS_WORKER_ID
+          || purchaseWorkflow.metadata?.entityType !== 'agency_operations:agency_case' || purchaseWorkflow.metadata.entityId !== agencyCase.id) conflict()
+        const current = agencyCase.workflowInstanceId === purchaseWorkflow.id ? purchaseWorkflow : await findOneWithDecryption(tx, WorkflowInstance, {
+          ...scope, id: agencyCase.workflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, deletedAt: null,
+        }, undefined, scope)
+        if (!current || current.context.caseId !== agencyCase.id || !isDeepStrictEqual(current.context.purchase, purchaseWorkflow.context.purchase)) conflict()
+        if (origin.data.receiptAttachmentId) {
+          const receipt = await container.resolve<AttachmentService>('attachmentService').readScoped({
+            attachmentId: origin.data.receiptAttachmentId, auth: { sub: config.executionUserId, tenantId: scope.tenantId, orgId: scope.organizationId },
+            expectedOwner: { entityId: AGENCY_CASE_ATTACHMENT_ENTITY_ID, recordId: agencyCase.id },
+            expectedAssignment: { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: agencyCase.id },
+            expectedPartitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE, requirePrivatePartition: true,
+          })
+          const saved = paidPurchaseMaterialSchema.parse(JSON.parse(receipt.buffer.toString('utf8')))
+          if (createHash('sha256').update(receipt.buffer).digest('hex') !== origin.data.receiptHash
+            || saved.caseId !== agencyCase.id || saved.orderId !== order.id || saved.paymentId !== payment.id
+            || !isDeepStrictEqual(saved.identity, identity) || !isDeepStrictEqual(saved.originalPurchase, binding.originalPurchase)
+            || saved.termsAcceptedAt !== binding.termsAcceptedAt) conflict()
+        }
+        return { state: 'started', workflowInstanceId: current.id, nativeStatus: current.status, replayed: true }
+      }
+      if (!purchaseWorkflow || purchaseWorkflow.workflowId !== DEMO_PURCHASE_WORKFLOW_ID || purchaseWorkflow.context.caseId !== agencyCase.id || purchaseWorkflow.context.orderId !== order.id
         || purchaseWorkflow.context.paymentId !== payment.id || purchaseWorkflow.context.materialAttachmentId !== agencyCase.materialAttachmentId) conflict()
       const origin = paidPurchaseOriginSchema.parse({ orderId: order.id, paymentId: payment.id,
         purchaseWorkflowInstanceId: purchaseWorkflow.id, materialHash: purchaseWorkflow.context.materialHash })
