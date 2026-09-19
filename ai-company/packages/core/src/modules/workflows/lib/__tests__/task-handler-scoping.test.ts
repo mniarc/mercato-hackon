@@ -281,4 +281,22 @@ describe('completeUserTask authorization', () => {
       code: 'TASK_ASSIGNED_TO_ANOTHER_USER',
     })
   })
+
+  test('rejects a lost completion race before mutating the managed task or continuing', async () => {
+    const row = makeTask({ assignedTo: USER_A })
+    const { em, nativeUpdate, flush, findOne } = makeEm([row])
+    nativeUpdate.mockResolvedValueOnce(0)
+
+    await expect(complete(em, USER_A)).rejects.toMatchObject({
+      code: 'TASK_NOT_FOUND', message: 'Task already completed or reassigned',
+    })
+    expect(nativeUpdate).toHaveBeenCalledWith(expect.anything(), {
+      id: TASK_ID, tenantId: TENANT_A, organizationId: ORG_A,
+      status: { $in: ['PENDING', 'IN_PROGRESS'] }, assignedTo: USER_A, claimedBy: null,
+    }, expect.objectContaining({ status: 'COMPLETED', completedBy: USER_A }))
+    expect(row.status).toBe('PENDING')
+    expect(row.completedBy).toBeUndefined()
+    expect(flush).not.toHaveBeenCalled()
+    expect(findOne).toHaveBeenCalledTimes(1)
+  })
 })

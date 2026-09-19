@@ -179,8 +179,41 @@ export async function completeUserTask(
   // it once the payload is merged into the run context.
   const completionData = withRecordedDecision(formData, chosenDecision?.id)
 
-  // Update task
+  // Claim completion with the same conditional-write pattern as claimUserTask.
+  // Two requests may both have read an actionable task, but only one may record
+  // its decision and perform the continuation. Keep the observed ownership in
+  // the predicate so a concurrent claim/reassignment is not silently overwritten.
   const now = new Date()
+  const completed = await em.nativeUpdate(
+    UserTask,
+    {
+      id: taskId,
+      tenantId: scope.tenantId,
+      organizationId: scope.organizationId,
+      status: { $in: ['PENDING', 'IN_PROGRESS'] },
+      assignedTo: task.assignedTo ?? null,
+      claimedBy: task.claimedBy ?? null,
+    },
+    {
+      status: 'COMPLETED',
+      formData: completionData,
+      completedBy: userId,
+      completedAt: now,
+      comments: comments || null,
+      updatedAt: now,
+    },
+  )
+  if (completed === 0) {
+    throw new UserTaskError(
+      'Task already completed or reassigned',
+      'TASK_NOT_FOUND',
+      { taskId },
+    )
+  }
+
+  // Mirror the winning write into this request's identity map, as claiming does.
+  // Completion and continuation are not one transaction: a process crash after
+  // this write still requires native workflow recovery, not another completion.
   task.status = 'COMPLETED'
   task.formData = completionData
   task.completedBy = userId
