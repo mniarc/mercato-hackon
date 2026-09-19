@@ -20,3 +20,13 @@ describe('resumePoint — where a re-entered research activity continues', () =>
     expect(resumePoint([run('3.1', 'done'), run('3.2', 'done'), run('3.5', 'done'), run('3.6', 'done'), run('3.7', 'to_fix'), run('3.7', 'to_fix'), run('E.1', 'exception')])).toBe('3.8')
   })
 })
+
+describe('resumePoint — orphaned and crashed runs', () => {
+  it('resumes an orphaned running step (the process died) and a failed step at their group', () => {
+    expect(resumePoint([run('3.1', 'done'), run('3.2', 'running')])).toBe('3.2')
+    expect(resumePoint([run('3.1', 'done'), run('3.2', 'done'), run('3.3', 'failed')])).toBe('3.5')
+  })
+  it('resumes at the QA loop when a repair round was in flight', () => {
+    expect(resumePoint([run('3.1', 'done'), run('3.2', 'done'), run('3.5', 'done'), run('3.6', 'done'), run('3.7', 'to_fix'), run('3.2', 'done'), run('3.4', 'running')])).toBe('3.8')
+  })
+})

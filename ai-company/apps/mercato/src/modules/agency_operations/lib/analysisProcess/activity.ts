@@ -60,12 +60,17 @@ export function resumePoint(taskRuns: Array<{ stepId: string; status: string }>)
   const ordered = [...taskRuns]
   const last = ordered[ordered.length - 1]
   const paused = [...ordered].reverse().find((run) => run.status === 'paused_budget')
+  // A repair loop in flight (a 3.7 verdict exists) resumes at the QA group, whatever step the repair was on.
+  const inRepair = ordered.some((run) => run.stepId === '3.7')
   if (last.status === 'exception' && paused) return GROUP_OF[paused.stepId] ?? null
   if (last.status === 'paused_budget') return GROUP_OF[last.stepId] ?? null
   if (last.status === 'exception') {
     const before = ordered.filter((run) => run.stepId !== 'E.1').pop()
     return before ? (GROUP_OF[before.stepId] ?? null) : null
   }
+  // `running` here means orphaned: the process that ran it is gone (the activity would not be re-entered otherwise).
+  // `failed` is a crashed step. Both continue from their group; the resumed run marks the stale rows.
+  if (last.status === 'running' || last.status === 'failed') return inRepair ? '3.8' : (GROUP_OF[last.stepId] ?? null)
   return null
 }
 

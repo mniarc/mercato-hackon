@@ -4,6 +4,7 @@ import { configureAgencyTovProcess } from './lib/configureTovProcess'
 import { configureNativeClientTriage } from './agents/client-triage/configureWorkflow'
 import { readFile } from 'node:fs/promises'
 import { configureAgencyAnalysisProcess } from './lib/analysisProcess'
+import { restartAnalysisCase } from './lib/analysisProcess/restart'
 import { configureEmployeeQuestionWorkflow } from './lib/employeeQuestions/configure'
 import { configurePlanReviewWorkflow } from './lib/planReview/configure'
 import { configurePostReviewWorkflow } from './lib/postReview/configure'
@@ -140,4 +141,22 @@ const configurePurchase: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase]
+const resumeAnalysis: ModuleCli = {
+  command: 'resume-analysis',
+  async run(argv) {
+    const usage = '[internal] Usage: agency_operations resume-analysis --case <uuid> --tenant <uuid> --organization <uuid> --user <staff-uuid>'
+    const options = new Map<string, string>()
+    for (let index = 0; index < argv.length; index += 2) {
+      if (!['--case', '--tenant', '--organization', '--user'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
+      options.set(argv[index].slice(2), argv[index + 1])
+    }
+    const container = await createRequestContainer()
+    try {
+      const result = await restartAnalysisCase(container, { caseId: options.get('case'), tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user') })
+      process.stdout.write(`${JSON.stringify(result)}
+`)
+    } finally { await container.dispose() }
+  },
+}
+
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis]

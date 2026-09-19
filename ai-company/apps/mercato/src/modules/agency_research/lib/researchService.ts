@@ -61,7 +61,7 @@ import { runPublicationConfirmationStep } from './research/steps/publicationConf
 import { runPackageStep } from './research/steps/package'
 import { runClosureStep } from './research/steps/closure'
 import { createOrchestratorRunner } from './runners'
-import { AgencyResearchDocumentVersion } from '../data/entities'
+import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../data/entities'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
 
 export { AGENCY_RESEARCH_SERVICE }
@@ -317,6 +317,16 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
   ]
   let completedThrough: ResearchStep | null = null
   let currentStep: ResearchStep = '3.2'
+  if (opts.resumeFrom) {
+    // Rows still `running` belong to a process that no longer exists; the ledger and the case view must not show them as live.
+    const orphaned = await em.find(AgencyResearchTaskRun, { ...scope, orderRef, status: 'running' })
+    for (const run of orphaned) {
+      run.status = 'failed'
+      run.error = `[internal] superseded by a resumed run from ${opts.resumeFrom} at ${new Date().toISOString()}`
+      run.finishedAt = new Date()
+    }
+    if (orphaned.length) await em.flush()
+  }
   try {
     for (const { step, run } of chain) {
       if (!reaches(opts.through, step)) break
