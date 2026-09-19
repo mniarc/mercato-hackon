@@ -38,7 +38,8 @@ export type StrategyQaResult = { verdict: StrategyQaVerdict; findings: QaFinding
 
 const STRATEGY_MUST = mustKeysOf('WZR-STRATEGIA')
 const TOV_MUST = mustKeysOf('WZR-TOV')
-const UNIQUENESS = /\b(jedyn\w*|unikaln\w*|unikatow\w*|only\b|unique\w*|niepowtarzaln\w*)/i
+/** Same rule as the writer's gate: an exclusivity claim, never the adverb "only". */
+const UNIQUENESS = /\b(jedyn\w*|unikaln\w*|unikatow\w*|niepowtarzaln\w*|the only\b|only (one|company|framework|platform|vendor|provider|solution|tool)\b|unique\w*|no (one|body) else\b|nikt inny\b|exclusive(ly)?\b|wyłączn\w*)/i
 const supportRank = { declared_method: 0, documented_capability: 1, demonstrated_result: 2 } as const
 
 const finding = (code: QaFinding['code'], path: string, gap: string, fixStep: '5.2' | '5.3', severity: QaFinding['severity'] = 'blocking'): QaFinding => ({
@@ -170,6 +171,8 @@ export function reclassifyStrategyFindings(findings: QaFinding[]): QaFinding[] {
     // Length is governed by the contract's client-view budget, which the validator measures; a per-section
     // word count the QA agent invents is advice, never a blocker.
     if (f.code === 'limit_exceeded' && f.severity === 'blocking') return { ...f, severity: 'major' }
+    // A finding that concedes the document is right ("this is correct", "correctly identifies") is commentary, never a blocker.
+    if (f.severity === 'blocking' && /\b(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))\b/i.test(f.gap)) return { ...f, severity: 'major' }
     return f
   })
 }
