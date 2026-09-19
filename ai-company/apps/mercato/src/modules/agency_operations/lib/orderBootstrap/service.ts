@@ -150,7 +150,7 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
               // neither invent delivery nor stop the fulfilment branch below.
             }
           } else {
-            const attempt = paymentConfirmationStateSchema.parse({ ...baseAttempt, status: 'sending' })
+            const attempt = { ...baseAttempt, status: 'sending' as const }
             try {
               order = await sales.savePaymentConfirmation(orderId, attempt)
               binding = readPurchaseBinding(order)
