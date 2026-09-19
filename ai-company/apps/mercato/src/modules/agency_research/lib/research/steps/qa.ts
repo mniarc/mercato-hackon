@@ -123,7 +123,7 @@ export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|unde
 /** A finding that says the document is right is commentary. */
 export const CONCEDES_CORRECT = /(this is correct|correctly (identifies|states|labels|records|notes|acknowledges|flags)|is correct(ly)? (labeled|marked|stated))/i
 
-export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|insufficient evidence exists|no proof card|readiness:? ?'?(blocked|conditional)|plan[_ ]capacity|no (completion date|implementation evidence)|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
+export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|self-reported|single-customer|independently verified|independently (measured|audited|confirmed)|does not by itself prove|first-party (description|declaration|report|framing)|not (an )?independent(ly)?|insufficient evidence exists|no proof card|readiness:? ?'?(blocked|conditional)|plan[_ ]capacity|no (completion date|implementation evidence)|no (recorded|disclosed) (artifact|method)|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
 function fixStepForPath(path: string): AuthorStepId | null {
@@ -217,7 +217,8 @@ function compactForQa(documents: AnalysisDocuments): Record<string, unknown> {
   return {
     'WEW-ZRODLA': { ...documents.zrodla, facts: documents.zrodla.facts.map(({ locator: _locator, paraphrase: _paraphrase, ...fact }) => fact), sources: documents.zrodla.sources.map((s) => ({ source_id: s.source_id, access: s.access, kind: s.kind })) },
     'WEW-AUDYT': documents.audyt,
-    'WEW-KONKURENCJA': documents.konkurencja,
+    // Timestamps are not evidence, and they would make every rerun a new QA call with a new verdict.
+    'WEW-KONKURENCJA': documents.konkurencja ? { ...documents.konkurencja, channels: documents.konkurencja.channels.map(({ retrieved_at: _retrievedAt, ...channel }) => channel) } : null,
     'WEW-USTALENIA': documents.ustalenia,
   }
 }
