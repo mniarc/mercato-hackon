@@ -104,6 +104,10 @@ Manual signup verification uses `ai-company/apps/mercato/.mercato/agency-manual-
 Manual fixtures currently support the representative FLOW corpus, exact invited
 `QID: answer`/question-bound answers, and the actual selected topic `TOP02`.
 Arbitrary uploads must not fabricate facts. These are fixture limits, not product rules.
+The demo uses existing global execution limits (`agency_research/data/templates.ts`)
+and configured workflow caps. No per-case limits version or additional approval
+step is required; production version pinning is deferred in T24. Existing safety
+controls and explicit opt-in for paid execution remain unchanged.
 Live mode uses private `ai-company/apps/mercato/.env` central OpenRouter settings;
 see [agent configuration](../.dev-docs/.processes/current/agent-runs.md). `manual-live --allow-live`
 requires explicit paid-call approval and configured native policies. This guide

@@ -31,6 +31,8 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
   Update existing guidance; keep transient coordination in the conversation.
 - Keep requirements in `.specs/user-stories/`, actionable work and its priority in
   `.tasks/`, and run/setup instructions in `.demo-docs/`; do not duplicate a critical-task queue.
+- Demo execution may use existing global limits. Per-case STD-LIMITY versioning
+  is deferred (T24), not a demo gate; retain current safety controls and paid-call opt-in.
 - Ground business behavior in the relevant `.specs/user-stories` IDs. Name the
   source in each task; distinguish teammate frontend/ToV contracts from product
   requirements. Flag conflicts or missing business decisions instead of inventing

@@ -1,6 +1,6 @@
 # T24 - Pin approved configuration to agency execution
 
-State: active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)
+State: deferred beyond demo (global limits accepted; per-case versioning is not a demo prerequisite)
 Depends on: T23; coordinate T19 activation
 Owns: role-specific configuration beside the worker and its native workflow binding;
 introduce shared product configuration only when an actual process needs it
@@ -27,19 +27,20 @@ Sources: F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F
 - Prices, topic counts, budgets, template contents and allowed routes require an
   agency decision; do not invent defaults or claim unsupported monetary caps work.
 
-## Remaining STD-LIMITY seam
+## Demo decision and later STD-LIMITY seam
 
 Research, strategy, planning and post execution still read the teammate's
 `agency_research/data/templates.ts` limits. Phase cost authorization is pinned in
 the native analysis workflow policy, but neither that policy nor the saved order
-contains an approved STD-LIMITY version. This is missing code, not missing live proof.
+contains an approved STD-LIMITY version. The user accepts the existing global
+limits for the demo: do not add per-case configuration, version lookup or an
+approval workflow, and do not block demo delivery on this task. Keep current
+retry/timeout/spend safeguards and the existing fixture/live selection.
 
-Reuse the existing authorized workflow configuration and publish-new-version path;
-do not create a second settings store. Supply an explicitly approved limits version
-and snapshot, preserve it across phase handoffs/restarts, and make the corresponding
-consumers use it. Agency approval of the values is still required (F60-1 AC5);
-the module's v1.1 label alone is not approval. Preserve legacy runs explicitly
-instead of silently treating current constants as their historical configuration.
+Per-case version/snapshot pinning remains an unmet production requirement, not
+claimed implemented. Revisit only when production scope needs it, reusing native
+configuration rather than a second settings store. This demo decision does not
+authorize paid calls, real charges or publication.
 
 ## First bounded seam: T19
 
