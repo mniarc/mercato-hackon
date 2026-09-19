@@ -14,3 +14,17 @@ export const planningExecutionActivityResultSchema = z.discriminatedUnion('statu
 ])
 
 export type NativePlanningExecutionResult = z.infer<typeof planningExecutionActivityResultSchema>
+
+export const planningReviewHandoffResultSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('invited'), orderRef: z.string().min(1),
+    invitation: z.object({ workflowInstanceId: z.uuid(), taskId: z.uuid(), replayed: z.boolean() }),
+  }),
+  z.object({
+    status: z.literal('blocked'), orderRef: z.string().min(1), invitation: z.null(), reason: z.string().min(1),
+    nextAction: z.enum(['review_configuration', 'review_dependencies', 'reconcile_execution', 'review_qa', 'review_employee_exception']),
+    activationTaskRunId: z.string().optional(), templateId: z.string().optional(),
+  }),
+])
+
+export type PlanningReviewHandoffResult = z.infer<typeof planningReviewHandoffResultSchema>

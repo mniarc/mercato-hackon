@@ -3,9 +3,19 @@ import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema } from
 import { clientTriageInterpretationSchema } from '../../agents/client-triage/contract'
 import { analysisProcessResultSchema } from '../analysisProcess/contracts'
 import { postInstructionExecutionResultSchema, strategyProcessReferenceSchema, publicationPreparationResultSchema } from '@/modules/agency_research/lib/contracts'
-import { strategyExecutionActivityResultSchema } from '../strategyExecution/contracts'
-import { planningExecutionActivityResultSchema } from '../planningExecution/contracts'
+import { strategyExecutionActivityResultSchema, strategyReviewHandoffResultSchema } from '../strategyExecution/contracts'
+import { planningExecutionActivityResultSchema, planningReviewHandoffResultSchema } from '../planningExecution/contracts'
 import { postExecutionActivityResultSchema } from '../postExecution/contracts'
+import { briefRevisionActivityResultSchema } from '../briefRevision/contracts'
+
+export const caseBriefRevisionHandoffSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('invited'), versionId: z.uuid(),
+    invitation: z.object({ workflowInstanceId: z.uuid(), taskId: z.uuid(), replayed: z.boolean() }),
+    questions: z.array(z.object({ questionId: z.string(), question: z.string() })),
+  }),
+  z.object({ status: z.literal('blocked'), invitation: z.null(), reason: z.string().min(1), revision: briefRevisionActivityResultSchema }),
+])
 
 const strategyDocumentReferenceSchema = z.object({
   documentId: z.string().min(1), versionId: z.string().min(1),
@@ -72,10 +82,13 @@ export const caseProcessSubmissionSchema = z.object({
   }).nullable(),
   disposition: clientSubmissionDispositionSchema.nullable(),
   interpretation: clientTriageInterpretationSchema.nullable(),
+  briefRevisionHandoff: caseBriefRevisionHandoffSchema.nullable().optional(),
   strategyHandoff: caseStrategyHandoffSchema.nullable().optional(),
   strategyExecution: strategyExecutionActivityResultSchema.nullable().optional(),
+  strategyReviewHandoff: strategyReviewHandoffResultSchema.nullable().optional(),
   strategyPairContinuation: caseStrategyPairContinuationSchema.nullable().optional(),
   planningExecution: planningExecutionActivityResultSchema.nullable().optional(),
+  planningReviewHandoff: planningReviewHandoffResultSchema.nullable().optional(),
   postInstruction: postInstructionExecutionResultSchema.nullable().optional(),
   postExecution: postExecutionActivityResultSchema.nullable().optional(),
   publicationPreparation: publicationPreparationResultSchema.nullable().optional(),

@@ -51,3 +51,14 @@ test('uncertainty cannot become an answer, while a grounded clarification can us
 test('keeps original client input but strips deterministic routing hints', () => {
   expect(inputSchema.parse({ original: { eventId: 'event-1', text: 'What happens next?', scaffoldScenario: 'clarify' } })).toEqual({ original: { eventId: 'event-1', text: 'What happens next?' } })
 })
+
+test('routes supplied brief answers only with a server-bound revision target, without granting approval', () => {
+  const change: ClientTriageInterpretation = { ...interpretation,
+    parts: [{ ...interpretation.parts[0], intent: 'change', recommendedDisposition: 'change' }],
+    recommendedDisposition: 'change', responseMessage: null }
+  expect(projectClientTriageResult(scope, change, ['answered', 'client_reply']))
+    .toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized' })
+  expect(projectClientTriageResult(scope, change, ['brief_revision']))
+    .toMatchObject({ disposition: { kind: 'change', targetStepId: 'brief_revision' }, effectsApplied: false })
+  expect(projectClientTriageResult(scope, { ...change, parts: [...change.parts, interpretation.parts[0]] }, ['brief_revision']).disposition).toBeNull()
+})

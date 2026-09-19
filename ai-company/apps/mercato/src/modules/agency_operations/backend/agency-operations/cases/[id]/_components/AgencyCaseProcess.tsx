@@ -123,6 +123,27 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 {!submission.disposition.effectsApplied ? <p className="text-xs text-muted-foreground">{translate(`${key}.noBusinessEffects`, 'This triage result does not approve a document or apply business changes.')}</p> : null}
               </div>
             ) : null}
+            {submission.briefRevisionHandoff ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.briefRevision.title`)}</h3>
+                <StatusBadge variant={submission.briefRevisionHandoff.status === 'blocked' ? 'warning' : 'neutral'}>
+                  {translate(`${key}.briefRevision.${submission.briefRevisionHandoff.status}`)}
+                </StatusBadge>
+                {submission.briefRevisionHandoff.status === 'blocked' ? (
+                  <p className="text-sm">{translate(`${key}.briefRevision.reason`)}: <code>{submission.briefRevisionHandoff.reason}</code></p>
+                ) : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.briefRevision.noApprovalOrResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${encodeURIComponent(submission.briefRevisionHandoff.status === 'invited'
+                      ? submission.briefRevisionHandoff.invitation.workflowInstanceId : submission.workflow.id)}`}>
+                      {translate(`${key}.briefRevision.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.briefRevisionHandoff} title={translate(`${key}.briefRevision.title`)} />
+              </div>
+            ) : null}
             {submission.strategyHandoff ? (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">{translate(`${key}.strategy.title`)}</h3>
@@ -137,6 +158,23 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <p className="text-sm">{translate(`${key}.strategyExecution.${submission.strategyExecution.status}`)}</p>
                 <p className="text-sm text-muted-foreground">{translate(`${key}.strategyExecution.noApproval`)}</p>
                 <JsonDisplay data={submission.strategyExecution} title={translate(`${key}.strategyExecution.title`)} />
+              </div>
+            ) : null}
+            {submission.strategyReviewHandoff?.status === 'blocked' ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.strategyReviewHandoff.title`)}</h3>
+                <StatusBadge variant="warning">{translate(`${key}.strategyReviewHandoff.blocked`)}</StatusBadge>
+                <p className="text-sm">{translate(`${key}.strategyReviewHandoff.reason`)}: <code>{submission.strategyReviewHandoff.reason}</code></p>
+                <p className="text-sm">{translate(`${key}.strategyReviewHandoff.nextAction.${submission.strategyReviewHandoff.nextAction}`)}</p>
+                <p className="text-sm text-muted-foreground">{translate(`${key}.strategyReviewHandoff.noResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${encodeURIComponent(submission.workflow.id)}`}>
+                      {translate(`${key}.strategyReviewHandoff.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.strategyReviewHandoff} title={translate(`${key}.strategyReviewHandoff.title`)} />
               </div>
             ) : null}
             {submission.strategyPairContinuation ? (
@@ -159,6 +197,23 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <p className="text-sm">{translate(`${key}.planningExecution.${submission.planningExecution.status}`)}</p>
                 <p className="text-sm text-muted-foreground">{translate(`${key}.planningExecution.noApproval`)}</p>
                 <JsonDisplay data={submission.planningExecution} title={translate(`${key}.planningExecution.title`)} />
+              </div>
+            ) : null}
+            {submission.planningReviewHandoff?.status === 'blocked' ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.planningReviewHandoff.title`)}</h3>
+                <StatusBadge variant="warning">{translate(`${key}.planningReviewHandoff.blocked`)}</StatusBadge>
+                <p className="text-sm">{translate(`${key}.planningReviewHandoff.reason`)}: <code>{submission.planningReviewHandoff.reason}</code></p>
+                <p className="text-sm">{translate(`${key}.planningReviewHandoff.nextAction.${submission.planningReviewHandoff.nextAction}`)}</p>
+                <p className="text-sm text-muted-foreground">{translate(`${key}.planningReviewHandoff.noResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${encodeURIComponent(submission.workflow.id)}`}>
+                      {translate(`${key}.planningReviewHandoff.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.planningReviewHandoff} title={translate(`${key}.planningReviewHandoff.title`)} />
               </div>
             ) : null}
             {submission.postInstruction ? (

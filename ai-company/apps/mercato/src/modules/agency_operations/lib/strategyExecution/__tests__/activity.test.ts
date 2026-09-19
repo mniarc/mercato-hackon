@@ -1,4 +1,5 @@
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { assertAnalysisExecutionEnabled } from '../../analysisProcess/activity'
 import { createStrategyExecutionActivity } from '../activity'
 import { strategyExecutionActivityResultSchema } from '../contracts'
@@ -76,9 +77,17 @@ test('readiness from another acceptance cannot execute', async () => {
   expect(runStrategy).not.toHaveBeenCalled()
 })
 
-test('existing execution disable guard prevents model calls', async () => {
-  guard.mockImplementation(() => { throw new Error('Agency analysis execution is not enabled') })
-  await expect(createStrategyExecutionActivity(container as never)({}, context)).rejects.toThrow('not enabled')
+test('execution disabled is a saved configuration hold without model calls', async () => {
+  guard.mockImplementation(() => { throw new CrudHttpError(409, { error: 'Agency analysis execution is not enabled' }) })
+  await expect(createStrategyExecutionActivity(container as never)({}, context)).resolves.toEqual({
+    status: 'not_configured', orderRef: caseId, reason: 'execution_disabled',
+  })
+  expect(runStrategy).not.toHaveBeenCalled()
+})
+
+test('unexpected guard faults are not disguised as a configuration hold', async () => {
+  guard.mockImplementation(() => { throw new Error('Unexpected guard failure') })
+  await expect(createStrategyExecutionActivity(container as never)({}, context)).rejects.toThrow('Unexpected guard failure')
   expect(runStrategy).not.toHaveBeenCalled()
 })
 

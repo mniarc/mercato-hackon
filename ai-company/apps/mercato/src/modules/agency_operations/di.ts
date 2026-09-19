@@ -57,12 +57,19 @@ import { createPublicationPreparationHandoff } from './lib/publicationPreparatio
 import { PUBLICATION_PREPARATION_FUNCTION } from './lib/publicationPreparation/contracts'
 import { DEMO_PURCHASE_SERVICE } from './lib/orderBootstrap/contracts'
 import { createDemoPurchaseService } from './lib/orderBootstrap/service'
+import { BRIEF_REVISION_FUNCTION, BRIEF_REVISION_REVIEW_FUNCTION, BRIEF_REVISION_EXCEPTION_FUNCTION } from './lib/briefRevision/contracts'
+import { createBriefRevisionActivity } from './lib/briefRevision/activity'
+import { createBriefRevisionReviewHandoff } from './lib/briefRevision/reviewHandoff'
+import { createBriefRevisionResearchExceptionHandoff } from './lib/briefRevision/exceptionHandoff'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [`workflowFunction:${BRIEF_REVISION_FUNCTION}`]: asFunction(() => createBriefRevisionActivity(container)).scoped(),
+    [`workflowFunction:${BRIEF_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createBriefRevisionReviewHandoff(container)).scoped(),
+    [`workflowFunction:${BRIEF_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createBriefRevisionResearchExceptionHandoff(container)).scoped(),
     [DEMO_PURCHASE_SERVICE]: asFunction(() => createDemoPurchaseService(container)).scoped(),
     [`workflowFunction:${PUBLICATION_PREPARATION_FUNCTION}`]: asFunction(() => createPublicationPreparationHandoff(container)).scoped(),
     [POST_REVIEW_SERVICE]: asFunction(() => createPostReviewService(container)).scoped(),

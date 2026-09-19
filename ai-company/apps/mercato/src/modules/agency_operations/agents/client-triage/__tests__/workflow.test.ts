@@ -40,6 +40,20 @@ test('routes exhausted planning to the existing employee task before considering
     ])
 })
 
+test.each([
+  ['strategy_review', 'agencyStrategyPairInvitation', 'strategy_invited', 'strategy_waiting'],
+  ['plan_review', 'agencyPlanInvitation', 'plan_invited', 'planning_waiting'],
+])('keeps blocked %s waiting without automatic replay or a false completed review', (reviewStep, resultKey, invitedStep, waitingStep) => {
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === reviewStep)?.stepType).toBe('AUTOMATED')
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === reviewStep))
+    .toEqual([
+      expect.objectContaining({ toStepId: invitedStep, condition: { field: `${resultKey}.result.status`, operator: '=', value: 'invited' } }),
+      expect.objectContaining({ toStepId: waitingStep, condition: { field: `${resultKey}.result.status`, operator: '=', value: 'blocked' } }),
+    ])
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === waitingStep)?.stepType).toBe('WAIT_FOR_SIGNAL')
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === waitingStep)).toEqual([])
+})
+
 test('passes the stored original through native input mapping and projects the saved research result on a transition', () => {
   const triage = nativeClientSubmissionDefinition.steps.find((step) => step.stepId === 'triage')
   expect(triage?.activities).toEqual([expect.objectContaining({ activityType: 'INVOKE_AGENT', config: {
@@ -59,9 +73,9 @@ test('passes the stored original through native input mapping and projects the s
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
-    .toEqual(['answered', 'client_reply', 'brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
+    .toEqual(['answered', 'client_reply', 'brief_accepted', 'brief_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
       toStepId: target,
-      condition: ['brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
+      condition: ['brief_accepted', 'brief_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
         ? { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: target }
         : { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: target === 'answered' ? 'answer' : target === 'client_reply' ? 'clarify' : 'unapplied' },
     })))

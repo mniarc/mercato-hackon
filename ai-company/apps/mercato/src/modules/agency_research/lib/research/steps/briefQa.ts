@@ -11,6 +11,7 @@ import { RESEARCH_BRIEF_QA_AGENT_ID } from '../../agents/ids.brief'
 import { currentInputVersion, finishTaskRun, startTaskRun } from '../../store'
 import { collectCitedIds } from '../gate'
 import { countClientWords } from '../util'
+import { openEscalation } from '../escalate'
 import type { Ledger } from '../ledger'
 import { BudgetPausedError, createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
 import { knownBriefIds } from './brief'
@@ -173,11 +174,11 @@ export async function runBriefQa(opts: BriefQaOptions): Promise<BriefQaResult & 
   return { verdict: mergeBriefQaVerdict(findings), findings, summary: value.summary, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
 }
 
-export type BriefQaLoopResult = { verdict: BriefQaVerdict; findings: QaFinding[]; taskRunId: string; repairs: number; briefVersionId: string | null }
+export type BriefQaLoopResult = { verdict: BriefQaVerdict; findings: QaFinding[]; taskRunId: string; repairs: number; briefVersionId: string | null; escalationVersionId?: string }
 
 /**
  * 4.2 with its return path: an agent fault re-runs 4.1 with the findings as
- * repair input (≤ STD-LIMITY qa_repair_attempts), then stops as `to_fix`; a
+ * repair input (≤ STD-LIMITY qa_repair_attempts), then stops as `to_fix` with E.1; a
  * client gap or a clean brief moves the document to `ready_for_review` — the
  * questions are the client view, approval belongs to 4.3–4.6.
  */
@@ -239,7 +240,22 @@ export async function runBriefQaLoop(ctx: StepContext, deps: { briefStep: (ctx: 
         agentRunIds: ctx.agentRunIds,
         cost: ctx.ledger.snapshot(),
       })
-      return { verdict: result.verdict, findings: result.findings, taskRunId: run.id, repairs, briefVersionId: current.brief.versionId }
+      const escalation = result.verdict === 'needs_agent_fix' ? await openEscalation(ctx, {
+        code: 'qa_exhausted',
+        summary: `Brief QA still requires author repair after ${repairs} repair attempt(s) (STD-LIMITY qa_repair_attempts_per_run = ${limits.generation.qaRepairAttemptsPerRun}).`,
+        triggerStep: '4.2',
+        evidence: [
+          { ref: run.id, fact: `4.2 task run, verdict ${result.verdict}` },
+          { ref: current.brief.versionId, fact: 'Exact brief version checked by 4.2' },
+          ...agentFindings.slice(0, 10).map((item) => ({ ref: item.path, fact: `${item.code}: ${item.gap}` })),
+        ],
+        blockedSteps: ['4.3', '4.6', '5.1'],
+        decisionQuestion: 'Why must this brief remain blocked, and who must act on the recorded author QA findings?',
+        allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason the brief cannot proceed and who must act.', permittedNextStep: 'none' }],
+        resumeStep: '4.1',
+      }, [current.brief, current.ustalenia, current.zrodla].map(({ document_id, version, status: inputStatus }) => ({ document_id, version, status: inputStatus }))) : null
+      return { verdict: result.verdict, findings: result.findings, taskRunId: run.id, repairs, briefVersionId: current.brief.versionId,
+        ...(escalation ? { escalationVersionId: escalation.versionId } : {}) }
     }
   } catch (error) {
     await finishTaskRun(ctx.em, run, { status: error instanceof BudgetPausedError ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })

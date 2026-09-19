@@ -3,6 +3,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { WorkflowDefinition, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { isCrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { AGENCY_RESEARCH_SERVICE, strategyProcessReferenceSchema, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { assertAnalysisExecutionEnabled } from '../analysisProcess/activity'
@@ -71,7 +72,12 @@ export function createStrategyExecutionActivity(container: AppContainer) {
       ? authorizationSchema.safeParse(activities[0].config.args?.policy?.strategyExecution)
       : null
     if (!authorization?.success) return { status: 'not_configured', orderRef: agencyCase.id, reason: 'missing_strategy_authorization' }
-    assertAnalysisExecutionEnabled()
+    try {
+      assertAnalysisExecutionEnabled()
+    } catch (error) {
+      if (!isCrudHttpError(error) || error.status !== 409) throw error
+      return { status: 'not_configured', orderRef: agencyCase.id, reason: 'execution_disabled' }
+    }
     return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).runStrategy({
       context: { ...scope, userId: context.userId, workflowInstanceId: source!.id, stepId: STRATEGY_EXECUTION_STEP_ID,
         invocationId: context.stepInstanceId ?? source!.id },

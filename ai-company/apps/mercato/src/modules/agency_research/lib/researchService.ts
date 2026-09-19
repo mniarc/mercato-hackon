@@ -7,6 +7,7 @@ import { limits } from '../data/templates'
 import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type AgencyResearchService, type ResearchExecutionContext, type ResearchRunRequest, type ResearchRunResult, type ResearchStep } from './contracts'
 import { collectSources, type FetchPage, type SocialPost } from './research/fetch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
+import { configuredFixtureSources } from './research/fixtureSources'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
@@ -29,6 +30,7 @@ import { readPostReview } from './postReview/read'
 import { resolveStrategyReadiness } from './strategyReadiness'
 import { readStrategyReview } from './strategyReview/read'
 import { runStrategyExecution, strategyExecutionRequestSchema } from './strategyExecution'
+import { runBriefRevision, briefRevisionRequestSchema } from './briefRevision'
 import { runPlanningExecution, planningExecutionRequestSchema } from './planningExecution'
 import { runPostExecution, postExecutionRequestSchema } from './postExecution'
 import { acceptPost } from './postAcceptance/accept'
@@ -247,6 +249,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         await runBriefStep(c)
         const qa = await runBriefQaLoop(c, { briefStep: runBriefStep })
         briefQaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
         return { taskRunId: qa.taskRunId, versionId: qa.briefVersionId, status: qa.verdict === 'needs_agent_fix' ? 'to_fix' : 'done' }
       },
     },
@@ -353,6 +356,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new Error('[internal] research execution is not authorized')
       }
       const apiKey = process.env.FIRECRAWL_API_KEY ?? ''
+      const fixtureSources = configuredFixtureSources()
       const em = (container.resolve('em') as EntityManager).fork()
       const agentRunIds: string[] = []
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
@@ -364,8 +368,8 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         runAgent,
         runner: 'orchestrator',
         models: defaultModels(),
-        fetchPage: createFirecrawlFetcher({ apiKey }),
-        searchWeb: apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
+        fetchPage: fixtureSources?.fetchPage ?? createFirecrawlFetcher({ apiKey }),
+        searchWeb: fixtureSources ? fixtureSources.searchWeb : apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
         socialPosts: parsed.socialPosts,
         pages: parsed.pages,
         through: parsed.through,
@@ -375,6 +379,22 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       })
       const { versionsByStep: _versionsByStep, ...result } = outcome
       return result
+    },
+    async runBriefRevision({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] brief revision requires an explicit tenant, organization and execution user')
+      const parsed = briefRevisionRequestSchema.parse(request)
+      if (context.workflowInstanceId !== parsed.source.workflowInstanceId) throw new Error('[internal] brief revision source must belong to the executing workflow')
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] brief revision execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runBriefRevision({
+        em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+      })
     },
     async runStrategy({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] strategy execution requires an explicit tenant, organization and execution user')

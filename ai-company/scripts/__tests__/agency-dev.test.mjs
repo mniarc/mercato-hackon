@@ -75,3 +75,22 @@ test('native post execution is allowed only with the explicit pinned loopback fi
     assert.throws(() => assertUnpaidDemoEnvironment({ ...env, ...changed }), /cannot use live execution/)
   }
 })
+
+test('production journey requires explicit native and source fixtures and uses the same unpaid runner', () => {
+  const fixtureDirectory = path.resolve('apps/mercato/src/modules/agency_research/__fixtures__/flow')
+  const shared = { AGENCY_TEST_RESEARCH_FIXTURE_DIR: fixtureDirectory }
+  const flags = { AGENCY_TEST_JOURNEY: 'production', AGENCY_TEST_NATIVE_TRIAGE: '1' }
+  const env = agencyEnvironment(shared, flags)
+  assert.match(env.OM_INTEGRATION_EXACT_SPEC, /TC-AGENCY-002-brief-to-plan\.spec\.ts$/)
+  assert.equal(env.AGENCY_TEST_RESEARCH_FIXTURE_DIR, fixtureDirectory)
+  assert.equal(env.AGENCY_ANALYSIS_EXECUTION_ENABLED, 'true')
+  assert.equal(env.AGENCY_TEST_NATIVE_POST, '0')
+  assert.equal(env.AUTO_SPAWN_WORKERS, 'false')
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(env))
+  assert.throws(() => agencyEnvironment(shared, { AGENCY_TEST_JOURNEY: 'production' }), /requires AGENCY_TEST_NATIVE_TRIAGE/)
+  assert.throws(() => agencyEnvironment({}, flags), /absolute AGENCY_TEST_RESEARCH_FIXTURE_DIR/)
+  assert.throws(() => agencyEnvironment({ AGENCY_TEST_RESEARCH_FIXTURE_DIR: 'relative/fixtures' }, flags), /absolute AGENCY_TEST_RESEARCH_FIXTURE_DIR/)
+  for (const changed of [{ AGENCY_TEST_NATIVE_TRIAGE: '0' }, { AGENCY_TEST_RESEARCH_FIXTURE_DIR: '' }, { OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1' }]) {
+    assert.throws(() => assertUnpaidDemoEnvironment({ ...env, ...changed }), /cannot use live execution/)
+  }
+})

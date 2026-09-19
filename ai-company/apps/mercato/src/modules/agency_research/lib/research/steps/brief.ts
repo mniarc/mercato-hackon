@@ -365,6 +365,7 @@ function writerInput(opts: BriefPipelineOptions, section: SectionName): BriefWri
     journey: audyt.journey.map((j) => ({ stage: j.stage, material: j.material, cta: j.cta, destination_status: j.destination_status, fact_ids: j.fact_ids })),
     sources: zrodla.sources.filter((src) => src.access !== 'unavailable').map((src) => ({ source_id: src.source_id, url: src.url_or_file, kind: src.kind, source_visibility: src.source_visibility })),
     repair_findings: opts.repairFindings ?? [],
+    ...(opts.previousBrief ? { previous_brief: opts.previousBrief } : {}),
   }
 }
 

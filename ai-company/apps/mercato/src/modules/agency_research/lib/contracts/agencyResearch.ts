@@ -14,6 +14,7 @@ import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } 
 import type { PostExecutionRequest, PostExecutionResult } from '../postExecution/contracts'
 import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAcceptanceReceipt } from '../postAcceptance/contracts'
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
+import type { BriefRevisionRequest, BriefRevisionResult } from '../briefRevision/contracts'
 import type { PublicationConsent, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
 
 /**
@@ -136,6 +137,7 @@ export type BriefReviewProjection = {
 
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
+  runBriefRevision(input: { context: ResearchExecutionContext; request: BriefRevisionRequest }): Promise<BriefRevisionResult>
   /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
   runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>

@@ -26,3 +26,5 @@ export { postAcceptanceRequestSchema, postAcceptanceRecordSchema, postAcceptance
 export type { PostAcceptanceRequest, PostAcceptanceRecord, PostAcceptanceReceipt, PostAcceptance, AcceptPostInput } from '../postAcceptance/contracts'
 export { publicationPreparationRequestSchema, preparePublicationInputSchema, publicationPreparationPreparedSchema, publicationPreparationResultSchema } from '../publicationPreparation/contracts'
 export type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
+export { briefRevisionRequestSchema, briefRevisionOutcomeSchema, briefRevisionResultSchema } from '../briefRevision/contracts'
+export type { BriefRevisionRequest, BriefRevisionOutcome, BriefRevisionResult } from '../briefRevision/contracts'

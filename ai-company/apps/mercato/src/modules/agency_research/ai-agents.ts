@@ -1,6 +1,7 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { auditAgents } from './lib/agents/audit'
 import { briefAgents } from './lib/agents/brief'
+import { briefAnswerAgent } from './lib/briefRevision/agent'
 import { competitorsAgents } from './lib/agents/competitors'
 import { findingsAgents } from './lib/agents/findings'
 import { sourcesAgents } from './lib/agents/sources'
@@ -19,6 +20,6 @@ export * from './lib/agentIds'
 // verbatim against the stored page by the gate. Definitions live per phase under
 // `lib/agents/`; this file is the registration entry point the generator scans.
 
-export const aiAgents: AiAgentDefinition[] = [...sourcesAgents, ...auditAgents, ...competitorsAgents, ...findingsAgents, ...briefAgents, ...strategyAgents, ...planAgents, ...postAgents]
+export const aiAgents: AiAgentDefinition[] = [...sourcesAgents, ...auditAgents, ...competitorsAgents, ...findingsAgents, ...briefAgents, briefAnswerAgent, ...strategyAgents, ...planAgents, ...postAgents]
 
 export default aiAgents

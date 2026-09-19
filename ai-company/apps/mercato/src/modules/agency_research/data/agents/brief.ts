@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { briefKnowledgeStatuses } from '../schemas/brief'
+import { briefDataSchema, briefKnowledgeStatuses } from '../schemas/brief'
 import { qaFindingSchema, briefQaVerdicts } from '../schemas/qa'
 import { provenances, readiness } from '../schemas/zrodla'
 import { briefFieldKeys, decisionStates, fieldPriorities, knowledgeStatuses } from '../schemas/ustalenia'
@@ -52,6 +52,7 @@ export const briefWriterInputSchema = z.object({
   sources: z.array(z.object({ source_id: z.string(), url: z.string(), kind: z.string(), source_visibility: z.string() })),
   /** QA findings addressed to this step on a repair pass. */
   repair_findings: z.array(qaFindingSchema),
+  previous_brief: briefDataSchema.optional(),
 })
 export type BriefWriterInput = z.infer<typeof briefWriterInputSchema>
 

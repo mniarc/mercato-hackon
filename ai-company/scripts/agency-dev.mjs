@@ -11,11 +11,12 @@ const app = path.join(root, 'apps', 'mercato')
 const runtime = path.join(app, '.mercato', 'agency-dev')
 const journeySpecs = {
   canonical: 'TC-AGENCY-001-vertical-slice.spec.ts',
+  production: 'TC-AGENCY-002-brief-to-plan.spec.ts',
   purchase: 'TC-AGENCY-003-demo-purchase.spec.ts',
 }
 
 export function agencyJourneySpec(journey = 'canonical') {
-  if (!Object.hasOwn(journeySpecs, journey)) throw new Error('AGENCY_TEST_JOURNEY must be canonical or purchase')
+  if (!Object.hasOwn(journeySpecs, journey)) throw new Error('AGENCY_TEST_JOURNEY must be canonical, production or purchase')
   return `apps/mercato/src/modules/agency_operations/__integration__/${journeySpecs[journey]}`
 }
 const composeProject = `agency-dev-${createHash('sha256').update(root.toLowerCase()).digest('hex').slice(0, 8)}`
@@ -27,6 +28,12 @@ function port(value, fallback) {
 }
 
 export function agencyEnvironment(sharedEnvironment, overrides = {}) {
+  const selectedSpec = agencyJourneySpec(overrides.AGENCY_TEST_JOURNEY)
+  const productionJourney = overrides.AGENCY_TEST_JOURNEY === 'production'
+  if (productionJourney && (overrides.AGENCY_TEST_NATIVE_TRIAGE !== '1'
+    || !path.isAbsolute(sharedEnvironment.AGENCY_TEST_RESEARCH_FIXTURE_DIR ?? ''))) {
+    throw new Error('The production journey requires AGENCY_TEST_NATIVE_TRIAGE=1 and an absolute AGENCY_TEST_RESEARCH_FIXTURE_DIR in the app and runner environment')
+  }
   const appPort = port(overrides.AGENCY_APP_PORT, 5002)
   const dbPort = port(overrides.AGENCY_DB_PORT, 5544)
   const baseUrl = `http://localhost:${appPort}`
@@ -61,7 +68,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     AUTO_SPAWN_WORKERS: overrides.AGENCY_TEST_NATIVE_TRIAGE === '1' ? 'false' : 'lazy',
     AUTO_SPAWN_SCHEDULER: 'false',
     DEMO_MODE: 'false',
-    OM_INTEGRATION_EXACT_SPEC: agencyJourneySpec(overrides.AGENCY_TEST_JOURNEY),
+    OM_INTEGRATION_EXACT_SPEC: selectedSpec,
     OM_INTEGRATION_MODULES: 'agency_operations',
     // Native-module development compilation includes page hydration and its first API call.
     OM_TEST_ACTION_TIMEOUT_MS: '60000',
@@ -78,7 +85,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
       OM_AGENCY_TRIAGE_ENABLED: 'true',
       OM_AGENCY_TRIAGE_MODE: 'fixture',
       AGENCY_TOV_EXECUTION_ENABLED: 'false',
-      AGENCY_ANALYSIS_EXECUTION_ENABLED: overrides.AGENCY_TEST_NATIVE_POST === '1' ? 'true' : 'false',
+      AGENCY_ANALYSIS_EXECUTION_ENABLED: productionJourney || overrides.AGENCY_TEST_NATIVE_POST === '1' ? 'true' : 'false',
       OM_AI_PROVIDER: 'openrouter',
       OM_AI_MODEL: 'openrouter/agency-triage-fixture',
       OM_AI_AVAILABLE_PROVIDERS: 'openrouter',
@@ -101,7 +108,9 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
 }
 
 export function assertUnpaidDemoEnvironment(env) {
-  const nativePostFixture = env.AGENCY_TEST_NATIVE_POST === '1' && env.AGENCY_TEST_NATIVE_TRIAGE === '1'
+  const productionFixture = env.OM_INTEGRATION_EXACT_SPEC === agencyJourneySpec('production')
+    && path.isAbsolute(env.AGENCY_TEST_RESEARCH_FIXTURE_DIR ?? '')
+  const nativeExecutionFixture = (env.AGENCY_TEST_NATIVE_POST === '1' || productionFixture) && env.AGENCY_TEST_NATIVE_TRIAGE === '1'
     && env.OM_AGENCY_TRIAGE_MODE === 'fixture'
     && env.OM_AI_PROVIDER === 'openrouter' && env.OM_AI_AVAILABLE_PROVIDERS === 'openrouter'
     && env.OM_AI_MODEL === 'openrouter/agency-triage-fixture'
@@ -112,7 +121,7 @@ export function assertUnpaidDemoEnvironment(env) {
     && env.OPENROUTER_BASE_URL === 'http://127.0.0.1:5003/v1'
     && env.AGENCY_RESEARCH_AI_BASE_URL === 'http://127.0.0.1:5003/v1'
   if (env.OM_AGENCY_TRIAGE_MODE === 'live'
-    || (/^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '') && !nativePostFixture)
+    || (/^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '') && !nativeExecutionFixture)
     || /^(true|1)$/i.test(env.AGENCY_TOV_EXECUTION_ENABLED ?? '')) {
     throw new Error('Routine agency tests cannot use live execution. Start the app and runner with agency execution disabled, or use the local intelligence fixture.')
   }

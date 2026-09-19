@@ -10,6 +10,7 @@ import { createBriefApproval } from './briefApproval'
 import { createStrategyPairApproval } from '../../lib/strategyPairApproval/service'
 import { createPlanApproval } from '../../lib/planApproval/service'
 import { createPostApproval } from '../../lib/postApproval/service'
+import { createBriefRevisionBinding } from '../../lib/briefRevision/binding'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
@@ -24,6 +25,7 @@ export function createClientTriageActivities(container: AppContainer) {
   const strategyPairApproval = createStrategyPairApproval(container)
   const planApproval = createPlanApproval(container)
   const postApproval = createPostApproval(container)
+  const briefRevision = createBriefRevisionBinding(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -52,6 +54,8 @@ export function createClientTriageActivities(container: AppContainer) {
       if (planDecision) allowedTargets.push('plan_topic_decision')
       const postDecision = await postApproval.load(submission, interpretation)
       if (postDecision) allowedTargets.push('post_content_decision')
+      const revision = await briefRevision.load(submission, interpretation)
+      if (revision) allowedTargets.push('brief_revision')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
@@ -62,7 +66,8 @@ export function createClientTriageActivities(container: AppContainer) {
         kind: result.disposition.kind, source: 'native_agent', workerId: CLIENT_TRIAGE_AGENT_ID,
         rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id,
-          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}) }, effectsApplied: false,
+          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}),
+          ...(result.disposition.kind === 'change' && revision ? { documentVersionReference: revision.briefVersionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },

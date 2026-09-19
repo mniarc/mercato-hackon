@@ -39,6 +39,7 @@ export type BriefReviewRequest = z.infer<typeof briefReviewRequestSchema>
 export type BriefReviewReceipt = z.infer<typeof briefReviewReceiptSchema>
 export type BriefReviewInvitationInput = {
   caseId: string; versionId: string; tenantId: string; organizationId: string; userId: string;
+  sourceSubmissionId?: string;
 }
 export type BriefReviewService = {
   invite(input: BriefReviewInvitationInput): Promise<{ workflowInstanceId: string; taskId: string; replayed: boolean }>

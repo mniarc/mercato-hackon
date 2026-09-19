@@ -24,6 +24,8 @@ const BRIEF_RULES = [
   'inventing. Cite `fact_ids` / `evidence_ids` / `sample_ids` / `allowed_proof_ids` only from',
   'the input. Do not ask the client for company data or the purchased scope. When',
   '`repair_findings` is non-empty, fix exactly those findings and keep everything else.',
+  'When `previous_brief` is present, preserve its unaffected content; change only what the',
+  'current findings, client answers or repair findings and their real dependencies require.',
   DESLOP_PROSE_RULES,
 ].join(' ')
 

@@ -8,11 +8,15 @@ export const analysisIntakeSteps = ['3.2', '3.5', '3.8', '4.2'] as const
 export const analysisExecutionPolicySchema = z.object({
   through: z.enum(analysisIntakeSteps),
   maxCostPln: z.number().positive(),
+  briefRevision: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   strategyExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   planningExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   postExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   productSelection: researchRunRequestSchema.shape.order.shape.product_selection,
 }).strict().superRefine((policy, context) => {
+  if (policy.briefRevision && policy.through !== '4.2') {
+    context.addIssue({ code: 'custom', path: ['briefRevision'], message: 'Brief revision requires the brief review handoff' })
+  }
   if (policy.strategyExecution && policy.through !== '4.2') {
     context.addIssue({ code: 'custom', path: ['strategyExecution'], message: 'Strategy continuation requires the brief review handoff' })
   }
