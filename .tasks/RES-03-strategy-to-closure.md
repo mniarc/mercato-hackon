@@ -1,6 +1,6 @@
 # RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure
 
-State: active (branch `feat/agency-research`; PR #6 merged, PR #7 = the night's fixes and the live record; Paweł merges the branch into main continuously)
+State: active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)
 Depends on: RES-02
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`
 Context: The rest of the STD-PROCES chain after the brief, built overnight (2026-09-19) by five parallel builders on
@@ -32,6 +32,12 @@ Checkpoints: `--through 5.4 | 6.7 | 7.3 | 8.7 | 9.3`.
 - Builders' unit tests (fixture runner, zero spend) + the existing 47, typecheck, eslint, `yarn generate` green.
 - Fixture through the real CLI + database `--through 9.3`: strategy/ToV QA repair → plan QA → simulated selection →
   instruction → post → editor repair → publication documents blocked at preflight → package with `close_allowed: false`.
+  Re-proven 2026-09-19 after PR #8: 34 versions, 0 PLN, ~2 s. The command needs `--fixture-search` (README fixed);
+  without it the selector's canned URLs match no hit and 3.7 escalates.
+- 7.2/7.3 carry the `deslop` skill (`.ai/skills/deslop`, `lib/agents/deslop.ts`, `lib/research/deslop.ts`):
+  author writes under the ToV with deslop as the hygiene layer and reports in `qa.style_hygiene`; editor runs detect
+  mode; the validator emits `slop_pattern` findings (minor/major). Unit-proven (309 tests) and fixture-proven; the new
+  prompts have not run live yet (budget).
 - Live run on Open Mercato 3.1 → 9.3: DONE 2026-09-19 06:50 (final pass 7.02 PLN; the night ≈ 114 PLN because of reruns
   before cache stability and QA loops before the reclassification rules — both fixed, see PR #7). Q-S ready after one
   repair, Q-P draft (10/12 ready), post editor-approved on the first pass, publication blocked at preflight,

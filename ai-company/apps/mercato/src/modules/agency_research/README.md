@@ -104,7 +104,8 @@ yarn mercato agency_research run --order output/research/open-mercato/order.json
 # no network, no spend: the FLOW fixture through the real pipeline and database
 yarn mercato agency_research run --order src/modules/agency_research/__fixtures__/flow/order.json --order-ref flow-1 \
   --out output/research/flow --runner fixture --fixture src/modules/agency_research/__fixtures__/flow/canned \
-  --fixture-pages src/modules/agency_research/__fixtures__/flow --social-corpus src/modules/agency_research/__fixtures__/flow/social.json
+  --fixture-pages src/modules/agency_research/__fixtures__/flow --fixture-search src/modules/agency_research/__fixtures__/flow/search.json \
+  --social-corpus src/modules/agency_research/__fixtures__/flow/social.json
 
 yarn mercato agency_research status --order-ref demo-open-mercato-1
 ```
