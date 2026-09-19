@@ -303,7 +303,7 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
   const conflicts: Conflict[] = conflictsOut.value.conflicts.map((conflict, index) => ({
     conflict_id: conflictId(index),
     facts: conflict.fact_ids,
-    // Day precision: the date a conflicting statement was read matters, the millisecond does not — and it would change every rerun's inputs.
+    // Day precision, publication date first: when a conflicting statement was published (else read) matters, the millisecond does not — and it would change every rerun's inputs.
     dates: [...new Set(conflict.fact_ids.flatMap((id) => facts.find((f) => f.fact_id === id)?.source_ids ?? []).map((sid) => (sources.find((s) => s.source_id === sid)?.published_at ?? sources.find((s) => s.source_id === sid)?.retrieved_at ?? '').slice(0, 10)).filter(Boolean))],
     detail: conflict.detail,
     impact: conflict.impact,

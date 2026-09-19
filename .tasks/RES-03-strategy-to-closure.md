@@ -1,6 +1,6 @@
 # RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure
 
-State: active (branch `feat/agency-research`, PR #6 — one branch, one PR)
+State: active (branch `feat/agency-research`; PR #6 merged, PR #7 = the night's fixes and the live record; Paweł merges the branch into main continuously)
 Depends on: RES-02
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`
 Context: The rest of the STD-PROCES chain after the brief, built overnight (2026-09-19) by five parallel builders on
@@ -32,8 +32,10 @@ Checkpoints: `--through 5.4 | 6.7 | 7.3 | 8.7 | 9.3`.
 - Builders' unit tests (fixture runner, zero spend) + the existing 47, typecheck, eslint, `yarn generate` green.
 - Fixture through the real CLI + database `--through 9.3`: strategy/ToV QA repair → plan QA → simulated selection →
   instruction → post → editor repair → publication documents blocked at preflight → package with `close_allowed: false`.
-- Live run on Open Mercato beyond 3.2: PENDING on OpenRouter credit (see RES-02); expected ≈ 9 Sonnet + 3 Haiku calls
-  for P5–P7 on top of P3–P4.
+- Live run on Open Mercato 3.1 → 9.3: DONE 2026-09-19 06:50 (final pass 7.02 PLN; the night ≈ 114 PLN because of reruns
+  before cache stability and QA loops before the reclassification rules — both fixed, see PR #7). Q-S ready after one
+  repair, Q-P draft (10/12 ready), post editor-approved on the first pass, publication blocked at preflight,
+  close_allowed false.
 
 ## Constraints
 - No real client approvals exist in this lane: every `KLI-*` consumer runs in simulation and says so; a synthetic

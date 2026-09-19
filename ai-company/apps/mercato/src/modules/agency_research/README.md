@@ -68,12 +68,13 @@ Measured on Open Mercato (2026-09-19, orchestrator runner, Haiku 4.5 / Sonnet 5)
 runs, 71 facts (96 % of quotes verbatim on first pass), 6 proof cards, 31 language samples, 12 seeds, **2.26 PLN, 5 min 47 s**.
 The whole chain 3.1 → 9.3 completed live the same night (order `demo-open-mercato-3`): the final pass cost **7.02 PLN**
 (3.7 ready → freeze → brief → Q-S ready after one repair → plan Q-P draft after two → simulated selection → instruction
-→ post → editor pass_for_draft on the first pass → publication blocked at preflight → package with `close_allowed: false`),
+→ post → editor pass_for_draft on the first pass → publication blocked at preflight → package with `close_allowed: false`;
+note that a strategy or plan still `to_fix` after its repairs continues in simulation, so `--through 9.3` still pays for the post),
 16 documents, 23 versions in that pass. The night as a whole cost ≈ 114 PLN (268 orchestrator runs, 5.5 M input / 1.3 M
 output tokens): most of it went to regenerations across reruns before the inputs were made cache-stable (page cache, stored
 competitor selection, no previous-version input on plain reruns, day-precision dates, no fetch timestamps in QA inputs) and
 to QA loops that treated the client's gaps as agent faults before the reclassification rules. A rerun now replays every
-unchanged step at 0 PLN.
+unchanged step at 0 PLN: the next full pass through 9.3 cost **1.33 PLN** (four agent runs).
 
 ## Environment
 

@@ -185,6 +185,7 @@ const run: ModuleCli = {
       pages: args.pages ? args.pages.split(',').map((url) => url.trim()).filter(Boolean) : undefined,
       through,
       selectedTopicId: args.topic ?? null,
+      freshSelection: args.refetch === 'true',
       maxCostPln,
       cache: fileCache(path.join(out, 'cache')),
       concurrency: args.concurrency ? Number(args.concurrency) : undefined,

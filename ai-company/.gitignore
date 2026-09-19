@@ -202,3 +202,4 @@ starters/company/certs/
 packages/ui/storybook-static/
 packages/ui/.storybook/generated/
 /output/
+/apps/mercato/output/
