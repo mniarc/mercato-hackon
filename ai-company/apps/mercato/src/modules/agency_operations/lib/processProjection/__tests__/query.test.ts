@@ -238,3 +238,30 @@ test('retains accepted-pair planning blockers and never invents continuation fro
   saved.context = {}
   expect(projectSubmissionProcess(submission, saved, []).strategyPairContinuation).toBeNull()
 })
+
+test('shows saved planning blockers only for the owning native case, not from accepted-pair readiness', () => {
+  const blocked = { status: 'not_configured', orderRef: caseId, reason: 'execution_disabled' }
+  const saved = workflow('planning_execution', { agencyPlanningExecution: { result: blocked } }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toEqual(blocked)
+  saved.context = { agencyPlanningExecution: { result: { ...blocked, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
+  saved.context = { agencyPlanningExecution: { result: blocked } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
+  saved.workflowId = NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
+  saved.context = { agencyStrategyPairContinuation: { result: { status: 'accepted', orderRef: caseId } } }
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
+  saved.context = { agencyPlanningExecution: { result: { status: 'completed', orderRef: caseId } } }
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
+})
+
+test('preserves the exact planning output and QA references without upgrading its verdict', () => {
+  const planningExecution = {
+    status: 'completed', orderRef: caseId, strategyVersionId: 'strategy-v2', tovVersionId: 'tov-v1',
+    taskRunIds: ['planning-activation', 'plan-writer', 'plan-qa'], documentVersionIds: ['plan-v1'],
+    agentRunIds: ['planning-agent-run', 'planning-qa-run'], spentPln: 0.4,
+    planVersionId: 'plan-v1', qaTaskRunId: 'plan-qa', qaVerdict: 'needs_agent_fix', readyForApproval: false,
+  }
+  const saved = workflow('planning_execution', { agencyPlanningExecution: { result: planningExecution } }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).planningExecution).toEqual(planningExecution)
+})

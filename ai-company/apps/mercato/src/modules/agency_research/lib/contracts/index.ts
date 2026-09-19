@@ -12,3 +12,5 @@ export { acceptStrategyPairInputSchema, strategyPairAcceptanceReceiptSchema, str
 export type { AcceptStrategyPairInput, StrategyPairAcceptanceReceipt, StrategyPairAcceptanceRequest, StrategyPairAcceptanceState } from '../strategyPairAcceptance/contracts'
 export { planningReadinessRequestSchema } from '../planningReadiness/contracts'
 export type { PlanningReadinessRequest, PlanningReadiness } from '../planningReadiness/contracts'
+export { planningExecutionRequestSchema, planningExecutionOutcomeSchema } from '../planningExecution/contracts'
+export type { PlanningExecutionRequest, PlanningExecutionResult } from '../planningExecution/contracts'

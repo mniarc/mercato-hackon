@@ -1,4 +1,11 @@
 {
+  "agencyOperations.cases.process.planningExecution.title": "Saved planning outcome",
+  "agencyOperations.cases.process.planningExecution.completed": "Planning and its quality check finished. See the saved QA verdict.",
+  "agencyOperations.cases.process.planningExecution.paused_budget": "Planning paused at the configured spending limit.",
+  "agencyOperations.cases.process.planningExecution.execution_incomplete": "Planning has no complete saved outcome.",
+  "agencyOperations.cases.process.planningExecution.not_configured": "Planning execution was not enabled or configured.",
+  "agencyOperations.cases.process.planningExecution.not_ready": "Planning prerequisites were not ready.",
+  "agencyOperations.cases.process.planningExecution.noApproval": "A planning result is not client approval of the plan or selection of a topic.",
   "agencyOperations.cases.process.strategyPair.title": "Saved strategy / tone-of-voice decision",
   "agencyOperations.cases.process.strategyPair.partial": "One document still needs client approval.",
   "agencyOperations.cases.process.strategyPair.accepted": "Both documents have recorded client approval.",

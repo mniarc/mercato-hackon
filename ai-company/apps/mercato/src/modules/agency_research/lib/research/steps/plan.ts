@@ -26,8 +26,8 @@ import { wordSetSimilarity } from '../util'
 import type { StepContext, StepOutcome } from './context'
 
 /**
- * Step 6.2 — KLI-PLAN. The writer is asked for two day windows of six topics and
- * then for the balance and recommendation over the gated twelve; the document
+ * Step 6.2 — KLI-PLAN. The configured topic count is split across two day windows,
+ * followed by balance and recommendation over the gated topics; the document
  * is assembled here. Code mints `TOP01…` by day, resolves every cited id in the
  * pinned inputs, refuses paraphrase duplicates, keeps pillars balanced and
  * copies the catalog numbers (topic count, one finished post) — the model never
@@ -160,7 +160,7 @@ export function gateTopicsSection(
   return { value: { topics: kept.slice(0, args.count) }, issues, kept: kept.length, dropped: topics.length - kept.length }
 }
 
-/** The balance call: the recommendation must point at one of the twelve gated topics. */
+/** The balance call: the recommendation must point at one of the gated topics. */
 export function gateBalanceSection(sections: PlanBalanceSection, topicIds: Set<string>): { value: PlanBalanceSection; issues: GateIssue[]; kept: number; dropped: number } {
   const issues: GateIssue[] = []
   if (!sections.balance || !sections.recommendation) {
@@ -418,15 +418,17 @@ const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ docume
 
 /** The plan's inputs per the WZR-PLAN handoff: strategy, ToV, brief, the frozen register, the comparison, and the previous plan on a revision. */
 export async function runPlanStep(ctx: StepContext): Promise<StepOutcome> {
-  const strategia = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
-  const tov = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
-  const brief = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-BRIEF')
-  const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
+  if (ctx.planningInputs && !ctx.planningOutputs) throw new Error('[internal] Pinned planning execution requires its own plan output')
+  const strategia = ctx.planningInputs ? ctx.planningInputs.strategy : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
+  const tov = ctx.planningInputs ? ctx.planningInputs.tov : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
+  const brief = ctx.planningInputs ? ctx.planningInputs.brief : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-BRIEF')
+  const zrodla = ctx.planningInputs ? ctx.planningInputs.zrodla : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
   if (!strategia || !tov || !brief || !zrodla) throw new Error('[internal] 6.2 needs current KLI-STRATEGIA, KLI-TOV, KLI-BRIEF and WEW-ZRODLA versions — run the process through 5.4 first')
-  const konkurencja = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
-  const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-PLAN')
-  const inputVersions: InputVersion[] = [ctx.orderVersion, pin(strategia), pin(tov), pin(brief), pin(zrodla), ...(konkurencja ? [pin(konkurencja)] : []), ...(previous ? [pin(previous)] : [])]
-  const simulation = simulationIssue(inputVersions)
+  const konkurencja = ctx.planningInputs ? ctx.planningInputs.konkurencja : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
+  const previous = ctx.planningInputs ? ctx.planningOutputs!.plan : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-PLAN')
+  const foundationVersions: InputVersion[] = [ctx.orderVersion, pin(strategia), pin(tov), pin(brief), pin(zrodla), ...(konkurencja ? [pin(konkurencja)] : [])]
+  const inputVersions = [...foundationVersions, ...(previous ? [pin(previous)] : [])]
+  const simulation = simulationIssue(ctx.planningInputs ? foundationVersions : inputVersions)
   const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '6.2', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run.id)
   try {
@@ -462,6 +464,12 @@ export async function runPlanStep(ctx: StepContext): Promise<StepOutcome> {
       taskRunId: run.id,
       simulation: simulation !== null,
     })
+    if (ctx.planningInputs && ctx.planningOutputs) {
+      ctx.planningOutputs.plan = {
+        document_id: saved.envelope.document_id, version: saved.envelope.version, status: saved.envelope.status,
+        versionId: saved.version.id, data: result.data,
+      }
+    }
     ctx.documentVersionIds.push(saved.version.id)
     await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats: result.stats }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }

@@ -5,6 +5,7 @@ import { createClientTriageExceptionFragment } from '../../lib/clientTriageExcep
 import { STRATEGY_READINESS_HANDOFF_FUNCTION, STRATEGY_READINESS_RESULT_KEY } from '../../lib/strategyHandoff/contracts'
 import { STRATEGY_EXECUTION_FUNCTION, STRATEGY_EXECUTION_RESULT_KEY, STRATEGY_EXECUTION_STEP_ID, STRATEGY_REVIEW_HANDOFF_FUNCTION } from '../../lib/strategyExecution/contracts'
 import { STRATEGY_PAIR_CONTINUATION_FUNCTION, STRATEGY_PAIR_CONTINUATION_RESULT_KEY } from '../../lib/strategyPairApproval/contracts'
+import { PLANNING_EXECUTION_FUNCTION, PLANNING_EXECUTION_RESULT_KEY, PLANNING_EXECUTION_STEP_ID } from '../../lib/planningExecution/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -39,7 +40,9 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'answered', stepName: 'Answer available', stepType: 'END' },
     { stepId: 'brief_accepted', stepName: 'Exact brief acceptance recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_pair_decision', stepName: 'Selected strategy pair approvals recorded', stepType: 'AUTOMATED' },
-    { stepId: 'strategy_pair_continuation', stepName: 'Pair review or planning readiness handoff recorded', stepType: 'END' },
+    { stepId: 'strategy_pair_continuation', stepName: 'Pair review or planning readiness handoff recorded', stepType: 'AUTOMATED' },
+    { stepId: 'strategy_pair_waiting', stepName: 'Pair review still needs action', stepType: 'END' },
+    { stepId: PLANNING_EXECUTION_STEP_ID, stepName: 'Planning phase outcome recorded', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'END' },
@@ -71,6 +74,15 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { transitionId: 'continue_strategy_pair', fromStepId: 'strategy_pair_decision', toStepId: 'strategy_pair_continuation', trigger: 'auto',
       activities: [{ activityId: 'continue_strategy_pair', activityName: STRATEGY_PAIR_CONTINUATION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
         config: { functionName: STRATEGY_PAIR_CONTINUATION_FUNCTION, args: {} } }] },
+    { transitionId: 'wait_partial_pair', fromStepId: 'strategy_pair_continuation', toStepId: 'strategy_pair_waiting', trigger: 'auto',
+      condition: { field: `${STRATEGY_PAIR_CONTINUATION_RESULT_KEY}.result.status`, operator: '=', value: 'partial' } },
+    { transitionId: 'wait_unready_pair', fromStepId: 'strategy_pair_continuation', toStepId: 'strategy_pair_waiting', trigger: 'auto',
+      condition: { field: `${STRATEGY_PAIR_CONTINUATION_RESULT_KEY}.result.status`, operator: '=', value: 'not_ready' } },
+    { transitionId: 'execute_planning', fromStepId: 'strategy_pair_continuation', toStepId: PLANNING_EXECUTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${STRATEGY_PAIR_CONTINUATION_RESULT_KEY}.result.status`, operator: '=', value: 'accepted' },
+      activities: [{ activityId: 'execute_planning', activityName: PLANNING_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
+        retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
+        config: { functionName: PLANNING_EXECUTION_FUNCTION, args: {} } }] },
     { transitionId: 'execute_strategy', fromStepId: 'strategy_readiness', toStepId: STRATEGY_EXECUTION_STEP_ID, trigger: 'auto',
       activities: [{ activityId: 'execute_strategy', activityName: STRATEGY_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
         retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },

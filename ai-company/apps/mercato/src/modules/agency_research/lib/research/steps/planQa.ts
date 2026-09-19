@@ -1,4 +1,5 @@
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
+import type { InputVersion } from '../../../data/schemas/envelope'
 import type { QaFinding } from '../../../data/schemas/qa'
 import { planDataSchema, type PlanData } from '../../../data/schemas/plan'
 import { strategiaDataSchema, type StrategiaData } from '../../../data/schemas/strategia'
@@ -20,7 +21,7 @@ import { planValidatorFindings } from './plan'
  * substance of distinctness); the verdict is exactly `ready_for_approval` or
  * `needs_agent_fix`. An agent fault returns to 6.2 (≤ 2 repairs); a bank gap is
  * a named finding owned by research, never a random topic swap. Only a plan
- * whose twelve topics are all `ready` moves to `ready_for_review`.
+ * whose configured topics are all `ready` moves to `ready_for_review`.
  */
 
 export type PlanQaResult = { verdict: PlanQaVerdict; findings: QaFinding[]; summary: string }
@@ -51,11 +52,11 @@ export type PlanQaOptions = {
 
 export const planQaCriteria = [
   'Every topic serves one strategy pillar and the priority audience named in the brief.',
-  'The twelve audience questions differ in substance, not only in wording; one idea said twice is a duplicate.',
+  'The configured number of audience questions differ in substance, not only in wording; one idea said twice is a duplicate.',
   'Each angle is concrete enough to write from: a named tool with steps or an example, a main message, a goal.',
   'No topic promises a number, an effect, ROI or uniqueness the cited evidence does not carry.',
   'The recommended topic has complete evidence in the bank; the post can be written without new research.',
-  'The plan reads as a schedule of topics for one channel, never as a delivery of twelve posts.',
+  'The plan reads as a schedule of topics for one channel, never as a delivery of one post per topic.',
   'A gap in the evidence bank is named as a finding owned by research; it is not filled by invention.',
 ]
 
@@ -104,18 +105,25 @@ export type PlanQaLoopResult = { verdict: PlanQaVerdict; findings: QaFinding[]; 
 /**
  * 6.3 with its return path: an agent fault re-runs 6.2 with the findings as
  * repair input (≤ STD-LIMITY qa_repair_attempts), then stops as `to_fix`; a
- * clean plan whose twelve topics are ready moves to `ready_for_review` — the
+ * clean plan whose configured topics are ready moves to `ready_for_review` — the
  * approval and the topic choice belong to the client (6.4–6.6).
  */
 export async function runPlanQaLoop(ctx: StepContext, deps: { planStep: (ctx: StepContext) => Promise<StepOutcome> }): Promise<PlanQaLoopResult> {
+  if (ctx.planningInputs && !ctx.planningOutputs) throw new Error('[internal] Pinned planning execution requires its own plan output')
   const load = async () => {
-    const plan = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-PLAN')
-    const strategia = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
-    const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
+    const plan = ctx.planningInputs ? ctx.planningOutputs!.plan : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-PLAN')
+    const strategia = ctx.planningInputs ? ctx.planningInputs.strategy : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
+    const zrodla = ctx.planningInputs ? ctx.planningInputs.zrodla : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
     if (!plan || !strategia || !zrodla) throw new Error('[internal] 6.3 needs current KLI-PLAN, KLI-STRATEGIA and WEW-ZRODLA versions')
     return { plan, strategia, zrodla }
   }
   let current = await load()
+  const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+  const inputVersions = (): InputVersion[] => [
+    ctx.orderVersion, pin(current.plan), pin(current.strategia), pin(current.zrodla),
+    ...(ctx.planningInputs ? [pin(ctx.planningInputs.brief), pin(ctx.planningInputs.tov), pin(ctx.planningInputs.konkurencja)] : []),
+  ]
+  const maxRepairs = ctx.planningQaRepairAttempts ?? limits.generation.qaRepairAttemptsPerRun
   const run = await startTaskRun(ctx.em, ctx.scope, {
     orderRef: ctx.orderRef,
     brand: ctx.order.brand,
@@ -123,7 +131,7 @@ export async function runPlanQaLoop(ctx: StepContext, deps: { planStep: (ctx: St
     attempt: ctx.attempt,
     runner: ctx.runner,
     models: ctx.models,
-    inputVersions: [ctx.orderVersion, { document_id: current.plan.document_id, version: current.plan.version, status: current.plan.status }],
+    inputVersions: inputVersions(),
   })
   ctx.taskRunIds.push(run.id)
   let repairs = 0
@@ -143,15 +151,20 @@ export async function runPlanQaLoop(ctx: StepContext, deps: { planStep: (ctx: St
         onEvent: ctx.onEvent,
       })
       const agentFindings = result.findings.filter((f) => f.owner === 'agent' && f.severity === 'blocking')
-      if (result.verdict === 'needs_agent_fix' && repairs < limits.generation.qaRepairAttemptsPerRun) {
+      if (result.verdict === 'needs_agent_fix' && repairs < maxRepairs) {
         repairs += 1
-        ctx.log(`6.3: ${agentFindings.length} agent findings — repair ${repairs}/${limits.generation.qaRepairAttemptsPerRun}`)
+        ctx.log(`6.3: ${agentFindings.length} agent findings — repair ${repairs}/${maxRepairs}`)
         await deps.planStep({ ...ctx, repairFindings: agentFindings, attempt: ctx.attempt + repairs })
         current = await load()
+        run.inputVersions = inputVersions()
+        await ctx.em.flush()
         continue
       }
       const readyForApproval = result.verdict === 'ready_for_approval' && planReadyForApproval(plan, ctx.order.topics)
-      const document = await ctx.em.findOne(AgencyResearchDocument, { ...ctx.scope, orderRef: ctx.orderRef, templateId: 'WZR-PLAN', deletedAt: null })
+      const document = await ctx.em.findOne(AgencyResearchDocument, {
+        ...ctx.scope, orderRef: ctx.orderRef, templateId: 'WZR-PLAN', deletedAt: null,
+        ...(ctx.planningInputs ? { currentVersionId: current.plan.versionId } : {}),
+      })
       if (document) {
         document.status = readyForApproval ? 'ready_for_review' : 'draft'
         await ctx.em.flush()

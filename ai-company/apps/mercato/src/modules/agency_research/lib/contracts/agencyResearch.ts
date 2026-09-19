@@ -8,6 +8,7 @@ import type { StrategyReviewProjection } from '../strategyReview/types'
 import type { StrategyExecutionRequest, StrategyExecutionResult } from '../strategyExecution/contracts'
 import type { AcceptStrategyPairInput, StrategyPairAcceptanceReceipt, StrategyPairAcceptanceRequest, StrategyPairAcceptanceState } from '../strategyPairAcceptance/contracts'
 import type { PlanningReadinessRequest, PlanningReadiness } from '../planningReadiness/contracts'
+import type { PlanningExecutionRequest, PlanningExecutionResult } from '../planningExecution/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -131,6 +132,7 @@ export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
   /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
+  runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */

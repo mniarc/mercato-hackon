@@ -153,6 +153,14 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.strategyPairContinuation} title={translate(`${key}.strategyPair.title`)} />
               </div>
             ) : null}
+            {submission.planningExecution ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.planningExecution.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.planningExecution.${submission.planningExecution.status}`)}</p>
+                <p className="text-sm text-muted-foreground">{translate(`${key}.planningExecution.noApproval`)}</p>
+                <JsonDisplay data={submission.planningExecution} title={translate(`${key}.planningExecution.title`)} />
+              </div>
+            ) : null}
             {submission.tasks.map((task) => (
               <div key={task.id} className="flex flex-wrap items-center gap-2">
                 <Button type="button" asChild variant="outline">

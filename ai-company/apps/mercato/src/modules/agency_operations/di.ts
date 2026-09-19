@@ -37,12 +37,15 @@ import { createStrategyPairReviewService } from './lib/strategyPairReview/servic
 import { STRATEGY_PAIR_REVIEW_SERVICE, STRATEGY_PAIR_RESPONSE_FUNCTION } from './lib/strategyPairReview/contracts'
 import { createStrategyPairContinuation } from './lib/strategyPairApproval/handoff'
 import { STRATEGY_PAIR_CONTINUATION_FUNCTION } from './lib/strategyPairApproval/contracts'
+import { createPlanningExecutionActivity } from './lib/planningExecution/activity'
+import { PLANNING_EXECUTION_FUNCTION } from './lib/planningExecution/contracts'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [`workflowFunction:${PLANNING_EXECUTION_FUNCTION}`]: asFunction(() => createPlanningExecutionActivity(container)).scoped(),
     [`workflowFunction:${STRATEGY_PAIR_CONTINUATION_FUNCTION}`]: asFunction(() => createStrategyPairContinuation(container)).scoped(),
     [STRATEGY_PAIR_REVIEW_SERVICE]: asFunction(() => createStrategyPairReviewService(container)).scoped(),
     [`workflowFunction:${STRATEGY_PAIR_RESPONSE_FUNCTION}`]: asFunction(

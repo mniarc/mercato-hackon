@@ -9,10 +9,14 @@ export const analysisExecutionPolicySchema = z.object({
   through: z.enum(analysisIntakeSteps),
   maxCostPln: z.number().positive(),
   strategyExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
+  planningExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   productSelection: researchRunRequestSchema.shape.order.shape.product_selection,
 }).strict().superRefine((policy, context) => {
   if (policy.strategyExecution && policy.through !== '4.2') {
     context.addIssue({ code: 'custom', path: ['strategyExecution'], message: 'Strategy continuation requires the brief review handoff' })
+  }
+  if (policy.planningExecution && policy.through !== '4.2') {
+    context.addIssue({ code: 'custom', path: ['planningExecution'], message: 'Planning continuation requires the brief and strategy review handoffs' })
   }
   if (!Number.isInteger(policy.productSelection.result_limits?.topics) || (policy.productSelection.result_limits?.topics ?? 0) <= 0) {
     context.addIssue({ code: 'custom', path: ['productSelection', 'result_limits', 'topics'], message: 'Explicit product topic limit required' })

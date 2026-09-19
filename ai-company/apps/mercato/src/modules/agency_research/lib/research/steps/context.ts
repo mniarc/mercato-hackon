@@ -18,6 +18,15 @@ export type StrategyExecutionInputs = {
 }
 export type StrategyExecutionOutputs = { strategy: StrategyExecutionInput | null; tov: StrategyExecutionInput | null }
 
+export type PlanningExecutionInputs = {
+  strategy: StrategyExecutionInput
+  tov: StrategyExecutionInput
+  brief: StrategyExecutionInput
+  zrodla: StrategyExecutionInput
+  konkurencja: StrategyExecutionInput
+}
+export type PlanningExecutionOutputs = { plan: StrategyExecutionInput | null }
+
 /**
  * What every process step receives. A step: loads its pinned inputs through the
  * store, calls its pure pipeline function, saves one document version and one
@@ -57,6 +66,10 @@ export type StepContext = {
   strategyOutputs?: StrategyExecutionOutputs
   /** Snapshot of the existing QA repair limit taken when the phase starts. */
   strategyQaRepairAttempts?: number
+  /** Phase-only planning uses the accepted documents and their exact research inputs. */
+  planningInputs?: PlanningExecutionInputs
+  planningOutputs?: PlanningExecutionOutputs
+  planningQaRepairAttempts?: number
 }
 
 export type StepOutcome = {
