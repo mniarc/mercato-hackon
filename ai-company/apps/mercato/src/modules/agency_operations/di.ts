@@ -80,12 +80,20 @@ import { createMaterialRevisionResearchExceptionHandoff } from './lib/materialRe
 import { SALES_QUESTIONS_SERVICE, PREPARE_SALES_QUESTION, PREPARE_SALES_ANSWER, RECORD_SALES_ANSWER } from './lib/salesQuestions/contracts'
 import { createSalesQuestionsService } from './lib/salesQuestions/service'
 import { createSalesQuestionActivities } from './lib/salesQuestions/activities'
+import { createTovRevisionActivities } from './lib/tovRevision/activities'
+import { PREPARE_TOV_REVISION_FUNCTION, TOV_REVISION_FUNCTION, REASSESS_TOV_PAIR_FUNCTION, TOV_REVISION_REVIEW_FUNCTION, TOV_REVISION_EXCEPTION_FUNCTION, TOV_PAIR_REASSESSMENT_KEY } from './lib/tovRevision/contracts'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
+  const tovRevision = createTovRevisionActivities(container)
   container.register({
+    [`workflowFunction:${PREPARE_TOV_REVISION_FUNCTION}`]: asValue(tovRevision.prepare),
+    [`workflowFunction:${TOV_REVISION_FUNCTION}`]: asValue(tovRevision.revise),
+    [`workflowFunction:${REASSESS_TOV_PAIR_FUNCTION}`]: asValue(tovRevision.reassess),
+    [`workflowFunction:${TOV_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createStrategyReviewHandoff(container, TOV_PAIR_REASSESSMENT_KEY)).scoped(),
+    [`workflowFunction:${TOV_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createStrategyResearchExceptionHandoff(container, TOV_PAIR_REASSESSMENT_KEY)).scoped(),
     [SALES_QUESTIONS_SERVICE]: asFunction(() => createSalesQuestionsService(container)).scoped(),
     [`workflowFunction:${PREPARE_SALES_QUESTION}`]: asFunction(() => createSalesQuestionActivities(container).prepareQuestion).scoped(),
     [`workflowFunction:${PREPARE_SALES_ANSWER}`]: asFunction(() => createSalesQuestionActivities(container).prepareAnswer).scoped(),

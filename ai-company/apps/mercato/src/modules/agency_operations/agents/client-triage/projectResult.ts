@@ -33,7 +33,7 @@ export function projectClientTriageResult(
     unappliedReason = 'missing_response'
   } else {
     const approvalTargets = allowedTargets.filter((target) => target === 'brief_accepted' || target === 'strategy_pair_decision' || target === 'plan_topic_decision' || target === 'post_content_decision')
-    const changeTargets = allowedTargets.filter((target) => target === 'brief_revision' || target === 'post_revision' || target === 'material_revision')
+    const changeTargets = allowedTargets.filter((target) => target === 'brief_revision' || target === 'post_revision' || target === 'material_revision' || target === 'tov_revision')
     const targetStepId = recommendation === 'answer' ? 'answered' : recommendation === 'clarify' ? 'client_reply' : recommendation === 'change' ? (changeTargets.length === 1 ? changeTargets[0] : null) : approvalTargets.length === 1 ? approvalTargets[0] : null
     if (!targetStepId || !allowedTargets.includes(targetStepId)) {
       unappliedReason = 'target_not_authorized'
@@ -41,7 +41,7 @@ export function projectClientTriageResult(
       disposition = recommendation === 'approve'
         ? { kind: 'approve', targetStepId: targetStepId as 'brief_accepted' | 'strategy_pair_decision' | 'plan_topic_decision' | 'post_content_decision' }
         : recommendation === 'change'
-        ? { kind: 'change', targetStepId: targetStepId as 'brief_revision' | 'post_revision' | 'material_revision' }
+        ? { kind: 'change', targetStepId: targetStepId as 'brief_revision' | 'post_revision' | 'material_revision' | 'tov_revision' }
         : recommendation === 'answer'
         ? { kind: 'answer', targetStepId: 'answered' }
         : { kind: 'clarify', targetStepId: 'client_reply' }

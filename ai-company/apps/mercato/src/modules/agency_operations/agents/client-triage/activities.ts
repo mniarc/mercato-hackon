@@ -13,6 +13,7 @@ import { createPostApproval } from '../../lib/postApproval/service'
 import { createBriefRevisionBinding } from '../../lib/briefRevision/binding'
 import { createPostRevisionBinding } from '../../lib/postRevision/binding'
 import { createMaterialRevisionBinding } from '../../lib/materialRevision/binding'
+import { createTovRevisionBinding } from '../../lib/tovRevision/binding'
 import { prepareMaterialContext } from '../../lib/materialRevision/source'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
@@ -31,6 +32,7 @@ export function createClientTriageActivities(container: AppContainer) {
   const briefRevision = createBriefRevisionBinding(container)
   const postRevision = createPostRevisionBinding(container)
   const materialRevision = createMaterialRevisionBinding(container)
+  const tovRevision = createTovRevisionBinding(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -66,6 +68,8 @@ export function createClientTriageActivities(container: AppContainer) {
       if (postCorrection) allowedTargets.push('post_revision')
       const material = await materialRevision.load(submission, interpretation)
       if (material) allowedTargets.push('material_revision')
+      const tovCorrection = await tovRevision.load(submission, interpretation)
+      if (tovCorrection) allowedTargets.push('tov_revision')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
@@ -77,7 +81,7 @@ export function createClientTriageActivities(container: AppContainer) {
         rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id,
           ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}),
-          ...(result.disposition.kind === 'change' ? { documentVersionReference: revision?.briefVersionId ?? postCorrection?.postVersionId ?? material?.materialContext.brief?.versionId } : {}) }, effectsApplied: false,
+          ...(result.disposition.kind === 'change' ? { documentVersionReference: revision?.briefVersionId ?? postCorrection?.postVersionId ?? material?.materialContext.brief?.versionId ?? tovCorrection?.strategyVersionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },

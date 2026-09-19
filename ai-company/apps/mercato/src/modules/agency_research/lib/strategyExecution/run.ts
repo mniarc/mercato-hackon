@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
-import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
+import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
 import { inputVersionSchema, type InputVersion } from '../../data/schemas/envelope'
 import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { limits } from '../../data/templates'
@@ -99,7 +99,21 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     versionId: specialistTov.versionId, status: 'draft', data: specialistTov.body,
     specialistTov: request.specialistTov,
   } }
-  const strategyQaRepairAttempts = limits.generation.qaRepairAttemptsPerRun
+  if (request.reassessStrategyVersionId) {
+    const strategyDocument = await findOneWithDecryption(em, AgencyResearchDocument, {
+      ...where, templateId: 'WZR-STRATEGIA', currentVersionId: request.reassessStrategyVersionId, deletedAt: null,
+    }, undefined, scope)
+    const strategy = strategyDocument && await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+      ...where, id: request.reassessStrategyVersionId, documentId: strategyDocument.id, templateId: 'WZR-STRATEGIA',
+    }, undefined, scope)
+    const inputs = z.array(inputVersionSchema).safeParse(strategy?.inputVersions)
+    if (!strategy || !inputs.success || !inputs.data.some((item) => item.document_id === brief.document_id && item.version === brief.version)) {
+      return { status: 'not_ready', orderRef, reason: 'pinned_input_missing', templateId: 'WZR-STRATEGIA' }
+    }
+    strategyOutputs.strategy = { document_id: documentIdFor('WZR-STRATEGIA', orderRef), version: versionLabel(strategy.versionNo),
+      versionId: strategy.id, status: strategy.status, data: strategy.data }
+  }
+  const strategyQaRepairAttempts = request.reassessStrategyVersionId ? 0 : limits.generation.qaRepairAttemptsPerRun
   const inputVersions = [orderVersion, ...[brief, zrodla, audyt, konkurencja, ustalenia].map(pin)]
   const summary = {
     process: readiness.process,
@@ -110,7 +124,8 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     analysisSetHash: readiness.analysis.setHash,
     limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: strategyQaRepairAttempts },
     specialistTov: request.specialistTov,
-    steps: ['5.2', '5.3', '5.4'],
+    ...(request.reassessStrategyVersionId ? { reassessStrategyVersionId: request.reassessStrategyVersionId } : {}),
+    steps: request.reassessStrategyVersionId ? ['5.4'] : ['5.2', '5.3', '5.4'],
   }
   const claim = await claimStrategyExecution(em, scope, request, {
     orderRef, brand: order.brand, stepId: '5.1', attempt: 1, runner: 'system', models: opts.models, inputVersions,
@@ -147,7 +162,7 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     specialistTov: request.specialistTov,
   })
   try {
-    await runStrategyStep(ctx)
+    if (!request.reassessStrategyVersionId) await runStrategyStep(ctx)
     const qa = await runStrategyQaLoop(ctx, { strategyStep: runStrategyStep })
     return await persistResult({
       ...result('completed'), strategyVersionId: qa.strategyVersionId, tovVersionId: qa.tovVersionId,

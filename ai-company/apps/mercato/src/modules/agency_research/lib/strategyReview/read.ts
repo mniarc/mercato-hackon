@@ -4,6 +4,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
 import { inputVersionSchema } from '../../data/schemas/envelope'
+import { qaFindingSchema } from '../../data/schemas/qa'
 import { documentIdFor, versionLabel } from '../research/envelope'
 import type { StrategyReviewProjection, StrategyReviewQa, StrategyReviewVersion } from './types'
 
@@ -27,13 +28,16 @@ function projectVersion(document: AgencyResearchDocument, version: AgencyResearc
   }
 }
 
-function projectQa(run: AgencyResearchTaskRun | undefined, strategyVersionId: string): StrategyReviewQa {
+function projectQa(run: AgencyResearchTaskRun | undefined, strategyVersionId: string, specialistCorrection = false): StrategyReviewQa {
   if (!run) return { state: 'missing' }
   const parsed = qaSchema.safeParse(run.qaResult)
   if (run.outputVersionId === strategyVersionId && parsed.success
     && ((run.status === 'done' && parsed.data.verdict === 'ready_for_approval')
       || (run.status === 'to_fix' && parsed.data.verdict === 'needs_agent_fix'))) {
-    return { state: 'assessed', taskRunId: run.id, status: run.status as 'done' | 'to_fix', verdict: parsed.data.verdict }
+    const correction = specialistCorrection && parsed.data.verdict === 'needs_agent_fix'
+      ? z.object({ findings: z.array(qaFindingSchema) }).safeParse(run.qaResult) : null
+    return { state: 'assessed', taskRunId: run.id, status: run.status as 'done' | 'to_fix', verdict: parsed.data.verdict,
+      ...(correction?.success ? { findings: correction.data.findings } : {}) }
   }
   return { state: 'unavailable', taskRunId: run.id, status: run.status }
 }
@@ -82,7 +86,7 @@ export async function readStrategyReview(
     const brief = briefDocument && briefVersion && pinnedVersion(candidate.run.inputVersions, 'WZR-BRIEF', orderRef) === briefLabel
       && pinnedVersion(strategy.version.inputVersions, 'WZR-BRIEF', orderRef) === briefLabel
       ? projectVersion(briefDocument, briefVersion) : null
-    const qa = projectQa(candidate.run, strategyVersionId)
+    const qa = projectQa(candidate.run, strategyVersionId, true)
     return {
       orderRef,
       strategy: { ...projectVersion(strategy.document, strategy.version), templateId: 'WZR-STRATEGIA', clientViewMd: strategy.version.clientViewMd },

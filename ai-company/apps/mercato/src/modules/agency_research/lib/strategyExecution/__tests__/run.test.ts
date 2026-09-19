@@ -184,6 +184,32 @@ test('does not write or invoke agents when accepted-brief readiness is missing',
   expect(runStrategyStep).not.toHaveBeenCalled()
 })
 
+test('reassesses the unchanged current strategy against the revised specialist version without authoring either', async () => {
+  const strategyId = '77777777-7777-4777-8777-777777777777'
+  const originalFind = findOne.getMockImplementation()!
+  const strategy = Object.assign(new AgencyResearchDocumentVersion(), { ...scope, orderRef, id: strategyId, documentId: 'strategy-document',
+    templateId: 'WZR-STRATEGIA', versionNo: 3, status: 'ready_for_review', data: { existing: 'strategy content' },
+    inputVersions: [{ document_id: documentIdFor('WZR-BRIEF', orderRef), version: '2.0', status: 'approved' }] })
+  findOne.mockImplementation(async (...args) => {
+    const where = args[2] as Record<string, unknown>
+    if (where.templateId === 'WZR-STRATEGIA') return (args[1] === AgencyResearchDocument
+      ? { ...scope, orderRef, id: strategy.documentId, currentVersionId: strategyId, deletedAt: null } : strategy) as never
+    return originalFind(...args)
+  })
+  jest.mocked(runStrategyQaLoop).mockImplementation(async ctx => {
+    expect(ctx.strategyOutputs?.strategy).toMatchObject({ versionId: strategyId, data: strategy.data })
+    expect(ctx.strategyQaRepairAttempts).toBe(0)
+    return { taskRunId: 'pair-qa', verdict: 'ready_for_approval', findings: [], repairs: 0, strategyVersionId: strategyId, tovVersionId: specialistTov.versionId }
+  })
+  const corrected = { ...request, reassessStrategyVersionId: strategyId }
+  const result = await runStrategyExecution({ em, scope, request: corrected, models, runAgent, runner: 'orchestrator', readSpecialistTov })
+  expect(result).toMatchObject({ status: 'completed', strategyVersionId: strategyId, tovVersionId: specialistTov.versionId })
+  expect(runStrategyStep).not.toHaveBeenCalled()
+  expect(runTovStep).not.toHaveBeenCalled()
+  expect(await runStrategyExecution({ em, scope, request: corrected, models, runAgent, runner: 'orchestrator', readSpecialistTov })).toEqual(result)
+  expect(runStrategyQaLoop).toHaveBeenCalledTimes(1)
+})
+
 test('waits for the configured specialist rather than generating substitute ToV content', async () => {
   expect(await runStrategyExecution({ em, scope, request: { ...request, specialistTov: undefined }, models, runAgent, runner: 'orchestrator', readSpecialistTov }))
     .toEqual({ status: 'not_ready', orderRef, reason: 'specialist_tov_required' })

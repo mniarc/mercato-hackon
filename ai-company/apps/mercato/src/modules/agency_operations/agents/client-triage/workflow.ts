@@ -1,4 +1,5 @@
 import type { WorkflowDefinitionData } from '@open-mercato/core/modules/workflows/data/entities'
+import { tovRevisionFragment } from '../../lib/tovRevision/workflow'
 import { CLIENT_REPLY_SIGNAL, CLIENT_TRIAGE_RESULT_KEY } from '../../lib/clientSubmissionWorkflow'
 import { CLIENT_TRIAGE_AGENT_ID } from './contract'
 import { createClientTriageExceptionFragment } from '../../lib/clientTriageException/workflow'
@@ -32,6 +33,7 @@ const postException = createResearchExceptionFragment({ waitingStepId: POST_RESE
 
 export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
   steps: [
+    ...tovRevisionFragment.steps,
     ...exception.steps,
     ...postException.steps,
     { stepId: 'start', stepName: 'Submission received', stepType: 'START' },
@@ -106,6 +108,7 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'reply_received', stepName: 'Client reply received', stepType: 'END' },
   ],
   transitions: [
+    ...tovRevisionFragment.transitions,
     ...exception.transitions,
     ...postException.transitions,
     { transitionId: 'prepare', fromStepId: 'start', toStepId: 'prepare', trigger: 'auto' },
