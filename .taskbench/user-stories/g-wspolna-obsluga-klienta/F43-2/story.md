@@ -1,0 +1,117 @@
+---
+id: F43-2
+kind: user-story
+category: "G — wspólna obsługa klienta"
+feature: F43
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F43-2 · Oddzielna kontrola zakupionego zakresu
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F43
+
+### Grupa
+
+G — wspólna obsługa klienta
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Oddzielna kontrola zakupionego zakresu
+
+### Definicja
+
+Kontrola zakresu porównuje prośbę z produktem przypisanym do zamówienia. Zmiana założeń wykonania i dodatkowy rezultat są rozróżniane przed oceną wpływu.
+
+### Krok procesu
+
+G.3
+G.5
+E.1
+
+### ID historii
+
+F43-2
+
+### User story
+
+Jako klient chcę otrzymać wyjaśnienie, gdy moja prośba zwiększa zakres, żeby zdecydować, czy wracam do kupionego produktu, czy potrzebuję odrębnej usługi.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, G.3: cztery wyniki i brak automatycznego zamówienia dodatkowej usługi; G.5: odmowa rozszerzenia i wyjątek. Zasady produktu: Zakres a założenia; Decyzje, DEC-ZAKRES.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F43-2
+
+### Kroki procesu
+
+G.3 — Weryfikacja zakresu
+G.5 — Zapis decyzji i przekazanie do procesu
+E.1 — Utworzenie sprawy dla pracownika
+
+### Dział odpowiedzialny
+
+Operacje
+
+### Wykonawcy po stronie firmy
+
+Agent weryfikacji zakresu i system reguł (G.3)
+Orkiestrator i system reguł (G.5)
+Orkiestrator i system wyjątków (E.1)
+
+### Powiązane wcześniejsze historie / kroki
+
+F43-1 — Oddzielna kontrola zakupionego zakresu
+
+### Dokumenty i zdarzenia
+
+Katalog produktów, cen i granic usługi — STD-OFERTA
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+Brief potrzeb i celów klienta — KLI-BRIEF
+Strategia komunikacji marki — KLI-STRATEGIA
+Plan treści na 30 dni — KLI-PLAN
+Wzorzec zadania dla pracownika — WZR-ESKALACJA
+Sprawa wymagająca rozstrzygnięcia pracownika — WEW-ESKALACJA
+
+### Udział klienta
+
+Doprecyzowuje prośbę albo decyduje o dalszej potrzebie.
+
+### Interwencja pracownika
+
+Rozstrzyga nierozwiązywalny spór w E, bez samodzielnego rozszerzenia zamówienia.
+
+### Decyzje
+
+DEC-ZAKRES
+DEC-ESKALACJA
+
+### Open Mercato
+
+OM-03
+OM-05

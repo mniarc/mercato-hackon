@@ -1,0 +1,112 @@
+---
+id: F43-1
+kind: user-story
+category: "G — wspólna obsługa klienta"
+feature: F43
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F43-1 · Oddzielna kontrola zakupionego zakresu
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F43
+
+### Grupa
+
+G — wspólna obsługa klienta
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Oddzielna kontrola zakupionego zakresu
+
+### Definicja
+
+Kontrola zakresu porównuje prośbę z produktem przypisanym do zamówienia. Zmiana założeń wykonania i dodatkowy rezultat są rozróżniane przed oceną wpływu.
+
+### Krok procesu
+
+G.3
+G.4
+
+### ID historii
+
+F43-1
+
+### User story
+
+Jako klient chcę zmieniać odbiorcę, ton lub temat w granicach kupionego produktu, żeby dopracować usługę bez opłat za kolejne rundy poprawek.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, G.3 (wiersz 63): porównanie z marką/rynkiem/językiem/rezultatami, interpretacja modelu i reguły; G.4: osobna ocena wpływu. Zasady produktu: Poprawki oraz Zakres a założenia.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F43-1
+
+### Kroki procesu
+
+G.3 — Weryfikacja zakresu
+G.4 — Ocena wpływu zmiany
+
+### Dział odpowiedzialny
+
+Operacje
+
+### Wykonawcy po stronie firmy
+
+Agent weryfikacji zakresu i system reguł (G.3)
+Agent analizy wpływu i system zależności (G.4)
+
+### Powiązane wcześniejsze historie / kroki
+
+F42-1 — Jednorazowy triaż intencji
+
+### Dokumenty i zdarzenia
+
+Katalog produktów, cen i granic usługi — STD-OFERTA
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Dane klienta i marki podane przy zakupie — WEW-DANE-ZAMOWIENIA
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+Brief potrzeb i celów klienta — KLI-BRIEF
+Strategia komunikacji marki — KLI-STRATEGIA
+Plan treści na 30 dni — KLI-PLAN
+
+### Udział klienta
+
+Przekazuje zmianę oczekiwań dotyczącą zamówienia.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji.
+
+### Decyzje
+
+DEC-ZAKRES
+DEC-KIERUNEK
+
+### Open Mercato
+
+OM-03

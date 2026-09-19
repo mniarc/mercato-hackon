@@ -1,0 +1,113 @@
+---
+id: F10-2
+kind: user-story
+category: "4. Brief"
+feature: F10
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F10-2 · Wymiana briefu i wykonanie decyzji
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F10
+
+### Grupa
+
+4. Brief
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Wymiana briefu i wykonanie decyzji
+
+### Definicja
+
+Klient otrzymuje konkretną wersję briefu i potrzebne pytania w wybranym docelowo kanale: mail albo panel, a w briefie wskazuje swoją grupę odbiorców. Każda odpowiedź przechodzi wspólny triaż G. Koordynator wykonuje dyspozycję aktualizacji, sprawdzenia dowodów, pytania lub zapisu akceptacji. W demonstracji Open Mercato warianty kierunku dotyczą developerów i właścicieli agencji; nie ograniczają segmentów dostępnych klientom produktu.
+
+### Krok procesu
+
+4.3
+4.4
+
+### ID historii
+
+F10-2
+
+### User story
+
+Jako klient chcę wskazać przyszłą grupę odbiorców komunikacji, żeby brief odzwierciedlał mój wybór i zachował kupiony zakres rezultatów.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces 4.3–4.4; Decyzje DEC-KIERUNEK i DEC-WPLYW. Dwa warianty demonstracyjne zachowują ten sam produkt i liczbę rezultatów; wpływ rozstrzyga G.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F10-2
+
+### Kroki procesu
+
+4.3 — Przekazanie briefu klientowi
+4.4 — Wykonanie decyzji dotyczącej briefu
+
+### Dział odpowiedzialny
+
+Obsługa klienta
+Analiza i onboarding
+
+### Wykonawcy po stronie firmy
+
+Agent obsługi klienta (4.3)
+Koordynator analizy (4.4)
+
+### Powiązane wcześniejsze historie / kroki
+
+F10-1 — Wymiana briefu i wykonanie decyzji
+G.5 — Zapis decyzji i przekazanie do procesu (F40-2, F41-1, F41-2, F42-1, F42-2, F43-2, F44-1, F44-2, F45-1, F46-1, F46-2, F47-1, F47-2, F49-2, F52-1, F54-1, F55-1, F57-1)
+
+### Dokumenty i zdarzenia
+
+Brief potrzeb i celów klienta — KLI-BRIEF
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+Katalog produktów, cen i granic usługi — STD-OFERTA
+Informacja lub decyzja przekazana przez klienta — WE-KLIENT
+
+### Udział klienta
+
+Określa odbiorców i intencję komunikacji.
+
+### Interwencja pracownika
+
+Tylko nierozstrzygnięta z klientem rzeczywista sprzeczność trafia do pracownika przez E.
+
+### Decyzje
+
+DEC-KIERUNEK
+DEC-WPLYW
+
+### Open Mercato
+
+OM-02
+OM-03
+OM-04

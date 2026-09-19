@@ -67,8 +67,14 @@ function storyTaxonomy(file, id) {
   }
 }
 
-function acceptanceCriteria(text) {
+function acceptanceCriteria(text, acFiles = []) {
   const section = headingSection(text, 'Kryteria akceptacji')
+  if (acFiles.length && section && /See individual AC files/i.test(section)) {
+    return acFiles.sort((a, b) => a.id.localeCompare(b.id, 'en', { numeric: true })).map((ac) => {
+      const criterionSection = ac.text.match(/^## Criterion\s*\r?\n\r?\n([\s\S]*?)(?=\r?\n\r?\n##|\s*$)/m)?.[1]?.trim() ?? ''
+      return { id: ac.id, text: criterionSection, line: 1 }
+    })
+  }
   if (!section) return []
   const offset = text.indexOf(section)
   return [...section.matchAll(/^(\d+)\.\s+(.+)$/gm)].map((match) => ({
@@ -83,18 +89,22 @@ export function buildReport({ storyFiles, taskFiles, adrFiles, coverageFiles = [
   const storiesById = new Map()
   for (const file of storyFiles) {
     const source = normalizedPath(file.path)
-    const id = path.posix.basename(source, '.md')
+    const basename = path.posix.basename(source, '.md')
+    const parentDir = path.posix.basename(path.posix.dirname(source))
+    const isSplit = basename === 'story' && /^F\d{2}-\d+$/.test(parentDir)
+    const id = isSplit ? parentDir : basename
     if (!/^F\d{2}-\d+$/.test(id)) continue
     if (storiesById.has(id)) {
       diagnostics.push({ kind: 'duplicate-story-id', id, sources: [storiesById.get(id).source, source] })
       continue
     }
     const family = Number(id.slice(1, 3))
+    const acFiles = isSplit ? (file.acFiles ?? []) : []
     storiesById.set(id, {
-      id, source, domain: path.posix.basename(path.posix.dirname(source)),
+      id, source, domain: isSplit ? path.posix.basename(path.posix.dirname(path.posix.dirname(source))) : path.posix.basename(path.posix.dirname(source)),
       ...storyTaxonomy(file, id),
       scope: family >= 34 && family <= 39 ? 'proposal' : 'settled',
-      taskIds: [], adrIds: [], mappingEvidence: [], verificationClaims: [], criteria: acceptanceCriteria(file.text),
+      taskIds: [], adrIds: [], mappingEvidence: [], verificationClaims: [], criteria: acceptanceCriteria(file.text, acFiles),
     })
   }
   applyAssessments(storiesById, coverageFiles, assessmentDiagnostics, normalizedPath)
@@ -221,7 +231,11 @@ export function buildReport({ storyFiles, taskFiles, adrFiles, coverageFiles = [
 
 async function markdownFiles(directory, root) {
   const files = []
-  const entries = await readdir(directory, { withFileTypes: true })
+  let entries
+  try { entries = await readdir(directory, { withFileTypes: true }) } catch (error) {
+    if (error.code === 'ENOENT') return []
+    throw error
+  }
   for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
     const filename = path.join(directory, entry.name)
     if (entry.isDirectory()) files.push(...await markdownFiles(filename, root))
@@ -230,12 +244,56 @@ async function markdownFiles(directory, root) {
   return files
 }
 
+async function loadStoryFiles(directory, root) {
+  const files = []
+  let entries
+  try { entries = await readdir(directory, { withFileTypes: true }) } catch (error) {
+    if (error.code === 'ENOENT') return []
+    throw error
+  }
+  for (const entry of entries.sort((left, right) => left.name.localeCompare(right.name))) {
+    const fullPath = path.join(directory, entry.name)
+    if (entry.isDirectory()) {
+      if (/^F\d{2}-\d+$/.test(entry.name)) {
+        const storyPath = path.join(fullPath, 'story.md')
+        try {
+          const storyText = await readFile(storyPath, 'utf8')
+          const innerEntries = await readdir(fullPath, { withFileTypes: true })
+          const acFiles = []
+          for (const inner of innerEntries.sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true }))) {
+            if (inner.isFile() && /^AC\d+\.md$/.test(inner.name)) {
+              const acPath = path.join(fullPath, inner.name)
+              acFiles.push({ id: inner.name.replace('.md', ''), text: await readFile(acPath, 'utf8'), path: normalizedPath(path.relative(root, acPath)) })
+            }
+          }
+          files.push({ path: normalizedPath(path.relative(root, storyPath)), text: storyText, acFiles })
+        } catch (error) {
+          if (error.code !== 'ENOENT') throw error
+        }
+      } else {
+        files.push(...await loadStoryFiles(fullPath, root))
+      }
+    } else if (entry.isFile() && entry.name.endsWith('.md') && /^F\d{2}-\d+\.md$/.test(entry.name)) {
+      files.push({ path: normalizedPath(path.relative(root, fullPath)), text: await readFile(fullPath, 'utf8') })
+    }
+  }
+  return files
+}
+
 export async function loadReport(appRoot = defaultAppRoot) {
-  const [storyFiles, taskFiles, adrFiles, coverageFiles] = await Promise.all([
-    markdownFiles(path.join(appRoot, '.specs', 'user-stories'), appRoot),
-    markdownFiles(path.join(appRoot, '.tasks'), appRoot),
+  const taskbenchRoot = path.join(appRoot, '.taskbench')
+  const hasTaskbench = await readdir(taskbenchRoot).then(() => true, () => false)
+  const storyDir = hasTaskbench ? path.join(taskbenchRoot, 'user-stories') : path.join(appRoot, '.specs', 'user-stories')
+  const taskDirs = hasTaskbench
+    ? [path.join(taskbenchRoot, 'tasks'), path.join(taskbenchRoot, 'tasks-done')]
+    : [path.join(appRoot, '.tasks')]
+  const [storyFiles, ...taskFileArrays] = await Promise.all([
+    loadStoryFiles(storyDir, appRoot),
+    ...taskDirs.map((dir) => markdownFiles(dir, appRoot)),
+  ])
+  const [adrFiles, coverageFiles] = await Promise.all([
     markdownFiles(path.join(appRoot, '.dev-docs', 'adr'), appRoot),
     loadAssessmentFiles(appRoot, normalizedPath),
   ])
-  return buildReport({ storyFiles, taskFiles, adrFiles, coverageFiles })
+  return buildReport({ storyFiles, taskFiles: taskFileArrays.flat(), adrFiles, coverageFiles })
 }

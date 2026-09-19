@@ -1,0 +1,103 @@
+---
+id: F27-1
+kind: user-story
+category: "6. Planowanie treści"
+feature: F27
+criteria_count: 4
+status: implemented
+primary_blocker: trial
+---
+
+
+# F27-1 · Kontrola i zatwierdzenie planu z jednym tematem
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F27
+
+### Grupa
+
+6. Planowanie treści
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Kontrola i zatwierdzenie planu z jednym tematem
+
+### Definicja
+
+Agent jakości kontroluje plan i wykonalność rekomendowanego tematu. Klient decyduje o konkretnej wersji planu i wybiera jeden istniejący w niej temat, a system utrwala oba rozstrzygnięcia po przejściu odpowiedzi przez G.
+
+### Krok procesu
+
+6.3
+
+### ID historii
+
+F27-1
+
+### User story
+
+Jako właściciel jakości chcę sprawdzić plan oraz dowody dla rekomendowanego tematu, żeby klient decydował o wykonalnych i różnorodnych propozycjach.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Plan przechodzi wewnętrzną kontrolę merytoryczną i ilościową; kontrolowana jest wykonalność rekomendowanego postu. Źródło: arkusz Proces, kroki 6.3.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F27-1
+
+### Kroki procesu
+
+6.3 — Kontrola planu treści
+
+### Dział odpowiedzialny
+
+Jakość
+
+### Wykonawcy po stronie firmy
+
+Agent jakości i walidator planu (6.3)
+
+### Powiązane wcześniejsze historie / kroki
+
+F26-2 — Uruchomienie i opracowanie planu treści
+
+### Dokumenty i zdarzenia
+
+Brief potrzeb i celów klienta — KLI-BRIEF
+Plan treści na 30 dni — KLI-PLAN
+Strategia komunikacji marki — KLI-STRATEGIA
+Zasady języka marki — tone of voice — KLI-TOV
+Katalog produktów, cen i granic usługi — STD-OFERTA
+Źródła i materiały konkretnego zamówienia — WEW-ZRODLA
+
+### Udział klienta
+
+Brak rutynowej akcji klienta.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji pracownika; ewentualne nierozwiązane wyjątki obsługuje wspólny proces E.
+
+### Open Mercato
+
+OM-02
+OM-04

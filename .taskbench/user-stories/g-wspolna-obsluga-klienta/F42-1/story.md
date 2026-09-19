@@ -1,0 +1,108 @@
+---
+id: F42-1
+kind: user-story
+category: "G — wspólna obsługa klienta"
+feature: F42
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F42-1 · Jednorazowy triaż intencji
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F42
+
+### Grupa
+
+G — wspólna obsługa klienta
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Jednorazowy triaż intencji
+
+### Definicja
+
+Agent raz rozpoznaje intencję i części zgłoszenia, zapisuje uzasadnienie oraz rozdziela dyspozycje bez zastępowania interpretacji regułą przycisku.
+
+### Krok procesu
+
+G.2
+G.5
+
+### ID historii
+
+F42-1
+
+### User story
+
+Jako klient chcę przekazywać pytania, uwagi i decyzje naturalnym językiem, żeby nie musieć samodzielnie wybierać działu i sterować pracą agentów.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, G.2 (wiersz 62): sześć intencji, części mieszanej wiadomości, wyjaśnienie niepewności i jedna klasyfikacja; G.5: lokalny koordynator wykonuje dyspozycję bez ponownej klasyfikacji.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F42-1
+
+### Kroki procesu
+
+G.2 — Rozpoznanie intencji klienta
+G.5 — Zapis decyzji i przekazanie do procesu
+
+### Dział odpowiedzialny
+
+Obsługa klienta
+Operacje
+
+### Wykonawcy po stronie firmy
+
+Agent triażu (G.2)
+Orkiestrator i system reguł (G.5)
+
+### Powiązane wcześniejsze historie / kroki
+
+F40-1 — Jedno przyjęcie zgłoszenia
+F41-1 — Pewne przypisanie i uprawniony kontakt
+
+### Dokumenty i zdarzenia
+
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+
+### Udział klienta
+
+Przekazuje treść zgłoszenia i ewentualnie potwierdza interpretację.
+
+### Interwencja pracownika
+
+Włącza się dopiero po nierozstrzygnięciu przewidzianym w procesie.
+
+### Decyzje
+
+DEC-TRIAZ
+
+### Open Mercato
+
+OM-03

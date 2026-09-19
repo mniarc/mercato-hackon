@@ -1,0 +1,99 @@
+---
+id: F06-1
+kind: user-story
+category: "3. Audyt i research"
+feature: F06
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F06-1 · Zadania audytu i rejestr źródeł
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F06
+
+### Grupa
+
+3. Audyt i research
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Zadania audytu i rejestr źródeł
+
+### Definicja
+
+Orkiestrator aktywuje zapisane w schemacie zadania audytu i przypisuje wykonawców. Agent źródeł zbiera publiczną stronę klienta oraz jeden oficjalny profil społecznościowy, jeśli istnieje, i rejestruje pochodzenie, daty, fragmenty oraz ograniczenia dostępu.
+
+### Krok procesu
+
+3.1
+
+### ID historii
+
+F06-1
+
+### User story
+
+Jako koordynator audytu chcę uruchomić przewidziane dla kupionego produktu zadania i agentów, żeby praca przebiegała według ustalonego schematu.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces 3.1; Zasady produktu: Autonomia, Limity techniczne. Aktywowane są gotowe zadania, role i zależności.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F06-1
+
+### Kroki procesu
+
+3.1 — Uruchomienie zdefiniowanych zadań audytu
+
+### Dział odpowiedzialny
+
+Audyt i research
+
+### Wykonawcy po stronie firmy
+
+Orkiestrator (3.1)
+
+### Powiązane wcześniejsze historie / kroki
+
+F05-2 — Potwierdzenie zakupu i przekazanie do audytu
+
+### Dokumenty i zdarzenia
+
+Dane klienta i marki podane przy zakupie — WEW-DANE-ZAMOWIENIA
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Techniczne limity wykonania zadań agentów — STD-LIMITY
+
+### Udział klienta
+
+Brak rutynowej akcji; w razie potrzeby wyjaśnia brak dostępu przez G.
+
+### Interwencja pracownika
+
+Brak rutynowego udziału pracownika.
+
+### Open Mercato
+
+OM-02

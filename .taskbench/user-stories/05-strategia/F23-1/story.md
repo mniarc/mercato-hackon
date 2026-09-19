@@ -1,0 +1,106 @@
+---
+id: F23-1
+kind: user-story
+category: "5. Strategia"
+feature: F23
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F23-1 · Kontrola spójności strategii i języka
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F23
+
+### Grupa
+
+5. Strategia
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Kontrola spójności strategii i języka
+
+### Definicja
+
+Agent jakości i walidator sprawdzają konkretną parę wersji strategii i tone of voice względem briefu, dowodów i zakresu produktu. Usterki wracają do właściwego autora, a pozytywny wynik pozwala przedstawić tę parę klientowi.
+
+### Krok procesu
+
+5.4
+
+### ID historii
+
+F23-1
+
+### User story
+
+Jako właściciel jakości chcę sprawdzić parę strategia i tone of voice przed przekazaniem klientowi, żeby nie przedstawiać sprzecznych lub nieuzasadnionych rekomendacji.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Kontrola pary odrzuca obietnice bez pokrycia, sprzeczności i taktykę podszywającą się pod strategię. Dokumenty: WEW-USTALENIA wskazuje 5.4 jako odbiorcę. Źródło: arkusz Proces, kroki 5.4.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F23-1
+
+### Kroki procesu
+
+5.4 — Kontrola strategii i tone of voice
+
+### Dział odpowiedzialny
+
+Jakość
+
+### Wykonawcy po stronie firmy
+
+Agent jakości strategii i walidator (5.4)
+
+### Powiązane wcześniejsze historie / kroki
+
+F21-1 — Opracowanie i wersjonowanie strategii
+F22-1 — Opracowanie i wersjonowanie tone of voice
+
+### Dokumenty i zdarzenia
+
+Brief potrzeb i celów klienta — KLI-BRIEF
+Strategia komunikacji marki — KLI-STRATEGIA
+Zasady języka marki — tone of voice — KLI-TOV
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Analiza obecnej komunikacji klienta — WEW-AUDYT
+Analiza konkurentów i porównanie z klientem — WEW-KONKURENCJA
+Wnioski, hipotezy i pytania do briefu — WEW-USTALENIA
+Źródła i materiały konkretnego zamówienia — WEW-ZRODLA
+
+### Udział klienta
+
+Brak rutynowej akcji klienta.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji pracownika; ewentualne nierozwiązane wyjątki obsługuje wspólny proces E.
+
+### Open Mercato
+
+OM-02
+OM-04
