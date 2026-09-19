@@ -1,3 +1,4 @@
+import { AGENCY_FONT_STYLESHEET_URL } from '@/modules/agency/theme/fonts'
 import { headers } from 'next/headers'
 import Link from 'next/link'
 import { PortalLayoutShell } from '@open-mercato/ui/portal/PortalLayoutShell'
@@ -148,7 +149,7 @@ export default async function FrontendLayout({ children }: LayoutProps) {
 
   return (
     <div className="portal-skin">
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap" />
+      <link rel="stylesheet" href={AGENCY_FONT_STYLESHEET_URL} />
       <PortalLayoutShell
         orgSlug={orgSlug}
         organizationName={orgName}
