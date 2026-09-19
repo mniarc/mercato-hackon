@@ -6,15 +6,16 @@
     "features": 53,
     "stories": 102,
     "criteria": 489,
-    "tasks": 93,
+    "tasks": 107,
     "tasksByState": {
-      "active": 16,
+      "active": 25,
       "blocked": 3,
-      "done": 68,
+      "done": 72,
       "implemented": 3,
       "legacy": 1,
       "queued": 1,
-      "ready": 1
+      "ready": 1,
+      "source": 1
     },
     "mappedStories": 102,
     "taskLinkedStories": 102
@@ -75,7 +76,8 @@
               "taskIds": [
                 "T25",
                 "T59",
-                "T89"
+                "T89",
+                "T100"
               ],
               "doneTaskIds": [
                 "T25",
@@ -85,6 +87,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T89",
@@ -110,17 +119,28 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
               "taskEvidence": [
                 {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
                   "id": "T89",
                   "title": "T89 - Answer a customer's fixed-offer question before purchase",
                   "source": ".tasks/T89-answer-prepurchase-questions-from-fixed-offer.md",
-                  "state": "ready",
-                  "stateLabel": "ready",
+                  "state": "active",
+                  "stateLabel": "active (source implemented; focused checks passed; connected native proof pending)",
                   "stateLine": 3,
                   "owns": "bounded `agency_operations/lib/salesQuestions/**` producer/persistence seam and existing `agents/sales-advisor/**`; coordinator owns shared G contracts and teammate portal integration. Confirm exclusive paths before assigning implementation.",
                   "taskGroup": "T",
@@ -225,7 +245,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -234,8 +254,8 @@
                   "id": "T89",
                   "title": "T89 - Answer a customer's fixed-offer question before purchase",
                   "source": ".tasks/T89-answer-prepurchase-questions-from-fixed-offer.md",
-                  "state": "ready",
-                  "stateLabel": "ready",
+                  "state": "active",
+                  "stateLabel": "active (source implemented; focused checks passed; connected native proof pending)",
                   "stateLine": 3,
                   "owns": "bounded `agency_operations/lib/salesQuestions/**` producer/persistence seam and existing `agents/sales-advisor/**`; coordinator owns shared G contracts and teammate portal integration. Confirm exclusive paths before assigning implementation.",
                   "taskGroup": "T",
@@ -340,7 +360,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -458,7 +478,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -575,7 +595,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -677,7 +697,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 122,
+                  "line": 135,
                   "text": "| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -775,7 +795,8 @@
               ],
               "taskIds": [
                 "T25",
-                "T87"
+                "T87",
+                "T92"
               ],
               "doneTaskIds": [
                 "T25",
@@ -785,6 +806,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T92",
+                  "source": ".tasks/T92-dispatch-payment-confirmation.md",
+                  "line": 4,
+                  "text": "F04-1 AC3; F05-1 AC1–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T25",
@@ -803,11 +831,22 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 123,
+                  "line": 136,
                   "text": "| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T92",
+                  "title": "T92 — Dispatch purchase confirmation independently of fulfilment",
+                  "source": ".tasks/T92-dispatch-payment-confirmation.md",
+                  "state": "active",
+                  "stateLabel": "active",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T25",
                   "title": "T25 - Start one agency process from a confirmed paid order",
@@ -904,7 +943,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 123,
+                  "line": 136,
                   "text": "| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -1004,7 +1043,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 123,
+                  "line": 136,
                   "text": "| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -1070,7 +1109,8 @@
                 }
               ],
               "taskIds": [
-                "T25"
+                "T25",
+                "T92"
               ],
               "doneTaskIds": [
                 "T25"
@@ -1079,6 +1119,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T92",
+                  "source": ".tasks/T92-dispatch-payment-confirmation.md",
+                  "line": 4,
+                  "text": "F04-1 AC3; F05-1 AC1–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T25",
@@ -1090,11 +1137,22 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 123,
+                  "line": 136,
                   "text": "| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T92",
+                  "title": "T92 — Dispatch purchase confirmation independently of fulfilment",
+                  "source": ".tasks/T92-dispatch-payment-confirmation.md",
+                  "state": "active",
+                  "stateLabel": "active",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T25",
                   "title": "T25 - Start one agency process from a confirmed paid order",
@@ -1186,7 +1244,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 123,
+                  "line": 136,
                   "text": "| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |"
                 }
               ],
@@ -1328,7 +1386,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -1463,7 +1521,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -1595,7 +1653,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -1729,7 +1787,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -1833,7 +1891,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -1937,7 +1995,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -2058,7 +2116,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -2190,7 +2248,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -2325,7 +2383,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 124,
+                  "line": 137,
                   "text": "| Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |"
                 }
               ],
@@ -2458,7 +2516,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -2563,7 +2621,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -2704,7 +2762,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -2831,7 +2889,9 @@
                 "T40",
                 "T46",
                 "T63",
-                "T68"
+                "T68",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T27",
@@ -2846,6 +2906,20 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T27",
@@ -2906,11 +2980,33 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T27",
                   "title": "T27 - Apply client answers and regenerate the brief",
@@ -3057,7 +3153,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3153,7 +3249,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3298,14 +3394,14 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 112,
+                  "line": 125,
                   "text": "whole pipeline. Targeted F11 return and live runtime proof remain outstanding."
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3428,14 +3524,14 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 112,
+                  "line": 125,
                   "text": "whole pipeline. Targeted F11 return and live runtime proof remain outstanding."
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3579,7 +3675,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3710,7 +3806,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3808,7 +3904,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 125,
+                  "line": 138,
                   "text": "| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |"
                 }
               ],
@@ -3945,7 +4041,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4070,7 +4166,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4176,13 +4272,13 @@
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
                   "line": 65,
-                  "text": "| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |"
+                  "text": "| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4270,13 +4366,13 @@
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
                   "line": 65,
-                  "text": "| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |"
+                  "text": "| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4345,6 +4441,8 @@
                 "RES-03",
                 "T12",
                 "T43",
+                "T97",
+                "T98",
                 "TOV-01",
                 "TOV-02"
               ],
@@ -4372,6 +4470,20 @@
                 },
                 {
                   "kind": "task-source",
+                  "id": "T97",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "line": 6,
+                  "text": "F22-1, F23-1, F51-1, F53-1, F55-1; user decision that `agency_tov` is the sole ToV producer"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T98",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "line": 4,
+                  "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
+                },
+                {
+                  "kind": "task-source",
                   "id": "T43",
                   "source": ".tasks/tasks-done/T43-run-strategy-from-accepted-brief.md",
                   "line": 10,
@@ -4396,20 +4508,20 @@
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
                   "line": 65,
-                  "text": "| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |"
+                  "text": "| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 77,
-                  "text": "or copied ToV internals. Corpus research alone does not complete F22-1: the"
+                  "line": 90,
+                  "text": "Corpus research alone does not complete F22-1: the"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4433,6 +4545,28 @@
                   "stateLabel": "active",
                   "stateLine": 3,
                   "owns": "`agency_operations` ToV bridge and coordinator-owned live reference proof",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T97",
+                  "title": "T97 - Connect the authoritative tone-of-voice specialist",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+                  "stateLine": 3,
+                  "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T98",
+                  "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -4522,7 +4656,9 @@
                 "RES-03",
                 "T43",
                 "T53",
-                "T54"
+                "T54",
+                "T97",
+                "T98"
               ],
               "doneTaskIds": [
                 "T43",
@@ -4548,6 +4684,20 @@
                 },
                 {
                   "kind": "task-source",
+                  "id": "T97",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "line": 6,
+                  "text": "F22-1, F23-1, F51-1, F53-1, F55-1; user decision that `agency_tov` is the sole ToV producer"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T98",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "line": 4,
+                  "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
+                },
+                {
+                  "kind": "task-source",
                   "id": "T43",
                   "source": ".tasks/tasks-done/T43-run-strategy-from-accepted-brief.md",
                   "line": 10,
@@ -4565,13 +4715,13 @@
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
                   "line": 65,
-                  "text": "| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |"
+                  "text": "| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4595,6 +4745,28 @@
                   "stateLabel": "active",
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/researchException/strategyHandoff.ts`; coordinator owns shared exception helper, native G graph/DI and employee projection.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T97",
+                  "title": "T97 - Connect the authoritative tone-of-voice specialist",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+                  "stateLine": 3,
+                  "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T98",
+                  "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -4671,7 +4843,10 @@
               ],
               "taskIds": [
                 "T22",
-                "T58"
+                "T58",
+                "T98",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T22",
@@ -4681,6 +4856,27 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T98",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "line": 4,
+                  "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
+                },
                 {
                   "kind": "task-source",
                   "id": "T22",
@@ -4706,11 +4902,44 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T98",
+                  "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T22",
                   "title": "T22 - Connect a real version-bound review invitation",
@@ -4777,7 +5006,8 @@
               "taskIds": [
                 "T22",
                 "T47",
-                "T58"
+                "T58",
+                "T98"
               ],
               "doneTaskIds": [
                 "T22",
@@ -4793,6 +5023,13 @@
                   "source": ".tasks/T47-record-paired-strategy-acceptance.md",
                   "line": 8,
                   "text": "F24-2, F25-1, F20-2; F44-1 unchanged-version history"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T98",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "line": 4,
+                  "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
                 },
                 {
                   "kind": "task-source",
@@ -4812,7 +5049,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -4825,6 +5062,17 @@
                   "stateLabel": "active",
                   "stateLine": 3,
                   "owns": "`agency_research/lib/strategyPairAcceptance/**`, `agency_research/lib/planningReadiness/**`; coordinator owns public contracts/service and G wiring",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T98",
+                  "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
+                  "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -4918,7 +5166,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 126,
+                  "line": 139,
                   "text": "| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |"
                 }
               ],
@@ -5043,7 +5291,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5189,7 +5437,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5334,7 +5582,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5432,7 +5680,9 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T28"
+                "T28",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T28"
@@ -5447,6 +5697,20 @@
                   "source": ".tasks/RES-03-strategy-to-closure.md",
                   "line": 4,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
                 },
                 {
                   "kind": "task-source",
@@ -5466,7 +5730,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5480,6 +5744,28 @@
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -5563,7 +5849,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5668,7 +5954,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5768,7 +6054,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5860,7 +6146,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 127,
+                  "line": 140,
                   "text": "| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |"
                 }
               ],
@@ -5986,7 +6272,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6129,7 +6415,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6280,7 +6566,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6372,7 +6658,8 @@
               ],
               "taskIds": [
                 "RES-03",
-                "T29"
+                "T29",
+                "T86"
               ],
               "doneTaskIds": [],
               "adrIds": [
@@ -6394,6 +6681,13 @@
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
                 },
                 {
+                  "kind": "task-source",
+                  "id": "T86",
+                  "source": ".tasks/T86-return-targeted-post-evidence-to-qa.md",
+                  "line": 4,
+                  "text": "F31-2 AC1-5; T29"
+                },
+                {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
@@ -6404,7 +6698,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6428,6 +6722,17 @@
                   "stateLabel": "active (partial)",
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T86",
+                  "title": "T86 - Return targeted post evidence to the requesting QA",
+                  "source": ".tasks/T86-return-targeted-post-evidence-to-qa.md",
+                  "state": "active",
+                  "stateLabel": "active",
+                  "stateLine": 3,
+                  "owns": "research `lib/postEvidence/**`, additive post-editor contract/prompt and QA continuation; coordinated public service and native caller wiring.",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 }
@@ -6480,7 +6785,9 @@
                 "T50",
                 "T66",
                 "T70",
-                "T77"
+                "T77",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T50",
@@ -6491,6 +6798,20 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T29",
@@ -6537,11 +6858,33 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
@@ -6662,7 +7005,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6770,7 +7113,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -6914,7 +7257,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -7036,7 +7379,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 128,
+                  "line": 141,
                   "text": "| Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |"
                 }
               ],
@@ -7154,7 +7497,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7264,7 +7607,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7385,7 +7728,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7488,7 +7831,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7578,7 +7921,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7673,7 +8016,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7768,7 +8111,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7871,7 +8214,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -7966,7 +8309,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -8056,7 +8399,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 129,
+                  "line": 142,
                   "text": "| Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |"
                 }
               ],
@@ -8175,7 +8518,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 130,
+                  "line": 143,
                   "text": "| Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |"
                 }
               ],
@@ -8277,7 +8620,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 130,
+                  "line": 143,
                   "text": "| Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |"
                 }
               ],
@@ -8379,7 +8722,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 130,
+                  "line": 143,
                   "text": "| Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |"
                 }
               ],
@@ -8476,7 +8819,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 130,
+                  "line": 143,
                   "text": "| Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |"
                 }
               ],
@@ -8579,7 +8922,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 130,
+                  "line": 143,
                   "text": "| Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |"
                 }
               ],
@@ -8688,7 +9031,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 137,
+                  "line": 150,
                   "text": "| Demo evidence: F56-1, F57-1, F58-1, F59-1 | Explicit earlier execution, genuine branch choice/current consents, provider proof, honest fallback. [T33](../../.tasks/T33-operational-process-view-and-demo.md); presentation does not authorize missing effects. |"
                 }
               ],
@@ -8787,7 +9130,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 137,
+                  "line": 150,
                   "text": "| Demo evidence: F56-1, F57-1, F58-1, F59-1 | Explicit earlier execution, genuine branch choice/current consents, provider proof, honest fallback. [T33](../../.tasks/T33-operational-process-view-and-demo.md); presentation does not authorize missing effects. |"
                 }
               ],
@@ -8911,7 +9254,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 137,
+                  "line": 150,
                   "text": "| Demo evidence: F56-1, F57-1, F58-1, F59-1 | Explicit earlier execution, genuine branch choice/current consents, provider proof, honest fallback. [T33](../../.tasks/T33-operational-process-view-and-demo.md); presentation does not authorize missing effects. |"
                 }
               ],
@@ -9033,7 +9376,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 137,
+                  "line": 150,
                   "text": "| Demo evidence: F56-1, F57-1, F58-1, F59-1 | Explicit earlier execution, genuine branch choice/current consents, provider proof, honest fallback. [T33](../../.tasks/T33-operational-process-view-and-demo.md); presentation does not authorize missing effects. |"
                 }
               ],
@@ -9224,7 +9567,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 134,
+                  "line": 147,
                   "text": "| Employee exceptions: F48-1, F49-1, F49-2, F50-1, F50-2 | Create owned native UserTask → authorized human decision or customer-question wait → resume permitted originating step once. T21 extends existing T05 inbox. |"
                 }
               ],
@@ -9439,7 +9782,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 134,
+                  "line": 147,
                   "text": "| Employee exceptions: F48-1, F49-1, F49-2, F50-1, F50-2 | Create owned native UserTask → authorized human decision or customer-question wait → resume permitted originating step once. T21 extends existing T05 inbox. |"
                 }
               ],
@@ -9506,7 +9849,9 @@
                 "T44",
                 "T52",
                 "T55",
-                "T56"
+                "T56",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T44",
@@ -9518,6 +9863,20 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T44",
@@ -9557,11 +9916,33 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 134,
+                  "line": 147,
                   "text": "| Employee exceptions: F48-1, F49-1, F49-2, F50-1, F50-2 | Create owned native UserTask → authorized human decision or customer-question wait → resume permitted originating step once. T21 extends existing T05 inbox. |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T44",
                   "title": "T44 - Ask the client from an employee exception without resolving it",
@@ -9692,7 +10073,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 134,
+                  "line": 147,
                   "text": "| Employee exceptions: F48-1, F49-1, F49-2, F50-1, F50-2 | Create owned native UserTask → authorized human decision or customer-question wait → resume permitted originating step once. T21 extends existing T05 inbox. |"
                 }
               ],
@@ -9813,7 +10194,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 134,
+                  "line": 147,
                   "text": "| Employee exceptions: F48-1, F49-1, F49-2, F50-1, F50-2 | Create owned native UserTask → authorized human decision or customer-question wait → resume permitted originating step once. T21 extends existing T05 inbox. |"
                 }
               ],
@@ -9929,7 +10310,8 @@
                 "T20",
                 "T30",
                 "T36",
-                "T78"
+                "T78",
+                "T90"
               ],
               "doneTaskIds": [
                 "T02",
@@ -9938,7 +10320,8 @@
                 "T15",
                 "T16",
                 "T20",
-                "T36"
+                "T36",
+                "T90"
               ],
               "adrIds": [
                 "ADR-003"
@@ -10008,6 +10391,13 @@
                   "text": "F40-1 material intake, F06-1 configured task activation, F55-1 scoped access; existing teammate Materials UI and `/api/agency/portal/materials` contract"
                 },
                 {
+                  "kind": "task-source",
+                  "id": "T90",
+                  "source": ".tasks/tasks-done/T90-native-only-customer-submission-intake.md",
+                  "line": 4,
+                  "text": "F40-1 AC1–4; F42-1 AC1, AC3, AC5"
+                },
+                {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
@@ -10018,7 +10408,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 131,
+                  "line": 144,
                   "text": "| Shared customer intake/context: F40-1, F40-2, F41-1, F41-2 | Preserve original submission, prepurchase context, exact authorized approval target. Existing T15/T16/T20 cover bounded intake/clarification; T22 owns actual review invitation/receipt; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends G. |"
                 }
               ],
@@ -10121,6 +10511,17 @@
                   "owns": "`ai-company/apps/mercato/src/modules/agency/frontend/[orgSlug]/portal/agency/materials/_components/MaterialSubmission.tsx`, its adjacent test, and `agency/i18n/*.json` material-analysis keys only",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
+                },
+                {
+                  "id": "T90",
+                  "title": "T90 — Keep customer responses native or honestly pending",
+                  "source": ".tasks/tasks-done/T90-native-only-customer-submission-intake.md",
+                  "state": "done",
+                  "stateLabel": "done",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/clientSubmissionService.ts`, its submission contract/tests; the portal case conversation's pending-state rendering and new localized labels.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
                 }
               ]
             },
@@ -10205,7 +10606,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 131,
+                  "line": 144,
                   "text": "| Shared customer intake/context: F40-1, F40-2, F41-1, F41-2 | Preserve original submission, prepurchase context, exact authorized approval target. Existing T15/T16/T20 cover bounded intake/clarification; T22 owns actual review invitation/receipt; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends G. |"
                 }
               ],
@@ -10369,7 +10770,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 131,
+                  "line": 144,
                   "text": "| Shared customer intake/context: F40-1, F40-2, F41-1, F41-2 | Preserve original submission, prepurchase context, exact authorized approval target. Existing T15/T16/T20 cover bounded intake/clarification; T22 owns actual review invitation/receipt; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends G. |"
                 }
               ],
@@ -10500,7 +10901,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 131,
+                  "line": 144,
                   "text": "| Shared customer intake/context: F40-1, F40-2, F41-1, F41-2 | Preserve original submission, prepurchase context, exact authorized approval target. Existing T15/T16/T20 cover bounded intake/clarification; T22 owns actual review invitation/receipt; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends G. |"
                 }
               ],
@@ -10572,7 +10973,8 @@
                 "T19",
                 "T20",
                 "T30",
-                "T41"
+                "T41",
+                "T90"
               ],
               "doneTaskIds": [
                 "T15",
@@ -10580,7 +10982,8 @@
                 "T18",
                 "T19",
                 "T20",
-                "T41"
+                "T41",
+                "T90"
               ],
               "adrIds": [
                 "ADR-003"
@@ -10636,6 +11039,13 @@
                   "text": "F12-1, F12-2, F10-3, F42-1"
                 },
                 {
+                  "kind": "task-source",
+                  "id": "T90",
+                  "source": ".tasks/tasks-done/T90-native-only-customer-submission-intake.md",
+                  "line": 4,
+                  "text": "F40-1 AC1–4; F42-1 AC1, AC3, AC5"
+                },
+                {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
@@ -10646,7 +11056,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -10727,6 +11137,17 @@
                   "owns": "producer agent `agency_research/lib/briefAcceptance/**`; routing agent `agency_operations/agents/client-triage/**` except configuration and fixture; coordinator owns shared research contracts/service, DI, runtime and demo",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
+                },
+                {
+                  "id": "T90",
+                  "title": "T90 — Keep customer responses native or honestly pending",
+                  "source": ".tasks/tasks-done/T90-native-only-customer-submission-intake.md",
+                  "state": "done",
+                  "stateLabel": "done",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/clientSubmissionService.ts`, its submission contract/tests; the portal case conversation's pending-state rendering and new localized labels.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
                 }
               ]
             },
@@ -10790,7 +11211,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -10889,7 +11310,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -10983,7 +11404,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -11098,7 +11519,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -11222,7 +11643,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -11379,7 +11800,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 132,
+                  "line": 145,
                   "text": "| Shared judgment/routing: F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F45-1 | Triage → scope → impact only where needed; save and authorize the resulting directive. T19 activates the first native worker; [T30](../../.tasks/T30-shared-scope-impact-and-routing.md) extends beyond answer/clarify. |"
                 }
               ],
@@ -11532,7 +11953,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 133,
+                  "line": 146,
                   "text": "| Shared publication/postdelivery handling: F46-1, F46-2, F47-1, F47-2 | Hold/reconcile publication; distinguish delivery error from new need. Unsupported published-content repair is not fabricated. [T30](../../.tasks/T30-shared-scope-impact-and-routing.md), T31/T32 adapters. |"
                 }
               ],
@@ -11627,7 +12048,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 133,
+                  "line": 146,
                   "text": "| Shared publication/postdelivery handling: F46-1, F46-2, F47-1, F47-2 | Hold/reconcile publication; distinguish delivery error from new need. Unsupported published-content repair is not fabricated. [T30](../../.tasks/T30-shared-scope-impact-and-routing.md), T31/T32 adapters. |"
                 }
               ],
@@ -11730,7 +12151,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 133,
+                  "line": 146,
                   "text": "| Shared publication/postdelivery handling: F46-1, F46-2, F47-1, F47-2 | Hold/reconcile publication; distinguish delivery error from new need. Unsupported published-content repair is not fabricated. [T30](../../.tasks/T30-shared-scope-impact-and-routing.md), T31/T32 adapters. |"
                 }
               ],
@@ -11820,7 +12241,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 133,
+                  "line": 146,
                   "text": "| Shared publication/postdelivery handling: F46-1, F46-2, F47-1, F47-2 | Hold/reconcile publication; distinguish delivery error from new need. Unsupported published-content repair is not fabricated. [T30](../../.tasks/T30-shared-scope-impact-and-routing.md), T31/T32 adapters. |"
                 }
               ],
@@ -11914,7 +12335,9 @@
                 "T01",
                 "T02",
                 "T33",
-                "T37"
+                "T37",
+                "T100",
+                "T101"
               ],
               "doneTaskIds": [
                 "T01",
@@ -11924,6 +12347,20 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T100",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "line": 4,
+                  "text": "F01-1 AC5; F10-1 AC1–4; F24-1; F27-2; F32-1; F49-2; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T101",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "line": 4,
+                  "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -11956,11 +12393,33 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 136,
+                  "line": 149,
                   "text": "| Operational platform: F52-1, F53-1, F54-1, F55-1 | Real case/process projection, dependency/version lineage, and separate record authority. Enterprise is required for the selected native agent path, not the deterministic baseline; this does not claim full OSS agent parity for F54-1. [T33](../../.tasks/T33-operational-process-view-and-demo.md) composes actual domain records; each owning task enforces its write boundary. |"
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T100",
+                  "title": "T100 — Connect the customer and employee journey",
+                  "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+                  "stateLine": 3,
+                  "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T101",
+                  "title": "T101 — Show the current customer action inside its agency case",
+                  "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+                  "stateLine": 3,
+                  "owns": null,
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -12061,6 +12520,7 @@
                 "T33",
                 "T37",
                 "T64",
+                "T97",
                 "TOV-02"
               ],
               "doneTaskIds": [
@@ -12107,6 +12567,13 @@
                 },
                 {
                   "kind": "task-source",
+                  "id": "T97",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "line": 6,
+                  "text": "F22-1, F23-1, F51-1, F53-1, F55-1; user decision that `agency_tov` is the sole ToV producer"
+                },
+                {
+                  "kind": "task-source",
                   "id": "T22",
                   "source": ".tasks/tasks-done/T22-version-bound-client-review.md",
                   "line": 6,
@@ -12123,7 +12590,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 136,
+                  "line": 149,
                   "text": "| Operational platform: F52-1, F53-1, F54-1, F55-1 | Real case/process projection, dependency/version lineage, and separate record authority. Enterprise is required for the selected native agent path, not the deterministic baseline; this does not claim full OSS agent parity for F54-1. [T33](../../.tasks/T33-operational-process-view-and-demo.md) composes actual domain records; each owning task enforces its write boundary. |"
                 }
               ],
@@ -12180,6 +12647,17 @@
                   "stateLabel": "implemented; nine focused UI checks and app typecheck passed; native browser navigation proof pending",
                   "stateLine": 3,
                   "owns": "employee case `researchLineage/**`, its research-ledger mount and additive locale keys",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T97",
+                  "title": "T97 - Connect the authoritative tone-of-voice specialist",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+                  "stateLine": 3,
+                  "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -12318,7 +12796,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 136,
+                  "line": 149,
                   "text": "| Operational platform: F52-1, F53-1, F54-1, F55-1 | Real case/process projection, dependency/version lineage, and separate record authority. Enterprise is required for the selected native agent path, not the deterministic baseline; this does not claim full OSS agent parity for F54-1. [T33](../../.tasks/T33-operational-process-view-and-demo.md) composes actual domain records; each owning task enforces its write boundary. |"
                 }
               ],
@@ -12449,6 +12927,7 @@
                 "T37",
                 "T39",
                 "T46",
+                "T97",
                 "TOV-02"
               ],
               "doneTaskIds": [
@@ -12495,6 +12974,13 @@
                   "source": ".tasks/T37-show-persisted-research-in-employee-case.md",
                   "line": 6,
                   "text": "F52-1 AC2/3/5, F53-1 AC1/4, F55-1; teammate research public read APIs"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T97",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "line": 6,
+                  "text": "F22-1, F23-1, F51-1, F53-1, F55-1; user decision that `agency_tov` is the sole ToV producer"
                 },
                 {
                   "kind": "task-source",
@@ -12584,7 +13070,7 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 136,
+                  "line": 149,
                   "text": "| Operational platform: F52-1, F53-1, F54-1, F55-1 | Real case/process projection, dependency/version lineage, and separate record authority. Enterprise is required for the selected native agent path, not the deterministic baseline; this does not claim full OSS agent parity for F54-1. [T33](../../.tasks/T33-operational-process-view-and-demo.md) composes actual domain records; each owning task enforces its write boundary. |"
                 }
               ],
@@ -12630,6 +13116,17 @@
                   "stateLabel": "active (read integration committed; positive partial-output browser proof pending)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_operations/backend/agency-operations/cases/[id]/_components/AgencyCaseResearchLedger.tsx` and its adjacent test; coordinator owns the `AgencyCaseDetail.tsx` mount and `agency_operations/i18n/*.json` research-ledger keys",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T97",
+                  "title": "T97 - Connect the authoritative tone-of-voice specialist",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+                  "stateLine": 3,
+                  "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -12849,14 +13346,14 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 135,
+                  "line": 148,
                   "text": "| Execution/configuration: F51-1, F60-1 | Enforced task bounds and approved pinned standards/templates; no invented prices, counts, limits, or routes. [T24](../../.tasks/T24-versioned-product-execution-config.md), T19. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 152,
+                  "line": 165,
                   "text": "This is not proof of a live model's quality or full F51/F60 coverage. T17 still needs"
                 }
               ],
@@ -12938,7 +13435,8 @@
                 "T21",
                 "T24",
                 "T57",
-                "T63"
+                "T63",
+                "T97"
               ],
               "doneTaskIds": [
                 "T11",
@@ -12965,6 +13463,13 @@
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
                   "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T97",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "line": 6,
+                  "text": "F22-1, F23-1, F51-1, F53-1, F55-1; user decision that `agency_tov` is the sole ToV producer"
                 },
                 {
                   "kind": "task-source",
@@ -13012,14 +13517,14 @@
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 135,
+                  "line": 148,
                   "text": "| Execution/configuration: F51-1, F60-1 | Enforced task bounds and approved pinned standards/templates; no invented prices, counts, limits, or routes. [T24](../../.tasks/T24-versioned-product-execution-config.md), T19. |"
                 },
                 {
                   "kind": "adr-reference",
                   "id": "ADR-003",
                   "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-                  "line": 152,
+                  "line": 165,
                   "text": "This is not proof of a live model's quality or full F51/F60 coverage. T17 still needs"
                 }
               ],
@@ -13043,6 +13548,17 @@
                   "stateLabel": "active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)",
                   "stateLine": 3,
                   "owns": "role-specific configuration beside the worker and its native workflow binding; introduce shared product configuration only when an actual process needs it",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T97",
+                  "title": "T97 - Connect the authoritative tone-of-voice specialist",
+                  "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+                  "state": "active",
+                  "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+                  "stateLine": 3,
+                  "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -13168,6 +13684,60 @@
       "adrIds": [
         "ADR-001"
       ]
+    },
+    {
+      "id": "T100",
+      "title": "T100 — Connect the customer and employee journey",
+      "source": ".tasks/T100-connect-context-aware-agency-journey.md",
+      "state": "active",
+      "stateLabel": "active (P0; source implementation, runtime proof coordinator-owned)",
+      "stateLine": 3,
+      "owns": "agency `components/journey/**`, dashboard/tasks wrappers, task/review return navigation, `route-overrides.ts`, customer case/material page navigation, own EN/PL keys; coordinated staff `AgencyCaseProcess.tsx`/`StaffTovIntake.tsx` navigation only. No shared backend contracts, workflow graph, T95 harness or native auth rewrites.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F01-1",
+        "F10-1",
+        "F24-1",
+        "F27-2",
+        "F32-1",
+        "F49-2",
+        "F52-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T101",
+      "title": "T101 — Show the current customer action inside its agency case",
+      "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
+      "state": "active",
+      "stateLabel": "active (P0; scoped native task projection implemented, coordinator proof pending)",
+      "stateLine": 3,
+      "owns": null,
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F10-1",
+        "F24-1",
+        "F27-2",
+        "F32-1",
+        "F49-2",
+        "F52-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T102",
+      "title": "T102 - Configure server agent execution and native mail",
+      "source": ".tasks/T102-configure-server-agent-execution-and-native-mail.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`ai-company/docker/agency/{compose.yml,runtime.env.example}`, narrow `bin/agency.mjs` validation/tests, existing deployment guidance.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
     },
     {
       "id": "T12",
@@ -13573,7 +14143,7 @@
       "title": "T85 - Package the agency app for a Linux Docker server",
       "source": ".tasks/T85-package-agency-for-linux-docker.md",
       "state": "active",
-      "stateLabel": "active; Linux Docker target confirmed, isolated build proof pending",
+      "stateLabel": "active; frozen baseline image and portable bundle verified, clean boot/current-main release pending",
       "stateLine": 3,
       "owns": "`bin/agency.{ps1,sh,mjs}`, `ai-company/docker/agency/**`; agreed native Dockerfile/context changes",
       "taskGroup": "T",
@@ -13582,11 +14152,26 @@
       "adrIds": []
     },
     {
+      "id": "T86",
+      "title": "T86 - Return targeted post evidence to the requesting QA",
+      "source": ".tasks/T86-return-targeted-post-evidence-to-qa.md",
+      "state": "active",
+      "stateLabel": "active",
+      "stateLine": 3,
+      "owns": "research `lib/postEvidence/**`, additive post-editor contract/prompt and QA continuation; coordinated public service and native caller wiring.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F31-2"
+      ],
+      "adrIds": []
+    },
+    {
       "id": "T89",
       "title": "T89 - Answer a customer's fixed-offer question before purchase",
       "source": ".tasks/T89-answer-prepurchase-questions-from-fixed-offer.md",
-      "state": "ready",
-      "stateLabel": "ready",
+      "state": "active",
+      "stateLabel": "active (source implemented; focused checks passed; connected native proof pending)",
       "stateLine": 3,
       "owns": "bounded `agency_operations/lib/salesQuestions/**` producer/persistence seam and existing `agents/sales-advisor/**`; coordinator owns shared G contracts and teammate portal integration. Confirm exclusive paths before assigning implementation.",
       "taskGroup": "T",
@@ -13595,6 +14180,124 @@
         "F01-1",
         "F01-2"
       ],
+      "adrIds": []
+    },
+    {
+      "id": "T92",
+      "title": "T92 — Dispatch purchase confirmation independently of fulfilment",
+      "source": ".tasks/T92-dispatch-payment-confirmation.md",
+      "state": "active",
+      "stateLabel": "active",
+      "stateLine": 3,
+      "owns": null,
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F04-1",
+        "F05-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T93",
+      "title": "T93 — Persistent manual fixture and live walkthrough modes",
+      "source": ".tasks/T93-persistent-manual-fixture-and-live-modes.md",
+      "state": "source",
+      "stateLabel": "source implemented; persistent native/manual proof pending",
+      "stateLine": 3,
+      "owns": null,
+      "taskGroup": "T",
+      "mappingBasis": "title-fallback",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T94",
+      "title": "T94 - Index native agent integrations and journey observations",
+      "source": ".tasks/T94-index-native-agent-integration-evidence.md",
+      "state": "active",
+      "stateLabel": "active Tool implemented with six focused checks passing; native collector/proof is delegated to T95/T96. Initial generated report contains zero observed runs.",
+      "stateLine": 3,
+      "owns": "`.dev-docs/integrations/**`; coordinator assigns demo collector separately.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T95",
+      "title": "T95 - Run the same native agency journey with fixture or live intelligence",
+      "source": ".tasks/T95-share-fixture-and-live-agent-journey-harness.md",
+      "state": "active",
+      "stateLabel": "active (source integrated; focused checks passed; joined native proof pending)",
+      "stateLine": 3,
+      "owns": "`ai-company/apps/mercato/src/modules/agency_operations/__integration__/` TC-AGENCY-001/002/003 and their support helpers; new mode-selection helpers there.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T96",
+      "title": "T96 - Integrate and prove the shared agent harness",
+      "source": ".tasks/T96-prove-and-integrate-shared-agent-harness.md",
+      "state": "ready",
+      "stateLabel": "ready",
+      "stateLine": 3,
+      "owns": "coordinator integration, runtime validation and remaining cross-owner wiring.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T97",
+      "title": "T97 - Connect the authoritative tone-of-voice specialist",
+      "source": ".tasks/T97-connect-authoritative-tov-specialist.md",
+      "state": "active",
+      "stateLabel": "active (P0; staff intake source implemented, joined strategy proof pending)",
+      "stateLine": 3,
+      "owns": "staff ToV intake under `agency_operations/lib/tovIntake/**`, `api/tov-intakes/**`, its focused tests and the minimal existing ToV activity/DI seams",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F22-1",
+        "F23-1",
+        "F51-1",
+        "F53-1",
+        "F55-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T98",
+      "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
+      "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
+      "state": "active",
+      "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+      "stateLine": 3,
+      "owns": null,
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F22-1",
+        "F23-1",
+        "F24-1",
+        "F24-2"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T99",
+      "title": "T99 - Retain build and package command logs",
+      "source": ".tasks/T99-retain-build-and-package-command-logs.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`bin/agency.mjs`, `bin/package-release.mjs`, small shared log helper/tests; coordinator owns the already-running build and recovery of its native history.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
       "adrIds": []
     },
     {
@@ -14743,6 +15446,35 @@
       "adrIds": []
     },
     {
+      "id": "T90",
+      "title": "T90 — Keep customer responses native or honestly pending",
+      "source": ".tasks/tasks-done/T90-native-only-customer-submission-intake.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`agency_operations/lib/clientSubmissionService.ts`, its submission contract/tests; the portal case conversation's pending-state rendering and new localized labels.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F40-1",
+        "F42-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T91",
+      "title": "T91 - Add local agency command wrappers",
+      "source": ".tasks/tasks-done/T91-add-local-agency-command-wrappers.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`bin-dev/` wrappers and their brief testing-process guidance.",
+      "taskGroup": "T",
+      "mappingBasis": "title-fallback",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
       "id": "TOV-01",
       "title": "TOV-01 - Tone-of-voice research baseline",
       "source": ".tasks/tasks-done/TOV-01-tone-of-voice-research-agents.md",
@@ -14780,8 +15512,14 @@
   "unmappedStories": [],
   "storiesWithoutTasks": [],
   "tasksWithoutStories": [
+    "T102",
     "T79",
     "T85",
+    "T93",
+    "T94",
+    "T95",
+    "T96",
+    "T99",
     "T04",
     "T05",
     "T06",
@@ -14797,7 +15535,8 @@
     "T72",
     "T73",
     "T81",
-    "T82"
+    "T82",
+    "T91"
   ],
   "diagnostics": [
     {
@@ -14815,7 +15554,7 @@
     {
       "kind": "unexpanded-range",
       "source": ".dev-docs/adr/003-agency-worker-and-interaction-map.md",
-      "line": 141,
+      "line": 154,
       "anchor": "F34–F39"
     }
   ]

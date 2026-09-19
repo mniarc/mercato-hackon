@@ -3,8 +3,9 @@
 State: active
 Sources: F04-1 AC3; F05-1 AC1–5.
 
-Implemented in source; 2 focused suites / 28 tests pass. Native joined delivery
-proof remains, so the task and stories are not marked complete.
+Implemented in source; 2 focused suites / 28 tests passed, followed by 23 passing
+checks for the sending-state fix and app typecheck. Native joined delivery proof
+remains, so the task and stories are not marked complete.
 
 After a verified agency purchase capture, send the scoped customer a native
 system-email confirmation containing only the saved order number, purchased

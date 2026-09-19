@@ -1,11 +1,27 @@
 # Build/package handoff — verify a portable server bundle
 
-State: ready for takeover; image verification, archive and deployment proof pending.
+State: baseline package produced and checked; clean server boot/newer-main release pending.
 
 Goal: deliver one verified, secret-free release tar that another developer can
 extract, import and boot on Linux Docker without the development checkout.
 Fix reproducible build/package/startup defects; this is not a request for broad
 refactoring or paid model calls.
+
+## Closeout result
+
+Build, offline image verification (modules/workers/writable paths/native SQLite),
+image export and portable packaging all exited successfully. Local artifacts:
+
+- `.build-artifacts/agency-app-1209dbd26.tar` — 3,694,680,576 bytes.
+- `.build-artifacts/agency-release-1209dbd26.tar` — 3,694,714,880 bytes; transfer this bundle.
+
+The bundle's entries were checked: image, deployment runners/logging helper,
+Compose, example runtime configuration and `QUICKSTART.txt`, not the development
+checkout or private environment. Image source is `1209dbd26`; bundle tooling/config
+is `13d8c0e85`. These ignored local artifacts are not delivered by `git pull`.
+They do not contain the subsequent main integrations. Remaining takeover work:
+prove import/init/boot on the target, or build a deliberately chosen newer commit.
+No clean server startup, latest full journey or paid model execution is claimed.
 
 ## Starting evidence — 2026-09-19 16:54 UTC
 

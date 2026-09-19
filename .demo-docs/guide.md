@@ -111,4 +111,6 @@ The [integration report](../.dev-docs/integrations/generated/generated-report.ht
 source wiring from fixture/live execution. Its initial report has zero observations
 until the collector is connected; a registered agent is not evidence it ran.
 For server packaging use [deployment instructions](../.dev-docs/.processes/current/deployment.md).
-Final verified image/export artifact is not ready; local demo proof is not deployment proof.
+The frozen `1209dbd26` image and portable bundle have passed build, offline
+verification and packaging. They exclude later main integrations; clean server
+startup remains unproved. See the [build/package handoff](../.tasks-critical/build-package-handoff.md).
