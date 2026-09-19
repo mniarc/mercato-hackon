@@ -13,6 +13,12 @@ test('manual profiles isolate persistent state and keep fixture intelligence loc
   assert.equal(fixture.BASE_URL, 'http://localhost:5004')
   assert.equal(live.BASE_URL, 'http://localhost:5006')
   assert.equal(fixture.OPENROUTER_BASE_URL, 'http://127.0.0.1:5005/v1')
+  assert.equal(fixture.AGENCY_TOV_EXECUTION_ENABLED, 'true')
+  for (const key of ['OM_AI_AGENCY_OPERATIONS_BASE_URL', 'OM_AI_AGENCY_RESEARCH_BASE_URL',
+    'OM_AI_AGENCY_TOV_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL']) {
+    assert.equal(fixture[key], 'http://127.0.0.1:5005/v1', key)
+  }
+  assert.equal(live.AGENCY_TOV_EXECUTION_ENABLED, 'false')
   assert.equal(fixture.OPENROUTER_API_KEY, 'agency-triage-fixture-only')
   assert.equal(fixture.AUTO_SPAWN_WORKERS, 'false')
   assert.equal(fixture.OM_EVENTS_EXTERNAL_WORKER, 'true')

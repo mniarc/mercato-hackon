@@ -327,6 +327,9 @@ export function agencyManualEnvironment(shared, existing, profile, { action = 's
   if (profile === 'fixture') {
     const endpoint = `http://127.0.0.1:${selected.providerPort}/v1`
     Object.assign(env, { AGENCY_MANUAL_PROVIDER_PORT: String(selected.providerPort), OPENROUTER_BASE_URL: endpoint,
+      AGENCY_TOV_EXECUTION_ENABLED: 'true',
+      OM_AI_AGENCY_OPERATIONS_BASE_URL: endpoint, OM_AI_AGENCY_RESEARCH_BASE_URL: endpoint,
+      OM_AI_AGENCY_TOV_BASE_URL: endpoint,
       AGENCY_OPERATIONS_AI_BASE_URL: endpoint, AGENCY_RESEARCH_AI_BASE_URL: endpoint })
     if (action === 'start' && (!settings.AGENCY_MANUAL_TENANT_ID || !settings.AGENCY_MANUAL_ORGANIZATION_ID)) {
       throw new Error('Manual fixture start requires AGENCY_MANUAL_TENANT_ID and AGENCY_MANUAL_ORGANIZATION_ID from its own initialized database. Run setup --profile fixture first.')
