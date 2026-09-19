@@ -226,6 +226,15 @@ export function createProductionJourneyIntelligence(appRoot: string) {
           result.data[key] = { ...result.data[key] as object, value: answered.proposed_value }
         }
       }
+      // The canned QA requests this actual editorial repair. Returning the same
+      // prose would correctly reuse its failed native content-keyed QA result.
+      if (result.data.business_direction && input.repair_findings.some((finding) =>
+        finding.code === 'fact_vs_interpretation' && finding.path === 'KLI-BRIEF.business_direction.value'
+        && finding.owner === 'agent' && finding.fix_step === '4.1')
+        && !input.field_map.some((field) => field.field_key === 'business_direction' && field.status === 'client_decision')) {
+        const direction = result.data.business_direction as { value: string }
+        direction.value = `${input.outputLanguage === 'en' ? 'Proposal' : 'Propozycja'}: ${direction.value}`
+      }
     }
     if (agentId === 'agency_research.readiness_assessor') {
       const input = readinessAssessorInputSchema.parse(raw)
