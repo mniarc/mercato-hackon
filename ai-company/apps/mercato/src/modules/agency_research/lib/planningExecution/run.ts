@@ -6,6 +6,7 @@ import { inputVersionSchema, type InputVersion } from '../../data/schemas/envelo
 import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { limits } from '../../data/templates'
 import { documentIdFor, versionLabel } from '../research/envelope'
+import { openEscalation } from '../research/escalate'
 import { BudgetPausedError, createLedger } from '../research/ledger'
 import type { StepContext, StrategyExecutionInput } from '../research/steps/context'
 import { runPlanStep } from '../research/steps/plan'
@@ -108,8 +109,24 @@ export async function runPlanningExecution(opts: RunPlanningExecutionOptions): P
   try {
     await runPlanStep(ctx)
     const qa = await runPlanQaLoop(ctx, { planStep: runPlanStep })
+    const escalation = qa.verdict === 'needs_agent_fix' ? await openEscalation(ctx, {
+      code: 'qa_exhausted',
+      summary: `Q-P still fails after ${qa.repairs} repair attempt(s) (STD-LIMITY qa_repair_attempts_per_run = ${planningQaRepairAttempts}).`,
+      triggerStep: '6.3',
+      evidence: [
+        { ref: qa.taskRunId, fact: `6.3 task run, verdict ${qa.verdict}` },
+        ...(qa.planVersionId ? [{ ref: qa.planVersionId, fact: 'Exact plan version checked by 6.3' }] : []),
+        ...qa.findings.filter((finding) => finding.severity === 'blocking').slice(0, 10)
+          .map((finding) => ({ ref: finding.path, fact: `${finding.code}: ${finding.gap}` })),
+      ],
+      blockedSteps: ['6.4'],
+      decisionQuestion: 'Why must this plan remain blocked, and who must act on the recorded QA findings?',
+      allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason the plan cannot proceed and who must act.', permittedNextStep: 'none' }],
+      resumeStep: '6.2',
+    }, [...Object.values(planningInputs).map(pin), ...(planningOutputs.plan ? [pin(planningOutputs.plan)] : [])]) : null
     return await persist({ ...result('completed'), planVersionId: qa.planVersionId, qaTaskRunId: qa.taskRunId,
-      qaVerdict: qa.verdict, readyForApproval: qa.readyForApproval })
+      qaVerdict: qa.verdict, readyForApproval: qa.readyForApproval,
+      ...(escalation ? { escalationVersionId: escalation.versionId } : {}) })
   } catch (error) {
     getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.planning_execution_failed' })
     if (error instanceof BudgetPausedError) return persist(result('paused_budget'))

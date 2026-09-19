@@ -3,6 +3,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../../data/entities'
 import { documentIdFor } from '../../research/envelope'
+import { openEscalation } from '../../research/escalate'
 import type { StepContext } from '../../research/steps/context'
 import { runPlanStep } from '../../research/steps/plan'
 import { runPlanQaLoop } from '../../research/steps/planQa'
@@ -16,6 +17,7 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryp
 jest.mock('../../planningReadiness/read', () => ({ readPlanningReadiness: jest.fn() }))
 jest.mock('../../research/steps/plan', () => ({ runPlanStep: jest.fn() }))
 jest.mock('../../research/steps/planQa', () => ({ runPlanQaLoop: jest.fn() }))
+jest.mock('../../research/escalate', () => ({ openEscalation: jest.fn() }))
 jest.mock('../../store', () => ({ startTaskRun: jest.fn(), finishTaskRun: jest.fn() }))
 
 const scope = { tenantId: 'tenant', organizationId: 'organization' }
@@ -88,6 +90,7 @@ test('runs only planning on the accepted pair and exact strategy lineage with ex
   expect(ctx.orderVersion.version).toBe('2.0')
   expect(startTaskRun).toHaveBeenCalledWith(em, scope, expect.objectContaining({ stepId: '6.1' }))
   expect(runPlanQaLoop).toHaveBeenCalledWith(ctx, { planStep: runPlanStep })
+  expect(openEscalation).not.toHaveBeenCalled()
   expect(readPlanningReadiness).toHaveBeenCalledWith(em, scope, { orderRef: 'case', strategyVersionId: request.strategyVersionId, tovVersionId: request.tovVersionId, process: request.process })
 })
 test.each([undefined, 0, -1])('does not use fallback topic count (%s)', async (topics) => {
@@ -112,6 +115,31 @@ test('saved result replays without rerunning models even after readiness changes
   expect(await execute()).toEqual(original)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
 })
+
+test('exhausted plan QA saves exact exception evidence and replays without creating another exception', async () => {
+  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => {
+    context.taskRunIds.push('plan-qa')
+    return { taskRunId: 'plan-qa', planVersionId: 'plan', verdict: 'needs_agent_fix', repairs: 2, readyForApproval: false,
+      findings: [{ code: 'missing_evidence', path: 'KLI-PLAN.topics[0]', gap: 'No supporting source', severity: 'blocking', owner: 'agent' }] as never }
+  })
+  jest.mocked(openEscalation).mockImplementation(async (context) => {
+    context.taskRunIds.push('exception-task')
+    context.documentVersionIds.push('exception-version')
+    return { versionId: 'exception-version', taskRunId: 'exception-task', data: {} as never }
+  })
+  const result = await execute()
+  expect(result).toMatchObject({ status: 'completed', readyForApproval: false, escalationVersionId: 'exception-version',
+    taskRunIds: expect.arrayContaining(['plan-qa', 'exception-task']), documentVersionIds: expect.arrayContaining(['plan', 'exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(ctx, expect.objectContaining({
+    code: 'qa_exhausted', triggerStep: '6.3', blockedSteps: ['6.4'], resumeStep: '6.2',
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: expect.any(String), permittedNextStep: 'none' }],
+    evidence: expect.arrayContaining([{ ref: 'plan-qa', fact: expect.any(String) }, { ref: 'plan', fact: expect.any(String) },
+      { ref: 'KLI-PLAN.topics[0]', fact: 'missing_evidence: No supporting source' }]),
+  }), expect.arrayContaining([{ document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }]))
+  expect(await execute()).toEqual(result)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
+  expect(runPlanQaLoop).toHaveBeenCalledTimes(1)
+})
 test('concurrent duplicate calls claim once and preserve the in-flight run', async () => {
   const results = await Promise.all([execute(), execute()])
   expect(startTaskRun).toHaveBeenCalledTimes(1)
@@ -122,6 +150,7 @@ test('paused budget is saved with generated plan and no invented QA', async () =
   jest.mocked(runPlanQaLoop).mockImplementation(async (context) => { context.ledger.assertCanSpend('6.3', 'qa', 4); throw new Error('unreachable') })
   const paused = await execute()
   expect(paused).toMatchObject({ status: 'paused_budget', planVersionId: 'plan', qaTaskRunId: null, readyForApproval: false })
+  expect(openEscalation).not.toHaveBeenCalled()
   expect(await execute()).toEqual(paused)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
 })

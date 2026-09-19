@@ -30,6 +30,16 @@ test('continues after saved readiness through one asynchronous native activity w
   })
 })
 
+test('routes exhausted planning to the existing employee task before considering client review', () => {
+  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === 'planning_execution'))
+    .toMatchObject({ toStepId: 'planning_exception_checked', activities: [{ config: { functionName: 'agency_operations.handoffPlanningResearchException' } }] })
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'planning_exception_checked'))
+    .toMatchObject([
+      { toStepId: 'research_exception', condition: { value: 'employee_exception' } },
+      { toStepId: 'plan_review', condition: { value: 'none' } },
+    ])
+})
+
 test('passes the stored original through native input mapping and projects the saved research result on a transition', () => {
   const triage = nativeClientSubmissionDefinition.steps.find((step) => step.stepId === 'triage')
   expect(triage?.activities).toEqual([expect.objectContaining({ activityType: 'INVOKE_AGENT', config: {
