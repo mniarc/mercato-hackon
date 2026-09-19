@@ -1,3 +1,4 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
 import type { EntityManager } from '@mikro-orm/postgresql'
@@ -34,6 +35,24 @@ function parseArgs(args: string[]): Record<string, string> {
     }
   }
   return result
+}
+
+/**
+ * Pages read once for an order are read again from disk: the same bytes keep the
+ * same source ids, facts and every downstream cache key, so a rerun replays instead
+ * of regenerating because a site changed a footer. `--refetch` reads the web again;
+ * an unavailable page is never cached.
+ */
+function cachedFetcher(inner: FetchPage, dir: string, refetch: boolean): FetchPage {
+  fs.mkdirSync(dir, { recursive: true })
+  const fileFor = (url: string) => path.join(dir, `${crypto.createHash('sha256').update(url).digest('hex').slice(0, 32)}.json`)
+  return async (url) => {
+    const file = fileFor(url)
+    if (!refetch && fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, 'utf8')) as Awaited<ReturnType<FetchPage>>
+    const page = await inner(url)
+    if (page.status === 'ok') fs.writeFileSync(file, JSON.stringify(page, null, 2))
+    return page
+  }
 }
 
 function fileCache(dir: string): PipelineCache {
@@ -106,7 +125,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  *
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
  *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
- *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] \
+ *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] [--refetch] \
  *     [--tenant <id> --org <id> --user <id>]
  *
  * The orchestrator runner is the default (persisted `agent_runs`, admission,
@@ -145,7 +164,7 @@ const run: ModuleCli = {
       runAgent = createOrchestratorRunner(db, { ...scope, userId }, agentRunIds)
     }
     const firecrawlKey = process.env.FIRECRAWL_API_KEY ?? ''
-    const fetchPage: FetchPage = args['fixture-pages'] ? fileFetcher(args['fixture-pages']) : createFirecrawlFetcher({ apiKey: firecrawlKey })
+    const fetchPage: FetchPage = args['fixture-pages'] ? fileFetcher(args['fixture-pages']) : cachedFetcher(createFirecrawlFetcher({ apiKey: firecrawlKey }), path.join(out, 'cache', 'pages'), args['refetch'] === 'true')
     const searchWeb: SearchWeb | undefined = args['fixture-search'] ? fileSearch(args['fixture-search']) : firecrawlKey ? createFirecrawlSearch({ apiKey: firecrawlKey }) : undefined
     const socialPosts = args['social-corpus'] ? loadSocialCorpus(args['social-corpus']) : undefined
     console.log(`Runner: ${runnerName} (extract ${models.extract}, synthesis ${models.synthesis}) · cap ${maxCostPln} PLN · tenant=${scope.tenantId} org=${scope.organizationId} order=${orderRef}`)
