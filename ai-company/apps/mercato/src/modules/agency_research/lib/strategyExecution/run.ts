@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
 import { inputVersionSchema, type InputVersion } from '../../data/schemas/envelope'
 import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
@@ -12,9 +13,10 @@ import type { StepContext, StrategyExecutionInput } from '../research/steps/cont
 import { runStrategyStep } from '../research/steps/strategy'
 import { runTovStep } from '../research/steps/tov'
 import { runStrategyQaLoop } from '../research/steps/strategyQa'
-import { finishTaskRun, startTaskRun, type ResearchScope } from '../store'
+import { finishTaskRun, type ResearchScope } from '../store'
 import { resolveStrategyReadiness, type StrategyDocumentReference } from '../strategyReadiness'
-import { strategyExecutionRequestSchema, type StrategyExecutionRequest, type StrategyExecutionResult } from './contracts'
+import { strategyExecutionRequestSchema, type StrategyExecutionRequest, type StrategyExecutionResult, type StrategyExecutionOutcome } from './contracts'
+import { claimStrategyExecution, savedStrategyExecution } from './claim'
 
 export type RunStrategyExecutionOptions = {
   em: EntityManager
@@ -35,6 +37,8 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
   const request = strategyExecutionRequestSchema.parse(opts.request)
   const { em, scope } = opts
   const { orderRef } = request
+  const saved = await savedStrategyExecution(em, scope, request)
+  if (saved) return saved
   const readiness = await resolveStrategyReadiness(em, scope, request)
   if (readiness.status === 'not_ready') return readiness
   const where = { ...scope, orderRef }
@@ -79,30 +83,39 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
   }
 
   const onEvent = opts.onEvent ?? (() => {})
-  const ledger = createLedger({ maxPln: request.maxCostPln, onEvent })
   const taskRunIds: string[] = []
   const documentVersionIds: string[] = []
   const agentRunIds = opts.agentRunIds ?? []
   const strategyOutputs: NonNullable<StepContext['strategyOutputs']> = { strategy: null, tov: null }
   const strategyQaRepairAttempts = limits.generation.qaRepairAttemptsPerRun
   const inputVersions = [orderVersion, ...[brief, zrodla, audyt, konkurencja, ustalenia].map(pin)]
-  const activation = await startTaskRun(em, scope, {
+  const summary = {
+    process: readiness.process,
+    briefVersionId: readiness.brief.versionId,
+    acceptanceSubmissionId: readiness.acceptance.source.submissionId,
+    freezeTaskRunId: readiness.analysis.freezeTaskRunId,
+    analysisQaTaskRunId: readiness.analysis.qaTaskRunId,
+    analysisSetHash: readiness.analysis.setHash,
+    limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: strategyQaRepairAttempts },
+    steps: ['5.2', '5.3', '5.4'],
+  }
+  const claim = await claimStrategyExecution(em, scope, request, {
     orderRef, brand: order.brand, stepId: '5.1', attempt: 1, runner: 'system', models: opts.models, inputVersions,
-  })
-  taskRunIds.push(activation.id)
-  await finishTaskRun(em, activation, {
-    status: 'done',
-    summary: {
-      process: readiness.process,
-      briefVersionId: readiness.brief.versionId,
-      acceptanceSubmissionId: readiness.acceptance.source.submissionId,
-      freezeTaskRunId: readiness.analysis.freezeTaskRunId,
-      analysisQaTaskRunId: readiness.analysis.qaTaskRunId,
-      analysisSetHash: readiness.analysis.setHash,
-      limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: strategyQaRepairAttempts },
-      steps: ['5.2', '5.3', '5.4'],
-    },
-  })
+  }, summary)
+  if ('existing' in claim) return claim.existing
+  taskRunIds.push(claim.activationTaskRunId)
+  const ledger = createLedger({ maxPln: request.maxCostPln, onEvent })
+  const activation = await findOneWithDecryption(em, AgencyResearchTaskRun, {
+    ...where, id: claim.activationTaskRunId, stepId: '5.1',
+  }, undefined, scope)
+  if (!activation) throw new Error('[internal] strategy activation record is missing')
+  const persistResult = async (outcome: StrategyExecutionOutcome): Promise<StrategyExecutionOutcome> => {
+    await finishTaskRun(em, activation, {
+      status: outcome.status === 'completed' ? 'done' : 'paused_budget',
+      summary: { ...summary, executionResult: outcome }, agentRunIds, cost: ledger.snapshot(),
+    })
+    return outcome
+  }
   const ctx: StepContext = {
     em, scope, orderRef, order, orderVersion,
     runAgent: opts.runAgent, runner: opts.runner, models: opts.models, ledger,
@@ -123,13 +136,18 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     await runStrategyStep(ctx)
     await runTovStep(ctx)
     const qa = await runStrategyQaLoop(ctx, { strategyStep: runStrategyStep, tovStep: runTovStep })
-    return {
+    return await persistResult({
       ...result('completed'), strategyVersionId: qa.strategyVersionId, tovVersionId: qa.tovVersionId,
       qaTaskRunId: qa.taskRunId, qaVerdict: qa.verdict,
       ...(qa.escalationVersionId ? { escalationVersionId: qa.escalationVersionId } : {}),
-    }
+    })
   } catch (error) {
-    if (error instanceof BudgetPausedError) return result('paused_budget')
+    getTelemetryRuntime()?.reportError(error, { module: 'agency_research', code: 'agency_research.strategy_execution_failed' })
+    if (error instanceof BudgetPausedError) return persistResult(result('paused_budget'))
+    await finishTaskRun(em, activation, {
+      status: 'failed', summary, agentRunIds, cost: ledger.snapshot(),
+      error: error instanceof Error ? error.message : String(error),
+    })
     throw error
   }
 }
