@@ -2,10 +2,10 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion } from '../../../data/entities'
-import { buildPublicationConfig, contentApprovalCheck } from '../../research/publication'
+import { buildPublicationConfig, contentApprovalCheck, contentHashOf } from '../../research/publication'
 import { readPostAcceptance } from '../../postAcceptance/read'
 import { recordPublicationConsent } from '../record'
-import { readPublicationConsent } from '../read'
+import { readPublicationConsent, publicationConsentCheckOf } from '../read'
 import type { RecordPublicationConsentInput } from '../contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn() }))
@@ -37,7 +37,7 @@ beforeEach(() => {
     const rows = entity === AgencyResearchDocument ? [document, configDocument, brief] : [post, config]
     return (rows.find((row) => Object.entries(where as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
   })
-  jest.mocked(readPostAcceptance).mockResolvedValue({ status: 'ready', orderRef: 'case', post: { version: '1.0' }, receipt: {
+  jest.mocked(readPostAcceptance).mockResolvedValue({ status: 'ready', orderRef: 'case', post: { version: '1.0', documentStatus: 'approved', versionStatus: 'approved' }, receipt: {
     person: input.request.customerUserId, source: { kind: 'agency_post_acceptance', ...input.request.source },
   } } as never)
 })
@@ -79,5 +79,49 @@ test('a profile URL supplies no destination, and another scope/actor/source cann
   await expect(recordPublicationConsent(em, { ...input, context: { ...input.context, tenantId: uuid(25) } })).rejects.toMatchObject({ status: 404 })
   await expect(recordPublicationConsent(em, { ...input, request: { ...input.request, customerUserId: uuid(25) } })).rejects.toMatchObject({ status: 409 })
   await expect(recordPublicationConsent(em, { ...input, request: { ...input.request, source: { ...input.request.source, invitationTaskId: uuid(25) } } })).rejects.toMatchObject({ status: 409 })
+  expect(flush).toHaveBeenCalledTimes(1)
+})
+
+function separateInput() {
+  return { ...input, request: { ...input.request,
+    expectedContentHash: contentHashOf({ text: 'Exact approved text.', links_and_mentions: [] }),
+    source: { kind: 'native_publication_consent_task' as const, invitationTaskId: uuid(41), workflowInstanceId: uuid(42), eventId: 'later-original-consent' },
+  } }
+}
+
+test('later native consent has independent real task provenance without rewriting prior content approval', async () => {
+  const later = separateInput()
+  const result = await recordPublicationConsent(em, later)
+  expect(result).toMatchObject({ status: 'recorded', replayed: false, record: { source: later.request.source } })
+  expect(await recordPublicationConsent(em, later)).toEqual({ ...result, replayed: true })
+  const consent = await read()
+  expect(consent).toMatchObject({ state: 'valid', contentHash: later.request.expectedContentHash })
+  expect(publicationConsentCheckOf(consent).consent_ref_or_null).toBe(`${uuid(5)}:publication:task:${uuid(41)}`)
+  expect(post.approvalRecords).toHaveLength(1)
+  expect(flush).toHaveBeenCalledTimes(1)
+})
+
+test('separate consent still needs genuine prior customer approval and exact invited bytes', async () => {
+  const later = separateInput()
+  expect(await recordPublicationConsent(em, { ...later, request: { ...later.request, expectedContentHash: 'changed-content' } }))
+    .toEqual({ status: 'not_ready', reason: 'content_changed' })
+  jest.mocked(readPostAcceptance).mockResolvedValueOnce({ status: 'ready', receipt: null } as never)
+  expect(await recordPublicationConsent(em, later)).toEqual({ status: 'not_ready', reason: 'content_approval_missing' })
+  expect(await recordPublicationConsent(em, { ...later, request: { ...later.request, customerUserId: uuid(43) } }))
+    .toEqual({ status: 'not_ready', reason: 'content_approval_missing' })
+  expect(flush).not.toHaveBeenCalled()
+})
+
+test('a retained receipt on an unapproved current version blocks fresh consent but not immutable receipt replay', async () => {
+  const later = separateInput()
+  const saved = await recordPublicationConsent(em, later)
+  jest.mocked(readPostAcceptance).mockResolvedValue({ status: 'ready', orderRef: 'case',
+    post: { version: '1.0', documentStatus: 'approved', versionStatus: 'ready_for_review' },
+    receipt: { person: input.request.customerUserId },
+  } as never)
+  expect(await recordPublicationConsent(em, later)).toEqual({ ...saved, replayed: true })
+  expect(await recordPublicationConsent(em, { ...later, request: { ...later.request,
+    source: { ...later.request.source, invitationTaskId: uuid(44) },
+  } })).toEqual({ status: 'not_ready', reason: 'content_approval_missing' })
   expect(flush).toHaveBeenCalledTimes(1)
 })

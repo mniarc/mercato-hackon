@@ -50,6 +50,8 @@ import { createPostInstructionHandoff } from './lib/planApproval/handoff'
 import { createPostExecutionActivity } from './lib/postExecution/activity'
 import { POST_EXECUTION_FUNCTION } from './lib/postExecution/contracts'
 import { createPostReviewService } from './lib/postReview/service'
+import { createPublicationConsentRequestService } from './lib/publicationConsentRequest/service'
+import { PUBLICATION_CONSENT_REQUEST_SERVICE, PUBLICATION_CONSENT_FUNCTION } from './lib/publicationConsentRequest/contracts'
 import { POST_REVIEW_SERVICE, POST_RESPONSE_FUNCTION } from './lib/postReview/contracts'
 import { createPostReviewHandoff } from './lib/postExecution/reviewHandoff'
 import { POST_REVIEW_HANDOFF_FUNCTION } from './lib/postApproval/contracts'
@@ -77,6 +79,10 @@ export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUN
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [PUBLICATION_CONSENT_REQUEST_SERVICE]: asFunction(() => createPublicationConsentRequestService(container)).scoped(),
+    [`workflowFunction:${PUBLICATION_CONSENT_FUNCTION}`]: asFunction(
+      () => container.resolve<ReturnType<typeof createPublicationConsentRequestService>>(PUBLICATION_CONSENT_REQUEST_SERVICE).receiveResponse,
+    ).scoped(),
     [AGENCY_PUBLICATION_DESTINATION_SERVICE]: asFunction(() => createPublicationDestinationService(container)).scoped(),
     [`workflowFunction:${MATERIAL_REVISION_FUNCTION}`]: asFunction(() => createMaterialRevisionActivity(container)).scoped(),
     [`workflowFunction:${MATERIAL_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createMaterialRevisionReviewHandoff(container)).scoped(),

@@ -6,7 +6,7 @@ import { postDataSchema } from '../../data/schemas/post'
 import { contentHashOf } from '../research/publication'
 import { postAcceptanceRequestSchema } from '../postAcceptance/contracts'
 import type { PublicationConsentCheck } from '../../data/schemas/zleceniePublikacji'
-import { publicationConsentRecordSchema, publicationTargetSchema, samePublicationDestination, publicationDestinationKey, type PublicationConsent, type PublicationTarget } from './contracts'
+import { publicationConsentRecordSchema, publicationConsentSourceRef, publicationTargetSchema, samePublicationDestination, publicationDestinationKey, type PublicationConsent, type PublicationTarget } from './contracts'
 
 type Scope = { tenantId: string; organizationId: string }
 export async function readPublicationTarget(em: EntityManager, scope: Scope, orderRef: string): Promise<PublicationTarget | null> {
@@ -34,11 +34,12 @@ export async function readPublicationConsent(em: EntityManager, scope: Scope, ra
     .flatMap((parsed) => parsed.success && parsed.data.documentId === document.id && parsed.data.documentVersionId === version.id ? [parsed.data] : [])
   const matching = records.find((saved) => target && samePublicationDestination(saved.destination, target)
     && document.currentVersionId === version.id && post.success && saved.contentHash === contentHashOf(post.data))
-  return { target, state: matching ? 'valid' : records.length ? 'stale' : 'missing', record: matching ?? records[0] ?? null }
+  return { target, contentHash: post.success ? contentHashOf(post.data) : null,
+    state: matching ? 'valid' : records.length ? 'stale' : 'missing', record: matching ?? records[0] ?? null }
 }
 
 export function publicationConsentCheckOf(consent: PublicationConsent): PublicationConsentCheck {
-  return { state: consent.state, consent_ref_or_null: consent.record ? `${consent.record.documentVersionId}:publication:${consent.record.source.submissionId}` : null,
+  return { state: consent.state, consent_ref_or_null: consent.record ? `${consent.record.documentVersionId}:publication:${publicationConsentSourceRef(consent.record.source)}` : null,
     bound_content_hash_or_null: consent.record?.contentHash ?? null,
     bound_destination_or_null: consent.record ? publicationDestinationKey(consent.record.destination) : null }
 }
