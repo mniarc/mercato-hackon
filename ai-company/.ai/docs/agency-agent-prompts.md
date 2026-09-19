@@ -1,6 +1,6 @@
 # Agency agents — prompt review copy
 
-Generated 2026-09-19 17:32 UTC from the registered agent definitions (36 agents).
+Generated 2026-09-19 17:44 UTC from the registered agent definitions (36 agents).
 Source of truth is the code: `apps/mercato/src/modules/agency_research/lib/agents/*.ts` (research chain; shared rules in `shared.ts`, deslop rules in `deslop.ts`) and `apps/mercato/src/modules/agency_tov/ai-agents.ts` (corpus lane).
 Each prompt below is the exact system prompt the model receives, split one sentence per line for editing. Field definitions rendered from Rafał's WZR-* contracts (`data/contracts.v1_1.json`) are included where the agent carries them.
 
