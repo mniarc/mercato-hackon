@@ -11,6 +11,8 @@ import { analysisExecutionPolicySchema } from '../../../lib/analysisProcess/cont
 import { configureBriefReviewWorkflow } from '../../../lib/briefStrategyProcess/configure'
 import { configureStrategyPairReviewWorkflow } from '../../../lib/strategyPairReview/configure'
 import { configurePlanReviewWorkflow } from '../../../lib/planReview/configure'
+import { configurePostReviewWorkflow } from '../../../lib/postReview/configure'
+import nativePostPolicy from '../nativePostPolicy.json'
 import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '../../../../agency_research/lib/contracts'
 import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../../agents/client-triage/workflow'
 import { workflowDefinitionDataSchema } from '@open-mercato/core/modules/workflows/data/validators'
@@ -23,7 +25,7 @@ async function open() {
 }
 
 export async function configureProductionJourney(input: {
-  tenantId: string; organizationId: string; userId: string; productSelection: unknown;
+  tenantId: string; organizationId: string; userId: string; productSelection: unknown; includePost?: boolean;
 }): Promise<string[]> {
   if (process.env.NODE_ENV === 'production' || process.env.AGENCY_TEST_NATIVE_TRIAGE !== '1'
     || !process.env.AGENCY_TEST_RESEARCH_FIXTURE_DIR) throw new Error('The production journey requires explicit local source and intelligence fixtures')
@@ -37,6 +39,7 @@ export async function configureProductionJourney(input: {
     await configureBriefReviewWorkflow(container, input)
     await configureStrategyPairReviewWorkflow(container, input)
     await configurePlanReviewWorkflow(container, input)
+    if (input.includePost) await configurePostReviewWorkflow(container, input)
     const em = container.resolve<EntityManager>('em').fork()
     const triage = await em.findOne(WorkflowDefinition, { workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, ...scope, enabled: true, lifecycle: 'published' }, { orderBy: { version: 'DESC' } })
     if (!triage || triage.metadata?.generatedBy?.ownerId !== 'client_triage') throw new Error('Configure the owned native client triage definition before this journey')
@@ -62,6 +65,7 @@ export async function configureProductionJourney(input: {
     const latest = await em.findOne(WorkflowDefinition, { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, tenantId: input.tenantId }, { orderBy: { version: 'DESC' } })
     const policy = analysisExecutionPolicySchema.parse({ through: '4.2', maxCostPln: 20,
       briefRevision: { maxCostPln: 10 }, strategyExecution: { maxCostPln: 20 }, planningExecution: { maxCostPln: 20 },
+      ...(input.includePost ? { postExecution: nativePostPolicy.postExecution } : {}),
       productSelection: input.productSelection })
     // A new, real native version with its own execution principal. No existing
     // definition or active instance is rewritten to authorize this test journey.

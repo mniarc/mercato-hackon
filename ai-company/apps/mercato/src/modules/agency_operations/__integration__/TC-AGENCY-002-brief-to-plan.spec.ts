@@ -6,8 +6,7 @@ import { apiRequest, getAuthToken } from '@open-mercato/core/helpers/integration
 import { getTokenScope } from '@open-mercato/core/helpers/integration/generalFixtures'
 import { drainIntegrationQueue } from '@open-mercato/core/helpers/integration/queue'
 import {
-  createCustomerCompanyFixture, createCustomerRoleFixture, createCustomerUserFixture,
-  deleteCustomerCompanyFixture, deleteCustomerRoleFixture, deleteCustomerUserFixture, portalLogin,
+  customerTestPassword, deleteCustomerCompanyFixture, deleteCustomerUserFixture, portalLogin,
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
 import { BRIEF_REVIEW_WORKFLOW_ID, BRIEF_REVIEW_CONTEXT_KEY, briefReviewInvitationSchema } from '../lib/briefStrategyProcess/contracts'
 import { STRATEGY_PAIR_REVIEW_WORKFLOW_ID, STRATEGY_PAIR_REVIEW_CONTEXT_KEY, strategyPairInvitationSchema } from '../lib/strategyPairReview/contracts'
@@ -17,10 +16,12 @@ import { demoOffer } from '../lib/orderBootstrap/demoOffer'
 import { supplementaryMaterialResultSchema } from '../lib/contracts/clientMaterialIntake'
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
 import { answersForQuestions, createProductionJourneyIntelligence, SUPPLEMENTARY_MATERIAL_TEXT } from './support/productionJourney/intelligence'
-import { configureProductionJourney, readProducedBrief, removeProductionJourneyDefinition } from './support/productionJourney/setup'
+import { configureFullProductionJourney, readProducedBrief, removeProductionJourneyDefinition } from './support/productionJourney/setup'
 import { assertLoopbackOverrides, deleteProductionJourneyRecords, readInvitation, readUploadedResearchMaterial, type JourneyScope } from './support/productionJourney/records'
-import { configurePurchaseJourney } from './support/purchaseJourney/setup'
-import { deletePurchaseJourneyRecords, readPurchaseJourneyRecords } from './support/purchaseJourney/records'
+import { configurePurchaseJourney, failPurchaseJourneyPayment } from './support/purchaseJourney/setup'
+import { deletePurchaseJourneyRecords, readOnboardedPurchaseCompanies, readPurchaseJourneyRecords } from './support/purchaseJourney/records'
+import { readSignedUpPurchaseCustomer, signUpPurchaseCustomer, verifyCapturedPurchaseEmail } from './support/purchaseJourney/signup'
+import { completeProducedPostJourney } from './support/productionJourney/downstream'
 
 export const integrationMeta = {
   dependsOnModules: ['agency', 'agency_operations', 'agency_research', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows', 'agent_orchestrator'],
@@ -39,7 +40,7 @@ async function continueNativeResponse() {
 }
 
 test.use({ trace: 'retain-on-failure' })
-test.describe('TC-AGENCY-002: original client answers through real producers to a plan invitation', () => {
+test.describe('TC-AGENCY-002: primary customer journey to publication preparation without sending', () => {
   let cleanup: (() => Promise<void>) | undefined
   test.afterEach(async ({}, info) => {
     info.setTimeout(60_000)
@@ -47,7 +48,7 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
     cleanup = undefined
     await current?.()
   })
-  test('research asks, client answers and accepts the resulting brief and strategy pair', async ({ page, request }, info) => {
+  test('signup, recovered purchase, materials and genuine client decisions drive the teammate process', async ({ page, request }, info) => {
     test.setTimeout(600_000)
     expect(process.env.AGENCY_TEST_NATIVE_TRIAGE, 'Run only with the explicit local intelligence fixture').toBe('1')
     expect(process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED, 'Enable the zero-charge purchase in app and runner').toMatch(/^(1|true)$/)
@@ -63,47 +64,49 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
     const { tenantId, organizationId } = getTokenScope(adminToken)
     const { userId } = getTokenScope(provisioningToken)
     const suffix = randomUUID().slice(0, 8)
+    const customer = { email: `agency-production-${randomUUID()}@example.test`, password: customerTestPassword(),
+      displayName: `Production customer ${suffix}` }
     let customerEntityId: string | null = null
     let customerUserId: string | null = null
-    let customerRoleId: string | null = null
     let scope: JourneyScope | undefined
     let definitions: string[] = []
     cleanup = async () => {
       console.log('[TC-AGENCY-002] Clean up this journey only')
       try {
-        if (scope) await deleteProductionJourneyRecords(request, adminToken, scope)
-        if (scope && customerUserId) await deletePurchaseJourneyRecords(request, adminToken, { ...scope, customerUserId })
-        for (const id of definitions) await removeProductionJourneyDefinition({ id, tenantId, organizationId })
-        if (customerUserId && customerRoleId) {
-          const detached = await apiRequest(request, 'PUT', `/api/customer_accounts/admin/users/${customerUserId}`, { token: provisioningToken, data: { roleIds: [] } })
-          expect(detached.ok()).toBeTruthy()
+        customerUserId ??= (await readSignedUpPurchaseCustomer(request, provisioningToken, customer.email))?.id ?? null
+        const companies = customerUserId ? await readOnboardedPurchaseCompanies({ tenantId, organizationId, customerUserId }) : []
+        for (const companyId of companies) {
+          const owned = { tenantId, organizationId, customerEntityId: companyId, customerUserId: customerUserId! }
+          await deleteProductionJourneyRecords(request, adminToken, owned)
+          await deletePurchaseJourneyRecords(request, adminToken, owned)
         }
+        for (const id of definitions) await removeProductionJourneyDefinition({ id, tenantId, organizationId })
         await deleteCustomerUserFixture(request, provisioningToken, customerUserId)
-        await deleteCustomerRoleFixture(request, provisioningToken, customerRoleId)
-        await deleteCustomerCompanyFixture(request, adminToken, customerEntityId)
+        for (const companyId of companies) await deleteCustomerCompanyFixture(request, adminToken, companyId)
       } finally { await provider.close() }
     }
     const order = JSON.parse(fs.readFileSync(path.join(sourceDirectory, 'order.json'), 'utf8'))
-    const customer = await test.step('Configure explicit fixture policy and a real customer', async () => {
+    await test.step('Configure explicit test-owned policy for the real purchase and process', async () => {
       console.log('[TC-AGENCY-002] Configure new native versions and local source/model fixtures')
       await assertLoopbackOverrides({ tenantId, organizationId }, provider.baseUrl)
       await configurePurchaseJourney({ tenantId, organizationId, userId })
-      definitions = await configureProductionJourney({ tenantId, organizationId, userId, productSelection: {
+      definitions = await configureFullProductionJourney({ tenantId, organizationId, userId, productSelection: {
         sku: demoOffer.sku, offer_version: demoOffer.offerVersion, price_net: demoOffer.amount, currency: demoOffer.currency,
         result_limits: order.product_selection.result_limits,
       } })
-      customerEntityId = await createCustomerCompanyFixture(request, adminToken, `Production journey ${suffix}`)
-      scope = { tenantId, organizationId, customerEntityId }
-      customerRoleId = (await createCustomerRoleFixture(request, provisioningToken, {
-        name: `Production customer ${suffix}`, features: ['portal.tasks.view', 'portal.tasks.complete'], isPortalAdmin: false,
-      })).id
-      const created = await createCustomerUserFixture(request, provisioningToken, { customerEntityId, roleIds: [customerRoleId], displayName: `Production customer ${suffix}` })
-      customerUserId = created.id
-      return created
     })
     const organizationResponse = await apiRequest(request, 'GET', `/api/directory/organizations?view=manage&ids=${organizationId}&tenantId=${tenantId}`, { token: adminToken })
     expect(organizationResponse.ok()).toBeTruthy()
     const orgSlug = (await organizationResponse.json() as { items: Array<{ slug: string }> }).items[0].slug
+    await test.step('Register a fresh customer and verify the actual captured signup email', async () => {
+      await signUpPurchaseCustomer(page, { ...customer, orgSlug, baseUrl: BASE_URL })
+      const created = await readSignedUpPurchaseCustomer(request, provisioningToken, customer.email)
+      expect(created).toBeTruthy()
+      customerUserId = created!.id
+      expect(created).toMatchObject({ customerEntityId: null, emailVerified: false })
+      await verifyCapturedPurchaseEmail(request, customer.email, BASE_URL)
+      await checkpoint(page, info, '00-native-signup-email-verified')
+    })
     const session = await portalLogin(request, { email: customer.email, password: customer.password, tenantId })
     await page.context().addCookies([
       { name: 'customer_auth_token', value: session.authToken, url: BASE_URL, sameSite: 'Lax' },
@@ -131,11 +134,37 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
       await page.locator('#billingBuyerType').selectOption('company')
       await page.getByRole('checkbox').check()
       const initiated = page.waitForResponse((response) => new URL(response.url()).pathname === purchases && response.request().method() === 'POST')
+      const onboarding = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/agency/portal/onboarding' && response.request().method() === 'POST')
       await page.getByRole('button', { name: /Create demo order|Utwórz zamówienie demonstracyjne/ }).click()
+      const onboardedResponse = await onboarding
+      expect(onboardedResponse.ok(), await onboardedResponse.text()).toBeTruthy()
+      const linked = await onboardedResponse.json() as { customerEntityId: string; replayed: boolean }
+      expect(linked.replayed).toBe(false)
+      customerEntityId = linked.customerEntityId
+      scope = { tenantId, organizationId, customerEntityId }
+      expect(await readOnboardedPurchaseCompanies({ ...scope, customerUserId: customerUserId! })).toEqual([customerEntityId])
       const initiatedResponse = await initiated
       expect(initiatedResponse.status(), await initiatedResponse.text()).toBe(201)
       const pending = demoPurchaseReceiptSchema.parse(await initiatedResponse.json())
       expect(pending).toMatchObject({ status: 'pending_payment', caseId: null })
+      await test.step('Recover one failed native test payment on the same order', async () => {
+        const failed = await failPurchaseJourneyPayment(request, { tenantId, organizationId, providerSessionId: pending.providerSessionId! })
+        expect(failed.status(), await failed.text()).toBe(202)
+        const refreshed = page.waitForResponse((response) => new URL(response.url()).pathname === `${purchases}/${pending.orderId}` && response.request().method() === 'GET')
+        await page.getByRole('button', { name: /Refresh payment status|Odśwież stan płatności/ }).click()
+        const refreshResponse = await refreshed
+        expect(refreshResponse.ok(), await refreshResponse.text()).toBeTruthy()
+        expect(await refreshResponse.json()).toMatchObject({ orderId: pending.orderId, paymentId: pending.paymentId,
+          status: 'blocked', canRetryPayment: true, caseId: null })
+        await checkpoint(page, info, '00a-failed-payment-retry-available')
+        const retried = page.waitForResponse((response) => new URL(response.url()).pathname === `${purchases}/${pending.orderId}/retry` && response.request().method() === 'POST')
+        await page.getByRole('button', { name: /Retry failed test payment|Ponów nieudaną płatność testową/ }).click()
+        const retryResponse = await retried
+        expect(retryResponse.ok(), await retryResponse.text()).toBeTruthy()
+        const replacement = demoPurchaseReceiptSchema.parse(await retryResponse.json())
+        expect(replacement).toMatchObject({ orderId: pending.orderId, paymentId: pending.paymentId, status: 'pending_payment', caseId: null })
+        expect(replacement.providerSessionId).not.toBe(pending.providerSessionId)
+      })
       const confirmed = page.waitForResponse((response) => new URL(response.url()).pathname === `${purchases}/${pending.orderId}/confirm`
         && response.request().method() === 'POST')
       await page.getByRole('button', { name: /Confirm test payment|Potwierdź płatność testową/ }).click()
@@ -253,7 +282,14 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
         workflow_instance_id: paid.processing?.state === 'started' ? paid.processing.workflowInstanceId : undefined })
       expect(records.orders[0].id).toBe(paid.orderId)
       expect(Number(records.payments[0].captured_amount)).toBe(demoOffer.amount)
-      console.log(`[TC-AGENCY-002] Completed through plan invitation; ${intelligence.calls.length} real native model-boundary calls. No plan approval, post production or publication performed.`)
+      expect(records.attempts).toHaveLength(2)
+      expect(records.attempts).toEqual(expect.arrayContaining([
+        expect.objectContaining({ payment_id: paid.paymentId, unified_status: 'failed' }),
+        expect.objectContaining({ payment_id: paid.paymentId, unified_status: 'captured' }),
+      ]))
     })
+    await completeProducedPostJourney({ page, request, adminToken, scope: scope!, caseId, baseUrl: BASE_URL, orgSlug,
+      intelligence, continueNativeResponse, capture: (name) => checkpoint(page, info, name) })
+    console.log(`[TC-AGENCY-002] Full primary journey reached saved publication preparation; ${intelligence.calls.length} native intelligence-boundary calls, no sending or paid model calls.`)
   })
 })
