@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { strategyExecutionOutcomeSchema } from '@/modules/agency_research/lib/contracts'
 
 export const STRATEGY_EXECUTION_FUNCTION = 'agency_operations.runAcceptedStrategy'
-export const STRATEGY_EXECUTION_RESULT_KEY = 'agencyStrategyExecution'
+export const STRATEGY_EXECUTION_RESULT_KEY = 'execute_strategy_result'
 export const STRATEGY_EXECUTION_STEP_ID = 'strategy_execution'
 export const STRATEGY_REVIEW_HANDOFF_FUNCTION = 'agency_operations.handoffStrategyReview'
 

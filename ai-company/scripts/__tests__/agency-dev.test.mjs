@@ -50,3 +50,16 @@ test('routine demo rejects live activation but allows explicit local intelligenc
   assert.doesNotThrow(() => assertUnpaidDemoEnvironment(agencyEnvironment({ OM_AGENCY_TRIAGE_MODE: 'live' }, { AGENCY_TEST_NATIVE_TRIAGE: '1' })))
   assert.equal(agencyEnvironment({}, { OM_AGENCY_TRIAGE_MODE: 'live' }).OM_AGENCY_TRIAGE_MODE, 'live')
 })
+
+test('native post execution is allowed only with the explicit pinned loopback fixture', () => {
+  const env = agencyEnvironment({ AGENCY_RESEARCH_AI_BASE_URL: 'https://example.com/live', OM_AI_AGENCY_RESEARCH_MODEL: 'live/model' },
+    { AGENCY_TEST_NATIVE_TRIAGE: '1', AGENCY_TEST_NATIVE_POST: '1' })
+  assert.equal(env.AGENCY_ANALYSIS_EXECUTION_ENABLED, 'true')
+  assert.equal(env.AGENCY_TOV_EXECUTION_ENABLED, 'false')
+  assert.equal(env.AGENCY_RESEARCH_AI_BASE_URL, 'http://127.0.0.1:5003/v1')
+  assert.equal(env.OM_AI_AGENCY_RESEARCH_MODEL, 'openrouter/agency-triage-fixture')
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(env))
+  for (const changed of [{ AGENCY_TEST_NATIVE_POST: '0' }, { AGENCY_RESEARCH_AI_BASE_URL: 'https://example.com/live' }, { OPENROUTER_API_KEY: 'not-the-fixture-key' }]) {
+    assert.throws(() => assertUnpaidDemoEnvironment({ ...env, ...changed }), /cannot use live execution/)
+  }
+})

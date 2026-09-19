@@ -29,6 +29,8 @@ import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
 import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
 import { createPlanReviewFixture, createPostReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
 import { publicationPreparationPreparedSchema } from '../../agency_research/lib/publicationPreparation/contracts'
+import { postExecutionOutcomeSchema } from '../../agency_research/lib/postExecution/contracts'
+import { POST_EXECUTION_RESULT_KEY } from '../lib/postExecution/contracts'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -151,9 +153,9 @@ async function deleteCreatedDatabaseRows(
   await withClient(async (client) => {
     const workflows = await client.query<{ id: string }>(
       `SELECT id FROM workflow_instances WHERE tenant_id = $1 AND organization_id = $2
-       AND (id = $3 OR correlation_key = $4 OR id IN (
+       AND (id = $3 OR correlation_key = $4 OR (metadata->>'entityType'='agency_operations:agency_case' AND metadata->>'entityId'=$5::text) OR id IN (
          SELECT workflow_instance_id FROM agency_client_submissions
-         WHERE tenant_id = $1 AND organization_id = $2 AND case_id = $5
+         WHERE tenant_id = $1 AND organization_id = $2 AND case_id = $5::uuid
        ))`,
       [tenantId, organizationId, resources.workflowInstanceId, `agency-attention:${resources.caseId}`, resources.caseId],
     )
@@ -268,11 +270,14 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     let employeeRoleId: string | null = null
     let employeeUserId: string | null = null
     const provider = process.env.AGENCY_TEST_NATIVE_TRIAGE === '1' ? await startNativeTriageProvider() : null
+    const nativePost = process.env.AGENCY_TEST_NATIVE_POST === '1'
+    let employeeSignedIn = false
     let nativeRecovery: { workflowInstanceId: string; submissionId: string } | null = null
     let briefReview: BriefReviewFixture | null = null
     let planReview: PlanReviewFixture | null = null
     let nativeProcess: { workflowDefinitionId: string; workflowId: string; version: number } | undefined
     let postInstruction: { instructionVersionId: string; selectionSubmissionId: string } | undefined
+    let planSubmissionId: string | undefined
     let publicationPreparation: ReturnType<typeof publicationPreparationPreparedSchema.parse> | undefined
     let resources: CreatedResources = {
       caseId: null,
@@ -310,6 +315,15 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
       if (provider) {
         await runDemoPhase('Check native triage configuration', 'Native triage ready with local intelligence only', async () => {
           expect(process.env.OPENROUTER_BASE_URL).toBe(provider.baseUrl)
+          if (nativePost) {
+            const externalOverrides = await withClient(async (client) => client.query<{ count: string }>(
+              `SELECT count(*) FROM ai_agent_runtime_overrides WHERE tenant_id=$1 AND deleted_at IS NULL
+               AND (organization_id IS NULL OR organization_id=$2)
+               AND (agent_id IS NULL OR agent_id IN ('agency_research.post_author','agency_research.post_editor'))
+               AND NULLIF(btrim(base_url),'') IS NOT NULL AND btrim(base_url)<>$3`,
+              [tenantId, organizationId, provider.baseUrl]))
+            expect(Number(externalOverrides.rows[0].count), 'Native post proof requires loopback-only provider overrides').toBe(0)
+          }
           type NativeDefinition = {
             id: string; workflowId: string; version: number; tenantId: string | null; organizationId: string | null
             enabled: boolean; lifecycle: string; definition: unknown; grantedFeatures: string[] | null
@@ -602,6 +616,9 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           expect(response.ok(), await response.text()).toBeTruthy()
           const receipt = await response.json() as { requestId: string; status: string }
           expect(receipt.status).toBe('response_received')
+          planSubmissionId = receipt.requestId
+          if (nativePost) provider.allowPostProduction({ caseId: intakeResult.caseId, planVersion: planReview.version,
+            selectedTopicId: planReview.selectedTopicId, selectionSubmissionId: receipt.requestId })
           await drainIntegrationQueue('workflow-invoke-agent')
           const plan = planReview
           await expect.poll(async () => withClient(async (client) => {
@@ -633,7 +650,70 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           postInstruction = { instructionVersionId: saved.instruction.id, selectionSubmissionId: receipt.requestId }
           await capture('plan-response-compiled')
         })
+        if (nativePost) await runDemoPhase('Ask about a native post QA exception', 'Exact-post answer received; native employee exception remains open', async () => {
+          await drainIntegrationQueue('workflow-activities')
+          const source = await withClient(async (client) => client.query<{ workflow_instance_id: string }>(
+            'SELECT workflow_instance_id FROM agency_client_submissions WHERE id=$1 AND case_id=$2 AND tenant_id=$3 AND organization_id=$4',
+            [planSubmissionId, intakeResult.caseId, tenantId, organizationId]))
+          const workflowId = source.rows[0].workflow_instance_id
+          await pollWorkflowInstance(request, adminToken, workflowId, (instance) => instance.status === 'PAUSED' && instance.currentStepId === 'research_exception')
+          const saved = await withClient(async (client) => client.query<{ context: Record<string, { result: unknown }> }>(
+            'SELECT context FROM workflow_instances WHERE id=$1 AND tenant_id=$2 AND organization_id=$3', [workflowId, tenantId, organizationId]))
+          const production = postExecutionOutcomeSchema.parse(saved.rows[0].context[POST_EXECUTION_RESULT_KEY].result)
+          expect(production).toMatchObject({ status: 'completed', readyForReview: false, qaVerdict: 'needs_fix', selectionSubmissionId: planSubmissionId })
+          expect(production.postVersionId).toBeTruthy()
+          expect(production.escalationVersionId).toBeTruthy()
+          expect(saved.rows[0].context.agencyResearchException.result).toMatchObject({ kind: 'employee_exception', sourceWorkflowInstanceId: workflowId,
+            exception: { versionId: production.escalationVersionId, data: { resolution: { state: 'open' } } } })
+          expect(provider.postCalls.some((call) => call.agentId === 'agency_research.post_author' && call.status === 200)).toBe(true)
+          expect(provider.postCalls.some((call) => call.agentId === 'agency_research.post_editor' && call.status === 200)).toBe(true)
+          const task = await findInstanceUserTask(request, adminToken, workflowId)
+          expect(task?.id).toBeTruthy()
+          await loginEmployee(page, employeeEmail, employeePassword, capture)
+          employeeSignedIn = true
+          await page.goto(new URL(`/backend/tasks/${task!.id}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+          await expect(page.getByText(/qa_exhausted/).first()).toBeVisible()
+          await page.getByTestId('task-claim').click()
+          await capture('post-qa-employee-exception')
+          await page.goto(new URL(`/backend/agency-operations/cases/${intakeResult.caseId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+          await page.locator('[data-crud-field-id="parentTaskId"]').getByRole('combobox').click()
+          await page.getByRole('option', { name: 'Work exception / Wyjątek wykonania', exact: true }).click()
+          const question = 'May we remove the duplicated opening from this exact post version?'
+          await page.locator('[data-crud-field-id="question"]').getByRole('textbox').fill(question)
+          await page.locator('[data-crud-field-id="documentVersionId"]').getByRole('textbox').fill(production.postVersionId!)
+          const questionResponse = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/agency_operations/cases/${intakeResult.caseId}/questions` && response.request().method() === 'POST')
+          await page.getByRole('button', { name: 'Ask the client', exact: true }).click()
+          const asked = await questionResponse
+          expect(asked.ok(), await asked.text()).toBeTruthy()
+          const questionTask = await asked.json() as { customerTaskId: string; workflowInstanceId: string }
+          await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${questionTask.customerTaskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+          const answer = 'Remove the duplicated opening. Fixture answer after recovery.'
+          await page.getByLabel('Your answer / Twoja odpowiedź').fill(answer)
+          const completed = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/workflows/portal/tasks/${questionTask.customerTaskId}/complete` && response.request().method() === 'POST')
+          await page.getByRole('button', { name: 'Complete task', exact: true }).click()
+          const answered = await completed
+          expect(answered.ok(), await answered.text()).toBeTruthy()
+          await drainIntegrationQueue('workflow-invoke-agent')
+          const retained = await withClient(async (client) => {
+            const submission = await client.query<{ original: unknown }>(
+              'SELECT original FROM agency_client_submissions WHERE case_id=$1 AND tenant_id=$2 AND organization_id=$3 AND event_id=$4',
+              [intakeResult.caseId, tenantId, organizationId, `employee-question:${questionTask.customerTaskId}`])
+            const parent = await client.query<{ status: string }>('SELECT status FROM user_tasks WHERE id=$1 AND workflow_instance_id=$2 AND tenant_id=$3 AND organization_id=$4',
+              [task!.id, workflowId, tenantId, organizationId])
+            const post = await client.query<{ approval_records: unknown[] }>('SELECT approval_records FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3',
+              [production.postVersionId, tenantId, organizationId])
+            const exception = await client.query<{ data: unknown }>('SELECT data FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3',
+              [production.escalationVersionId, tenantId, organizationId])
+            return { original: submission.rows[0]?.original, parent: parent.rows[0], post: post.rows[0], exception: exception.rows[0] }
+          })
+          expect(retained.original).toMatchObject({ text: answer, documentVersionReference: production.postVersionId })
+          expect(retained.parent.status).toBe('IN_PROGRESS')
+          expect(retained.post.approval_records).toEqual([])
+          expect(retained.exception.data).toMatchObject({ resolution: { state: 'open' } })
+          await capture('post-question-answer-received')
+        })
         await runDemoPhase('Review post content', 'Exact post content accepted without publication permission', async () => {
+          if (nativePost) console.log('[TC-AGENCY-001] Separate successful producer fixture follows; the employee answer did not resolve or resume the native exception')
           const post = await createPostReviewFixture({ plan: planReview!, ...postInstruction!, process: nativeProcess!, userId: provisioningUserId })
           provider.allowPostApproval(post)
           const taskUrl = new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${post.taskId}`, BASE_URL).toString()
@@ -707,7 +787,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
       }
 
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
-        await loginEmployee(page, employeeEmail, employeePassword, capture)
+        if (!employeeSignedIn) await loginEmployee(page, employeeEmail, employeePassword, capture)
+        else await page.goto(new URL('/backend', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
         await capture('employee-signed-in')
       })
 
@@ -765,7 +846,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           await page.getByTestId('task-decision-obstacle_resolved').click()
           await drainIntegrationQueue('workflow-invoke-agent')
           await pollWorkflowInstance(request, adminToken, nativeRecovery.workflowInstanceId, (instance) => instance.status === 'COMPLETED' && instance.currentStepId === 'answered')
-          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(1)
+          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(nativePost ? 2 : 1)
           const duplicate = await page.request.post(new URL(`/api/workflows/tasks/${task!.id}/complete`, BASE_URL).toString(), { data: { decisionId: 'obstacle_resolved', formData: { triageRecoveryReason: 'Repeated', triageRecoveryEvidence: 'Repeated' } } })
           expect(duplicate.ok()).toBe(false)
           const runs = await withClient(async (client) => client.query<{ status: string }>(
@@ -773,7 +854,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             [nativeRecovery!.workflowInstanceId, tenantId, organizationId],
           ))
           expect(runs.rows.map((run) => run.status)).toEqual(['error', 'ok'])
-          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(1)
+          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(nativePost ? 2 : 1)
           await capture('native-triage-recovered')
           return
         }

@@ -15,7 +15,7 @@ import type { EntityManager as PostgreSqlEntityManager } from '@mikro-orm/postgr
 import type { AwilixContainer } from 'awilix'
 import { WorkflowInstance } from '../data/entities'
 import { logWorkflowEvent } from '../lib/event-logger'
-import { executeRegistryActivity } from '../lib/activity-worker-handler'
+import { awaitStepParkingCommit, executeRegistryActivity } from '../lib/activity-worker-handler'
 import { createLogger } from '@open-mercato/shared/lib/logger'
 import { handleInvokeAgentJob, resumeParentAfterSubWorkflow } from '../lib/activity-worker-handler'
 
@@ -173,6 +173,8 @@ export default async function handle(
   })
 
   try {
+    await awaitStepParkingCommit(em, payload.workflowInstanceId)
+
     // Fetch workflow instance with tenant/org scoping
     const instance = await em.findOne(WorkflowInstance, {
       id: payload.workflowInstanceId,

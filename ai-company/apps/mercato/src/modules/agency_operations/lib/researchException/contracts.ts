@@ -1,2 +1,4 @@
 export const RESEARCH_EXCEPTION_HANDOFF_FUNCTION = 'agency_operations.handoffResearchException'
+export const POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION = 'agency_operations.handoffPostResearchException'
+export const STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION = 'agency_operations.handoffStrategyResearchException'
 export const RESEARCH_EXCEPTION_RESULT_KEY = 'agencyResearchException'

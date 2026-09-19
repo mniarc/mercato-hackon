@@ -21,7 +21,7 @@ export function createPostReviewHandoff(container: AppContainer) {
       ...scope, id: workflowInstance.id, workflowId: workflowInstance.workflowId, deletedAt: null,
     }, undefined, scope)
     if (!source) throw new Error('[internal] Post review requires the originating native workflow')
-    const saved = z.object({ result: postExecutionActivityResultSchema }).safeParse(source.context[POST_EXECUTION_RESULT_KEY])
+    const saved = z.object({ result: postExecutionActivityResultSchema }).safeParse(source.context[POST_EXECUTION_RESULT_KEY] ?? source.context.agencyPostExecution)
     if (!saved.success) return { invitation: null, reason: 'missing_post_execution' }
     const result = saved.data.result
     if (result.status !== 'completed' || !result.readyForReview || result.qaVerdict !== 'pass_for_draft' || !result.postVersionId) {

@@ -14,6 +14,9 @@ import {
 
 test('validates the complete native workflow including its agent config and exception fragment', () => {
   const definition = workflowDefinitionDataSchema.parse(nativeClientSubmissionDefinition)
+  for (const activity of definition.transitions.flatMap((transition) => transition.activities ?? []).filter((activity) => activity.async)) {
+    expect(activity.activityName).toBe(`${activity.activityId}_result`)
+  }
   expect(resolveAgentOutcomeHandling(definition, 'triage', 'researcher')).toMatchObject({ kind: 'route', transition: { toStepId: 'route' } })
   expect(resolveAgentOutcomeHandling(definition, 'triage', 'error')).toMatchObject({ kind: 'route', transition: { toStepId: CLIENT_TRIAGE_EXCEPTION_STEP_ID } })
 })

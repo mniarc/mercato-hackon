@@ -1,0 +1,12 @@
+{
+  "through": "4.2",
+  "maxCostPln": 2,
+  "postExecution": { "maxCostPln": 2 },
+  "productSelection": {
+    "sku": "START-KOMUNIKACJI-PL-01",
+    "offer_version": "v1",
+    "price_net": 2500,
+    "currency": "PLN",
+    "result_limits": { "topics": 12 }
+  }
+}

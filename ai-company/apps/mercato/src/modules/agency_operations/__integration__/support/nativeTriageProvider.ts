@@ -1,6 +1,8 @@
 import { createServer } from 'node:http'
 import { z } from 'zod'
 import { clientTriageInterpretationSchema, inputSchema } from '../../agents/client-triage/contract'
+import { postAuthorInputSchema, postEditorInputSchema } from '../../../agency_research/data/agents/post'
+import { createSelectedPostIntelligence } from './postIntelligence'
 
 export const NATIVE_TRIAGE_FIXTURE_MODEL = 'agency-triage-fixture'
 export const NATIVE_TRIAGE_FIXTURE_TOKEN = 'agency-triage-fixture-only'
@@ -16,12 +18,15 @@ const requestSchema = z.object({
     content: z.union([z.string(), z.array(z.object({ type: z.string(), text: z.string().optional() }))]),
   })),
   text: z.object({ format: z.object({
-    type: z.literal('json_schema'), name: z.literal('agency_operations_client_triage'),
+    type: z.literal('json_schema'), name: z.enum(['agency_operations_client_triage', 'agency_research_post_author', 'agency_research_post_editor']),
   }) }),
 })
 
 export async function startNativeTriageProvider(port = 5003) {
   const calls: Array<{ status: number; disposition?: 'answer' | 'clarify' | 'approve' }> = []
+  const postCalls: Array<{ agentId: string; status: number }> = []
+  let expectedProduction: { caseId: string; planVersion: string; selectedTopicId: string; selectionSubmissionId: string } | undefined
+  const postIntelligence = createSelectedPostIntelligence({ exhaustRepairs: true })
   let expectedPlan: { documentId: string; versionId: string; taskId: string; selectedTopicId: string } | undefined
   let expectedPost: { documentId: string; versionId: string; taskId: string } | undefined
   let pendingFailure = false
@@ -45,6 +50,31 @@ export async function startNativeTriageProvider(port = 5003) {
       const parsed = requestSchema.safeParse(JSON.parse(body))
       if (!parsed.success) return fail(400, 'Unexpected model, stream mode, or structured triage request')
       const userMessages = parsed.data.input.filter((message) => message.role === 'user')
+      const sendResult = (result: unknown) => send(200, {
+        id: `resp_fixture_${calls.length + postCalls.length}`, object: 'response', created_at: Math.floor(Date.now() / 1000),
+        model: NATIVE_TRIAGE_FIXTURE_MODEL, status: 'completed', error: null, incomplete_details: null,
+        output: [{ type: 'message', id: `msg_fixture_${calls.length + postCalls.length}`, role: 'assistant', status: 'completed', content: [
+          { type: 'output_text', text: JSON.stringify(result), annotations: [] },
+        ] }], usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
+      })
+      if (parsed.data.text.format.name !== 'agency_operations_client_triage') {
+        if (process.env.AGENCY_TEST_NATIVE_POST !== '1' || !expectedProduction) return fail(400, 'Native post fixture is not explicitly enabled and registered')
+        const author = parsed.data.text.format.name === 'agency_research_post_author'
+        const schema = author ? postAuthorInputSchema : postEditorInputSchema
+        const candidates = userMessages.flatMap((message) => typeof message.content === 'string' ? [message.content] : message.content.flatMap((part) => part.text ? [part.text] : []))
+          .flatMap((text) => { try { const value = schema.safeParse(JSON.parse(text)); return value.success ? [value.data] : [] } catch { return [] } })
+        if (candidates.length !== 1) return fail(400, 'One typed native post input required')
+        const candidate = candidates[0]
+        const selected = candidate.selected_item
+        if (selected.plan_id !== `KLI-PLAN@${expectedProduction.caseId}` || selected.plan_version !== expectedProduction.planVersion
+          || selected.topic_id !== expectedProduction.selectedTopicId || selected.decision_id !== expectedProduction.selectionSubmissionId
+          || selected.selection_status !== 'client_selected') return fail(400, 'Native post input is outside the registered exact plan decision')
+        const agentId = author ? 'agency_research.post_author' : 'agency_research.post_editor'
+        const result = await postIntelligence(agentId, candidate, { runTimeoutMs: 1_000, tier: 'fixture' })
+        postCalls.push({ agentId, status: 200 })
+        sendResult(result.result)
+        return
+      }
       const input = JSON.stringify(userMessages)
       const planApproval = userMessages.flatMap((message) => typeof message.content === 'string' ? [message.content] : message.content.flatMap((part) => part.text ? [part.text] : []))
         .some((text) => {
@@ -86,14 +116,7 @@ export async function startNativeTriageProvider(port = 5003) {
         responseMessage: disposition === 'clarify' ? 'Which outcome would you like us to work on?' : 'Your submission is available for review.',
       })
       calls.push({ status: 200, disposition })
-      send(200, {
-        id: `resp_fixture_${calls.length}`, object: 'response', created_at: Math.floor(Date.now() / 1000),
-        model: NATIVE_TRIAGE_FIXTURE_MODEL, status: 'completed', error: null, incomplete_details: null,
-        output: [{ type: 'message', id: `msg_fixture_${calls.length}`, role: 'assistant', status: 'completed', content: [
-          { type: 'output_text', text: JSON.stringify(interpretation), annotations: [] },
-        ] }],
-        usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
-      })
+      sendResult(interpretation)
     } catch {
       fail(400, 'Invalid triage fixture request')
     }
@@ -105,10 +128,11 @@ export async function startNativeTriageProvider(port = 5003) {
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('[internal] Missing triage fixture address')
   return {
-    baseUrl: `http://127.0.0.1:${address.port}/v1`, calls,
+    baseUrl: `http://127.0.0.1:${address.port}/v1`, calls, postCalls,
     failNext: () => { pendingFailure = true },
     allowPlanApproval: (plan: NonNullable<typeof expectedPlan>) => { expectedPlan = { ...plan } },
     allowPostApproval: (post: NonNullable<typeof expectedPost>) => { expectedPost = { ...post } },
+    allowPostProduction: (production: NonNullable<typeof expectedProduction>) => { expectedProduction = { ...production } },
     close: () => new Promise<void>((resolve, reject) => {
       server.close((error) => error ? reject(error) : resolve())
       server.closeIdleConnections()

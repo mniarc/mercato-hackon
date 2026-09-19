@@ -16,7 +16,7 @@ export function createStrategyReviewHandoff(container: AppContainer) {
   return async (_input: unknown, rawContext: unknown) => {
     const context = contextSchema.parse(rawContext)
     const result = z.object({ result: strategyExecutionActivityResultSchema })
-      .parse(context.workflowInstance.context[STRATEGY_EXECUTION_RESULT_KEY]).result
+      .parse(context.workflowInstance.context[STRATEGY_EXECUTION_RESULT_KEY] ?? context.workflowInstance.context.agencyStrategyExecution).result
     if (result.status !== 'completed' || result.qaVerdict !== 'ready_for_approval'
       || !result.strategyVersionId || !result.tovVersionId || result.escalationVersionId) {
       return { invitation: null, reason: 'strategy_pair_not_ready' }

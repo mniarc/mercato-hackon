@@ -8,8 +8,8 @@ export async function deleteNativeTriageFixtures(
 ): Promise<void> {
   const runs = await client.query<{ id: string }>(
     `SELECT id FROM agent_runs WHERE workflow_instance_id = $1
-     AND tenant_id = $2 AND organization_id = $3 AND agent_id = $4`,
-    [workflowInstanceId, tenantId, organizationId, 'agency_operations.client_triage'],
+     AND tenant_id = $2 AND organization_id = $3 AND agent_id = ANY($4::text[])`,
+    [workflowInstanceId, tenantId, organizationId, ['agency_operations.client_triage', 'agency_research.post_author', 'agency_research.post_editor']],
   )
   const runIds = runs.rows.map((run) => run.id)
   if (runIds.length) {

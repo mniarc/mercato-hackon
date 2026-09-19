@@ -6,7 +6,10 @@ import { filterVisibleTasks, resolveTaskVisibilityForRequest } from '@open-merca
 import { AgencyCase, AgencyClientSubmission } from '../../../data/entities'
 import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../../agents/client-triage/workflow'
 import { projectAnalysisProcess, projectSubmissionProcess, readCaseProcess } from '../query'
-import { AGENCY_ANALYSIS_WORKFLOW_ID } from '../../analysisProcess/workflow'
+import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_RESULT_KEY } from '../../analysisProcess/workflow'
+import { STRATEGY_EXECUTION_RESULT_KEY } from '../../strategyExecution/contracts'
+import { PLANNING_EXECUTION_RESULT_KEY } from '../../planningExecution/contracts'
+import { POST_EXECUTION_RESULT_KEY, POST_EXECUTION_FUNCTION } from '../../postExecution/contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('@open-mercato/core/modules/workflows/lib/task-visibility-request', () => ({
@@ -111,7 +114,7 @@ const analysisResult = {
 }
 
 test('loads the case-owned analysis workflow even when there are no client submissions', async () => {
-  const analysis = Object.assign(workflow('waiting', { agencyAnalysisResult: { result: analysisResult } }), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
+  const analysis = Object.assign(workflow('waiting', { [AGENCY_ANALYSIS_RESULT_KEY]: { result: analysisResult } }), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
   jest.mocked(findOneWithDecryption).mockResolvedValue({ customerEntityId, workflowInstanceId: instanceId } as never)
   jest.mocked(findWithDecryption).mockImplementation(async (_em, entity) => entity === WorkflowInstance ? [analysis] as never : [])
 
@@ -125,14 +128,14 @@ test('loads the case-owned analysis workflow even when there are no client submi
 test('never derives an analysis result from native completion or another case result', () => {
   const completed = Object.assign(workflow('completed', {}, 'COMPLETED'), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
   expect(projectAnalysisProcess(caseId, completed)).toMatchObject({ status: 'COMPLETED', result: null, awaitingFollowUp: false })
-  completed.context = { agencyAnalysisResult: { result: { ...analysisResult, caseId: customerEntityId } } }
+  completed.context = { [AGENCY_ANALYSIS_RESULT_KEY]: { result: { ...analysisResult, caseId: customerEntityId } } }
   expect(projectAnalysisProcess(caseId, completed)?.result).toBeNull()
   expect(projectAnalysisProcess(caseId, workflow('answered'))).toBeNull()
 })
 
 test('preserves exact completed research references without upgrading them to client approval', () => {
   const completedResult = { ...analysisResult, state: 'completed', completedThrough: '3.8', qaVerdict: 'ready', escalationVersionId: undefined }
-  const completed = Object.assign(workflow('completed', { agencyAnalysisResult: { result: completedResult } }, 'COMPLETED'), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
+  const completed = Object.assign(workflow('completed', { [AGENCY_ANALYSIS_RESULT_KEY]: { result: completedResult } }, 'COMPLETED'), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
   expect(projectAnalysisProcess(caseId, completed)?.result).toEqual(completedResult)
 })
 
@@ -175,23 +178,23 @@ const strategyExecution = {
 test('preserves saved strategy execution outputs and cost rather than deriving success from readiness', () => {
   const saved = workflow('completed', {
     agencyStrategyReadiness: { result: strategyHandoff },
-    agencyStrategyExecution: { result: strategyExecution },
+    [STRATEGY_EXECUTION_RESULT_KEY]: { result: strategyExecution },
   }, 'COMPLETED')
   expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toEqual(strategyExecution)
   saved.context = { agencyStrategyReadiness: { result: strategyHandoff } }
   expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
-  saved.context = { agencyStrategyExecution: { result: { ...strategyExecution, orderRef: customerEntityId } } }
+  saved.context = { [STRATEGY_EXECUTION_RESULT_KEY]: { result: { ...strategyExecution, orderRef: customerEntityId } } }
   expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
-  saved.context = { agencyStrategyExecution: { result: strategyExecution } }
+  saved.context = { [STRATEGY_EXECUTION_RESULT_KEY]: { result: strategyExecution } }
   saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
   expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
 })
 
 test('retains a saved interrupted activation and rejects malformed execution output', () => {
   const incomplete = { status: 'execution_incomplete', orderRef: caseId, activationTaskRunId: 'activation-task', reason: 'in_progress_or_interrupted' }
-  expect(projectSubmissionProcess(submission, workflow('completed', { agencyStrategyExecution: { result: incomplete } }), []).strategyExecution)
+  expect(projectSubmissionProcess(submission, workflow('completed', { [STRATEGY_EXECUTION_RESULT_KEY]: { result: incomplete } }), []).strategyExecution)
     .toEqual(incomplete)
-  expect(projectSubmissionProcess(submission, workflow('completed', { agencyStrategyExecution: { result: { status: 'completed', orderRef: caseId } } }), []).strategyExecution)
+  expect(projectSubmissionProcess(submission, workflow('completed', { [STRATEGY_EXECUTION_RESULT_KEY]: { result: { status: 'completed', orderRef: caseId } } }), []).strategyExecution)
     .toBeNull()
 })
 
@@ -241,17 +244,17 @@ test('retains accepted-pair planning blockers and never invents continuation fro
 
 test('shows saved planning blockers only for the owning native case, not from accepted-pair readiness', () => {
   const blocked = { status: 'not_configured', orderRef: caseId, reason: 'execution_disabled' }
-  const saved = workflow('planning_execution', { agencyPlanningExecution: { result: blocked } }, 'COMPLETED')
+  const saved = workflow('planning_execution', { [PLANNING_EXECUTION_RESULT_KEY]: { result: blocked } }, 'COMPLETED')
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toEqual(blocked)
-  saved.context = { agencyPlanningExecution: { result: { ...blocked, orderRef: customerEntityId } } }
+  saved.context = { [PLANNING_EXECUTION_RESULT_KEY]: { result: { ...blocked, orderRef: customerEntityId } } }
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
-  saved.context = { agencyPlanningExecution: { result: blocked } }
+  saved.context = { [PLANNING_EXECUTION_RESULT_KEY]: { result: blocked } }
   saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
   saved.workflowId = NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
   saved.context = { agencyStrategyPairContinuation: { result: { status: 'accepted', orderRef: caseId } } }
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
-  saved.context = { agencyPlanningExecution: { result: { status: 'completed', orderRef: caseId } } }
+  saved.context = { [PLANNING_EXECUTION_RESULT_KEY]: { result: { status: 'completed', orderRef: caseId } } }
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toBeNull()
 })
 
@@ -262,7 +265,7 @@ test('preserves the exact planning output and QA references without upgrading it
     agentRunIds: ['planning-agent-run', 'planning-qa-run'], spentPln: 0.4,
     planVersionId: 'plan-v1', qaTaskRunId: 'plan-qa', qaVerdict: 'needs_agent_fix', readyForApproval: false,
   }
-  const saved = workflow('planning_execution', { agencyPlanningExecution: { result: planningExecution } }, 'COMPLETED')
+  const saved = workflow('planning_execution', { [PLANNING_EXECUTION_RESULT_KEY]: { result: planningExecution } }, 'COMPLETED')
   expect(projectSubmissionProcess(submission, saved, []).planningExecution).toEqual(planningExecution)
 })
 
@@ -299,20 +302,22 @@ test('projects saved post/editor references only for the native case and exact t
   }
   const saved = workflow('post_production', {}, 'COMPLETED')
   for (const status of ['completed', 'paused_budget']) {
-    saved.context = { agencyPostExecution: { result: { ...outcome, status } } }
+    saved.context = { [POST_EXECUTION_RESULT_KEY]: { executed: true, functionName: POST_EXECUTION_FUNCTION, result: { ...outcome, status } } }
     expect(projectSubmissionProcess(submission, saved, []).postExecution).toEqual({ ...outcome, status })
-    saved.context = { agencyPostExecution: { result: { ...outcome, status, selectionSubmissionId: customerEntityId } } }
+    saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: { ...outcome, status, selectionSubmissionId: customerEntityId } } }
     expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
   }
-  saved.context = { agencyPostExecution: { result: { ...outcome, orderRef: customerEntityId } } }
+  saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: { ...outcome, orderRef: customerEntityId } } }
   expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
-  saved.context = { agencyPostExecution: { result: outcome } }
+  saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: outcome } }
   saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
   expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
   saved.workflowId = NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
   saved.context = { agencyPostInstruction: { result: { status: 'ready', orderRef: caseId } } }
   expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
   const disabled = { status: 'not_configured', orderRef: caseId, reason: 'execution_disabled' }
-  saved.context = { agencyPostExecution: { result: disabled } }
+  saved.context = { agencyPostExecution: { result: outcome } }
+  expect(projectSubmissionProcess(submission, saved, []).postExecution).toEqual(outcome)
+  saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: disabled }, agencyPostExecution: { result: outcome } }
   expect(projectSubmissionProcess(submission, saved, []).postExecution).toEqual(disabled)
 })

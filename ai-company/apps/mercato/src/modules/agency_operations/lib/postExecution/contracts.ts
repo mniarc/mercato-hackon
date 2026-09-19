@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { postExecutionOutcomeSchema } from '@/modules/agency_research/lib/contracts'
 
 export const POST_EXECUTION_FUNCTION = 'agency_operations.runPostProduction'
-export const POST_EXECUTION_RESULT_KEY = 'agencyPostExecution'
+export const POST_EXECUTION_RESULT_KEY = 'execute_post_result'
 export const POST_EXECUTION_STEP_ID = 'post_production'
 
 export const postExecutionActivityResultSchema = z.discriminatedUnion('status', [
