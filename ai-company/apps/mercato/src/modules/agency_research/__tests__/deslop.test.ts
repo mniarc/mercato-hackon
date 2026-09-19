@@ -81,3 +81,18 @@ describe('publication adapter catalog', () => {
     expect(adapterFor('Mastodon')).toBeNull()
   })
 })
+
+describe('deslop — Q-T verdict', () => {
+  const { mergePostQaVerdict } = require('../lib/research/steps/postQa') as typeof import('../lib/research/steps/postQa')
+  const base = { checked: ['x'], not_verified: [], copy_checks: [], summary: 'ok' }
+  it('style-only findings never turn an editor needs_fix into a repair round', () => {
+    const styleOnly = { ...base, result: 'needs_fix' as const, findings: [{ code: 'slop_pattern', severity: 'minor' as const, fragment: 'Ponadto', issue: 'response-shaped connector', fix_hint: 'cut it' }] }
+    expect(mergePostQaVerdict([], styleOnly)).toBe('pass_for_draft')
+    const withEvidence = { ...styleOnly, findings: [...styleOnly.findings, { code: 'unsourced_claim', severity: 'major' as const, fragment: '37%', issue: 'no card', fix_hint: 'drop the number' }] }
+    expect(mergePostQaVerdict([], withEvidence)).toBe('needs_fix')
+    const unexplained = { ...base, result: 'needs_fix' as const, findings: [] }
+    expect(mergePostQaVerdict([], unexplained)).toBe('needs_fix')
+    const styleBlocker = { ...styleOnly, findings: [{ ...styleOnly.findings[0], severity: 'blocker' as const }] }
+    expect(mergePostQaVerdict([], styleBlocker)).toBe('needs_fix')
+  })
+})

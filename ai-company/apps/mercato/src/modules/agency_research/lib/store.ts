@@ -219,3 +219,50 @@ export async function orderStatus(em: EntityManager, scope: ResearchScope, order
     sources,
   }
 }
+
+export type OrderSummary = {
+  orderRef: string
+  brand: string
+  documents: number
+  taskRuns: number
+  lastStep: string | null
+  lastStatus: string | null
+  totalPln: number
+  firstRunAt: Date | null
+  lastActivityAt: Date | null
+}
+
+/**
+ * Every order the scope has research for, newest activity first — the staff
+ * list behind Backend → Agency research. Spend is summed the way `orderStatus`
+ * sums it (the ledger snapshot of each task run), so both screens agree.
+ */
+export async function listOrders(em: EntityManager, scope: ResearchScope): Promise<OrderSummary[]> {
+  const documents = await findWithDecryption(em, AgencyResearchDocument, { ...scope, deletedAt: null }, { orderBy: { updatedAt: 'desc' } }, scope)
+  const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...scope }, { orderBy: { createdAt: 'asc' } }, scope)
+  const byRef = new Map<string, OrderSummary>()
+  const summaryOf = (orderRef: string, brand: string): OrderSummary => {
+    const existing = byRef.get(orderRef)
+    if (existing) return existing
+    const created: OrderSummary = { orderRef, brand, documents: 0, taskRuns: 0, lastStep: null, lastStatus: null, totalPln: 0, firstRunAt: null, lastActivityAt: null }
+    byRef.set(orderRef, created)
+    return created
+  }
+  const later = (a: Date | null, b: Date | null): Date | null => (!a ? b : !b ? a : a > b ? a : b)
+  for (const document of documents) {
+    const summary = summaryOf(document.orderRef, document.brand)
+    summary.documents += 1
+    summary.lastActivityAt = later(summary.lastActivityAt, document.updatedAt ?? document.createdAt)
+  }
+  for (const run of runs) {
+    const summary = summaryOf(run.orderRef, run.brand)
+    summary.taskRuns += 1
+    summary.lastStep = run.stepId
+    summary.lastStatus = run.status
+    const cost = run.cost as { total?: number } | null
+    summary.totalPln += cost?.total ?? 0
+    summary.firstRunAt = summary.firstRunAt ?? run.createdAt
+    summary.lastActivityAt = later(summary.lastActivityAt, run.finishedAt ?? run.createdAt)
+  }
+  return [...byRef.values()].sort((a, b) => (b.lastActivityAt?.getTime() ?? 0) - (a.lastActivityAt?.getTime() ?? 0))
+}

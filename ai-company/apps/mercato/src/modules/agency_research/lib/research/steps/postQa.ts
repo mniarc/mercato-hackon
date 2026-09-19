@@ -103,11 +103,21 @@ export function editorFindingsAsQa(review: PostEditorReview): QaFinding[] {
   }))
 }
 
-/** The verdict rules, in one place: a rejection stands, then any blocker or an editor `needs_fix`, else pass. */
+/** A style (deslop) finding is a proposal for the author, never a reason to send the post back on its own. */
+const isStyleOnly = (finding: { code: string; severity: string }): boolean => finding.code === 'slop_pattern' && finding.severity !== 'blocker' && finding.severity !== 'blocking'
+
+/**
+ * The verdict rules, in one place: a rejection stands, then any blocker or an
+ * editor `needs_fix` backed by at least one non-style finding, else pass. An
+ * editor that asks for a fix while every finding it lists is style-only is
+ * overruled: the deslop skill makes style a proposal, and a repair loop over
+ * word choice would burn the STD-LIMITY repair attempts on nothing checkable.
+ */
 export function mergePostQaVerdict(validator: QaFinding[], review: PostEditorReview): PostQaVerdict {
   if (review.result === 'reject') return 'reject'
   const blocking = [...validator, ...editorFindingsAsQa(review)].some((item) => item.severity === 'blocking')
-  if (blocking || review.result === 'needs_fix') return 'needs_fix'
+  const substantive = review.findings.some((item) => !isStyleOnly(item))
+  if (blocking || (review.result === 'needs_fix' && (substantive || review.findings.length === 0))) return 'needs_fix'
   return 'pass_for_draft'
 }
 
