@@ -170,8 +170,11 @@ export async function collectSources(order: OrderFacts, opts: CollectOptions): P
   let totalChars = 0
   const publisher = order.brand
 
-  const record = (page: FetchedPage, kind: string, channel: string, origin: CollectedSource['origin']): CollectedSource => {
-    const cleaned = page.markdown ? stripBoilerplate(page.markdown) : null
+  const record = (page: FetchedPage, kind: string, channel: string, origin: CollectedSource['origin'], verbatim = false): CollectedSource => {
+    // Corpus posts and other already-clean text are stored verbatim: boilerplate
+    // stripping is for fetched web pages, and altering the text here would break
+    // the verbatim quote-grounding gate that reads it back.
+    const cleaned = page.markdown ? (verbatim ? page.markdown : stripBoilerplate(page.markdown)) : null
     let text = cleaned && cleaned.length > 0 ? cleaned : null
     let access: CollectedSource['access'] = text ? 'full' : 'unavailable'
     let readScope = text ? `${text.length} chars read after boilerplate removal` : 'not readable'
@@ -232,9 +235,14 @@ export async function collectSources(order: OrderFacts, opts: CollectOptions): P
         'oficjalny kanał publiczny — wpis',
         order.officialSocialPlatform ?? 'LinkedIn',
         'corpus',
+        true,
       )
       source.published_at = post.postedAt
-      source.read_scope = `${post.text.length} chars, whole post from the stored corpus (${post.likes} likes, ${post.comments} comments)`
+      if (source.access !== 'unavailable') {
+        source.read_scope = source.access === 'partial'
+          ? `${source.text!.length} of ${post.text.length} chars, post truncated by the order text cap (${post.likes} likes, ${post.comments} comments)`
+          : `${post.text.length} chars, whole post from the stored corpus (${post.likes} likes, ${post.comments} comments)`
+      }
     }
     markStaleSocial(collected, now())
   } else if (order.officialSocialUrl) {
