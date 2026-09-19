@@ -1,6 +1,6 @@
 # T58 - Prove brief acceptance through strategy pair to plan
 
-State: active (T27 implementation present; connected native proof failing at initial research)
+State: done (headed connected native journey passed; local intelligence/source fixtures)
 Depends on: T27 answer application; T38/T39/T41/T43/T47/T48 implementation; existing native demo runtime
 Sources: F12-1, F20-1, F24-1, F24-2, F20-2, F26-1, F57-1
 Owns: a separate agency production journey and its collocated intelligence fixtures;
@@ -19,3 +19,10 @@ Reuse the named development database and existing runner; no paid calls, new
 harness, production build or database reset. Add no broad defensive matrix.
 Done when this connected outcome runs successfully and any actual missing
 handoff is fixed; a test definition alone does not complete the task.
+
+Proof: `ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts`
+passed headed on 2026-09-19 (1 test, 2.5 minutes): initial research/questions,
+original client answers, real brief revision/QA, explicit brief acceptance,
+strategy/ToV production and paired acceptance, then real plan invitation.
+66 native model-boundary calls used local intelligence; no live-model claim.
+Owned fixtures were cleaned up and the development database retained.

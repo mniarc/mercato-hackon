@@ -1,6 +1,9 @@
 # T68 - Repair omitted findings fields before client review
 
-State: active
+State: done
+Verification evidence: commit `5ba14e870`; coordinator's existing f08 checks passed
+within 7 suites / 40 tests, with full app typecheck passing. This proves the bounded
+omission-to-author-repair seam, not an entire story or native/live-model journey.
 Depends on: existing 3.6 author and bounded 3.7 QA repair loop
 Owns: `agency_research/lib/research/steps/findings.ts`, `steps/qa.ts`,
 existing `__tests__/f08.test.ts`, and the additive stored issue projection in `lib/store.ts`.

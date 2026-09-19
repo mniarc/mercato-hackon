@@ -1,6 +1,6 @@
 # T27 - Apply client answers and regenerate the brief
 
-State: active (scoped research/G integration approved; prerequisite for T58)
+State: done (bounded invited-answer revision; T26 evidence supplementation remains separate)
 Depends on: existing G submission/disposition, T38/T39/T40 review, teammate brief producers;
 T26 for targeted evidence supplements, T24 for authorized execution limits
 Owns: research-owned answer application and phase-only brief regeneration; existing
@@ -13,7 +13,7 @@ Existing brief invitation, response receipt, acceptance/readiness and strategy-p
 seams are reused (T38–T43, T47/T48), not rebuilt. Their existence does not prove
 that a client's missing answers update the brief.
 
-## Observed gap
+## Original gap
 
 `agency_research/lib/research/steps/findings.ts` deliberately rejects model-invented
 client decisions. `brief.ts` copies decisions from the persisted findings map;
@@ -22,6 +22,16 @@ client decisions. `brief.ts` copies decisions from the persisted findings map;
 research contracts expose initial execution/review/acceptance, but no production
 application of the saved client's answers into findings and targeted brief rerun.
 Receiving a comment or clarification therefore does not close this recovery loop.
+
+## Verification
+
+TC-AGENCY-002 passed headed on 2026-09-19: eight original invited client answers
+went through G, real revised findings/3.7 QA/3.8 freeze and a new QA-ready brief,
+then separate client acceptance, strategy/ToV and plan invitation. Intelligence
+and external sources were local fixtures; no producer outputs or approvals seeded.
+Passing focused `briefRevision` checks cover replay, stale input and unanswered
+questions. This closes invited-answer recovery, not T26 new-evidence handling or
+all F09–F12 alternatives.
 
 ## Deliver
 

@@ -1,6 +1,6 @@
 # T67 - Capture current customer and employee pages
 
-State: six current-page PNGs captured; employee case navigation timed out; genuine review-task screenshots unavailable
+State: done (bounded capture delivered: six current-page PNGs; case-detail navigation timeout and unavailable genuine review-task screenshots reported)
 Source: explicit user request for screenshots before separate visual review
 Owns: capture-only tooling and ignored `.visuals/` output
 

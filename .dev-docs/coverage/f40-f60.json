@@ -2306,7 +2306,7 @@
           "implementation": "partial",
           "evidence": [
             {
-              "path": ".tasks/T58-connected-brief-strategy-plan-journey.md",
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
               "note": "Real research/brief production code and deterministic intelligence fixtures exist."
             }
           ],
@@ -2361,8 +2361,8 @@
           "implementation": "missing",
           "evidence": [
             {
-              "path": ".tasks/T58-connected-brief-strategy-plan-journey.md",
-              "note": "Connected T58 journey is authored but not yet run at survey time."
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
+              "note": "TC002 headed passed 2026-09-19 through actual client answers, revised brief, pair acceptance and plan invitation using local intelligence; not a rehearsal of both specified audience branches."
             }
           ],
           "missing": [
@@ -2499,7 +2499,7 @@
           "implementation": "missing",
           "evidence": [
             {
-              "path": ".tasks/T58-connected-brief-strategy-plan-journey.md",
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
               "note": "No paid model execution or measured alternate-direction production proof is claimed."
             }
           ],
@@ -2518,7 +2518,7 @@
           "implementation": "missing",
           "evidence": [
             {
-              "path": ".tasks/T58-connected-brief-strategy-plan-journey.md",
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
               "note": "Existing test scenarios are not a timed full demo rehearsal."
             }
           ],

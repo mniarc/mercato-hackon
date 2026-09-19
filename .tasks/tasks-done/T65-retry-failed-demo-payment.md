@@ -1,6 +1,6 @@
 # T65 - Retry a failed demo payment on the same order
 
-State: active (gateway/service partial; portal integration and retry proof outstanding)
+State: done (bounded zero-charge demo; commit `eb2eef065`)
 Sources: F03-2 AC1-4; T60 recovery; follow-up to completed bounded T25
 Owns: `agency_operations/lib/orderBootstrap/**`, purchase-only agency portal/API,
 the order page callback and necessary agency locale keys
@@ -17,7 +17,9 @@ A retry only becomes pending; only verified native capture can activate one case
 Wrong-owner, mismatched, captured/refunded or nonfailed attempts cannot create a
 new session. Refresh and confirmation recovery keep their existing behavior.
 
-Done when focused gateway/service/route checks pass and the coordinator extends
-the existing zero-charge TC003 journey with failed-payment retry and one-case
-activation. Worker runs no shared tests, runtime, builds or Git; connected proof
-is deferred until the current T58 runtime work finishes.
+Proof: 21 focused payment/service/route checks and app typecheck passed. The
+existing headed TC003 passed on 2026-09-19: signed native failed webhook -> real
+portal retry -> native capture, retaining the same 2,500 PLN order/payment and
+failed-attempt history, then exactly one case awaiting execution. Owned fixture
+cleanup completed; no real charge or paid model call. New-signup onboarding is
+not covered by this proof and remains T69.
