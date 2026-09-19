@@ -11,30 +11,40 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
               "note": "Persists scoped original input, sender, event identity, time and attachment/version references."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "Supplement upload saves immutable original text, attachment, authenticated sender, portal channel and event identity on the existing owned case."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 passed authenticated paid-case upload and asserted the exact private source text and identity before the later 3.4 fixture mismatch."
             }
           ],
           "missing": [],
           "verification": {
-            "focused": "unknown",
-            "nativeApp": "unknown",
+            "focused": "passed",
+            "nativeApp": "passed",
             "liveModel": "not_run"
           },
           "externalDecision": []
         },
         {
           "id": "AC2",
-          "implementation": "partial",
+          "implementation": "implemented",
           "evidence": [
             {
-              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
-              "note": "Case-bound intake and document-version references are persisted; T25 now links purchased cases."
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "Supplement intake accepts only an existing customer-owned case, preserving the paid order case rather than creating another case."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/binding.ts",
+              "note": "When the material concerns the current brief, the saved native disposition binds the submission to that exact brief version reference before effects run."
             }
           ],
-          "missing": [
-            "Generic intake does not yet require/validate a referenced research version as strongly as exact review endpoints."
-          ],
+          "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "unknown",
             "liveModel": "not_run"
           },
@@ -47,11 +57,15 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
               "note": "Case lock and scoped event-key lookup replay immutable original submission without creating a second workflow."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/__tests__/supplementaryMaterial.test.ts",
+              "note": "Focused replay coverage returns the immutable first submission/attachment for the same event and performs no second upload."
             }
           ],
           "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "unknown",
             "liveModel": "not_run"
           },
@@ -64,11 +78,15 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
               "note": "Submission intake has no completed-stage exclusion; receipt does not apply approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/source.ts",
+              "note": "Late material is accepted against the current unapproved brief; downstream or approved work becomes an explicit impact-review hold and receipt itself is not approval."
             }
           ],
           "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "unknown",
             "liveModel": "not_run"
           },
@@ -186,12 +204,20 @@
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
               "note": "Customer account and case customer identity are checked under tenant/organization scope."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "The authenticated sender, tenant, organization, customer entity and selected case must match before bytes or a submission are stored."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 passed the authenticated signup-to-paid-case upload path and exact case-bound private source identity assertions."
             }
           ],
           "missing": [],
           "verification": {
-            "focused": "unknown",
-            "nativeApp": "unknown",
+            "focused": "passed",
+            "nativeApp": "passed",
             "liveModel": "not_run"
           },
           "externalDecision": []
