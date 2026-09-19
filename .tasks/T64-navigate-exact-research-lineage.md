@@ -1,6 +1,6 @@
 # T64 - Navigate exact research dependencies and version history
 
-State: active
+State: implemented; nine focused UI checks and app typecheck passed; native browser navigation proof pending
 Sources: F53-1 AC2–4
 Owns: employee case `researchLineage/**`, its research-ledger mount and additive locale keys
 
