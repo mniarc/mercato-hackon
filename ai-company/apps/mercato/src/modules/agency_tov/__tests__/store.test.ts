@@ -1,6 +1,7 @@
-import type { AgencyTovPost } from '../data/entities'
+import type { EntityManager } from '@mikro-orm/postgresql'
+import { AgencyTovResearchRun, type AgencyTovPost } from '../data/entities'
 import type { TovPost } from '../data/validators'
-import { citationsOf, postRowToTovPost, type PostRowRef } from '../lib/store'
+import { citationsOf, postRowToTovPost, startResearchRun, type PostRowRef } from '../lib/store'
 import { linkResolverFor, renderProfileVoice } from '../lib/tov/render'
 import { profileMetaFor } from '../lib/corpus'
 
@@ -30,6 +31,29 @@ const rows = new Map<string, PostRowRef>([
   ['1002', { id: 'row-2', url: posts[1].url, profileUrl }],
 ])
 const rowOf = (postId: string) => rows.get(postId) ?? null
+
+describe('startResearchRun', () => {
+  it.each([
+    { runner: 'orchestrator', models: null, stored: {} },
+    { runner: 'orchestrator', models: undefined, stored: {} },
+    { runner: 'direct', models: { batch: 'configured-batch', brand: 'configured-brand' },
+      stored: { batch: 'configured-batch', brand: 'configured-brand' } },
+  ])('persists a non-null direct-model snapshot for $runner ($models)', async ({ runner, models, stored }) => {
+    const create = jest.fn((_entity: unknown, input: object) => Object.assign(new AgencyTovResearchRun(), input))
+    const persist = jest.fn()
+    const flush = jest.fn(async () => undefined)
+    const em = { create, persist, flush } as unknown as EntityManager
+    const scope = { tenantId: 'tenant', organizationId: 'organization' }
+    const run = await startResearchRun(em, scope, {
+      brand: 'Demo', outputLanguage: 'pl', runner, models,
+      corpus: { posts, rowIds: ['row-1', 'row-2'], sources: [], rowOf },
+    })
+    expect(run.models).toEqual(stored)
+    expect(create).toHaveBeenCalledWith(AgencyTovResearchRun, expect.objectContaining({ ...scope, runner, models: stored, status: 'running' }))
+    expect(persist).toHaveBeenCalledWith(run)
+    expect(flush).toHaveBeenCalledTimes(1)
+  })
+})
 
 describe('citationsOf', () => {
   it('resolves exemplars by cited id and hook examples by verbatim match, skipping what has no stored row', () => {
