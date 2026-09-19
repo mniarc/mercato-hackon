@@ -1,4 +1,7 @@
 {
+  "agency.onboarding.unavailable": "Przygotowanie nowego klienta jest niedostępne w tej organizacji demonstracyjnej. Dane zamówienia zostały zachowane; poproś agencję o włączenie tej funkcji i spróbuj ponownie.",
+  "agency.onboarding.failed": "Nie udało się przygotować konta klienta. Dane zamówienia zostały zachowane; ponów tę samą czynność.",
+  "agency.onboarding.sessionRefreshFailed": "Dane klienta są gotowe, ale nie udało się odświeżyć sesji. Dane zamówienia zostały zachowane; spróbuj ponownie przed rozpoczęciem płatności.",
   "agency.offer.label": "Oferta",
   "agency.offer.productName": "START KOMUNIKACJI",
   "agency.offer.description": "Kierunek komunikacji marki, plan treści i pierwszy gotowy post — przygotowane przez agentów AI, zatwierdzane przez Ciebie.",

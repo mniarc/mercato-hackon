@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { useGuardedMutation } from '@open-mercato/ui/backend/injection/useGuardedMutation'
+import { CustomerOnboardingError, ensureCustomerOnboarding } from '../customer-onboarding/ensureCustomerOnboarding'
 
 const offerSchema = z.object({ enabled: z.boolean(), demoOnly: z.literal(true), sku: z.string(), name: z.string(), amount: z.number(), currency: z.string(), offerVersion: z.string(), termsVersion: z.string(), terms: z.object({ en: z.string(), pl: z.string() }), provider: z.string() })
 const receiptSchema = z.object({ orderId: z.uuid(), paymentId: z.uuid(), providerSessionId: z.string().nullable(), status: z.enum(['pending_payment', 'paid', 'blocked']), caseId: z.uuid().nullable(), workflowInstanceId: z.uuid().nullable(), reason: z.string().optional(), canRetryPayment: z.boolean().optional() })
@@ -49,15 +50,18 @@ export function useDemoPurchase(orgSlug: string) {
     return parsed.data
   }
 
-  async function mutate(url: string, payload: Record<string, unknown>) {
+  async function mutate(url: string, payload: Record<string, unknown>, prepare?: () => Promise<void>) {
     if (inFlight.current) return
     inFlight.current = true
     setBusy(true)
     setError(null)
     try {
-      await runMutation({ context: { orderId: receipt?.orderId, retryLastMutation }, mutationPayload: payload, operation: () => requestReceipt(url, payload) })
-    } catch {
-      setError(t('agency.purchase.failed', 'The demo purchase could not be updated. Retry the same action.'))
+      await runMutation({ context: { orderId: receipt?.orderId, retryLastMutation }, mutationPayload: payload, operation: async () => {
+        await prepare?.()
+        return requestReceipt(url, payload)
+      } })
+    } catch (error) {
+      setError(error instanceof CustomerOnboardingError ? t(error.messageKey) : t('agency.purchase.failed', 'The demo purchase could not be updated. Retry the same action.'))
     } finally {
       inFlight.current = false
       setBusy(false)
@@ -70,7 +74,7 @@ export function useDemoPurchase(orgSlug: string) {
     const attemptKey = JSON.stringify(original)
     const requestId = attempts.current.get(attemptKey) ?? crypto.randomUUID()
     attempts.current.set(attemptKey, requestId)
-    await mutate(endpoint, { requestId, ...original })
+    await mutate(endpoint, { requestId, ...original }, () => ensureCustomerOnboarding(buyer))
   }
 
   async function confirm() {

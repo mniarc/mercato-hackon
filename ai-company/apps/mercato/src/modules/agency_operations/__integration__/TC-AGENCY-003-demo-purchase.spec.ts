@@ -3,11 +3,11 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/helpers/integration/api'
 import { getTokenScope } from '@open-mercato/core/helpers/integration/generalFixtures'
 import {
-  createCustomerCompanyFixture, createCustomerUserFixture, deleteCustomerCompanyFixture,
-  deleteCustomerUserFixture, portalLogin,
+  customerTestPassword, deleteCustomerCompanyFixture, deleteCustomerUserFixture, portalLogin,
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
 import { configurePurchaseJourney, failPurchaseJourneyPayment } from './support/purchaseJourney/setup'
-import { deletePurchaseJourneyRecords, readPurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
+import { deletePurchaseJourneyRecords, readOnboardedPurchaseCompanies, readPurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
+import { readSignedUpPurchaseCustomer, signUpPurchaseCustomer, verifyCapturedPurchaseEmail } from './support/purchaseJourney/signup'
 
 export const integrationMeta = {
   dependsOnModules: ['agency', 'agency_operations', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows'],
@@ -36,7 +36,7 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
     await current?.()
   })
 
-  test('customer retries a failed demo payment on the same order and opens one agency case', async ({ page, request }, testInfo) => {
+  test('fresh customer signs up, onboards and retries a failed demo payment into one agency case', async ({ page, request }, testInfo) => {
     test.setTimeout(180_000)
     const adminToken = await getAuthToken(request, 'admin')
     const provisioningToken = await getAuthToken(request, 'superadmin')
@@ -44,30 +44,38 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
     const { userId } = getTokenScope(provisioningToken)
     const suffix = randomUUID().slice(0, 8)
     const brand = `Purchase demo ${suffix}`
+    const customer = { email: `agency-purchase-${randomUUID()}@example.test`, password: customerTestPassword(), displayName: brand }
     let customerEntityId: string | null = null
     let customerUserId: string | null = null
     let scope: PurchaseFixtureScope | undefined
     cleanup = async () => {
       console.log('[TC-AGENCY-003] Clean up owned customer and purchase fixtures')
-      if (scope) await deletePurchaseJourneyRecords(request, adminToken, scope)
+      customerUserId ??= (await readSignedUpPurchaseCustomer(request, provisioningToken, customer.email))?.id ?? null
+      const createdCompanies = customerUserId ? await readOnboardedPurchaseCompanies({ tenantId, organizationId, customerUserId }) : []
+      for (const companyId of createdCompanies) {
+        await deletePurchaseJourneyRecords(request, adminToken, { tenantId, organizationId, customerUserId: customerUserId!, customerEntityId: companyId })
+      }
       await deleteCustomerUserFixture(request, provisioningToken, customerUserId)
-      await deleteCustomerCompanyFixture(request, adminToken, customerEntityId)
+      for (const companyId of createdCompanies) await deleteCustomerCompanyFixture(request, adminToken, companyId)
     }
 
-    const customer = await test.step('Prepare native demo configuration and customer session', async () => {
-      console.log('[TC-AGENCY-003] Configure native demo purchase and prepare customer')
-      await configurePurchaseJourney({ tenantId, organizationId, userId })
-      customerEntityId = await createCustomerCompanyFixture(request, adminToken, brand)
-      const customer = await createCustomerUserFixture(request, provisioningToken, { customerEntityId, displayName: brand })
-      customerUserId = customer.id
-      scope = { tenantId, organizationId, customerEntityId, customerUserId }
-      return customer
-    })
+    await configurePurchaseJourney({ tenantId, organizationId, userId })
     const organizationResponse = await apiRequest(request, 'GET',
       `/api/directory/organizations?view=manage&ids=${organizationId}&tenantId=${tenantId}`, { token: adminToken })
     expect(organizationResponse.ok()).toBeTruthy()
     const organization = await organizationResponse.json() as { items: Array<{ slug: string }> }
     const orgSlug = organization.items[0].slug
+    await test.step('Register a fresh account through native signup and verify its captured email', async () => {
+      console.log('[TC-AGENCY-003] Anonymous signup, native captured-email verification; no prelinked customer')
+      await signUpPurchaseCustomer(page, { ...customer, orgSlug, baseUrl: BASE_URL })
+      const created = await readSignedUpPurchaseCustomer(request, provisioningToken, customer.email)
+      expect(created, 'Signup must create the exact new account').toBeTruthy()
+      customerUserId = created!.id
+      expect(created!.customerEntityId).toBeNull()
+      expect(created!.emailVerified).toBe(false)
+      await verifyCapturedPurchaseEmail(request, customer.email, BASE_URL)
+      await checkpoint(page, testInfo, '00-native-signup-email-verified')
+    })
     const session = await portalLogin(request, { email: customer.email, password: customer.password, tenantId })
     await page.context().addCookies([
       { name: 'customer_auth_token', value: session.authToken, url: BASE_URL, sameSite: 'Lax' },
@@ -97,15 +105,23 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       await page.locator('#billingBuyerType').selectOption('company')
       await page.getByRole('checkbox').check()
       const createdResponse = page.waitForResponse((item) => new URL(item.url()).pathname === PURCHASES && item.request().method() === 'POST')
+      const onboardingResponse = page.waitForResponse((item) => new URL(item.url()).pathname === '/api/agency/portal/onboarding' && item.request().method() === 'POST')
       await page.getByRole('button', { name: /Create demo order|Utwórz zamówienie demonstracyjne/ }).click()
+      const onboarded = await onboardingResponse
+      expect(onboarded.ok(), await onboarded.text()).toBeTruthy()
+      const linked = await onboarded.json() as { customerEntityId: string; replayed: boolean }
+      expect(linked.replayed).toBe(false)
+      customerEntityId = linked.customerEntityId
+      scope = { tenantId, organizationId, customerEntityId, customerUserId: customerUserId! }
+      expect(await readOnboardedPurchaseCompanies(scope)).toEqual([customerEntityId])
       const created = await createdResponse
       expect(created.status(), await created.text()).toBe(201)
       const receipt = await created.json() as Receipt
       expect(receipt).toMatchObject({ status: 'pending_payment', caseId: null, workflowInstanceId: null })
       expect(receipt.providerSessionId).toBeTruthy()
       // Retry the same request against actual encrypted sales metadata.
-      const retried = await request.post(new URL(PURCHASES, BASE_URL).toString(), {
-        headers: { Cookie: session.cookieHeader }, data: created.request().postDataJSON(),
+      const retried = await page.request.post(new URL(PURCHASES, BASE_URL).toString(), {
+        data: created.request().postDataJSON(),
       })
       expect(retried.status(), await retried.text()).toBe(201)
       expect(await retried.json()).toEqual(receipt)
@@ -150,8 +166,8 @@ test.describe('TC-AGENCY-003: zero-charge purchase to a real waiting case', () =
       expect(receipt.caseId).toBeTruthy()
       expect(receipt.workflowInstanceId).toBeTruthy()
       // One API retry proves delivery idempotence without replaying the browser journey.
-      const replay = await request.post(new URL(confirmationPath, BASE_URL).toString(), {
-        headers: { Cookie: session.cookieHeader }, data: {},
+      const replay = await page.request.post(new URL(confirmationPath, BASE_URL).toString(), {
+        data: {},
       })
       expect(replay.ok(), await replay.text()).toBeTruthy()
       expect(await replay.json()).toEqual(receipt)

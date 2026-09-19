@@ -1,4 +1,7 @@
 {
+  "agency.onboarding.unavailable": "New customer setup is unavailable for this demo organization. Your order form has been kept; ask the agency to enable onboarding and retry.",
+  "agency.onboarding.failed": "Your customer account could not be prepared. Your order form has been kept; retry the same action.",
+  "agency.onboarding.sessionRefreshFailed": "Your customer record is ready, but the session could not be refreshed. Your order form has been kept; retry before starting payment.",
   "agency.offer.label": "Offer",
   "agency.offer.productName": "START KOMUNIKACJI",
   "agency.offer.description": "Your brand's communication direction, content plan and first finished post — prepared by AI agents, approved by you.",

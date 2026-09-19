@@ -4,6 +4,7 @@ import { runRouteMutationGuards } from '@open-mercato/shared/lib/crud/route-muta
 import type { OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
 import { demoPurchaseRequestSchema, demoPurchaseReceiptSchema } from '@/modules/agency_operations/lib/orderBootstrap/contracts'
 import { readDemoOffer } from '@/modules/agency_operations/lib/orderBootstrap/demoOffer'
+import { resolveOnboardingCustomer } from '@/modules/agency_operations/lib/customerOnboarding/identity'
 import { resolveDemoPurchase, readPurchaseBody } from '../../../lib/demoPurchaseBridge'
 import { clientCaseErrorResponse, clientCaseResponseHeaders } from '../../../lib/clientCaseStatusBridge'
 
@@ -11,7 +12,7 @@ export const metadata = { GET: { requireAuth: false }, POST: { requireAuth: fals
 
 export async function GET(request: Request) {
   try {
-    await resolveDemoPurchase(request)
+    await resolveOnboardingCustomer(request)
     return Response.json(readDemoOffer(), { headers: clientCaseResponseHeaders })
   } catch (error) { return clientCaseErrorResponse(error) }
 }
@@ -41,7 +42,7 @@ export const openApi: OpenApiRouteDoc = {
     GET: { summary: 'Read the server-owned demo offer and versioned terms', responses: [{ status: 200, schema: z.object({
       enabled: z.boolean(), demoOnly: z.literal(true), sku: z.string(), name: z.string(), amount: z.number(), currency: z.string(),
       offerVersion: z.string(), termsVersion: z.string(), terms: z.object({ en: z.string(), pl: z.string() }), provider: z.string(),
-    }) }], errors },
+    }) }], errors: [{ status: 401, description: 'Customer session required' }, { status: 403, description: 'Verified active customer required' }] },
     POST: { summary: 'Start a zero-charge native demo order and test payment', requestBody: { contentType: 'application/json', schema: demoPurchaseRequestSchema },
       responses: [{ status: 201, schema: demoPurchaseReceiptSchema }], errors: [...errors, { status: 400, description: 'Invalid purchase input' }, { status: 409, description: 'Offer or request conflict' }, { status: 413, description: 'Request exceeds 20 KB' }] },
   },

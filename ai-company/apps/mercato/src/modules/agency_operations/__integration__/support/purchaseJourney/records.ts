@@ -5,6 +5,16 @@ import { deleteSalesEntityIfExists } from '@open-mercato/core/helpers/integratio
 
 export type PurchaseFixtureScope = { tenantId: string; organizationId: string; customerEntityId: string; customerUserId: string }
 
+export async function readOnboardedPurchaseCompanies(input: { tenantId: string; organizationId: string; customerUserId: string }): Promise<string[]> {
+  return withClient(async (client) => {
+    const result = await client.query<{ id: string }>(
+      `SELECT id FROM customer_entities WHERE tenant_id=$1 AND organization_id=$2
+       AND kind='company' AND source=$3 AND deleted_at IS NULL`,
+      [input.tenantId, input.organizationId, `agency_onboarding:${input.customerUserId}`])
+    return result.rows.map((row) => row.id)
+  })
+}
+
 export async function readPurchaseJourneyRecords(scope: PurchaseFixtureScope) {
   return withClient(async (client) => {
     const params = [scope.tenantId, scope.organizationId, scope.customerEntityId, scope.customerUserId]
