@@ -46,9 +46,12 @@ test('native triage proof overrides live provider credentials with the loopback 
   assert.equal(env.OM_AGENCY_TRIAGE_ENABLED, 'true')
   assert.equal(env.OM_AGENCY_TRIAGE_MODE, 'fixture')
   assert.equal(env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS, 'true')
+  assert.equal(env.AUTO_SPAWN_WORKERS, 'false')
+  assert.equal(env.NODE_ENV, 'development')
   assert.equal(env.AGENCY_TOV_EXECUTION_ENABLED, 'false')
   assert.equal(agencyEnvironment({}).OM_AGENCY_TRIAGE_ENABLED, undefined)
   assert.equal(agencyEnvironment({}).OM_AGENCY_TRIAGE_MODE, 'disabled')
+  assert.equal(agencyEnvironment({}).AUTO_SPAWN_WORKERS, 'lazy')
 })
 
 test('routine demo rejects live activation but allows explicit local intelligence fixtures', () => {

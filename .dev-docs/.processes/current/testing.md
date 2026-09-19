@@ -89,6 +89,9 @@ The separate demo runner must pass the complete matching app environment to
 fixtures and workers: database, queue, auth/encryption configuration, and base
 URL. Setting only `BASE_URL` can silently send fixtures to another database.
 Use the maintained runner, exact-spec discovery, one worker, and zero retries.
+Native fixture mode disables automatic app workers: the existing test drains own
+fixture jobs because the server-dev supervisor otherwise spawns workers with
+`NODE_ENV=production`, which correctly fails the non-production source-fixture guard.
 Tests create and clean up only their own fixtures, leaving manual demo data alone.
 Journeys prove real user outcomes across real UI, API, workflow and persistence.
 Fixtures may substitute worker intelligence and source material, never saved

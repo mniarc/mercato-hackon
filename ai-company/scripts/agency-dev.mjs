@@ -55,7 +55,10 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     OM_INIT_SUPERADMIN_PASSWORD: 'secret',
     OM_INIT_ADMIN_PASSWORD: 'secret',
     OM_INIT_EMPLOYEE_PASSWORD: 'secret',
-    AUTO_SPAWN_WORKERS: 'lazy',
+    // The native server-dev supervisor gives spawned workers NODE_ENV=production.
+    // Fixture journeys instead use their existing explicit development-mode drains;
+    // do not race those drains with a production-mode consumer of fixture jobs.
+    AUTO_SPAWN_WORKERS: overrides.AGENCY_TEST_NATIVE_TRIAGE === '1' ? 'false' : 'lazy',
     AUTO_SPAWN_SCHEDULER: 'false',
     DEMO_MODE: 'false',
     OM_INTEGRATION_EXACT_SPEC: agencyJourneySpec(overrides.AGENCY_TEST_JOURNEY),
