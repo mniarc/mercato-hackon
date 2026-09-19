@@ -54,11 +54,11 @@
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefStrategyProcess/service.ts",
-              "note": "Portal supports comments, exact approval and ordinary requests; material intake is real."
+              "note": "Portal supports comments, exact approval and ordinary requests; T78 connects native G-directed private material to a refreshed unapproved brief and review invitation. Focused checks passed; connected late-material proof remains pending."
             }
           ],
           "missing": [
-            "Complete integrated evidence-upload/update and pause outcomes at brief rather than receipt-only or unsupported disposition."
+            "Complete pause and general correction outcomes at brief; T78 covers only a directed material update on the current unapproved brief, not every requested change."
           ],
           "verification": {
             "focused": "unknown",
@@ -167,11 +167,11 @@
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/applyAnswers.ts",
-              "note": "G-authorized known-answer update invokes real4.1/4.2."
+              "note": "G-authorized known-answer update invokes real 4.1/4.2. T78 materialRevision/activity.ts also executes saved G material directives through 4.5 for the current unapproved brief; broader audience-change routing is not supplied by this attachment-specific path."
             }
           ],
           "missing": [
-            "Route evidence-check4.5 and broader audience correction impacts."
+            "Route general audience corrections/evidence checks beyond attachment-bound T78, including dependent-document impact."
           ],
           "verification": {
             "focused": "passed",
@@ -226,11 +226,11 @@
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/binding.ts",
-              "note": "Acceptance, clarification and scoped answer-revision routes exist."
+              "note": "Acceptance, clarification and scoped answer-revision routes exist. T78 adds a saved native G material directive to 4.5 and a fresh brief-review invitation; focused checks passed, connected late-material proof pending."
             }
           ],
           "missing": [
-            "Implement evidence-check4.5 and general directed correction beyond invited answers."
+            "General directed correction/evidence-check routing beyond invited answers and attachment-bound T78 remains outside the implemented paths."
           ],
           "verification": {
             "focused": "passed",

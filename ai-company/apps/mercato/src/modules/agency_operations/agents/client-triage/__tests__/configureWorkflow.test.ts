@@ -85,6 +85,18 @@ it('refuses to overwrite an existing version and requires native publishing', as
   expect(upsertOwnedDefinition).not.toHaveBeenCalled()
 })
 
+it('pins explicit specialist and QA authority only when staff grants the additional producer feature', async () => {
+  await configureNativeClientTriage(container, { ...input, tovRevision: { enabled: true, maxAgentCalls: 1, runTimeoutMs: 10000, pairQaMaxCostPln: 2 } })
+  expect(authorizeGrant).toHaveBeenCalledWith(rbac, expect.objectContaining({ requested: ['agent_orchestrator.agents.run', 'agency_research.manage', 'agency_tov.manage'] }))
+  const configured = upsertOwnedDefinition.mock.calls[0][1].definition
+  const correction = configured.transitions.flatMap((entry: { activities?: unknown[] }) => entry.activities ?? [])
+    .filter((activity: { config: { functionName: string } }) => activity.config.functionName === 'agency_operations.reviseToneOfVoice')
+  expect(correction).toHaveLength(1)
+  expect(correction[0].config.args.policy).toEqual({ agencyTovRevision: { enabled: true, maxAgentCalls: 1, runTimeoutMs: 10000 }, pairQaMaxCostPln: 2 })
+  expect(nativeClientSubmissionDefinition.transitions.flatMap(entry => entry.activities ?? [])
+    .find(activity => activity.config.functionName === 'agency_operations.reviseToneOfVoice')?.config.args).toEqual({})
+})
+
 it('does not report successful configuration when native authoring rejects foreign ownership', async () => {
   upsertOwnedDefinition.mockResolvedValue({ ok: false, reason: 'owned_by_other', definition })
   await expect(configureNativeClientTriage(container, input)).rejects.toThrow('Native triage definition is owned by another author')

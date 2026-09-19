@@ -28,11 +28,11 @@ function blockedHandoff(result: NativeStrategyExecutionResult): Extract<Strategy
     nextAction: result.escalationVersionId ? 'review_employee_exception' : 'review_qa' }
 }
 
-export function createStrategyReviewHandoff(container: AppContainer) {
+export function createStrategyReviewHandoff(container: AppContainer, resultKey = STRATEGY_EXECUTION_RESULT_KEY) {
   return async (_input: unknown, rawContext: unknown): Promise<StrategyReviewHandoffResult> => {
     const context = contextSchema.parse(rawContext)
     const result = z.object({ result: strategyExecutionActivityResultSchema })
-      .parse(context.workflowInstance.context[STRATEGY_EXECUTION_RESULT_KEY] ?? context.workflowInstance.context.agencyStrategyExecution).result
+      .parse(context.workflowInstance.context[resultKey] ?? (resultKey === STRATEGY_EXECUTION_RESULT_KEY ? context.workflowInstance.context.agencyStrategyExecution : undefined)).result
     if (result.status !== 'completed' || result.qaVerdict !== 'ready_for_approval'
       || !result.strategyVersionId || !result.tovVersionId || result.escalationVersionId) {
       return blockedHandoff(result)

@@ -1,4 +1,5 @@
 import type { SpecialistTovReference } from '@/modules/agency_tov/lib/documentVersion/contracts'
+import type { QaFinding } from '../../data/schemas/qa'
 
 export type StrategyReviewVersion = {
   documentId: string
@@ -14,7 +15,7 @@ export type StrategyReviewVersion = {
 export type StrategyReviewQa =
   | { state: 'missing' }
   | { state: 'unavailable'; taskRunId: string; status: string }
-  | { state: 'assessed'; taskRunId: string; status: 'done' | 'to_fix'; verdict: 'ready_for_approval' | 'needs_agent_fix' }
+  | { state: 'assessed'; taskRunId: string; status: 'done' | 'to_fix'; verdict: 'ready_for_approval' | 'needs_agent_fix'; findings?: QaFinding[] }
 
 /** Stored pair and QA evidence; customer acceptance remains a separate record. */
 export type StrategyReviewProjection = {

@@ -25,17 +25,22 @@ test('all six template examples have valid versioned review data', () => {
 
 test('a customer can switch documents, accept locally and reset the preview', async () => {
   render(<I18nProvider locale="pl" dict={pl}><ReviewDemo orgSlug="acme" /></I18nProvider>)
-  expect(screen.getByText('Tryb testowy')).toBeTruthy()
-  for (const [index, document] of reviewDemoDocuments.entries()) {
-    fireEvent.click(screen.getByRole('button', { name: new RegExp(`${index + 1}\\. ${document.title}`) }))
+  expect(screen.getByText(pl['agency.demo.notice'])).toBeTruthy()
+  expect(screen.getAllByText('Zaakceptowane')).toHaveLength(reviewDemoDocuments.length - 1)
+  for (const document of reviewDemoDocuments) {
+    const trigger = screen.getByText(document.title).closest('button')
+    expect(trigger).not.toBeNull()
+    fireEvent.click(trigger!)
     const frame = screen.getByTitle(`${document.title} — wersja ${document.version}`)
     expect(frame.getAttribute('srcdoc')).toContain(document.html)
     fireEvent.load(frame)
   }
   fireEvent.click(screen.getByRole('button', { name: 'Akceptuj' }))
   await screen.findByText('Wynik tej próby jest lokalny — nic nie wysłano.')
-  expect(screen.getByText('Zaakceptowano testowo')).toBeTruthy()
+  expect(screen.getAllByText('Zaakceptowane')).toHaveLength(reviewDemoDocuments.length)
   fireEvent.click(screen.getByRole('button', { name: 'Zresetuj test' }))
-  await waitFor(() => expect(screen.queryByText('Zaakceptowano testowo')).toBeNull())
+  await waitFor(() => expect(screen.getAllByText('Zaakceptowane')).toHaveLength(reviewDemoDocuments.length - 1))
+  expect(screen.getAllByText('Zaakceptowane')).toHaveLength(reviewDemoDocuments.length - 1)
+  expect(screen.getByTitle(`${reviewDemoDocuments.at(-1)!.title} — wersja ${reviewDemoDocuments.at(-1)!.version}`)).toBeTruthy()
   expect(screen.getByText(pl['agency.review.commentsPanelTitle'])).toBeTruthy()
 })

@@ -1,3 +1,4 @@
+import { AGENCY_FONT_STYLESHEET_URL } from '@/modules/agency/theme/fonts'
 import { cookies, headers } from 'next/headers'
 import { backendRouteMetadata } from '@/.mercato/generated/backend-route-metadata.generated'
 import { findRouteManifestMatch } from '@open-mercato/shared/modules/registry'
@@ -108,6 +109,8 @@ export default async function BackendLayout({
 
   return (
     <I18nProvider locale={locale} dict={dict} localeLocked={resolveForcedLocale(process.env) !== null} supportedLocales={supportedLocales}>
+      <div className="crm-skin">
+      <link rel="stylesheet" href={AGENCY_FONT_STYLESHEET_URL} />
       <AppShell
         productName={productName}
         email={auth?.email}
@@ -141,6 +144,7 @@ export default async function BackendLayout({
         </PageInjectionBoundary>
         {demoModeEnabled ? <DemoFeedbackWidget demoModeEnabled={demoModeEnabled} /> : null}
       </AppShell>
+      </div>
     </I18nProvider>
   )
 }

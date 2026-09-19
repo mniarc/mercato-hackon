@@ -1,0 +1,115 @@
+---
+id: F49-2
+kind: user-story
+category: "E — wyjątki i pracownik"
+feature: F49
+criteria_count: 4
+status: implemented
+primary_blocker: trial
+---
+
+
+# F49-2 · Rozstrzygnięcie przez uprawnionego pracownika
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F49
+
+### Grupa
+
+E — wyjątki i pracownik
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Rozstrzygnięcie przez uprawnionego pracownika
+
+### Definicja
+
+Uprawniony pracownik usuwa przeszkodę lub rozstrzyga spór, zapisując uzasadnienie. Jego decyzja nie zastępuje zgody klienta ani nie rozszerza zakupionego produktu.
+
+### Krok procesu
+
+E.2
+G.1
+G.5
+
+### ID historii
+
+F49-2
+
+### User story
+
+Jako pracownik obsługujący wyjątek chcę poprosić klienta o brakującą decyzję, żeby wznowienie wynikało z jego rzeczywistej odpowiedzi.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, E.2, Udział i akcje klienta: pytanie pracownika nie jest WE-KLIENT; dopiero odpowiedź klienta jest wejściem do G. E.3: brak zgody lub dowodu utrzymuje blokadę.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F49-2
+
+### Kroki procesu
+
+E.2 — Decyzja pracownika
+G.1 — Przyjęcie i powiązanie zgłoszenia
+G.5 — Zapis decyzji i przekazanie do procesu
+
+### Dział odpowiedzialny
+
+Operacje lub integracje
+Obsługa klienta
+Operacje
+
+### Wykonawcy po stronie firmy
+
+Uprawniony pracownik (E.2)
+System wejścia i agent obsługi (G.1)
+Orkiestrator i system reguł (G.5)
+
+### Powiązane wcześniejsze historie / kroki
+
+F48-1 — Sprawa wyjątku z właścicielem
+
+### Dokumenty i zdarzenia
+
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Sprawa wymagająca rozstrzygnięcia pracownika — WEW-ESKALACJA
+Wzorzec zapisu zgłoszenia klienta — WZR-ZGLOSZENIE
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+
+### Udział klienta
+
+Odpowiada na konkretne pytanie lub podejmuje brakującą decyzję.
+
+### Interwencja pracownika
+
+Zadaje pytanie i oczekuje; nie tworzy odpowiedzi klienta w jego imieniu.
+
+### Decyzje
+
+DEC-ESKALACJA
+DEC-TRIAZ
+
+### Open Mercato
+
+OM-03
+OM-05

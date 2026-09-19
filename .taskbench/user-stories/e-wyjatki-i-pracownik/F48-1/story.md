@@ -1,0 +1,105 @@
+---
+id: F48-1
+kind: user-story
+category: "E — wyjątki i pracownik"
+feature: F48
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F48-1 · Sprawa wyjątku z właścicielem
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F48
+
+### Grupa
+
+E — wyjątki i pracownik
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Sprawa wyjątku z właścicielem
+
+### Definicja
+
+Nierozwiązany wyjątek tworzy czytelną sprawę z dowodami, właścicielem, dopuszczalnymi rozstrzygnięciami i punktem powrotu; blokada obejmuje zależne wykonanie.
+
+### Krok procesu
+
+E.1
+
+### ID historii
+
+F48-1
+
+### User story
+
+Jako pracownik odpowiedzialny za wyjątek chcę dostać sprawę z powodem i dowodami, żeby rozwiązać konkretną przeszkodę bez odtwarzania całej historii zamówienia.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, E.1 (wiersz 66): powód/dowody/właściciel/decyzje/punkt powrotu, blokada zależnego wykonania i termin gdy potrzebny. Dokumenty, WZR-ESKALACJA / WEW-ESKALACJA.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F48-1
+
+### Kroki procesu
+
+E.1 — Utworzenie sprawy dla pracownika
+
+### Dział odpowiedzialny
+
+Operacje
+
+### Wykonawcy po stronie firmy
+
+Orkiestrator i system wyjątków (E.1)
+
+### Powiązane wcześniejsze historie / kroki
+
+G.5 — Zapis decyzji i przekazanie do procesu (F40-2, F41-1, F41-2, F42-1, F42-2, F43-2, F44-1, F44-2, F45-1, F46-1, F46-2, F47-1, F47-2, F49-2, F52-1, F54-1, F55-1, F57-1)
+
+### Dokumenty i zdarzenia
+
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Wzorzec zadania dla pracownika — WZR-ESKALACJA
+Sprawa wymagająca rozstrzygnięcia pracownika — WEW-ESKALACJA
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+
+### Udział klienta
+
+Może otrzymać informację o przeszkodzie i uzupełnić dane przez G.
+
+### Interwencja pracownika
+
+Przejmuje przypisaną sprawę i analizuje dowody.
+
+### Decyzje
+
+DEC-ESKALACJA
+
+### Open Mercato
+
+OM-05

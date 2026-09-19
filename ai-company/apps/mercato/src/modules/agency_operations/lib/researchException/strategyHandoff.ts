@@ -12,7 +12,7 @@ const contextSchema = z.object({ workflowInstance: z.object({
   id: z.uuid(), workflowId: z.literal('agency_operations.client-submission.native.v1'), tenantId: z.uuid(), organizationId: z.uuid(),
 }) })
 
-export function createStrategyResearchExceptionHandoff(container: AppContainer) {
+export function createStrategyResearchExceptionHandoff(container: AppContainer, resultKey = STRATEGY_EXECUTION_RESULT_KEY) {
   return async (_input: unknown, rawContext: unknown) => {
     const { workflowInstance } = contextSchema.parse(rawContext)
     const scope = { tenantId: workflowInstance.tenantId, organizationId: workflowInstance.organizationId }
@@ -21,7 +21,7 @@ export function createStrategyResearchExceptionHandoff(container: AppContainer) 
       ...scope, id: workflowInstance.id, workflowId: workflowInstance.workflowId, deletedAt: null,
     }, undefined, scope)
     if (!source) throw new Error('[internal] Strategy exception requires the originating native workflow')
-    const result = z.object({ result: strategyExecutionActivityResultSchema }).safeParse(source.context[STRATEGY_EXECUTION_RESULT_KEY] ?? source.context.agencyStrategyExecution)
+    const result = z.object({ result: strategyExecutionActivityResultSchema }).safeParse(source.context[resultKey] ?? (resultKey === STRATEGY_EXECUTION_RESULT_KEY ? source.context.agencyStrategyExecution : undefined))
     if (!result.success) return { kind: 'none' as const }
     const saved = result.data.result
     if ((saved.status !== 'completed' && saved.status !== 'paused_budget') || !saved.escalationVersionId) return { kind: 'none' as const }

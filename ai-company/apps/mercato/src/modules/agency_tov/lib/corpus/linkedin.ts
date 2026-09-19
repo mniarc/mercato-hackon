@@ -44,6 +44,22 @@ function count(value: unknown): number {
   return typeof value === 'number' && Number.isFinite(value) && value > 0 ? Math.round(value) : 0
 }
 
+function normalizePostedAt(postedAt: ApifyLinkedInPostItem['postedAt']): string {
+  if (typeof postedAt?.timestamp === 'number') {
+    const date = new Date(postedAt.timestamp)
+    if (!Number.isNaN(date.getTime())) return date.toISOString()
+  }
+  if (postedAt?.date) {
+    const raw = postedAt.date.trim()
+    const normalized = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(raw)
+      ? `${raw.replace(' ', 'T')}Z`
+      : raw
+    const date = new Date(normalized)
+    if (!Number.isNaN(date.getTime())) return date.toISOString()
+  }
+  return ''
+}
+
 /**
  * Turns an Apify `linkedin-profile-posts` dataset into the compact post list the ToV agents read. Reposts
  * (a non-empty `header.text` such as "X reposted this") are dropped: they are not
@@ -84,7 +100,7 @@ export function normalizeLinkedInPosts(items: ApifyLinkedInPostItem[]): Normaliz
       profileUrl: normalizeProfileUrl(profileRaw),
       authorName: item.author?.name?.trim() || item.author?.publicIdentifier || profileRaw,
       url: item.linkedinUrl ?? '',
-      postedAt: item.postedAt?.date ?? (item.postedAt?.timestamp ? new Date(item.postedAt.timestamp).toISOString() : ''),
+      postedAt: normalizePostedAt(item.postedAt),
       text,
       likes: count(item.engagement?.likes),
       comments: count(item.engagement?.comments),

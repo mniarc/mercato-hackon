@@ -111,9 +111,10 @@ COPY jest.config.cjs jest.setup.ts jest.dom.setup.ts ./
 COPY eslint.config.mjs ./
 
 
-# Build the app
-# Limit Node.js heap to 4GB and reduce worker count to avoid OOM in constrained Docker environments
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+# Build the app. BUILD_NODE_HEAP_MB controls the same V8 heap limit for package,
+# generation and Next phases; the default preserves the proven 8GB build path.
+ARG BUILD_NODE_HEAP_MB=8192
+ENV NODE_OPTIONS="--max-old-space-size=${BUILD_NODE_HEAP_MB}"
 RUN yarn build
 
 # Dev prebuild stage: install + build at NATIVE VM filesystem speed.
@@ -221,7 +222,8 @@ COPY eslint.config.mjs ./
 # build -> generate (writes packages/core/generated/) -> rebuild so core picks
 # up dist/generated — the same sequence dev-entrypoint.sh runs, done once here.
 # `yarn generate` degrades gracefully without a database (skips cache purge).
-ENV NODE_OPTIONS="--max-old-space-size=4096"
+ARG BUILD_NODE_HEAP_MB=8192
+ENV NODE_OPTIONS="--max-old-space-size=${BUILD_NODE_HEAP_MB}"
 RUN yarn build:packages && yarn generate && yarn build:packages
 
 # Dev stage: lean runtime + /opt/prebuilt artifacts for volume seeding.

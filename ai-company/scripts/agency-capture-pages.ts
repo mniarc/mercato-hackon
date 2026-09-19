@@ -2,6 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium, request, type Page } from '@playwright/test'
+import { createCaptureDirectory, retainLatestFiveCaptures } from './support/visualCaptures.mjs'
 import { apiRequest, getAuthToken } from '../packages/core/src/helpers/integration/api'
 import { getTokenScope } from '../packages/core/src/helpers/integration/generalFixtures'
 import {
@@ -15,7 +16,7 @@ const baseURL = process.env.BASE_URL ?? 'http://localhost:5002'
 if (new URL(baseURL).hostname !== 'localhost') throw new Error('Capture requires localhost so the demo app can hydrate correctly.')
 const scriptFile = typeof __filename !== 'undefined' ? __filename : fileURLToPath(import.meta.url)
 const visualsRoot = path.resolve(path.dirname(scriptFile), '..', '..', '.visuals')
-const output = path.join(visualsRoot, `capture-${new Date().toISOString().replace(/[:.]/g, '-')}`)
+const output = await createCaptureDirectory(visualsRoot)
 const orgSlug = process.env.AGENCY_CAPTURE_ORG_SLUG ?? 'acme-corp'
 type Viewpoint = 'customer' | 'employee'
 const actors = { employee: 'admin@acme.com (demo staff)', customer: 'temporary native customer account' }
@@ -25,27 +26,6 @@ function recordGap(viewpoint: Viewpoint, page: string, reason: string) {
   gaps.push({ viewpoint, actor: actors[viewpoint], page, reason })
   console.log(`[gap] ${viewpoint} ${page}: ${reason}`)
 }
-async function retainLatestFive() {
-  // Never prune previous evidence after a failed run, or touch unrelated directories/symlinks.
-  if (!captures.length || !(await fs.stat(captures[0].file)).size) return []
-  const actualRoot = await fs.realpath(visualsRoot)
-  const runs = (await fs.readdir(actualRoot, { withFileTypes: true }))
-    .filter((entry) => entry.isDirectory() && !entry.isSymbolicLink() && /^capture-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z$/.test(entry.name))
-    .map((entry) => entry.name).sort().reverse()
-  const keep = new Set([path.basename(output), ...runs.filter((name) => name !== path.basename(output)).slice(0, 4)])
-  const removed: string[] = []
-  for (const name of runs.filter((name) => !keep.has(name))) {
-    const target = path.resolve(actualRoot, name)
-    if (path.dirname(target) !== actualRoot || target === path.resolve(output)) throw new Error('Unsafe capture retention target')
-    const actualTarget = await fs.realpath(target)
-    if (actualTarget !== target || path.dirname(actualTarget) !== actualRoot) throw new Error('Capture retention target escaped its directory')
-    await fs.rm(actualTarget, { recursive: true })
-    removed.push(name)
-  }
-  return removed
-}
-await fs.mkdir(output, { recursive: true })
-await Promise.all(['customer', 'employee'].map((viewpoint) => fs.mkdir(path.join(output, viewpoint))))
 const api = await request.newContext({ baseURL })
 const browser = await chromium.launch({ headless: false })
 const staff = await browser.newContext({ baseURL, viewport: { width: 1440, height: 1000 }, locale: 'pl-PL' })
@@ -167,7 +147,7 @@ try {
   await deleteCustomerRoleFixture(api, setupToken, roleId)
   await deleteCustomerCompanyFixture(api, adminToken, companyId)
   await fs.writeFile(path.join(output, 'capture.json'), JSON.stringify({ viewport: { width: 1440, height: 1000 }, captures, gaps, fixtureIds: { companyId, userId, roleId } }, null, 2))
-  const removedCaptureRuns = await retainLatestFive()
+  const removedCaptureRuns = await retainLatestFiveCaptures(visualsRoot, output, captures[0]?.file)
   await browser.close()
   await api.dispose()
   console.log(JSON.stringify({ output, captures: captures.length, gaps, removedCaptureRuns }, null, 2))

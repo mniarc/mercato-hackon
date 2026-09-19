@@ -1,0 +1,102 @@
+---
+id: F21-1
+kind: user-story
+category: "5. Strategia"
+feature: F21
+criteria_count: 5
+status: implemented
+primary_blocker: trial
+---
+
+
+# F21-1 · Opracowanie i wersjonowanie strategii
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F21
+
+### Grupa
+
+5. Strategia
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Opracowanie i wersjonowanie strategii
+
+### Definicja
+
+Agent strategii przygotowuje osobny dokument pozycjonowania, obietnicy wartości, wyróżnika, roli komunikacji i filarów tematycznych na podstawie zaakceptowanego briefu oraz analiz. Aktualizacje zachowują części nieobjęte zmianą i wskazują użyte dowody.
+
+### Krok procesu
+
+5.2
+
+### ID historii
+
+F21-1
+
+### User story
+
+Jako klient chcę otrzymać strategię komunikacji opartą na moim briefie i dowodach, żeby rozumieć proponowane pozycjonowanie oraz kierunek komunikacji.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Strategia określa wybory marki i filary; szczegóły pojedynczego postu należą do 6–7. Dokumenty: WZR-STRATEGIA i KLI-STRATEGIA. Źródło: arkusz Proces, kroki 5.2.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F21-1
+
+### Kroki procesu
+
+5.2 — Opracowanie lub aktualizacja strategii komunikacji
+
+### Dział odpowiedzialny
+
+Strategia
+
+### Wykonawcy po stronie firmy
+
+Agent strategii (5.2)
+
+### Powiązane wcześniejsze historie / kroki
+
+F20-1 — Uruchomienie i przekazanie etapu strategii
+
+### Dokumenty i zdarzenia
+
+Brief potrzeb i celów klienta — KLI-BRIEF
+Strategia komunikacji marki — KLI-STRATEGIA
+Analiza obecnej komunikacji klienta — WEW-AUDYT
+Analiza konkurentów i porównanie z klientem — WEW-KONKURENCJA
+Źródła i materiały konkretnego zamówienia — WEW-ZRODLA
+Wzorzec strategii komunikacji marki — WZR-STRATEGIA
+
+### Udział klienta
+
+Brak rutynowej akcji klienta.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji pracownika; ewentualne nierozwiązane wyjątki obsługuje wspólny proces E.
+
+### Open Mercato
+
+OM-04

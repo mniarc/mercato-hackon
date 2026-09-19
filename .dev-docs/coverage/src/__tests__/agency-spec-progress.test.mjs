@@ -76,11 +76,23 @@ test('repository discovery is script-relative and reads the actual inventory wit
   assert.ok(report.tasks.length > 0)
   assert.equal(report.assessmentSources.length, 53)
   assert.ok(report.assessmentSources.every((source) => /^\.dev-docs\/coverage\/assessments\/F\d{2}\.json$/.test(source)))
-  assert.ok(report.stories.every((item) => item.source.startsWith('.specs/user-stories/')))
-  const taskFiles = await readdir(path.join(defaultAppRoot, '.tasks'), { recursive: true })
-  assert.deepEqual(report.tasks.map((item) => item.source).sort(), taskFiles
-    .filter((filename) => /^[A-Z]+-?\d+(?:-|\.).*\.md$/.test(path.basename(filename)))
-    .map((filename) => `.tasks/${filename.replaceAll('\\', '/')}`).sort())
+  const hasTaskbench = await readdir(path.join(defaultAppRoot, '.taskbench')).then(() => true, () => false)
+  const storyPrefix = hasTaskbench ? '.taskbench/user-stories/' : '.specs/user-stories/'
+  assert.ok(report.stories.every((item) => item.source.startsWith(storyPrefix)))
+  if (hasTaskbench) {
+    const activeTasks = await readdir(path.join(defaultAppRoot, '.taskbench', 'tasks'), { recursive: true })
+    const doneTasks = await readdir(path.join(defaultAppRoot, '.taskbench', 'tasks-done'), { recursive: true })
+    const expectedSources = [
+      ...activeTasks.filter((f) => /^[A-Z]+-?\d+(?:-|\.).*\.md$/.test(path.basename(f))).map((f) => `.taskbench/tasks/${f.replaceAll('\\', '/')}`),
+      ...doneTasks.filter((f) => /^[A-Z]+-?\d+(?:-|\.).*\.md$/.test(path.basename(f))).map((f) => `.taskbench/tasks-done/${f.replaceAll('\\', '/')}`),
+    ].sort()
+    assert.deepEqual(report.tasks.map((item) => item.source).sort(), expectedSources)
+  } else {
+    const taskFiles = await readdir(path.join(defaultAppRoot, '.tasks'), { recursive: true })
+    assert.deepEqual(report.tasks.map((item) => item.source).sort(), taskFiles
+      .filter((filename) => /^[A-Z]+-?\d+(?:-|\.).*\.md$/.test(path.basename(filename)))
+      .map((filename) => `.tasks/${filename.replaceAll('\\', '/')}`).sort())
+  }
 })
 
 test('archived done tasks retain feature/story counts and evidence provenance', () => {

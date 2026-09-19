@@ -19,6 +19,10 @@ const bundleFiles = [
   ['bin/agency.sh', 'bin/agency.sh', 0o755],
   ['ai-company/docker/agency/compose.yml', 'ai-company/docker/agency/compose.yml', 0o644],
   ['ai-company/docker/agency/runtime.env.example', 'ai-company/docker/agency/runtime.env.example', 0o644],
+  ['.demo-docs/server-setup/guide.md', '.demo-docs/server-setup/guide.md', 0o644],
+  ['.demo-docs/server-setup/setup.mjs', '.demo-docs/server-setup/setup.mjs', 0o644],
+  ['.demo-docs/server-setup/setup.ps1', '.demo-docs/server-setup/setup.ps1', 0o644],
+  ['.demo-docs/server-setup/setup.sh', '.demo-docs/server-setup/setup.sh', 0o755],
 ]
 
 export function parsePackageArgs(argv) {
@@ -113,6 +117,10 @@ Requirements: Docker Engine, the Docker Compose v2 plugin, and Node.js 24 for
 bin/agency.sh or bin/agency.ps1. This bundle imports a prebuilt image; do not run
 the build command on the server.
 
+Human setup guide and optional PowerShell/Bash helpers:
+.demo-docs/server-setup/guide.md (supports explicit --release-dir).
+One installation per Docker daemon: the Compose project is always agency-server.
+
 1. Extract this outer tar and change into its single agency-release-* directory.
 2. Load the image archive:
 
@@ -124,11 +132,12 @@ the build command on the server.
 
 3. Create the private runtime file outside this directory:
 
-   sudo install -d -m 0700 /etc/agency
-   sudo install -m 0600 ai-company/docker/agency/runtime.env.example /etc/agency/runtime.env
+   # Use a private directory owned by the operator (ask an admin to provision it).
+   install -d -m 0700 /etc/agency
+   sh .demo-docs/server-setup/setup.sh prepare --release-dir "$(pwd)" --env-file /etc/agency/runtime.env --image ${image}
 
    Edit /etc/agency/runtime.env. Keep AGENCY_IMAGE=${image}; set the HTTPS
-   origin, four independent account passwords, and independent random database,
+   origin, three independent account passwords, and an independent database password,
    JWT, auth, and retained encryption secrets. Configure real email before
    opening self-service registration. Provider keys do not approve agent spend.
 
@@ -188,7 +197,7 @@ export async function packageRelease({ image, imageFile, output, root = teamRoot
   try {
     handle = await fs.open(temporary, 'wx', 0o600)
     onProgress({ stage: 'deployment-files', status: 'start' })
-    for (const directory of ['', 'bin', 'image', 'ai-company', 'ai-company/docker', 'ai-company/docker/agency']) {
+    for (const directory of ['', 'bin', 'image', 'ai-company', 'ai-company/docker', 'ai-company/docker/agency', '.demo-docs', '.demo-docs/server-setup']) {
       const name = `${rootName}${directory ? `/${directory}` : ''}/`
       await writeAll(handle, createTarHeader({ name, mode: 0o755, modifiedAt, type: '5' }))
     }

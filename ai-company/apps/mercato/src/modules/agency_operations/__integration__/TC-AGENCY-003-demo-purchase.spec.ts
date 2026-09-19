@@ -10,6 +10,7 @@ import { assertNoMatchingPurchaseAnalysis, configurePurchaseJourney, failPurchas
 import { deletePurchaseJourneyRecords, readPurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
 import { demoPurchaseReceiptSchema } from '../lib/orderBootstrap/contracts'
 import { demoOffer } from '../lib/orderBootstrap/demoOffer'
+import { captureDemoCheckpoint, finishDemoCapture } from './support/demoCapture'
 
 export const integrationMeta = {
   dependsOnModules: ['agency', 'agency_operations', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows'],
@@ -20,10 +21,7 @@ const PURCHASES = '/api/agency/portal/purchases'
 
 async function checkpoint(page: Page, info: TestInfo, name: string): Promise<void> {
   console.log(`[TC-AGENCY-003] ${name}`)
-  if (process.env.PW_CAPTURE_SCREENSHOTS !== '1') return
-  const screenshotPath = info.outputPath('demo-screenshots', `${name}.png`)
-  await page.screenshot({ path: screenshotPath, fullPage: true, animations: 'disabled' })
-  await info.attach(name, { path: screenshotPath, contentType: 'image/png' })
+  await captureDemoCheckpoint(page, info, name, 'customer')
 }
 
 test.use({ trace: 'retain-on-failure' })
@@ -33,7 +31,8 @@ test.describe('TC-AGENCY-003: purchase replay without execution authorization', 
     testInfo.setTimeout(45_000)
     const current = cleanup
     cleanup = undefined
-    await current?.()
+    try { await current?.() }
+    finally { await finishDemoCapture(testInfo) }
   })
 
   test('rendered terms and repeated purchase delivery retain one paid case awaiting configuration', async ({ page, request }, testInfo) => {

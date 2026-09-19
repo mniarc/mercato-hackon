@@ -8,7 +8,8 @@ import { createInvocationLog, forwardFailureExit, loggedAgencyCommands, redactCo
 
 const teamRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const usage = `Usage: agency.ps1 <command> [options] | sh agency.sh <command> [options]
-  build | verify-image     --image <image:tag>
+  build                    --image <image:tag> [--heap-mb <positive-integer>]
+  verify-image             --image <image:tag>
   preflight                --env-file <absolute-path> [--for up|deploy|init|migrate]
   config-check             --env-file <absolute-path>
   up                       --env-file <absolute-path> [--service app|postgres]
@@ -18,10 +19,11 @@ const usage = `Usage: agency.ps1 <command> [options] | sh agency.sh <command> [o
   export                   --image <image:tag> --file <absolute-path>
   import                   --file <absolute-path>
 No implicit initialization, migration, registry push or database reset.
+Build heap defaults to 8192 MiB. --heap-mb sets the Node/V8 heap, not total Docker memory.
 `
 const runtimeCommands = new Set(['preflight', 'config-check', 'up', 'deploy', 'init', 'migrate', 'status', 'logs', 'stop'])
 const optionsByCommand = {
-  build: ['image'], 'verify-image': ['image'], export: ['image', 'file'], import: ['file'],
+  build: ['image', 'heap-mb'], 'verify-image': ['image'], export: ['image', 'file'], import: ['file'],
   preflight: ['env-file', 'for'], 'config-check': ['env-file'], up: ['env-file', 'service'],
   deploy: ['env-file'], init: ['env-file', 'organization'], migrate: ['env-file'],
   status: ['env-file'], logs: ['env-file', 'service'], stop: ['env-file', 'service'],
@@ -120,8 +122,16 @@ export function planAgencyCommand(argv, { root = teamRoot, runtimeEnv = {} } = {
   const app = path.join(root, 'ai-company')
   const step = (...args) => ({ executable: 'docker', args, cwd: app })
   const verify = (image) => step('run', '--rm', '--pull', 'never', '--network', 'none', '--entrypoint', 'node', image, '--input-type=module', '-e', imageCheck)
-  if (command === 'build') return [step('build', '--progress', 'plain', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true',
-    '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true', '--file', path.join(app, 'Dockerfile'), '--tag', required(options, 'image'), app)]
+  if (command === 'build') {
+    const heap = options['heap-mb']
+    if (heap !== undefined && (!/^[1-9]\d*$/.test(heap) || !Number.isSafeInteger(Number(heap)))) {
+      throw new Error('--heap-mb must be a positive integer in MiB')
+    }
+    return [step('build', '--progress', 'plain', '--target', 'runner', '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES=true',
+      '--build-arg', 'OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true',
+      ...(heap === undefined ? [] : ['--build-arg', `BUILD_NODE_HEAP_MB=${heap}`]),
+      '--file', path.join(app, 'Dockerfile'), '--tag', required(options, 'image'), app)]
+  }
   if (command === 'verify-image') return [verify(required(options, 'image'))]
   if (command === 'export') return [step('image', 'save', '--output', absoluteFile(options, 'file'), required(options, 'image'))]
   if (command === 'import') return [step('image', 'load', '--input', absoluteFile(options, 'file'))]

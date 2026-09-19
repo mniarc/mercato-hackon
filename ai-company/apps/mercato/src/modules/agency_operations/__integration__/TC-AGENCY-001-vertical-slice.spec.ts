@@ -34,6 +34,7 @@ import { demoOffer } from '../lib/orderBootstrap/demoOffer'
 import { supplementaryMaterialResultSchema } from '../lib/contracts/clientMaterialIntake'
 import { assertNoMatchingPurchaseAnalysis, configurePurchaseJourney } from './support/purchaseJourney/setup'
 import { deletePurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
+import { captureDemoCheckpoint, finishDemoCapture } from './support/demoCapture'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -76,13 +77,10 @@ async function captureDemoScreenshot(
   sequence: number,
   label: string,
 ): Promise<void> {
-  if (process.env.PW_CAPTURE_SCREENSHOTS !== '1') return
   const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-  const fileName = `${String(sequence).padStart(2, '0')}-${slug}.png`
-  const screenshotPath = testInfo.outputPath('demo-screenshots', fileName)
-  await page.screenshot({ path: screenshotPath, fullPage: true, animations: 'disabled' })
-  await testInfo.attach(`demo-${fileName}`, { path: screenshotPath, contentType: 'image/png' })
-  console.log(`[TC-AGENCY-001] Screenshot saved: ${fileName}`)
+  const name = `${String(sequence).padStart(2, '0')}-${slug}`
+  const viewpoint = new URL(page.url()).pathname.startsWith('/backend') ? 'employee' : 'customer'
+  await captureDemoCheckpoint(page, testInfo, name, viewpoint)
 }
 
 async function runDemoPhase<Result>(
@@ -207,7 +205,6 @@ async function loginEmployee(
   page: Page,
   email: string,
   password: string,
-  capture: (label: string) => Promise<void>,
 ): Promise<void> {
   await page.context().addCookies([
     { name: 'om_demo_notice_ack', value: 'ack', url: BASE_URL, sameSite: 'Lax' as const },
@@ -216,10 +213,8 @@ async function loginEmployee(
   ])
   await page.goto(new URL('/login', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
   await expect(page.locator('form[data-auth-ready="1"]')).toBeVisible()
-  await capture('employee-login-form')
   await page.getByLabel('Email').fill(email)
   await page.getByLabel('Password', { exact: true }).fill(password)
-  await capture('employee-login-filled')
   const loginResponsePromise = page.waitForResponse((response) =>
     new URL(response.url()).pathname === '/api/auth/login'
       && response.request().method() === 'POST',
@@ -238,7 +233,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     testInfo.setTimeout(30_000)
     const cleanup = cleanupCurrentRun
     cleanupCurrentRun = undefined
-    await cleanup?.()
+    try { await cleanup?.() }
+    finally { await finishDemoCapture(testInfo) }
   })
 
   test('a paid case accepts supplementary material and preserves client and employee handoffs', async ({
@@ -614,7 +610,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           expect(provider.postCalls.some((call) => call.agentId === 'agency_research.post_editor' && call.status === 200)).toBe(true)
           const task = await findInstanceUserTask(request, adminToken, workflowId)
           expect(task?.id).toBeTruthy()
-          await loginEmployee(page, employeeEmail, employeePassword, capture)
+          await loginEmployee(page, employeeEmail, employeePassword)
           employeeSignedIn = true
           await page.goto(new URL(`/backend/tasks/${task!.id}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
           await expect(page.getByText(/qa_exhausted/).first()).toBeVisible()
@@ -661,7 +657,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
       }
 
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
-        if (!employeeSignedIn) await loginEmployee(page, employeeEmail, employeePassword, capture)
+        if (!employeeSignedIn) await loginEmployee(page, employeeEmail, employeePassword)
         else await page.goto(new URL('/backend', BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
         await capture('employee-signed-in')
       })

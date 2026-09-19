@@ -1,5 +1,7 @@
 "use client"
 
+import { AGENCY_FONT_STYLESHEET_URL } from '../../../../../theme/fonts'
+import { ORDER_CSS } from '../../../../../theme/orderStyles'
 import * as React from 'react'
 import Link from 'next/link'
 import { useLocale, useT } from '@open-mercato/shared/lib/i18n/context'
@@ -122,8 +124,19 @@ export default function AgencyOrderPage({ params }: Props) {
 
   const goalLeft = GOAL_MAX - form.purchaseGoal.length
 
+  const included = [
+    t('agency.offer.included.audit'), t('agency.offer.included.strategy'), t('agency.offer.included.tov'),
+    t('agency.offer.included.plan'), t('agency.offer.included.post'), t('agency.offer.included.materials'),
+  ]
+  const boundaries = [
+    t('agency.offer.boundaries.scope'), t('agency.offer.boundaries.plan'),
+    t('agency.offer.boundaries.exclusions'), t('agency.offer.boundaries.revisions'),
+  ]
+
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+    <div className="agency-order mx-auto flex w-full max-w-2xl flex-col gap-6">
+      <link rel="stylesheet" href={AGENCY_FONT_STYLESHEET_URL} />
+      <style>{ORDER_CSS}</style>
       <PortalPageHeader
         label={t('agency.order.label')}
         title={offer.name}
@@ -143,17 +156,31 @@ export default function AgencyOrderPage({ params }: Props) {
 
       {error ? <ErrorMessage label={error} /> : null}
       {!offer.enabled ? <ErrorMessage label={t('agency.purchase.disabled', 'Demo checkout is disabled. An operator must enable the test purchase flow.')} /> : null}
-      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        <PortalCard>
-          <PortalCardHeader label={t('agency.purchase.demoOffer', 'Demo offer')} title={offer.name} description={t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')} />
-          <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <div><dt className="text-muted-foreground">{t('agency.order.sku')}</dt><dd>{offer.sku}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.purchase.testAmount', 'Test amount')}</dt><dd>{offer.amount} {offer.currency}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.order.scope')}</dt><dd>{t('agency.order.scopeValue')}</dd></div>
-            <div><dt className="text-muted-foreground">{t('agency.order.revisions')}</dt><dd>{t('agency.order.revisionsValue')}</dd></div>
-          </dl>
-        </PortalCard>
+      <div className="agency-price">
+        <span className="apx-tag">{t('agency.purchase.demoOffer', 'Demo offer')}</span>
+        <div className="apx-amt">{offer.amount} <span>{offer.currency}</span></div>
+        <p className="apx-note">{t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')}</p>
+        <div className="apx-meta">
+          <span>{t('agency.order.scope')}: {t('agency.order.scopeValue')}</span>
+          <span>{t('agency.order.revisions')}: {t('agency.order.revisionsValue')}</span>
+        </div>
+      </div>
 
+      <PortalCard>
+        <PortalCardHeader title={t('agency.offer.includedTitle')} />
+        <ul className="agency-bullets">
+          {included.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </PortalCard>
+
+      <PortalCard>
+        <PortalCardHeader title={t('agency.offer.boundariesTitle')} />
+        <ul className="agency-bullets">
+          {boundaries.map((item) => <li key={item}>{item}</li>)}
+        </ul>
+      </PortalCard>
+
+      <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <PortalCard>
           <PortalCardHeader title={t('agency.order.brandMarket')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

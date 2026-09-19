@@ -1,3 +1,4 @@
+import { AGENCY_FONT_STYLESHEET_URL } from '@/modules/agency/theme/fonts'
 import { headers } from 'next/headers'
 import Link from 'next/link'
 import { PortalLayoutShell } from '@open-mercato/ui/portal/PortalLayoutShell'
@@ -147,17 +148,20 @@ export default async function FrontendLayout({ children }: LayoutProps) {
   }
 
   return (
-    <PortalLayoutShell
-      orgSlug={orgSlug}
-      organizationName={orgName}
-      tenantId={tenantId}
-      organizationId={organizationId}
-      authenticated={!isPublic && customerAuthMatchesUrlOrg}
-      userName={userName}
-      userEmail={userEmail}
-      customerAuth={customerAuthMatchesUrlOrg ? customerAuth : null}
-    >
-      {children}
-    </PortalLayoutShell>
+    <div className="portal-skin">
+      <link rel="stylesheet" href={AGENCY_FONT_STYLESHEET_URL} />
+      <PortalLayoutShell
+        orgSlug={orgSlug}
+        organizationName={orgName}
+        tenantId={tenantId}
+        organizationId={organizationId}
+        authenticated={!isPublic && customerAuthMatchesUrlOrg}
+        userName={userName}
+        userEmail={userEmail}
+        customerAuth={customerAuthMatchesUrlOrg ? customerAuth : null}
+      >
+        {children}
+      </PortalLayoutShell>
+    </div>
   )
 }

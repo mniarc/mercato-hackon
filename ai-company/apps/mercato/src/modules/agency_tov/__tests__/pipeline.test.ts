@@ -185,7 +185,7 @@ describe('runTovPipeline', () => {
     expect(events.filter((e) => e === 'grounding_rejected')).toHaveLength(2)
   })
 
-  it('reuses cached steps so a rerun costs no agent calls', async () => {
+  it('reuses cached steps within a prompt pack and reruns all stages when the pack changes', async () => {
     const store = new Map<string, unknown>()
     const cache: TovPipelineCache = { get: async (key) => store.get(key) ?? null, set: async (key, value) => void store.set(key, value) }
     const runAgent = jest.fn(async (agentId: string, input: unknown) => {
@@ -200,6 +200,21 @@ describe('runTovPipeline', () => {
     const second = await runTovPipeline({ posts, brand: 'Acme', outputLanguage: 'en', batchSize: 2, runAgent, cache })
     expect(second.stats).toMatchObject({ agentCalls: 0, cachedSteps: 6 })
     expect(runAgent).toHaveBeenCalledTimes(6)
+
+    jest.doMock('../lib/prompts', () => ({ PROMPT_PACK_VERSION: 'next-test-pack' }))
+    try {
+      let runChangedPipeline = runTovPipeline
+      jest.isolateModules(() => {
+        runChangedPipeline = require('../lib/tov/pipeline').runTovPipeline
+      })
+      const changed = await runChangedPipeline({ posts, brand: 'Acme', outputLanguage: 'en', batchSize: 2, runAgent, cache })
+      expect(changed.stats).toMatchObject({ agentCalls: 6, cachedSteps: 0 })
+      expect(runAgent).toHaveBeenCalledTimes(12)
+      const resumed = await runChangedPipeline({ posts, brand: 'Acme', outputLanguage: 'en', batchSize: 2, runAgent, cache })
+      expect(resumed.stats).toMatchObject({ agentCalls: 0, cachedSteps: 6 })
+    } finally {
+      jest.dontMock('../lib/prompts')
+    }
   })
 })
 

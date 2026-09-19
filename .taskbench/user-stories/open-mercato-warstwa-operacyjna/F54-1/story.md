@@ -1,0 +1,117 @@
+---
+id: F54-1
+kind: user-story
+category: "Open Mercato — warstwa operacyjna"
+feature: F54
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F54-1 · Własny moduł i wykonawca agentów
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F54
+
+### Grupa
+
+Open Mercato — warstwa operacyjna
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Własny moduł i wykonawca agentów
+
+### Definicja
+
+Proces agencji, triaż, wersjonowanie, wyjątki i adapter publikacji są implementowane na fundamentach OM. Wariant bazowy korzysta z własnego wykonawcy agentów.
+
+### Krok procesu
+
+2.3
+3.1
+G.1
+G.5
+E.1
+E.3
+8.5
+
+### ID historii
+
+F54-1
+
+### User story
+
+Jako zespół wdrożeniowy chcę uruchomić proces agencji na dostępnej edycji Open Mercato, żeby demonstracja nie zależała od niepotwierdzonego dostępu do funkcji Enterprise.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Open Mercato, OM-01–OM-06: komponenty do zbudowania i sprawdzenia; OM-02: własny wykonawca bazą; OM-OPCJA: Enterprise Agent Orchestrator opcjonalny bez zakładania dostępu. Zasady produktu: Open Mercato.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F54-1
+
+### Kroki procesu
+
+2.3 — Przekazanie opłaconego zamówienia do realizacji
+3.1 — Uruchomienie zdefiniowanych zadań audytu
+G.1 — Przyjęcie i powiązanie zgłoszenia
+G.5 — Zapis decyzji i przekazanie do procesu
+E.1 — Utworzenie sprawy dla pracownika
+E.3 — Wznowienie procesu
+8.5 — Wykonanie publikacji przez integrację
+
+### Dział odpowiedzialny
+
+Wdrożenie i operacje
+
+### Wykonawcy po stronie firmy
+
+Zespół wdrożeniowy przygotowuje moduł. Orkiestrator i wykonawcy agentów realizują proces w OM.
+
+### Powiązane wcześniejsze historie / kroki
+
+Wejście zewnętrzne lub konfiguracja wskazana w kryteriach.
+
+### Dokumenty i zdarzenia
+
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Techniczne limity wykonania zadań agentów — STD-LIMITY
+Katalog produktów, cen i granic usługi — STD-OFERTA
+
+### Udział klienta
+
+Brak wymaganej akcji.
+
+### Interwencja pracownika
+
+Konfiguruje i weryfikuje moduł; nie zatwierdza rutynowo każdego wykonania.
+
+### Open Mercato
+
+OM-01
+OM-02
+OM-03
+OM-04
+OM-05
+OM-06
+OM-OPCJA

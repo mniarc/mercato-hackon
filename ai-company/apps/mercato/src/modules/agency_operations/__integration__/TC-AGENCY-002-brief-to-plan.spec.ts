@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import { expect, test, type Page, type TestInfo } from '@playwright/test'
+import { expect, test, type BrowserContext, type Page, type TestInfo } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/helpers/integration/api'
+import { createRoleFixture, createUserFixture, deleteRoleIfExists, deleteUserIfExists, setRoleAclFeatures } from '@open-mercato/core/helpers/integration/authFixtures'
 import { getTokenScope } from '@open-mercato/core/helpers/integration/generalFixtures'
 import { drainIntegrationQueue } from '@open-mercato/core/helpers/integration/queue'
 import {
@@ -27,19 +28,18 @@ import { readSignedUpPurchaseCustomer, signUpPurchaseCustomer, verifyCapturedPur
 import { completeProducedPostJourney } from './support/productionJourney/downstream'
 import { configureDiscordDestinationFixture, cleanupDiscordDestinationFixture, type DiscordDestinationFixture } from './support/discordDestinationFixture'
 import type { PublicationDestinationResult } from '../../agency_research/lib/publicationDestination/contracts'
+import { completeTovCorrection } from './support/productionJourney/tovCorrection'
+import { captureDemoCheckpoint, finishDemoCapture } from './support/demoCapture'
 
 export const integrationMeta = {
   dependsOnModules: ['agency', 'agency_operations', 'agency_research', 'agency_tov', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows', 'agent_orchestrator', 'communication_channels', 'channel_discord', 'integrations'],
 }
 const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
 let evidence: ReturnType<typeof createJourneyEvidence> | undefined
-async function checkpoint(page: Page, info: TestInfo, name: string) {
+async function checkpoint(page: Page, info: TestInfo, name: string, viewpoint: 'customer' | 'employee' = 'customer') {
   console.log(`[TC-AGENCY-002] ${name}`)
   await evidence?.checkpoint(name, 'completed')
-  if (process.env.PW_CAPTURE_SCREENSHOTS !== '1') return
-  const target = info.outputPath('demo-screenshots', `${name}.png`)
-  await page.screenshot({ path: target, fullPage: true, animations: 'disabled' })
-  await info.attach(name, { path: target, contentType: 'image/png' })
+  await captureDemoCheckpoint(page, info, name, viewpoint)
 }
 async function continueNativeResponse() {
   await drainIntegrationQueue('workflow-invoke-agent')
@@ -51,14 +51,20 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
   let cleanup: (() => Promise<void>) | undefined
   test.afterEach(async ({}, info) => {
     info.setTimeout(60_000)
-    await evidence?.checkpoint('journey', info.status === 'passed' ? 'completed' : 'failed')
     const current = cleanup
     cleanup = undefined
-    await current?.()
+    try {
+      await evidence?.checkpoint('journey', info.status === 'passed' ? 'completed' : 'failed')
+    } finally {
+      try { await current?.() }
+      finally { await finishDemoCapture(info) }
+    }
   })
-  test('signup, purchase, materials and genuine client decisions reach configured publication preparation', async ({ page, request }, info) => {
+  test('signup, purchase, materials and genuine client decisions reach configured publication preparation', async ({ page, request, browser }, info) => {
     test.setTimeout(600_000)
     const mode = readJourneyMode()
+    const tovCorrection = process.env.AGENCY_JOURNEY_TOV_CORRECTION === '1'
+    if (tovCorrection && mode !== 'fixture') throw new Error('The ToV correction proof is a fixture-only alternative, not paid execution authority')
     const clientInput = readClientJourneyInput(mode)
     expect(process.env.AGENCY_TOV_EXECUTION_ENABLED, 'Enable the authoritative specialist for the same intelligence mode').toMatch(/^(1|true)$/)
     expect(process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED, 'Enable the zero-charge purchase in app and runner').toMatch(/^(1|true)$/)
@@ -83,6 +89,9 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
     let scope: JourneyScope | undefined
     let definitions: string[] = []
     let discordFixture: DiscordDestinationFixture | undefined
+    let employeeContext: BrowserContext | undefined
+    let employeeRoleId: string | null = null
+    let employeeUserId: string | null = null
     cleanup = async () => {
       console.log('[TC-AGENCY-002] Clean up this journey only')
       try {
@@ -100,7 +109,13 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
         for (const companyId of companies) await deleteCustomerCompanyFixture(request, adminToken, companyId)
       } finally {
         try { if (discordFixture) await cleanupDiscordDestinationFixture(discordFixture, { request, token: provisioningToken }) }
-        finally { await provider.close() }
+        finally {
+          try {
+            await employeeContext?.close()
+            await deleteUserIfExists(request, provisioningToken, employeeUserId)
+            await deleteRoleIfExists(request, provisioningToken, employeeRoleId)
+          } finally { await provider.close() }
+        }
       }
     }
     const order = JSON.parse(fs.readFileSync(path.join(sourceDirectory, 'order.json'), 'utf8'))
@@ -109,7 +124,7 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
       console.log('[TC-AGENCY-002] Configure new native versions and local source/model fixtures')
       if (provider.baseUrl) await assertLoopbackOverrides({ tenantId, organizationId }, provider.baseUrl)
       await configurePurchaseJourney({ tenantId, organizationId, userId })
-      definitions = await configureFullProductionJourney({ tenantId, organizationId, userId, productSelection: {
+      definitions = await configureFullProductionJourney({ tenantId, organizationId, userId, tovCorrection, productSelection: {
         sku: demoOffer.sku, offer_version: demoOffer.offerVersion, price_net: demoOffer.amount, currency: demoOffer.currency,
         result_limits: order.product_selection.result_limits,
       } })
@@ -180,6 +195,33 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
       return receipt
     })
     const caseId = paid.caseId!
+    const employeePage = await test.step('Open a separately authenticated employee view of the same paid case', async () => {
+      employeeRoleId = await createRoleFixture(request, provisioningToken, { name: `Journey employee ${suffix}`, tenantId })
+      await setRoleAclFeatures(request, provisioningToken, { roleId: employeeRoleId, organizations: [organizationId],
+        features: ['agency_operations.cases.view', 'agency_research.documents.view', 'customers.companies.view',
+          'workflows.instances.view', 'workflows.view', 'workflows.tasks.view'] })
+      const email = `agency-journey-employee-${suffix}@example.test`
+      const password = customerTestPassword()
+      employeeUserId = await createUserFixture(request, provisioningToken, { email, password, organizationId,
+        roles: [employeeRoleId, 'employee'], name: `Journey employee ${suffix}` })
+      employeeContext = await browser.newContext({ baseURL: BASE_URL, viewport: page.viewportSize() ?? undefined })
+      await employeeContext.addCookies([
+        { name: 'om_demo_notice_ack', value: 'ack', url: BASE_URL },
+        { name: 'om_cookie_notice_ack', value: 'ack', url: BASE_URL },
+        { name: 'om_feedback_suppress', value: '1', url: BASE_URL },
+      ])
+      const login = await employeeContext.request.post(new URL('/api/auth/login', BASE_URL).toString(), { form: { email, password } })
+      expect(login.ok(), 'The separate employee must authenticate through native staff auth').toBeTruthy()
+      const staff = await employeeContext.newPage()
+      staff.setDefaultTimeout(60_000)
+      return staff
+    })
+    const showEmployeeCase = async (name: string) => {
+      await employeePage.goto(new URL(`/backend/agency-operations/cases/${caseId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+      await expect(employeePage.getByRole('heading').filter({ hasText: order.brand.display_name })).toBeVisible()
+      await expect(employeePage.getByText('Persisted document versions', { exact: true })).toBeVisible()
+      await checkpoint(employeePage, info, name, 'employee')
+    }
     const uploaded = await test.step('Upload real private material to this paid case before research starts', async () => {
       intelligence.allowMaterial({ text: SUPPLEMENTARY_MATERIAL_TEXT })
       await page.goto(new URL(`/${orgSlug}/portal/agency/materials?caseId=${caseId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
@@ -259,7 +301,7 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
       expect(resolved.status, 'The native specialist must finish; no alternate ToV writer can replace it').toBe('ready')
       if (resolved.status !== 'ready') throw new Error('Specialist ToV is not ready')
       expect(resolved.workflowInstanceId).toBe(accepted.workflowInstanceId)
-      await checkpoint(page, info, '02b-authoritative-specialist-tov-produced')
+      await showEmployeeCase('02b-employee-case-authoritative-specialist-tov-produced')
       return resolved.reference
     })
     await test.step('Client explicitly accepts the newly produced exact brief', async () => {
@@ -275,6 +317,14 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
     const pairInvitation = await readInvitation(scope!, caseId, STRATEGY_PAIR_REVIEW_WORKFLOW_ID)
     const pair = strategyPairInvitationSchema.parse(pairInvitation.context[STRATEGY_PAIR_REVIEW_CONTEXT_KEY]).review
     expect(pair.tov.versionId).toBe(specialist.versionId)
+    if (tovCorrection) {
+      await test.step('Client requests a real specialist correction and receives the newly assessed exact pair', async () => {
+        await completeTovCorrection({ page, scope: scope!, caseId, invitation: pairInvitation, intelligence, openTask, continueNativeResponse })
+        await checkpoint(page, info, '03-specialist-correction-fresh-pair-review')
+      })
+      console.log('[TC-AGENCY-002] Correction alternative reached a fresh unapproved pair review; no planning, publication or approval was inferred.')
+      return
+    }
     await test.step('Client reviews and approves both actually produced paired versions', async () => {
       intelligence.allowPairApproval({ taskId: pairInvitation.taskId, strategy: pair.strategy, tov: pair.tov })
       await openTask(pairInvitation.taskId)
@@ -339,6 +389,7 @@ test.describe('TC-AGENCY-002: primary customer journey to publication preparatio
       expect(afterResponse.ok(), await afterResponse.text()).toBeTruthy()
       const after = await afterResponse.json() as { approval_records: unknown[] }
       expect(after.approval_records).toEqual(before.approval_records)
+      await showEmployeeCase('08-employee-case-configured-publication-preparation')
       console.log(`[TC-AGENCY-002] Saved exact Discord target ${discordFixture.discordChannelId}; refreshed preparation remains unverified and cannot send. Existing content acceptance is unchanged.`)
     })
     console.log(`[TC-AGENCY-002] Primary journey reached configured publication preparation in ${mode} intelligence mode; sending remains disabled. Native evidence: ${evidence.file}`)

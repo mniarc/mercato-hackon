@@ -35,12 +35,13 @@ const configureTriage: ModuleCli = {
     const options = new Map<string, string>()
     for (let index = 0; index < argv.length; index += 2) {
       if (!argv[index]?.startsWith('--') || !argv[index + 1]) {
-        throw new Error('[internal] Usage: agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>')
+        throw new Error('[internal] Usage: agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> [--tov-revision-policy-file <approved-policy.json>]')
       }
       options.set(argv[index].slice(2), argv[index + 1])
     }
     const result = await configureNativeClientTriage(await createRequestContainer(), {
       tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user'),
+      ...(options.has('tov-revision-policy-file') ? { tovRevision: JSON.parse(await readFile(options.get('tov-revision-policy-file')!, 'utf8')) } : {}),
     })
     process.stdout.write(`${JSON.stringify(result)}\n`)
   },

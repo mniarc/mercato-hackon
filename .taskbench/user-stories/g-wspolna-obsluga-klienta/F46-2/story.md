@@ -1,0 +1,131 @@
+---
+id: F46-2
+kind: user-story
+category: "G — wspólna obsługa klienta"
+feature: F46
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F46-2 · Wstrzymanie a stan publikacji
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F46
+
+### Grupa
+
+G — wspólna obsługa klienta
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Wstrzymanie a stan publikacji
+
+### Definicja
+
+Nowa uwaga lub dyspozycja wstrzymania zabezpiecza zależne wykonanie. Reakcja na publikację zależy od tego, czy próbę tylko zarezerwowano, czy rozpoczęto wysyłkę.
+
+### Krok procesu
+
+G.1
+G.5
+8.6
+E.1
+E.2
+E.3
+
+### ID historii
+
+F46-2
+
+### User story
+
+Jako klient chcę znać rzeczywisty stan wysyłki rozpoczętej przed moją uwagą, żeby otrzymać rzetelną informację o tym, czy post już się pojawił.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, G.1/G.5: rozpoczęta wysyłka wymaga ustalenia wyniku, bez gwarancji zatrzymania; E.2/E.3: nieznanej publikacji nie uznaje się za niewykonaną bez dowodów i nie powtarza wykonanej. Zasady produktu: Wynik nieznany.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F46-2
+
+### Kroki procesu
+
+G.1 — Przyjęcie i powiązanie zgłoszenia
+G.5 — Zapis decyzji i przekazanie do procesu
+8.6 — Potwierdzenie wyniku albo rozstrzygnięcie niepewnej wysyłki
+E.1 — Utworzenie sprawy dla pracownika
+E.2 — Decyzja pracownika
+E.3 — Wznowienie procesu
+
+### Dział odpowiedzialny
+
+Obsługa klienta
+Operacje
+Publikacja i integracje
+Operacje lub integracje
+
+### Wykonawcy po stronie firmy
+
+System wejścia i agent obsługi (G.1)
+Orkiestrator i system reguł (G.5, E.3)
+System integracji; pracownik wyłącznie przez eskalację E.1–E.3 (8.6)
+Orkiestrator i system wyjątków (E.1)
+Uprawniony pracownik (E.2)
+
+### Powiązane wcześniejsze historie / kroki
+
+F40-1 — Jedno przyjęcie zgłoszenia
+8.5 — Wykonanie publikacji przez integrację (F36-3, F36-4, F46-1, F54-1, F58-1)
+
+### Dokumenty i zdarzenia
+
+Schemat realizacji produktu i dozwolone ścieżki — STD-PROCES
+Techniczne limity wykonania zadań agentów — STD-LIMITY
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Historia zgłoszeń zmian, decyzji i zależnych wersji — WEW-ZMIANY
+Post tekstowy przygotowany dla klienta — KLI-POST
+Instrukcja obsługi publikacji zaakceptowanego postu — WEW-ZLECENIE-PUBLIKACJI
+Konfiguracja konta lub kanału publikacji — WEW-KONFIG-PUBLIKACJI
+Dowód wykonanej publikacji — WEW-POTWIERDZENIE-PUBLIKACJI
+Wzorzec zadania dla pracownika — WZR-ESKALACJA
+Sprawa wymagająca rozstrzygnięcia pracownika — WEW-ESKALACJA
+
+### Udział klienta
+
+Przekazuje uwagę lub wstrzymanie i otrzymuje ustalony wynik.
+
+### Interwencja pracownika
+
+Bada nierozstrzygniętą próbę; nie uruchamia wysyłki w ciemno.
+
+### Decyzje
+
+DEC-PUBLIKACJA
+DEC-ESKALACJA
+
+### Open Mercato
+
+OM-03
+OM-05
+OM-06

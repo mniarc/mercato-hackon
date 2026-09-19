@@ -1,19 +1,22 @@
 import { z } from 'zod'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
-import { WorkflowInstance, WorkflowDefinition } from '@open-mercato/core/modules/workflows/data/entities'
+import { UserTask, WorkflowInstance, WorkflowDefinition } from '@open-mercato/core/modules/workflows/data/entities'
 import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
+import { BRIEF_REVIEW_CONTEXT_KEY, BRIEF_REVIEW_STEP_ID, BRIEF_REVIEW_WORKFLOW_ID } from '../briefStrategyProcess/contracts'
+import { briefReviewStatus } from '../briefStrategyProcess/review'
 import { assertAnalysisExecutionEnabled } from './activity'
 import { analysisIntakeSteps, analysisExecutionPolicySchema } from './contracts'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
 
-type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
+type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext' | 'completeWorkflow'>
 
 const inputSchema = z.object({
   tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(),
@@ -46,10 +49,7 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
     const previous = agencyCase.workflowInstanceId
       ? await findOneWithDecryption(tx, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, deletedAt: null }, undefined, scope)
       : null
-    if (previous?.status === 'PAUSED' && input.resumeFrom) {
-      throw new CrudHttpError(409, { error: 'A paused employee exception cannot be resumed by --from. Recording keep_blocked remains a hold; an explicit authorized recovery action is required.' })
-    }
-    if (!previous || !TERMINAL.has(previous.status)) throw new CrudHttpError(409, { error: 'A terminal analysis workflow is required before restart.' })
+    if (!previous) throw new CrudHttpError(409, { error: 'A terminal analysis workflow is required before restart.' })
     // A persisted running provider invocation is not proof the process died.
     // Refuse unresolved activity, including a parallel client-response worker.
     const submissions = await findWithDecryption(tx, AgencyClientSubmission, { ...scope, caseId: agencyCase.id, deletedAt: null }, { fields: ['workflowInstanceId'] }, scope)
@@ -69,6 +69,57 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
         throw new CrudHttpError(409, { error: 'The requested resume point is outside the original pinned analysis policy.' })
       }
     }
+    if (previous.status === 'PAUSED' && input.resumeFrom && previous.currentStepId === 'research_exception') {
+      // Preserve the employee's open exception task. Its eventual decision resumes the same
+      // pinned workflow, now from the explicitly bounded research step.
+      await executor.updateWorkflowContext(tx, previous.id, { restart: {
+        attempt: 0, previousWorkflowInstanceId: null, by: input.userId, at: new Date().toISOString(), resumeFrom: input.resumeFrom,
+      } })
+      return { execute: false as const, caseId: agencyCase.id, previousWorkflowInstanceId: null,
+        workflowInstanceId: previous.id, status: previous.status, currentStep: previous.currentStepId }
+    }
+    if (previous.status === 'PAUSED' && input.resumeFrom && previous.currentStepId === 'waiting') {
+      const handoff = z.object({ result: z.object({ invitation: z.object({ workflowInstanceId: z.uuid(), taskId: z.uuid() }) }) })
+        .safeParse(previous.context.agencyBriefInvitation)
+      let reviewWorkflow: WorkflowInstance | null = null
+      let openTasks: UserTask[]
+      if (handoff.success) {
+        const invitation = handoff.data.result.invitation
+        reviewWorkflow = await findOneWithDecryption(tx, WorkflowInstance, {
+          ...scope, id: invitation.workflowInstanceId, workflowId: BRIEF_REVIEW_WORKFLOW_ID,
+          status: 'PAUSED', currentStepId: BRIEF_REVIEW_STEP_ID, deletedAt: null,
+        }, undefined, scope)
+        const binding = z.object({ caseId: z.uuid(), customerEntityId: z.uuid(), customerUserId: z.uuid(),
+          review: z.object({ documentId: z.uuid(), versionId: z.uuid() }),
+        })
+          .safeParse(reviewWorkflow?.context[BRIEF_REVIEW_CONTEXT_KEY])
+        if (!reviewWorkflow || !binding.success || binding.data.caseId !== agencyCase.id
+          || binding.data.customerEntityId !== agencyCase.customerEntityId
+          || binding.data.customerUserId !== agencyCase.submittedByCustomerUserId) {
+          throw new CrudHttpError(409, { error: 'The saved client review is no longer available for analysis recovery.' })
+        }
+        const current = await container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+          .getBriefReview(scope, agencyCase.id, binding.data.review.versionId)
+        if (!current?.isCurrent || current.documentId !== binding.data.review.documentId
+          || current.versionId !== binding.data.review.versionId || !briefReviewStatus(current)) {
+          throw new CrudHttpError(409, { error: 'Only the current unaccepted brief review can be superseded for analysis recovery.' })
+        }
+        openTasks = await tx.find(UserTask, { ...scope, id: invitation.taskId, workflowInstanceId: reviewWorkflow.id,
+          assigneeKind: 'customer', assignedTo: binding.data.customerUserId, status: 'PENDING',
+        }, { lockMode: LockMode.PESSIMISTIC_WRITE })
+      } else {
+        // Older definitions placed the review on the analysis instance itself.
+        openTasks = await tx.find(UserTask, { ...scope, workflowInstanceId: previous.id, status: 'PENDING' },
+          { lockMode: LockMode.PESSIMISTIC_WRITE })
+      }
+      if (openTasks.length === 0) throw new CrudHttpError(409, { error: 'An open client review task is required before rebuilding analysis.' })
+      if (reviewWorkflow) await executor.completeWorkflow(tx, container, reviewWorkflow.id, 'CANCELLED')
+      await executor.completeWorkflow(tx, container, previous.id, 'CANCELLED')
+      for (const task of openTasks) { task.status = 'CANCELLED'; task.updatedAt = new Date() }
+      await tx.flush()
+    } else if (!TERMINAL.has(previous.status)) {
+      throw new CrudHttpError(409, { error: `The case workflow is still ${previous.status}; nothing to restart` })
+    }
     const attempt = (previous.correlationKey?.match(/:restart-(\d+)$/)?.[1] ? Number(previous.correlationKey.match(/:restart-(\d+)$/)![1]) : 0) + 1
     const workflow = await executor.startWorkflow(tx, {
       ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: definition.version, correlationKey: `agency-case:${agencyCase.id}:restart-${attempt}`,
@@ -86,8 +137,10 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
     agencyCase.workflowInstanceId = workflow.id
     agencyCase.updatedAt = new Date()
     await tx.flush()
-    return { caseId: agencyCase.id, previousWorkflowInstanceId: previous.id, workflowInstanceId: workflow.id }
+    return { execute: true as const, caseId: agencyCase.id, previousWorkflowInstanceId: previous.id, workflowInstanceId: workflow.id }
   })
+  if (!prepared.execute) return prepared
   const execution = z.object({ status: z.string(), currentStep: z.string() }).parse(await executor.executeWorkflow(em, container, prepared.workflowInstanceId))
-  return { ...prepared, ...execution }
+  return { caseId: prepared.caseId, previousWorkflowInstanceId: prepared.previousWorkflowInstanceId,
+    workflowInstanceId: prepared.workflowInstanceId, ...execution }
 }

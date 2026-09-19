@@ -18,8 +18,13 @@ The story/feature commands inspect the selected scope without rewriting outputs.
 
 ## Sources and meaning
 
-- Canonical IDs and acceptance criteria come from `App/.specs/user-stories/`.
-- Task links/state come from active `App/.tasks/` and `.tasks/tasks-done/`.
+- Canonical IDs and acceptance criteria come from `App/.taskbench/user-stories/`
+  (split format: each story is a subdirectory `FNN-N/` containing `story.md` and
+  individual `AC*.md` files). Falls back to `App/.specs/user-stories/` (flat files)
+  when `.taskbench` is absent.
+- Task links/state come from `App/.taskbench/tasks/` (active) and
+  `.taskbench/tasks-done/` (archived). Falls back to `App/.tasks/` when `.taskbench`
+  is absent.
 - Reviewed claims live in [assessments/](assessments/), one `FNN.json` per feature.
 - Generator code and its focused tests live in [src/](src/); the command above is
   the stable entry point.

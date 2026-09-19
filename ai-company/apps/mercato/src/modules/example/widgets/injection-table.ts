@@ -17,12 +17,8 @@ import type { ModuleInjectionTable } from '@open-mercato/shared/modules/widgets/
  * exported table value.
  */
 export const injectionTable: ModuleInjectionTable = {
-  // Portal dashboard widgets — showcase widget injection for customer portal
-  'portal:dashboard:sections': [
-    { widgetId: 'example.injection.portal-stats', priority: 5 },
-    { widgetId: 'example.injection.portal-recent-activity', priority: 10 },
-    { widgetId: 'example.injection.portal-quick-links', priority: 20 },
-  ],
+  // Portal dashboard: the agency module (Studio Komunikacji) owns this surface
+  // and renders its own client panel, so the generic demo widgets are disabled.
 
   // Example module demo surfaces
   'crud-form:example.todo': 'example.injection.crud-validation',

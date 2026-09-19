@@ -1,4 +1,5 @@
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
+import { StepInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import { configureAgencyTovProcess, agencyTovWorkflowDefinition, AGENCY_TOV_GRANTED_FEATURES } from '../lib/configureTovProcess'
 import { assertTovProcessConfigured, createTovWorkflowActivity, parseTovMaterial, AGENCY_TOV_RESULT_CONTEXT_KEY } from '../lib/tovProcess'
 import { AGENCY_TOV_WORKER_ID, AGENCY_TOV_WORKFLOW_ID } from '../lib/tovProcess'
@@ -24,12 +25,14 @@ function fixture() {
   const result = { researchRunId: ids.caseId, documentVersionIds: [ids.attachmentId], agentRunIds: [ids.stepId] }
   const run = jest.fn(async () => result)
   const readScoped = jest.fn(async () => ({ buffer: Buffer.from(JSON.stringify([post])) }))
-  const findOne = jest.fn(async () => ({ id: ids.caseId, materialAttachmentId: ids.attachmentId }))
+  const findOne = jest.fn(async (entity: unknown) => entity === StepInstance
+    ? { id: ids.stepId, stepId: 'tov_research' } : { id: ids.caseId, materialAttachmentId: ids.attachmentId })
   const services: Record<string, unknown> = { em: { findOne }, attachmentService: { readScoped }, agencyTovResearchService: { run } }
   const container = { resolve: jest.fn((key: string) => services[key]), hasRegistration: jest.fn((key: string) => key in services) } as unknown as AppContainer
   const context = {
     userId: ids.userId, stepInstanceId: ids.stepId,
-    workflowInstance: { id: ids.workflowId, tenantId: ids.tenantId, organizationId: ids.organizationId, status: 'WAITING_FOR_ACTIVITIES', context: {} },
+    workflowInstance: { id: ids.workflowId, tenantId: ids.tenantId, organizationId: ids.organizationId,
+      currentStepId: 'tov_research', status: 'WAITING_FOR_ACTIVITIES', context: {} },
   }
   return { result, run, readScoped, findOne, services, container, context }
 }

@@ -1,7 +1,16 @@
 {
   "schemaVersion": 1,
-  "notes": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory.",
+  "notes": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered teammate agents. The native agency_operations.client_triage router is additionally mapped so its journal observations are recognized; it is not a teammate producer. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. Imported teammate live-labelled runs are historical producer evidence, not locally rerun or current connected-app proof; simulated acceptance checkpoints and retired-writer observations do not establish current client approval or producer ownership.",
   "agents": [
+    {
+      "id": "agency_operations.client_triage",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/definition.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/activities.ts",
+      "notes": "Native G submission interpretation/router, registered under CLIENT_TRIAGE_AGENT_ID when triage is enabled. Its completed run does not prove any downstream producer or handoff."
+    },
     {
       "id": "agency_research.page_extractor",
       "processId": "agency_operations.analysis.v1",
@@ -403,15 +412,15 @@
     },
     {
       "id": "agency_tov.source_scout",
-      "processId": "agency_tov.cli.discover",
+      "processId": "agency_tov_source_discovery",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/corpus/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
       "integrationIds": [
         "scout-to-tov-targets"
       ],
-      "notes": "Conditional CLI --discover only; not invoked by native workflow or canonical agency flow."
+      "notes": "Authorized case-scoped app API invokes the teammate scout through native agentRuntime at step agency_tov_source_discovery and reads its saved target result. CLI --discover also remains. This source connection is not executed proof or a completed normalized-corpus handoff."
     }
   ],
   "integrations": [
@@ -523,12 +532,12 @@
     },
     {
       "id": "scout-to-tov-targets",
-      "processId": "agency_tov.cli.discover",
-      "source": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
-      "notes": "CLI target selection exists. No canonical app trigger or handoff proven."
+      "processId": "agency_tov_source_discovery",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/[id]/route.ts",
+      "notes": "App start/read routes expose persisted native scout targets. This edge ends at saved target selection, not corpus collection or specialist production; no execution observation is implied."
     }
   ]
 }

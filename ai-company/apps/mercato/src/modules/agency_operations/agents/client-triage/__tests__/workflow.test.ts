@@ -95,7 +95,7 @@ test('passes the stored original through native input mapping and projects the s
 })
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
-  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed' && transition.transitionId !== 'client_tov_correction'))
     .toEqual(['answered', 'client_reply', 'brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
       toStepId: target,
       condition: ['brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
@@ -111,4 +111,24 @@ test('routes supported outcomes and records acceptance before completing its app
   expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.transitionId === 'approve_strategy_pair')).toMatchObject({
     activities: [{ activityName: CLIENT_TRIAGE_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', config: { functionName: ACCEPT_STRATEGY_PAIR_FUNCTION, args: {} } }],
   })
+})
+
+test('joins client and QA corrections into one bounded specialist call, then fresh QA and pair review', () => {
+  const transitions = nativeClientSubmissionDefinition.transitions
+  expect(transitions.find(entry => entry.transitionId === 'client_tov_correction')).toMatchObject({
+    fromStepId: 'routed', toStepId: 'tov_correction_requested',
+    condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, value: 'tov_revision' },
+  })
+  expect(transitions.find(entry => entry.transitionId === 'qa_tov_correction')).toMatchObject({
+    fromStepId: 'strategy_execution', toStepId: 'tov_correction_requested', priority: 50,
+    condition: { field: `${STRATEGY_EXECUTION_RESULT_KEY}.result.qaVerdict`, value: 'needs_agent_fix' },
+  })
+  const specialist = transitions.flatMap(entry => entry.activities ?? []).filter(activity => activity.config.functionName === 'agency_operations.reviseToneOfVoice')
+  expect(specialist).toHaveLength(1)
+  expect(specialist[0]).toMatchObject({ async: true, activityName: 'revise_tov_result', retryPolicy: { maxAttempts: 1 }, config: { args: {} } })
+  expect(transitions.find(entry => entry.transitionId === 'reassess_revised_tov_pair')).toMatchObject({
+    fromStepId: 'tov_revision', toStepId: 'tov_pair_reassessment', condition: { value: 'completed' },
+  })
+  expect(transitions.find(entry => entry.transitionId === 'hold_specialist_tov_revision')?.toStepId).toBe('tov_revision_waiting')
+  expect(transitions.filter(entry => entry.fromStepId === 'tov_revision_waiting')).toEqual([])
 })

@@ -10,6 +10,7 @@ import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import type { ModuleOverrides } from '@open-mercato/shared/modules/overrides'
 import { officialModuleEntries } from './official-modules.generated'
 import { agencyPortalTaskRoutes } from './modules/agency/route-overrides'
+import { agencySampleMenuOverrides, agencySamplePageOverrides } from './modules/agency_operations/navigation-overrides'
 
 export type ModuleEntry = {
   id: string
@@ -161,12 +162,13 @@ export const enabledModules: ModuleEntry[] = [
       acl: {
         features: { 'example.manage': null },
       },
-      // Keep the real-bootstrap nav override probe isolated from normal app behavior. The integration
-      // runner sets OM_INTEGRATION_TEST, while development and production keep Example at the tail.
+      widgets: { injection: agencySampleMenuOverrides },
+      // Preserve the upstream ordering probe; agency page overrides keep samples out of the sidebar.
       nav: parseBooleanWithDefault(process.env.OM_INTEGRATION_TEST, false)
         ? { groupOrder: ['example.nav.group'] }
         : undefined,
       routes: {
+        pages: agencySamplePageOverrides,
         api: {
           'GET /api/example/override-probe': {
             handler: async () => Response.json({

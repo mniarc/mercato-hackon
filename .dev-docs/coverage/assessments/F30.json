@@ -70,7 +70,7 @@
             }
           ],
           "missing": [
-            "Read limits from assigned STD-LIMITY version rather than module constants."
+            "Deferred beyond demo by user decision: assigned STD-LIMITY version lookup. Existing global limits are accepted for the demo; production pinning remains unimplemented."
           ],
           "verification": {
             "focused": "unknown",

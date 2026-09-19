@@ -68,13 +68,14 @@ export function resumePoint(taskRuns: Array<{ stepId: string; status: string }>)
   const ordered = [...taskRuns]
   const last = ordered[ordered.length - 1]
   const paused = [...ordered].reverse().find((run) => run.status === 'paused_budget')
-  // A repair loop in flight (a 3.7 verdict exists) resumes at the QA group, whatever step the repair was on.
-  const inRepair = last.stepId.startsWith('3.')
-    && [...ordered].reverse().find((run) => run.stepId === '3.7')?.status === 'to_fix'
+  // An interrupted repair resumes at QA, including crashes recorded as E.1.
+  const repairing = [...ordered].reverse().find((run) => run.stepId === '3.7')?.status === 'to_fix'
+  const inRepair = last.stepId.startsWith('3.') && repairing
   if (last.status === 'exception' && paused) return GROUP_OF[paused.stepId] ?? null
   if (last.status === 'paused_budget') return GROUP_OF[last.stepId] ?? null
   if (last.status === 'exception') {
     const before = ordered.filter((run) => run.stepId !== 'E.1').pop()
+    if (before?.stepId.startsWith('3.') && repairing) return '3.8'
     return before ? (GROUP_OF[before.stepId] ?? null) : null
   }
   // This identifies a candidate group, not liveness or permission to retry.

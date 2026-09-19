@@ -156,8 +156,12 @@ internal field shapes as the journey's contract. Report coarse progress, not pol
 
 `test:agency:demo` saves numbered screenshots at meaningful user-visible
 checkpoints and attaches them to the Playwright HTML report. Report the run result,
-checkpoint names, and artifact paths. Files live beneath
-`ai-company/.ai/qa/test-results/artifacts/` and are linked from
+checkpoint names, and artifact paths. Genuine PNGs live in one gitignored
+`App/.visuals/capture-*/` directory per demo run, grouped into `customer/` and
+`employee/`; `capture.json` records checkpoints and individual test results.
+An interrupted run remains incomplete rather than claiming a finished journey.
+The same images are attached beneath `ai-company/.ai/qa/test-results/artifacts/`
+and are linked from
 `ai-company/.ai/qa/test-results/html/`; open that report with
 `yarn test:integration:report`. Agents must not open, OCR, describe, or
 otherwise visually inspect those images unless the user explicitly requests it;
@@ -167,9 +171,11 @@ automatic image analysis.
 
 Treat `test-results` as latest-run storage, not an archive. Playwright clears the
 configured artifacts directory before each normal run and replaces the HTML
-report when reporting finishes, so repeated demo runs do not accumulate images.
-Do not add timestamped screenshot directories or automatic archives. A human who
-needs lasting evidence must copy the selected files elsewhere before the next run.
+report when reporting finishes. The explicitly requested `.visuals` collection
+is bounded separately: demo and page-capture tools share retention of the current
+capture plus the four newest previous captures after saving at least one image.
+They leave unrelated directories and symlinks untouched. This is human-review
+storage, not an additional test or automatic visual inspection step.
 
 ## Database changes
 
@@ -183,6 +189,11 @@ needs lasting evidence must copy the selected files elsewhere before the next ru
   Schema changes and ordinary seed additions do not automatically require it.
 
 ## Production proof and teardown gotchas
+
+Current working preference: use the persistent indev app and focused tests. Do
+not start production builds or generate release artifacts during this work;
+they compete with the user's machine use. Resume release work only when requested,
+or explain a concrete build-only blocker before scheduling an unavoidable build.
 
 A clean production build and isolated database are an explicit release/CI or
 clean-install proof, or a diagnostic for a demonstrated build/setup/isolation

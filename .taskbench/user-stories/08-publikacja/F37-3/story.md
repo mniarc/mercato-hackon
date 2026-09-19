@@ -1,0 +1,103 @@
+---
+id: F37-3
+kind: user-story
+category: "8. Publikacja"
+feature: F37
+criteria_count: 4
+status: partial
+primary_blocker: decision
+---
+
+
+# F37-3 · Rozstrzygnięcie próby i dowód publikacji
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F37
+
+### Grupa
+
+8. Publikacja
+
+### Status ustalenia
+
+Propozycja procesu 8–9
+
+### Nazwa funkcjonalności
+
+Rozstrzygnięcie próby i dowód publikacji
+
+### Definicja
+
+Proponowany mechanizm odróżnia potwierdzoną publikację, pewne odrzucenie i wynik nieznany. Ponowienie następuje wyłącznie po bezpiecznym rozstrzygnięciu oraz ponownej kontroli, a dowód dostawy powstaje z rzeczywistego potwierdzenia platformy i linku do wiadomości.
+
+### Krok procesu
+
+8.7
+
+### ID historii
+
+F37-3
+
+### User story
+
+Jako klient chcę otrzymać rzeczywisty dowód publikacji i link do wiadomości, żeby zobaczyć wykonany rezultat usługi.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Dowód zachowuje rzeczywiste dane platformy i pełną ścieżkę zgody. Dokumenty: WZR-POTWIERDZENIE-PUBLIKACJI; Demo: D-05. Źródło: arkusz Proces, kroki 8.7.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F37-3
+
+### Kroki procesu
+
+8.7 — Zapis dowodu publikacji i przekazanie do zakończenia dostawy
+
+### Dział odpowiedzialny
+
+Operacje
+
+### Wykonawcy po stronie firmy
+
+System rejestrujący rezultat + orkiestrator (8.7)
+
+### Powiązane wcześniejsze historie / kroki
+
+F37-1 — Rozstrzygnięcie próby i dowód publikacji
+
+### Dokumenty i zdarzenia
+
+Post tekstowy przygotowany dla klienta — KLI-POST
+Konfiguracja konta lub kanału publikacji — WEW-KONFIG-PUBLIKACJI
+Dowód wykonanej publikacji — WEW-POTWIERDZENIE-PUBLIKACJI
+Wzorzec potwierdzenia wykonanej publikacji — WZR-POTWIERDZENIE-PUBLIKACJI
+
+### Udział klienta
+
+Może zobaczyć opublikowany post pod rzeczywistym linkiem.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji pracownika; ewentualne nierozwiązane wyjątki obsługuje wspólny proces E.
+
+### Open Mercato
+
+OM-02
+OM-04
+OM-05
+OM-06

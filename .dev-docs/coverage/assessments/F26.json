@@ -35,7 +35,7 @@
             }
           ],
           "missing": [
-            "Repair limits still use static module STD-LIMITY constants rather than order-version lookup."
+            "Deferred beyond demo by user decision: order-version lookup for STD-LIMITY repair limits. Existing global limits remain in use and do not block the demo."
           ],
           "verification": {
             "focused": "unknown",

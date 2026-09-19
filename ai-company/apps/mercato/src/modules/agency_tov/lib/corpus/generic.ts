@@ -59,12 +59,22 @@ function asCount(value: unknown): number {
 }
 
 function asDate(value: unknown): string | null {
-  if (typeof value === 'number') return new Date(value < 1e12 ? value * 1000 : value).toISOString()
-  if (typeof value === 'string') {
-    const parsed = Date.parse(value)
-    return Number.isNaN(parsed) ? null : new Date(parsed).toISOString()
+  let timestamp: number
+  if (typeof value === 'number') {
+    timestamp = value < 1e12 ? value * 1000 : value
+  } else if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (/^\d+$/.test(trimmed) && Number(trimmed) >= 1e9) {
+      const epoch = Number(trimmed)
+      timestamp = epoch < 1e12 ? epoch * 1000 : epoch
+    } else {
+      timestamp = Date.parse(trimmed)
+    }
+  } else {
+    return null
   }
-  return null
+  const date = new Date(timestamp)
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
 }
 
 export function normalizeGenericPosts(items: unknown[], opts: GenericNormalizeOptions): NormalizeResult {

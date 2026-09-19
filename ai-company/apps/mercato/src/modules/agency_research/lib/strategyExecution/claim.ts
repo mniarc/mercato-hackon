@@ -14,6 +14,7 @@ export async function savedStrategyExecution(em: EntityManager, scope: ResearchS
     const specialist = summary?.specialistTov as { versionId?: string } | undefined
     return summary?.briefVersionId === request.briefVersionId && summary?.acceptanceSubmissionId === request.acceptanceSubmissionId
       && (!request.specialistTov || specialist?.versionId === request.specialistTov.versionId)
+      && (summary?.reassessStrategyVersionId ?? null) === (request.reassessStrategyVersionId ?? null)
   })
   if (!run) return null
   const summary = run.summary as Record<string, unknown>

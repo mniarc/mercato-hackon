@@ -3,7 +3,7 @@ import test from 'node:test'
 import path from 'node:path'
 import {
   agencyEnvironment, agencyJourneyPreset, assertLiveJourneyEnvironment, assertUnpaidDemoEnvironment, parseAgencyInvocation,
-  agencyManualEnvironment, agencyManualProfile,
+  agencyManualEnvironment, agencyManualProfile, resolveManualScope, manualEntryUrls,
 } from '../agency-dev.mjs'
 
 test('manual profiles isolate persistent state and keep fixture intelligence local', () => {
@@ -13,6 +13,12 @@ test('manual profiles isolate persistent state and keep fixture intelligence loc
   assert.equal(fixture.BASE_URL, 'http://localhost:5004')
   assert.equal(live.BASE_URL, 'http://localhost:5006')
   assert.equal(fixture.OPENROUTER_BASE_URL, 'http://127.0.0.1:5005/v1')
+  assert.equal(fixture.AGENCY_TOV_EXECUTION_ENABLED, 'true')
+  for (const key of ['OM_AI_AGENCY_OPERATIONS_BASE_URL', 'OM_AI_AGENCY_RESEARCH_BASE_URL',
+    'OM_AI_AGENCY_TOV_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL']) {
+    assert.equal(fixture[key], 'http://127.0.0.1:5005/v1', key)
+  }
+  assert.equal(live.AGENCY_TOV_EXECUTION_ENABLED, 'false')
   assert.equal(fixture.OPENROUTER_API_KEY, 'agency-triage-fixture-only')
   assert.equal(fixture.AUTO_SPAWN_WORKERS, 'false')
   assert.equal(fixture.OM_EVENTS_EXTERNAL_WORKER, 'true')
@@ -22,8 +28,35 @@ test('manual profiles isolate persistent state and keep fixture intelligence loc
   assert.notEqual(fixture.OM_NEXT_DIST_DIR, live.OM_NEXT_DIST_DIR)
   assert.equal(fixture.OM_INTEGRATION_EXACT_SPEC, undefined)
   assert.equal(live.AGENCY_TEST_NATIVE_TRIAGE, undefined)
-  assert.throws(() => agencyManualEnvironment({}, {}, 'fixture'), /requires AGENCY_MANUAL_TENANT_ID/)
+  assert.doesNotThrow(() => agencyManualEnvironment({}, {}, 'fixture'))
   assert.throws(() => agencyManualProfile('unknown'), /must be fixture or live/)
+})
+
+test('manual startup resolves one native scope even with several staff identities', () => {
+  const row = { tenant_id: 'tenant-a', organization_id: 'org-a', organization_slug: 'acme-corp' }
+  const selected = resolveManualScope([{ ...row, staff_user_id: 'admin' }, { ...row, staff_user_id: 'superadmin' }])
+  assert.deepEqual(selected, { tenantId: 'tenant-a', organizationId: 'org-a', organizationSlug: 'acme-corp' })
+  assert.deepEqual(manualEntryUrls('http://localhost:5004', selected.organizationSlug), {
+    customer: 'http://localhost:5004/acme-corp/portal/login', staff: 'http://localhost:5004/login',
+    cases: 'http://localhost:5004/backend/agency-operations/cases', inbox: 'http://localhost:5004/backend/work-inbox',
+  })
+  assert.equal(manualEntryUrls('http://localhost:5004', null).customer, null)
+})
+
+test('manual startup requires explicit choice across scopes and rejects stale or partial selections', () => {
+  const rows = [
+    { tenant_id: 'tenant-a', organization_id: 'org-a', organization_slug: 'first' },
+    { tenant_id: 'tenant-b', organization_id: 'org-b', organization_slug: 'second' },
+  ]
+  assert.throws(() => resolveManualScope(rows), /2 available scopes; no scope was selected/)
+  assert.throws(() => resolveManualScope([]), /0 available scopes/)
+  assert.throws(() => resolveManualScope(rows, { AGENCY_MANUAL_TENANT_ID: 'tenant-a' }), /requires both IDs/)
+  assert.throws(() => resolveManualScope(rows, {
+    AGENCY_MANUAL_TENANT_ID: 'tenant-a', AGENCY_MANUAL_ORGANIZATION_ID: 'org-b',
+  }), /unavailable in this profile's database/)
+  assert.deepEqual(resolveManualScope(rows, {
+    AGENCY_MANUAL_TENANT_ID: 'tenant-b', AGENCY_MANUAL_ORGANIZATION_ID: 'org-b',
+  }), { tenantId: 'tenant-b', organizationId: 'org-b', organizationSlug: 'second' })
 })
 
 test('manual live start and CLI require human opt-in and central private configuration', () => {
@@ -43,6 +76,21 @@ test('manual live start and CLI require human opt-in and central private configu
   assert.throws(() => parseAgencyInvocation(['test', '--profile', 'fixture']), /cannot select an automated/)
   assert.throws(() => parseAgencyInvocation(['start', '--profile', 'fixture', '--journey', 'production']), /cannot select an automated/)
   assert.throws(() => parseAgencyInvocation(['cli', '--profile', 'fixture', '--allow-live', 'help']), /requires the live/)
+})
+
+test('manual live ToV forwards explicit configuration only after paid execution opt-in', () => {
+  const privateSettings = { OM_AI_PROVIDER: 'openrouter', OM_AI_MODEL: 'openrouter/example/model', OPENROUTER_API_KEY: 'private-test-only',
+    OM_AGENT_RUN_TIMEOUT_MS: '60000', OM_AGENT_PROVIDER_RETRY_MAX: '1', OM_AGENT_PROVIDER_RETRY_BASE_MS: '1000' }
+  const enabled = { ...privateSettings, AGENCY_TOV_EXECUTION_ENABLED: 'true' }
+  for (const action of ['start', 'cli']) {
+    const options = { action, allowLive: true }
+    assert.equal(agencyManualEnvironment({}, privateSettings, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+    assert.equal(agencyManualEnvironment({}, enabled, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'true')
+    assert.equal(agencyManualEnvironment({}, { ...enabled, AGENCY_TOV_EXECUTION_ENABLED: 'false' }, 'live', options).AGENCY_TOV_EXECUTION_ENABLED, 'false')
+    assert.throws(() => agencyManualEnvironment({}, enabled, 'live', { action }), /--allow-live/)
+    assert.throws(() => agencyManualEnvironment({}, { AGENCY_TOV_EXECUTION_ENABLED: 'true' }, 'live', options), /private central OpenRouter/)
+  }
+  assert.equal(agencyManualEnvironment({}, enabled, 'live', { action: 'setup' }).AGENCY_TOV_EXECUTION_ENABLED, 'false')
 })
 
 test('explicit journey arguments route start and test without changing the default', () => {

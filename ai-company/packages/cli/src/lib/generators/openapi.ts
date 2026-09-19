@@ -513,6 +513,7 @@ process.stdout.write(JSON.stringify(deepClone(doc), (_, v) =>
         const pkgName = args.path.startsWith('@')
           ? args.path.split('/').slice(0, 2).join('/')
           : topLevel
+        if (pkgName === 'language-subtag-registry') return undefined
         const pkgDir = path.join(rootDir, 'node_modules', pkgName)
         if (fs.existsSync(pkgDir)) return { external: true }
 

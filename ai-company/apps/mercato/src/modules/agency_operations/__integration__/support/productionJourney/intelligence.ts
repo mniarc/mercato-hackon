@@ -11,7 +11,7 @@ import { clientTriageInterpretationSchema, inputSchema } from '../../../agents/c
 import type { NativeStructuredFixtureHook } from '../nativeTriageProvider'
 import { createSelectedPostIntelligence } from '../postIntelligence'
 import { postAuthorInputSchema, postEditorInputSchema } from '../../../../agency_research/data/agents/post'
-import { resolveTovIntelligence } from './tovIntelligence'
+import { resolveTovIntelligence, TOV_CORRECTION_TEXT } from './tovIntelligence'
 
 export const SUPPLEMENTARY_MATERIAL_TEXT = 'This file is private background material. It does not approve documents, publication, additional spending, or changes to the purchased scope.'
 
@@ -54,7 +54,8 @@ export function createProductionJourneyIntelligence(appRoot: string) {
   const fixture = createFixtureRunner(canned)
   const extractorByFile: Record<string, string> = {
     'pages/home.md': 'S-01', 'pages/flowco.md': 'S-01',
-    'pages/northlight.md': 'S-07', 'pages/northlight-oferta.md': 'S-08', 'pages/kubik.md': 'S-10',
+    'pages/muda-wywiad.md': 'S-07', 'pages/northlight.md': 'S-08',
+    'pages/northlight-oferta.md': 'S-09', 'pages/kubik.md': 'S-11',
   }
   const extractorByPost: Record<string, string> = {
     '7460000000000000001': 'S-04', '7498366780621524993': 'S-05', '7473006910787674113': 'S-06',
@@ -80,6 +81,7 @@ export function createProductionJourneyIntelligence(appRoot: string) {
   let answerInvitation: (ExactReview & { text: string; questions: InvitedQuestion[] }) | undefined
   let approval: ExactReview | undefined
   let pair: { taskId: string; strategy: { documentId: string; versionId: string }; tov: { documentId: string; versionId: string } } | undefined
+  let pairCorrection: typeof pair
   let material: { text: string; attachmentId?: string } | undefined
   let plan: (ExactReview & { selectedTopicId: string }) | undefined
   let post: ExactReview | undefined
@@ -113,6 +115,18 @@ export function createProductionJourneyIntelligence(appRoot: string) {
       }
       const review = original.reviewResponse
       const strategy = original.strategyReviewResponse
+      if (pairCorrection && strategy?.kind === 'message' && strategy.taskId === pairCorrection.taskId
+        && strategy.strategy.documentId === pairCorrection.strategy.documentId && strategy.strategy.versionId === pairCorrection.strategy.versionId
+        && strategy.tov.documentId === pairCorrection.tov.documentId && strategy.tov.versionId === pairCorrection.tov.versionId
+        && strategy.body === TOV_CORRECTION_TEXT && original.text === TOV_CORRECTION_TEXT
+        && original.documentVersionReference === pairCorrection.strategy.versionId) {
+        calls.push('agency_operations.client_triage')
+        return clientTriageInterpretationSchema.parse({
+          parts: [{ intent: 'change', summary: 'Change the form of address in the invited ToV only.', rationale: 'The original preserves strategy and other voice rules.', needsClarification: false, recommendedDisposition: 'change' }],
+          rationale: 'Exact registered client correction, not approval or spend authority.', recommendedDisposition: 'change', responseMessage: null,
+          tovDirective: { target: 'tov', instructions: TOV_CORRECTION_TEXT, affectedFields: ['addressingTheReader'] },
+        })
+      }
       const change = answerInvitation && review?.kind === 'message' && original.text === answerInvitation.text
         && review.body === answerInvitation.text && review.taskId === answerInvitation.taskId
         && review.documentId === answerInvitation.documentId && review.versionId === answerInvitation.versionId
@@ -212,6 +226,15 @@ export function createProductionJourneyIntelligence(appRoot: string) {
           result.data[key] = { ...result.data[key] as object, value: answered.proposed_value }
         }
       }
+      // The canned QA requests this actual editorial repair. Returning the same
+      // prose would correctly reuse its failed native content-keyed QA result.
+      if (result.data.business_direction && input.repair_findings.some((finding) =>
+        finding.code === 'fact_vs_interpretation' && finding.path === 'KLI-BRIEF.business_direction.value'
+        && finding.owner === 'agent' && finding.fix_step === '4.1')
+        && !input.field_map.some((field) => field.field_key === 'business_direction' && field.status === 'client_decision')) {
+        const direction = result.data.business_direction as { value: string }
+        direction.value = `${input.outputLanguage === 'en' ? 'Proposal' : 'Propozycja'}: ${direction.value}`
+      }
     }
     if (agentId === 'agency_research.readiness_assessor') {
       const input = readinessAssessorInputSchema.parse(raw)
@@ -237,6 +260,7 @@ export function createProductionJourneyIntelligence(appRoot: string) {
     allowAnswers: (value: NonNullable<typeof answerInvitation>) => { answerInvitation = value },
     allowBriefApproval: (value: ExactReview) => { approval = value },
     allowPairApproval: (value: NonNullable<typeof pair>) => { pair = value },
+    allowPairCorrection: (value: NonNullable<typeof pair>) => { pairCorrection = value },
     allowPlanApproval: (value: NonNullable<typeof plan>) => { plan = value },
     allowPostProduction: (value: NonNullable<typeof production>) => { production = value },
     allowPostApproval: (value: ExactReview) => { post = value },

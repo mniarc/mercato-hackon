@@ -3,10 +3,12 @@ import { z } from 'zod'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
 import type { WorkflowDefinitionAuthoring } from '@open-mercato/core/modules/workflows/lib/owned-definition'
+import { StepInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
+import { AGENCY_TOV_RESEARCH_SERVICE, type AgencyTovResearchService } from '@/modules/agency_tov/lib/researchService'
 import { AgencyCase } from '../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE, tovProcessRequestSchema } from './contracts'
 import {
@@ -62,9 +64,10 @@ export async function assertTovProcessConfigured(container: AppContainer, scope:
 
 const activityContextSchema = z.object({
   userId: z.uuid(),
-  stepInstanceId: z.uuid(),
+  stepInstanceId: z.uuid().optional(),
   workflowInstance: z.object({
     id: z.uuid(), tenantId: z.uuid(), organizationId: z.uuid(), status: z.string(),
+    currentStepId: z.string().nullable().optional(),
     context: z.record(z.string(), z.unknown()),
   }).passthrough(),
 }).passthrough()
@@ -90,9 +93,24 @@ export function createTovWorkflowActivity(container: AppContainer) {
       deletedAt: null,
     }, undefined, scope)
     if (!agencyCase) throw new Error('[internal] Agency case is outside the workflow scope')
-    if (staffIntake.success && (staffIntake.data.caseId !== agencyCase.id || staffIntake.data.initiatedByUserId !== context.userId)) {
-      throw new Error('[internal] Staff tone-of-voice intake is outside the workflow principal or case scope')
+    if (staffIntake.success) {
+      const staffWorkflow = z.object({ workflowId: z.literal(AGENCY_TOV_WORKFLOW_ID), metadata: z.object({
+        initiatedBy: z.uuid(), entityType: z.literal(STAFF_TOV_INTAKE_ATTACHMENT_ENTITY_ID), entityId: z.uuid(),
+      }) }).safeParse(context.workflowInstance)
+      if (staffIntake.data.caseId !== agencyCase.id || !staffWorkflow.success
+        || staffWorkflow.data.metadata.initiatedBy !== staffIntake.data.initiatedByUserId
+        || staffWorkflow.data.metadata.entityId !== staffIntake.data.intakeId) {
+        throw new Error('[internal] Staff tone-of-voice intake is outside its originating workflow or case scope')
+      }
     }
+    if (context.workflowInstance.currentStepId !== 'tov_research') {
+      throw new Error('[internal] Tone-of-voice activity requires its current native research step')
+    }
+    const step = await findOneWithDecryption(container.resolve<EntityManager>('em'), StepInstance, {
+      ...scope, workflowInstanceId: context.workflowInstance.id, stepId: context.workflowInstance.currentStepId,
+      branchInstanceId: null, ...(context.stepInstanceId ? { id: context.stepInstanceId } : {}),
+    }, { orderBy: { enteredAt: 'DESC' } }, scope)
+    if (!step) throw new Error('[internal] Tone-of-voice activity has no matching native step instance')
     const material = await container.resolve<AttachmentService>('attachmentService').readScoped({
       attachmentId: staffIntake.success ? staffIntake.data.corpusAttachmentId : agencyCase.materialAttachmentId,
       auth: { sub: context.userId, tenantId: scope.tenantId, orgId: scope.organizationId },
@@ -107,16 +125,9 @@ export function createTovWorkflowActivity(container: AppContainer) {
       throw new Error('[internal] Staff tone-of-voice corpus no longer matches the pinned intake')
     }
     const posts = await parseTovMaterial(material.buffer)
-    const service = container.resolve<{
-      run: (input: {
-        context: { tenantId: string; organizationId: string; userId: string; workflowInstanceId: string; stepId: string; invocationId: string }
-        brand: string
-        outputLanguage: 'en' | 'pl'
-        posts: typeof posts
-      }) => Promise<{ researchRunId: string; documentVersionIds: string[]; agentRunIds: string[] }>
-    }>('agencyTovResearchService')
+    const service = container.resolve<AgencyTovResearchService>(AGENCY_TOV_RESEARCH_SERVICE)
     const result = await service.run({
-      context: { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'tov_research', invocationId: context.stepInstanceId },
+      context: { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: step.stepId, invocationId: step.id },
       brand: input.process.brand,
       outputLanguage: input.process.outputLanguage,
       posts,

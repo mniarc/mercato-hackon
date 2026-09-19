@@ -6,6 +6,8 @@ export const strategyExecutionRequestSchema = strategyReadinessRequestSchema.ext
   maxCostPln: z.number().positive(),
   /** Trusted case-linked specialist output, never a client-selected foreign version. */
   specialistTov: specialistTovReferenceSchema.optional(),
+  /** Trusted correction caller: reassess this unchanged current strategy, never author it again. */
+  reassessStrategyVersionId: z.uuid().optional(),
 })
 export type StrategyExecutionRequest = z.infer<typeof strategyExecutionRequestSchema>
 

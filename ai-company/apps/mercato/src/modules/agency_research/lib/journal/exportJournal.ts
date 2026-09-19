@@ -11,7 +11,9 @@ import type { ResearchScope } from '../store'
  * Nothing here is inferred from prompts or outputs; refs are native ids only.
  * A consumer whose input the CLI approved on the client's behalf
  * (`simulation_flag`) gets a `simulated-client-acceptance` checkpoint and its
- * handoff stays `started`: the agents ran live, the native decision did not.
+ * handoff stays `started`: the agents ran, the native decision did not.
+ * Orchestrator execution can use either fixture or live intelligence; its mode
+ * must be supplied explicitly because native run rows do not distinguish them.
  */
 export type JournalEvent = {
   schemaVersion: 1
@@ -73,6 +75,7 @@ export async function exportOrderJournal(
   scope: ResearchScope,
   orderRef: string,
   journey: string,
+  intelligence?: JournalEvent['mode'],
 ): Promise<{ events: JournalEvent[]; agentRuns: number; unknownAgentRuns: number }> {
   const connection = em.getConnection()
   const taskRuns = (await connection.execute(
@@ -81,13 +84,20 @@ export async function exportOrderJournal(
        order by created_at asc`,
     [scope.tenantId, scope.organizationId, orderRef],
   )) as TaskRunRow[]
+  if (intelligence !== undefined && intelligence !== 'fixture' && intelligence !== 'live') {
+    throw new Error('[internal] --intelligence must be fixture or live')
+  }
+  if (taskRuns.some((run) => run.runner === 'orchestrator') && intelligence === undefined) {
+    throw new Error('[internal] --intelligence fixture|live is required for orchestrator runs; runner does not identify the intelligence provider')
+  }
+  const modeOf = (run: TaskRunRow): JournalEvent['mode'] => run.runner === 'fixture' ? 'fixture' : intelligence!
   const allAgentRunIds = [...new Set(taskRuns.flatMap((run) => ids(run.agent_run_ids)))]
   const agentRuns = new Map<string, AgentRunRow>()
   for (let i = 0; i < allAgentRunIds.length; i += 500) {
     const chunk = allAgentRunIds.slice(i, i + 500)
     const rows = (await connection.execute(
-      `select id, agent_id, status, workflow_instance_id, created_at, completed_at from agent_runs where tenant_id = ? and id in (${chunk.map(() => '?').join(',')})`,
-      [scope.tenantId, ...chunk],
+      `select id, agent_id, status, workflow_instance_id, created_at, completed_at from agent_runs where tenant_id = ? and organization_id = ? and id in (${chunk.map(() => '?').join(',')})`,
+      [scope.tenantId, scope.organizationId, ...chunk],
     )) as AgentRunRow[]
     for (const row of rows) agentRuns.set(row.id, row)
   }
@@ -111,7 +121,7 @@ export async function exportOrderJournal(
   const base = (mode: JournalEvent['mode']): Pick<JournalEvent, 'schemaVersion' | 'runId' | 'journey' | 'mode'> => ({ schemaVersion: 1, runId: orderRef, journey, mode })
 
   for (const run of taskRuns) {
-    const mode: JournalEvent['mode'] = run.runner === 'orchestrator' ? 'live' : 'fixture'
+    const mode = modeOf(run)
     const checkpointId = `research.step.${run.step_id}`
     const refs: JournalEvent['refs'] = { taskRunId: run.id, ...(run.output_version_id ? { outputVersionId: run.output_version_id } : {}) }
     events.push({ ...base(mode), time: iso(run.created_at), checkpointId, phase: 'started', refs })
@@ -122,7 +132,7 @@ export async function exportOrderJournal(
       if (!agentRun) { unknownAgentRuns += 1; continue }
       const phase: JournalEvent['phase'] = agentRun.status === 'ok' ? 'completed' : agentRun.status === 'error' ? 'failed' : 'started'
       events.push({
-        ...base('live'), time: iso(agentRun.completed_at ?? agentRun.created_at), agentId: agentRun.agent_id, phase,
+        ...base(mode), time: iso(agentRun.completed_at ?? agentRun.created_at), agentId: agentRun.agent_id, phase,
         ...(phase === 'failed' ? { reason: 'execution' as const } : {}),
         refs: { agentRunId, taskRunId: run.id, ...(agentRun.workflow_instance_id ? { workflowInstanceId: agentRun.workflow_instance_id } : {}) },
       })
@@ -135,7 +145,7 @@ export async function exportOrderJournal(
     [...taskRuns].reverse().find((run) => run.step_id === step && run.runner === runner && (run.status === 'done' || run.status === 'to_fix') && run.created_at < before && okRunsOf(run).length > 0)
   for (const run of taskRuns) {
     if (run.status !== 'done' && run.status !== 'to_fix') continue
-    const mode: JournalEvent['mode'] = run.runner === 'orchestrator' ? 'live' : 'fixture'
+    const mode = modeOf(run)
     for (const handoff of HANDOFFS.filter((entry) => entry.consumer === run.step_id)) {
       const producer = lastDoneBefore(handoff.producer, run.created_at, run.runner)
       const consumerRunId = okRunsOf(run)[0]
@@ -157,8 +167,8 @@ export async function exportOrderJournal(
       const next = taskRuns.find((candidate) => candidate.step_id === '4.2' && candidate.created_at > run.created_at)
       const task = reviewTasks.find((candidate) => candidate.created_at >= run.created_at && (!next || candidate.created_at < next.created_at))
       if (producerRunId && task) {
-        events.push({ ...base('live'), time: iso(task.created_at), integrationId: 'research-brief-to-client-review', phase: 'completed', refs: { producerRunId, userTaskId: task.id, workflowInstanceId: task.workflow_instance_id, taskRunId: run.id } })
-        events.push({ ...base('live'), time: iso(task.created_at), checkpointId: 'client-review.brief', phase: 'waiting', reason: 'human', refs: { userTaskId: task.id, workflowInstanceId: task.workflow_instance_id } })
+        events.push({ ...base(mode), time: iso(task.created_at), integrationId: 'research-brief-to-client-review', phase: 'completed', refs: { producerRunId, userTaskId: task.id, workflowInstanceId: task.workflow_instance_id, taskRunId: run.id } })
+        events.push({ ...base(mode), time: iso(task.created_at), checkpointId: 'client-review.brief', phase: 'waiting', reason: 'human', refs: { userTaskId: task.id, workflowInstanceId: task.workflow_instance_id } })
       }
     }
   }

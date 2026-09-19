@@ -1,0 +1,104 @@
+---
+id: F40-1
+kind: user-story
+category: "G — wspólna obsługa klienta"
+feature: F40
+criteria_count: 5
+status: partial
+primary_blocker: code
+---
+
+
+# F40-1 · Jedno przyjęcie zgłoszenia
+
+## User story
+
+Źródło merytoryczne: AI_Company_Open_Mercato_Proces_v2.xlsx. Sposób opisu: riscore V2. Status oznacza ustalenie zakresu, a nie wdrożenie.
+
+### ID funkcji
+
+F40
+
+### Grupa
+
+G — wspólna obsługa klienta
+
+### Status ustalenia
+
+Ustalone w procesie v2
+
+### Nazwa funkcjonalności
+
+Jedno przyjęcie zgłoszenia
+
+### Definicja
+
+Wspólne wejście przyjmuje wiadomości, materiały i decyzje, zachowuje ich oryginał oraz pochodzenie i tworzy jedno zgłoszenie dla jednego zdarzenia.
+
+### Krok procesu
+
+G.1
+
+### ID historii
+
+F40-1
+
+### User story
+
+Jako klient chcę przesłać wiadomość lub materiał niezależnie od bieżącego etapu, żeby firma uwzględniła je we właściwym miejscu realizacji.
+
+### Kryteria akceptacji
+
+→ See individual AC files in this directory.
+
+### Podstawa ustalenia
+
+Proces, G.1 (wiersz 61): ID, oryginał, pochodzenie, przypisanie, odrzucenie duplikatu i materiały w dowolnym czasie. Dokumenty, WZR-ZGLOSZENIE / WEW-ZGLOSZENIE; Zasady produktu: Interfejs klienta.
+
+
+## Relationships and actors
+
+Role wykonawcze pochodzą z procesu v2. Poprzedniki wskazują powiązane scenariusze; alternatyw nie wykonujemy łącznie. Warunki określają kryteria historii.
+
+### ID historii
+
+F40-1
+
+### Kroki procesu
+
+G.1 — Przyjęcie i powiązanie zgłoszenia
+
+### Dział odpowiedzialny
+
+Obsługa klienta
+
+### Wykonawcy po stronie firmy
+
+System wejścia i agent obsługi (G.1)
+
+### Powiązane wcześniejsze historie / kroki
+
+Wejście zewnętrzne lub konfiguracja wskazana w kryteriach.
+
+### Dokumenty i zdarzenia
+
+Wzorzec zapisu zgłoszenia klienta — WZR-ZGLOSZENIE
+Zgłoszenie klienta powiązane z kontaktem lub zamówieniem — WEW-ZGLOSZENIE
+Dane klienta i marki podane przy zakupie — WEW-DANE-ZAMOWIENIA
+
+### Udział klienta
+
+Przesyła wiadomość, materiał lub decyzję.
+
+### Interwencja pracownika
+
+Brak rutynowej akcji.
+
+### Decyzje
+
+DEC-TRIAZ
+
+### Open Mercato
+
+OM-03
+OM-04

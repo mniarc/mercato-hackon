@@ -69,6 +69,19 @@ it('uses the exact case/private material and native identity, ignoring upload sp
   expect(loadCaseMaterialSources).toHaveBeenCalledWith(container, { tenantId, organizationId }, caseId, userId)
 })
 
+it.each(['client', 'synthetic'] as const)('passes %s onboarding context unchanged to the teammate research service', async (provenance) => {
+  const onboardingContext = {
+    provenance,
+    answers: [{ question_id: 'audience', question: 'Do kogo kierujemy ofertę?', answer: 'Do firm usługowych.', ref: provenance === 'client' ? 'submission-1' : null }],
+    competitor_urls: ['https://example.test/competitor'],
+  }
+  readScoped.mockResolvedValue({ buffer: Buffer.from(JSON.stringify({ ...material, onboardingContext })) })
+
+  await createAnalysisWorkflowActivity(container)({ caseId, policy }, context())
+
+  expect(run.mock.calls[0][0].request.onboardingContext).toEqual(onboardingContext)
+})
+
 it('accepts the native transition activity context without inventing an invocation ID', async () => {
   const nativeTransitionContext = { userId, workflowInstance: context().workflowInstance }
   await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, nativeTransitionContext)).resolves.toMatchObject({ state: 'completed' })

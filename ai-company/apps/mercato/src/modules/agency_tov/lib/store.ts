@@ -234,7 +234,7 @@ export async function startResearchRun(em: EntityManager, scope: TovScope, input
     brand: input.brand,
     outputLanguage: input.outputLanguage,
     runner: input.runner,
-    models: input.models,
+    models: input.models ?? {},
     status: 'running',
     postIds: input.corpus.rowIds,
     postCount: input.corpus.posts.length,

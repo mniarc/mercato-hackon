@@ -69,7 +69,7 @@
             }
           ],
           "missing": [
-            "Runtime limits still use module constants rather than resolving an order-pinned version of STD-LIMITY."
+            "Deferred beyond demo by user decision: order-pinned STD-LIMITY lookup. Existing global limits are accepted for demo execution; this is not a demo blocker."
           ],
           "verification": {
             "focused": "unknown",

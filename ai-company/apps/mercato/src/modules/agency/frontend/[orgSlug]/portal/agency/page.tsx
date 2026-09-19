@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { PortalCard, PortalCardHeader } from '@open-mercato/ui/portal/components/PortalCard'
+import { AgencyTheme } from './_components/AgencyTheme'
+import { OFFER_CSS } from '../../../../theme/offerStyles'
 
 type Props = { params: { orgSlug: string } }
 
@@ -31,65 +33,58 @@ export default function AgencyOfferPage({ params }: Props) {
   const { orgSlug } = params
   const orderHref = `/${orgSlug}/portal/agency/order`
 
+  const cardPoints = ['Audyt komunikacji i brief', 'Strategia i ton głosu', 'Plan 12 tematów na 30 dni', 'Pierwszy gotowy post', 'Nielimitowane poprawki']
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/questions`}>{t('agency.salesQuestions.title')}</Link></Button>
-        <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/cases`}>{t('agency.cases.title')}</Link></Button>
-      </div>
-      <PortalPageHeader
-        label={t('agency.offer.label')}
-        title={t('agency.offer.productName')}
-        description={t('agency.offer.description')}
-        action={
-          <Link href={orderHref}>
-            <Button>{t('agency.offer.order')}</Button>
-          </Link>
-        }
-      />
-
-      <PortalCard>
-        <PortalCardHeader
-          label={t('agency.purchase.demoOffer', 'Demo offer')}
-          title={t('agency.purchase.testPrice', '2,500 PLN — test amount')}
-          description={t('agency.offer.subtitle')}
+    <AgencyTheme>
+      <style>{OFFER_CSS}</style>
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-7">
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/questions`}>{t('agency.salesQuestions.title')}</Link></Button>
+          <Button type="button" asChild variant="outline"><Link href={`/${orgSlug}/portal/agency/cases`}>{t('agency.cases.title')}</Link></Button>
+        </div>
+        <PortalPageHeader
+          label={t('agency.offer.label')}
+          title={t('agency.offer.productName')}
+          description={t('agency.offer.description')}
         />
-        <p className="text-sm text-muted-foreground">{t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')}</p>
-        <p className="text-sm text-muted-foreground">
-          {t('agency.offer.audience')}
-        </p>
-      </PortalCard>
 
-      <PortalCard>
-        <PortalCardHeader title={t('agency.offer.includedTitle')} />
-        <ul className="list-disc space-y-2 pl-5 text-sm text-foreground">
-          {included.map((item) => (
-            <li key={item}>{t(item)}</li>
-          ))}
-        </ul>
-      </PortalCard>
+        <div className="ag-offer-grid">
+          <div className="flex flex-col gap-6">
+            <PortalCard>
+              <PortalCardHeader title={t('agency.offer.includedTitle')} />
+              <ul className="agency-bullets">
+                {included.map((item) => (<li key={item}>{t(item)}</li>))}
+              </ul>
+            </PortalCard>
 
-      <PortalCard>
-        <PortalCardHeader title={t('agency.offer.processTitle')} />
-        <p className="text-sm text-muted-foreground">
-          {t('agency.offer.process')}
-        </p>
-      </PortalCard>
+            <PortalCard>
+              <PortalCardHeader title={t('agency.offer.processTitle')} />
+              <p className="text-sm text-muted-foreground">{t('agency.offer.process')}</p>
+            </PortalCard>
 
-      <PortalCard>
-        <PortalCardHeader title={t('agency.offer.boundariesTitle')} />
-        <ul className="list-disc space-y-2 pl-5 text-sm text-muted-foreground">
-          {boundaries.map((item) => (
-            <li key={item}>{t(item)}</li>
-          ))}
-        </ul>
-      </PortalCard>
+            <PortalCard>
+              <PortalCardHeader title={t('agency.offer.boundariesTitle')} />
+              <ul className="agency-bullets">
+                {boundaries.map((item) => (<li key={item}>{t(item)}</li>))}
+              </ul>
+            </PortalCard>
+          </div>
 
-      <div className="flex justify-end">
-        <Link href={orderHref}>
-          <Button size="lg">{t('agency.offer.orderProduct', { productName: t('agency.offer.productName') })}</Button>
-        </Link>
+          <aside className="ag-offer-aside">
+            <div className="agency-price">
+              <span className="apx-tag">Pakiet startowy</span>
+              <div className="apx-amt">2 500 <span>PLN</span></div>
+              <p className="apx-note">{t('agency.offer.subtitle')}</p>
+              <ul className="apx-list">
+                {cardPoints.map((p) => (
+                  <li key={p}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M5 12l5 5 9-11"/></svg>{p}</li>
+                ))}
+              </ul>
+              <Link href={orderHref} className="apx-cta">{t('agency.offer.order')}</Link>
+            </div>
+          </aside>
+        </div>
       </div>
-    </div>
+    </AgencyTheme>
   )
 }

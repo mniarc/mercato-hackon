@@ -295,7 +295,7 @@ const escalations: ModuleCli = {
 }
 
 /**
- * yarn mercato agency_research journal --order-ref <ref> [--journey <id>] [--out <file.jsonl>]
+ * yarn mercato agency_research journal --order-ref <ref> --intelligence fixture|live [--journey <id>] [--out <file.jsonl>]
  * — the order's persisted task runs, agent runs and handoffs as integration-evidence
  * events (`.dev-docs/integrations`). Feed the file to that CLI with `--journal`.
  */
@@ -305,10 +305,14 @@ const journal: ModuleCli = {
     const args = parseArgs(rest ?? [])
     const orderRef = args['order-ref']
     if (!orderRef) throw new Error('[internal] --order-ref is required')
+    const intelligence = args.intelligence
+    if (intelligence !== undefined && intelligence !== 'fixture' && intelligence !== 'live') {
+      throw new Error('[internal] --intelligence must be fixture or live')
+    }
     const db = await connectDb()
     const scope = await resolveScope(db, args)
     const journey = args.journey ?? (/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(orderRef) ? 'agency-case-analysis' : 'agency-research-cli')
-    const { events, agentRuns, unknownAgentRuns } = await exportOrderJournal(db.em, scope, orderRef, journey)
+    const { events, agentRuns, unknownAgentRuns } = await exportOrderJournal(db.em, scope, orderRef, journey, intelligence)
     const out = args.out ?? path.join(process.cwd(), '.mercato', 'agency-research', 'journals', `${orderRef}.jsonl`)
     fs.mkdirSync(path.dirname(out), { recursive: true })
     fs.writeFileSync(out, events.map((event) => `${JSON.stringify(event)}\n`).join(''), 'utf8')
