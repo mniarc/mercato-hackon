@@ -19,6 +19,8 @@ export const findingKinds = [
   'unresolved_reference',
   'quote_not_verbatim',
   'invented_effectiveness',
+  /** A deslop catalogue pattern or watched word (style, never a fact); minor/major, the editor confirms. */
+  'slop_pattern',
   'other',
 ] as const
 

@@ -1,0 +1,76 @@
+{
+  "skill_name": "deslop",
+  "evals": [
+    {
+      "id": 1,
+      "name": "write-record-flow-top01",
+      "prompt": "--mode write --output record --voice fixtures/TOV.json. Wejście: fixtures/ZLECENIE-POSTU.json. Napisz KLI-POST.",
+      "expected_output": "Rekord z text 120–220 słów, claims_map pokrywającym każdy opis firmy, tylko fakty F03/F07/F10 i T01, qa.author_self_check z 8 copy_checks, approval_records puste. Zobacz fixtures/flow-top01-KLI-POST.json jako wzorzec.",
+      "files": [
+        "fixtures/TOV.json",
+        "fixtures/ZLECENIE-POSTU.json"
+      ],
+      "assertions": [
+        "brak faktów spoza evidence_payload (w szczególności brak F04)",
+        "przykład hipotetyczny zaczyna się od 'Wyobraźmy sobie' i nie podaje wyniku ani przyczyny",
+        "checklista nazwana propozycją, nie metodą FLOW",
+        "zero wykrzykników, emoji, procentów, gwarancji",
+        "CTA prowadzi wyłącznie do https://makeitflow.pl/index.php",
+        "qa zawiera id i wersję ToV oraz podstawę zgody na draft"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "detect-off-voice",
+      "prompt": "--mode detect --voice fixtures/TOV.json. Tekst: 'Dzięki naszemu unikalnemu procesowi discovery zwalidujesz hipotezę i oszczędzisz nawet 30% budżetu!'",
+      "expected_output": "Lista findings: klisza (unikalny), replacement (zwalidować hipotezę → sprawdzić założenie), termin przed wyjaśnieniem (discovery), forbidden_upgrade + typical_error (30% bez pomiaru), copy_check 8 (wykrzyknik). Bez przepisywania, bez oceny liczbowej, bez orzekania o autorstwie.",
+      "files": [
+        "fixtures/TOV.json"
+      ],
+      "assertions": [
+        "każdy finding cytuje linię i nazywa wzorzec nazwą z profilu, gdy istnieje",
+        "brak przepisanego tekstu",
+        "brak wyniku liczbowego",
+        "oferta edycji na końcu"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "gate-no-authorisation",
+      "prompt": "--mode write --voice fixtures/TOV.json. Napisz post o FLOW na LinkedIn. (bez zlecenia, bez zgody na draft)",
+      "expected_output": "Skill zatrzymuje się: profil ma status simulated_draft i brak approval_records, a instrukcja nie autoryzuje draftu. Zwraca komunikat z id/wersją profilu i tym, czego brakuje.",
+      "files": [
+        "fixtures/TOV.json"
+      ],
+      "assertions": [
+        "brak wygenerowanego tekstu",
+        "komunikat nazywa status profilu i brak zgody"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "voice-extract-only",
+      "prompt": "--mode write --output record --voice <tylko obiekt voice_extract z ZLECENIE-POSTU>. Wejście: ZLECENIE-POSTU.json.",
+      "expected_output": "Post w tym samym głosie; qa zaznacza 'profil jako extract; evidence language i copy_checks z domyślnych deslop'.",
+      "files": [
+        "fixtures/ZLECENIE-POSTU.json"
+      ],
+      "assertions": [
+        "raport nazywa brakujące pola profilu",
+        "copy_checks nie są zmyślone z extractu"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "edit-preserve-voice-pl",
+      "prompt": "--mode edit, bez --voice. Wklejony post autora z własnym głosem (wulgaryzm, wtrącenie, przyznanie niepewności) plus 3 wzorce slopu.",
+      "expected_output": "Trzy wzorce usunięte, głos zachowany, sekcja What changed.",
+      "files": [],
+      "assertions": [
+        "'szczerze mówiąc' zachowane gdy niesie niepewność",
+        "wulgaryzm i wtrącenie zachowane",
+        "binarny kontrast, throat-clearing i kicker usunięte"
+      ]
+    }
+  ]
+}

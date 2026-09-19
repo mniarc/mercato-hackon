@@ -1,0 +1,329 @@
+{
+  "document_id": "KLI-TOV",
+  "template_id": "WZR-TOV",
+  "schema_version": "1.1",
+  "order_id": null,
+  "version": "1.1",
+  "status": "simulated_draft",
+  "simulation_flag": true,
+  "creative_status": "Propozycja kreatywna SIM po korekcji; cztery pełne pary redakcyjne, trzy wybrane w widoku klienta. Brak rzeczywistej akceptacji.",
+  "input_versions": [
+    {
+      "document_id": "UPSTREAM-FLOW-v1",
+      "version": "1.0"
+    },
+    {
+      "document_id": "KLI-BRIEF",
+      "version": "1.1"
+    },
+    {
+      "document_id": "WEW-AUDYT",
+      "version": "1.1"
+    },
+    {
+      "document_id": "WEW-ZRODLA",
+      "version": "1.1"
+    },
+    {
+      "document_id": "standards_v1.json",
+      "version": "1.0"
+    },
+    {
+      "document_id": "KLI-STRATEGIA",
+      "version": "1.1"
+    },
+    {
+      "document_id": "SIM-CLIENT-FLOW-CREATIVE-CHECKPOINT-01",
+      "version": "checkpoint_v1"
+    }
+  ],
+  "strategy_dependency": {
+    "status": "assembled_and_checked",
+    "document_id": "KLI-STRATEGIA",
+    "version": "1.1",
+    "result": "Zasady zaczynania od problemu, tłumaczenia zależności i ograniczania siły twierdzeń są zgodne z kierunkiem strategii."
+  },
+  "data": {
+    "voice_principles": [
+      {
+        "trait": "Zaczynamy od trudności.",
+        "purpose": "Pomagamy liderowi nazwać decyzję.",
+        "author_behavior": "Otwieraj konkretną sytuacją, napięciem lub pytaniem o decyzję; dobieraj formę do treści. Nie wszystkie wpisy mają mieć schemat pytanie + checklista + kontakt.",
+        "typical_error": "Lista kompetencji zamiast problemu."
+      },
+      {
+        "trait": "Prowadzimy spokojną rozmowę.",
+        "purpose": "Ułatwiamy rozmowę także bez specyfikacji.",
+        "author_behavior": "Używaj „sprawdźmy”, nazywaj niewiadome, proponuj jeden następny krok.",
+        "typical_error": "Pouczanie odbiorcy, że źle zarządza."
+      },
+      {
+        "trait": "Tłumaczymy zależności.",
+        "purpose": "Łączymy perspektywę użytkownika, biznesu, organizacji i technologii.",
+        "author_behavior": "Przy terminie wyjaśnij, jaką czynność oznacza i do jakiego pytania prowadzi.",
+        "typical_error": "Skróty i technologia bez kontekstu."
+      },
+      {
+        "trait": "Twierdzimy tyle, ile wiemy.",
+        "purpose": "Dajemy podstawę do uzasadnionej decyzji.",
+        "author_behavior": "Oddzielaj opis pracy od wyniku; przy AI nazywaj potrzebę uzasadnienia biznesowego.",
+        "typical_error": "Obietnica oszczędności bez pomiaru."
+      }
+    ],
+    "style_axes": [
+      {
+        "axis": "Formalność",
+        "position": "Partnersko, pełnymi zdaniami, bez urzędowego tonu.",
+        "example": "„Zacznijmy od celu projektu”.",
+        "change_when": "Przy warunkach współpracy zwiększ precyzję."
+      },
+      {
+        "axis": "Bezpośredniość",
+        "position": "Jedno pytanie lub działanie naraz; bez presji.",
+        "example": "„Którą decyzję chcesz podjąć?”.",
+        "change_when": "W odpowiedzi na obiekcję najpierw nazwij wątpliwość."
+      },
+      {
+        "axis": "Techniczność",
+        "position": "Termin dopiero po wyjaśnieniu znaczenia.",
+        "example": "„Rozpoznanie problemu, czyli discovery”.",
+        "change_when": "W rozmowie specjalistycznej zachowaj potrzebne nazwy techniczne."
+      },
+      {
+        "axis": "Humor",
+        "position": "Lekka metafora, jeśli objaśnia.",
+        "example": "„Specyfikacja nie jest biletem wstępu do projektu”.",
+        "change_when": "Przy braku danych i ograniczeniach pisz dosłownie."
+      },
+      {
+        "axis": "Siła twierdzeń",
+        "position": "Stanowczo o deklarowanej zasadzie, ostrożnie o efekcie.",
+        "example": "„AI wdrażamy przy uzasadnieniu biznesowym”.",
+        "change_when": "O wyniku pisz dopiero z dowodem i zakresem."
+      }
+    ],
+    "wording": {
+      "preferred_in_context": [
+        "„problem”, gdy nazywamy trudność; „założenie”, gdy czegoś jeszcze nie sprawdziliśmy.",
+        "„potrzeba”, „cel”, „ograniczenie”, gdy wyjaśniamy wybór rozwiązania."
+      ],
+      "replacements": [
+        {
+          "avoid": "dokonać identyfikacji potrzeb",
+          "use": "rozpoznać potrzeby"
+        },
+        {
+          "avoid": "przeprowadzić implementację",
+          "use": "wdrożyć"
+        },
+        {
+          "avoid": "w ramach procesu discovery",
+          "use": "podczas rozpoznawania problemu"
+        },
+        {
+          "avoid": "zwalidować hipotezę",
+          "use": "sprawdzić założenie"
+        },
+        {
+          "avoid": "wygenerować insight",
+          "use": "sformułować wniosek"
+        },
+        {
+          "avoid": "w zakresie całego lifecycle produktu",
+          "use": "w całym cyklu produktu"
+        }
+      ],
+      "replacement_boundary": "Zamieniaj tylko przy zachowaniu znaczenia; w metodologii zachowaj termin i wyjaśnij go.",
+      "cliches": [
+        "„rewolucyjny”, „game changer”, „gwarancja sukcesu” — usuń bez zastępowania kolejną obietnicą."
+      ],
+      "expert_terms": "„UX — doświadczenie użytkownika”; „AI — sztuczna inteligencja”. Rozwiń przy pierwszym użyciu, jeśli potrzebne odbiorcy.",
+      "sentence_pattern": "„Chcesz wyjaśnić [problem]? Zacznij od [pytania]”. Nawiasy oznaczają wzorzec, nie ofertę."
+    },
+    "evidence_language": [
+      {
+        "type": "Fakt obserwowany",
+        "pattern": "„Na stronie FLOW podano e-mail i telefon”.",
+        "forbidden_upgrade": "Widoczny kontakt nie dowodzi skutecznej obsługi."
+      },
+      {
+        "type": "Deklaracja własna",
+        "pattern": "„Zaczynamy od potrzeb, celu, organizacji pracy i możliwości technicznych”.",
+        "forbidden_upgrade": "Opis metody nie dowodzi jej skuteczności ani wyłączności."
+      },
+      {
+        "type": "Hipoteza",
+        "pattern": "„Hipoteza do sprawdzenia: trudność dotyczy przekazania informacji”.",
+        "forbidden_upgrade": "Bez „badania wykazały”; „może” nie zastępuje podstawy."
+      },
+      {
+        "type": "Przykład ilustracyjny",
+        "pattern": "„Wyobraźmy sobie zespół, który rozważa nową aplikację”.",
+        "forbidden_upgrade": "Nie nazywaj przykładu realizacją ani cytatem klienta."
+      },
+      {
+        "type": "Ograniczenie",
+        "pattern": "„Nie mamy danych pozwalających podać skalę oszczędności”.",
+        "forbidden_upgrade": "Bez liczby zastępczej, gwarancji czasu i cudzych rezultatów."
+      }
+    ],
+    "before_after": [
+      {
+        "before": "Punktem wyjścia projektu jest uwzględnienie potrzeb użytkowników, celu biznesowego, organizacji pracy oraz możliwości technicznych.",
+        "after": "Zaczynamy od potrzeb użytkowników, celu biznesowego, organizacji pracy i możliwości technicznych.",
+        "changed_principle": "Tłumaczymy zależności: czasownik zamiast rzeczowników.",
+        "fact_ids": [
+          "F03"
+        ],
+        "status": "creative_rewrite_of_first_party_claim"
+      },
+      {
+        "before": "Posiadanie specyfikacji nie stanowi warunku rozpoczęcia współpracy. Istniejąca specyfikacja podlega weryfikacji względem potrzeb i ograniczeń.",
+        "after": "Możesz zacząć współpracę bez specyfikacji. Jeśli już ją masz, sprawdzimy ją względem potrzeb i ograniczeń.",
+        "changed_principle": "Prowadzimy spokojną rozmowę: zwrot do odbiorcy.",
+        "fact_ids": [
+          "F04"
+        ],
+        "status": "creative_rewrite_of_first_party_claim"
+      },
+      {
+        "before": "Implementacja AI następuje wyłącznie w przypadku występowania uzasadnienia biznesowego. Oferta obejmuje również rozwiązania niewykorzystujące AI.",
+        "after": "AI wdrażamy tylko wtedy, gdy ma uzasadnienie biznesowe. Tworzymy też rozwiązania bez AI.",
+        "changed_principle": "Tłumaczymy zależności: prostszy język, ten sam zakres.",
+        "fact_ids": [
+          "F07"
+        ],
+        "status": "creative_rewrite_of_first_party_claim"
+      },
+      {
+        "before": "Współpraca może rozpocząć się bez specyfikacji i obejmować cały cykl produktu albo wybrany etap wspólnie z zespołem klienta.",
+        "after": "Masz problem, ale jeszcze nie specyfikację? Możesz zacząć rozmowę z FLOW i ustalić współpracę w całym cyklu produktu lub przy wybranym etapie z Twoim zespołem.",
+        "changed_principle": "Zaczynamy od trudności: te same możliwości współpracy opisane z perspektywy sytuacji i decyzji odbiorcy.",
+        "fact_ids": [
+          "F04",
+          "F05"
+        ],
+        "status": "creative_rewrite_of_first_party_claim"
+      }
+    ],
+    "context_rules": [
+      {
+        "situation": "Wyjaśnienie metody",
+        "tone_and_example": "Rzeczowo: „Co chce zrobić użytkownik i jaki cel ma organizacja?”.",
+        "boundary": "Pytanie autorskie; bez wymyślonej nazwy metody."
+      },
+      {
+        "situation": "Zaproszenie do kontaktu",
+        "tone_and_example": "Spokojnie: „Opisz konkretną trudność. Kontakt znajdziesz na makeitflow.pl/index.php”.",
+        "boundary": "Bez gratisu, terminu odpowiedzi i obietnicy diagnozy."
+      },
+      {
+        "situation": "Odpowiedź na sceptycyzm",
+        "tone_and_example": "Partnersko: „Masz już zespół? Możemy wesprzeć wybrany etap”.",
+        "boundary": "Bez oceniania obecnego dostawcy; zakres wymaga ustalenia."
+      },
+      {
+        "situation": "Brak danych",
+        "tone_and_example": "Wprost: „Nie mamy pomiaru pozwalającego obiecać taki wynik”.",
+        "boundary": "Nie maskuj braku dowodu entuzjazmem."
+      }
+    ],
+    "copy_checks": [
+      "Czy otwarcie nazywa problem lub decyzję odbiorcy?",
+      "Czy każdemu twierdzeniu przypisano źródło albo jawny status propozycji?",
+      "Czy przykład wymyślony jest oznaczony przed jego opisem?",
+      "Czy terminy potrzebne w tekście zostały wyjaśnione?",
+      "Czy opis metody zachowuje granice dowodu, bez gwarancji wyniku?",
+      "Czy wzmianka o AI wiąże jego zastosowanie z uzasadnieniem biznesowym lub AI nie występuje?",
+      "Czy zaproszenie prowadzi do istniejącego kontaktu bez dodatkowych obietnic lub CTA nie występuje?",
+      "Czy usunięto presję, klisze, zbędne wykrzykniki i emoji?"
+    ]
+  },
+  "field_evidence": {
+    "voice_principles": [
+      "SIM01",
+      "SIM02",
+      "SIM06",
+      "F03",
+      "F04",
+      "F07",
+      "L01",
+      "L02",
+      "L06",
+      "CP05"
+    ],
+    "style_axes": [
+      "SIM02",
+      "SIM06",
+      "F07",
+      "L01",
+      "L02",
+      "L03",
+      "L04",
+      "L05",
+      "L06",
+      "L07"
+    ],
+    "wording": [
+      "SIM06",
+      "L01",
+      "L02",
+      "L03",
+      "L05",
+      "L06"
+    ],
+    "evidence_language": [
+      "SIM05",
+      "F03",
+      "F07",
+      "F10",
+      "L06"
+    ],
+    "before_after": [
+      "F03",
+      "F04",
+      "F05",
+      "F07",
+      "S-F01",
+      "SIM06",
+      "CP06"
+    ],
+    "context_rules": [
+      "SIM02",
+      "SIM06",
+      "SIM07",
+      "F03",
+      "F04",
+      "F05",
+      "F10"
+    ],
+    "copy_checks": [
+      "SIM05",
+      "SIM06",
+      "SIM07",
+      "F03",
+      "F07",
+      "F10",
+      "L06"
+    ]
+  },
+  "evidence_interpretation": "Identyfikatory opisują podstawę reguł, nie dowód akceptacji nowych sformułowań. Cały nowy głos oraz przykłady redakcyjne są propozycją kreatywną. Próbka audytu: 7 fragmentów z 4 URL; bez pełnego korpusu.",
+  "approval_records": [],
+  "issues": [
+    {
+      "field": "approval_records",
+      "issue": "Brak rzeczywistej akceptacji; SIM06 jest odpowiedzią syntetyczną.",
+      "consequence": "Dokument służy testowi, nie dopuszcza publikacji."
+    }
+  ],
+  "execution_limits": {
+    "read_inputs": [
+      "upstream_handoff_v1.json",
+      "creative_templates_v1.json:WZR-TOV",
+      "standards_v1.json"
+    ],
+    "additional_research_performed": 0,
+    "independent_quality_review": "pending_root_editor_review"
+  },
+  "assembly_note": "Wersja pakietu 1.1 po jawnych korektach i scaleniu. Przebieg izolowanego autora zapisano osobno na wejściu v1; nie twierdzimy, że ponownie uruchomiono całą orkiestrację."
+}

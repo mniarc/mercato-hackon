@@ -32,8 +32,8 @@ Rafał's package v1.1 (`WZR-*` contracts, STD-PROCES, STD-LIMITY).
 | 5.4 | `agency_research.strategy_qa` | Q-S on the strategy + ToV pair | qa |
 | 6.2 | `agency_research.plan_writer.topics` · `.balance_recommendation` | KLI-PLAN: 12 topics in two windows; balance + recommendation | synthesis |
 | 6.3 | `agency_research.plan_qa` | Q-P | qa |
-| 7.2 | `agency_research.post_author` | the post, isolated: sees only the instruction and the ToV | synthesis |
-| 7.3 | `agency_research.post_editor` | Q-T, independent of the author | qa |
+| 7.2 | `agency_research.post_author` | the post, isolated: sees only the instruction and the ToV; writes under the ToV with the `deslop` skill as the hygiene layer | synthesis |
+| 7.3 | `agency_research.post_editor` | Q-T, independent of the author; runs `deslop` in detect mode over the validator's `slop_pattern` hits | qa |
 
 Tiers: extract/qa = `openrouter/anthropic/claude-haiku-4.5`, synthesis = `openrouter/anthropic/claude-sonnet-5`
 (env-overridable). Every agent is a tool-less `defineAgent` researcher run through the Enterprise Agent

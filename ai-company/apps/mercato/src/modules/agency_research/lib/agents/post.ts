@@ -3,13 +3,16 @@ import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator
 import { renderContractFields } from '../../data/contracts'
 import { postAuthorResult, postEditorResult } from '../../data/agents/post'
 import { RESEARCH_POST_AUTHOR_AGENT_ID, RESEARCH_POST_EDITOR_AGENT_ID } from './ids.post'
+import { DESLOP_DETECT_FOR_EDITOR, DESLOP_PATTERNS, DESLOP_PROSE_RULES, DESLOP_SOCIAL_FORMAT, DESLOP_WORDS, DESLOP_WRITE_UNDER_PROFILE } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // P7 — post author (7.2) and the independent editor (7.3, Q-T). The author is
 // ISOLATED: its whole world is the post instruction (WEW-ZLECENIE-POSTU) and the
 // ToV — no register, no audit, no network. The editor receives the same packet
 // plus the draft and never becomes the client's approval. Ids, the target, the
-// metrics, the qa block and the envelope are set by code.
+// metrics, the qa block and the envelope are set by code. Both carry the `deslop`
+// skill (`.ai/skills/deslop`): the author writes under the profile with deslop as
+// the hygiene layer, the editor runs it in detect mode.
 
 const AUTHOR_RULES = [
   'You write ONE post (KLI-POST.text) for the selected topic in `selected_item`, in the',
@@ -31,7 +34,7 @@ const AUTHOR_RULES = [
   '`used_within_evidence`. Return `links_and_mentions` only for what the text uses.',
   '`client_note` (≤ 80 words) says why this angle serves the goal and what the client should',
   'check. `self_check` answers every `tov.copy_checks` question by its `id` with `pass` /',
-  '`fail` / `not_applicable` and one sentence of evidence; it is a proposal, the editor decides.',
+  '`fail` / `not_applicable` and one sentence of evidence, plus the `style_hygiene` line; it is a proposal, the editor decides.',
   'When `repair_findings` is non-empty, fix exactly those findings starting from',
   '`previous_text` and keep everything else unchanged.',
 ].join(' ')
@@ -63,9 +66,9 @@ export const postAgents: AiAgentDefinition[] = [
     moduleId: 'agency_research',
     agentType: 'researcher',
     label: 'Post author',
-    description: 'Writes one post from the isolated post instruction and the tone of voice; every checkable fragment is mapped to its evidence card.',
+    description: 'Writes one post from the isolated post instruction and the tone of voice with deslop as the hygiene layer; every checkable fragment is mapped to its evidence card.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [AUTHOR_RULES, SHARED_RULES, renderContractFields('WZR-POST', ['text', 'claims_map', 'links_and_mentions', 'client_note'])].join(' '),
+    instructions: [AUTHOR_RULES, DESLOP_WRITE_UNDER_PROFILE, DESLOP_PROSE_RULES, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['text', 'claims_map', 'links_and_mentions', 'client_note'])].join(' '),
     result: { kind: 'research', schema: postAuthorResult },
   }),
 
@@ -74,9 +77,9 @@ export const postAgents: AiAgentDefinition[] = [
     moduleId: 'agency_research',
     agentType: 'researcher',
     label: 'Post editor (Q-T)',
-    description: 'Independent editorial and factual review of one post version against its instruction, the tone of voice and the channel constraints.',
+    description: 'Independent editorial and factual review of one post version against its instruction, the tone of voice and the channel constraints; runs deslop in detect mode.',
     defaultModel: MODEL_QA,
-    instructions: [EDITOR_RULES, SHARED_RULES, renderContractFields('WZR-POST', ['qa'])].join(' '),
+    instructions: [EDITOR_RULES, DESLOP_DETECT_FOR_EDITOR, DESLOP_PATTERNS, DESLOP_WORDS, DESLOP_SOCIAL_FORMAT, SHARED_RULES, renderContractFields('WZR-POST', ['qa'])].join(' '),
     result: { kind: 'research', schema: postEditorResult },
   }),
 ]

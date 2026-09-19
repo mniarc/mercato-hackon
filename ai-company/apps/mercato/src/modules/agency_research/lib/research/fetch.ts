@@ -62,8 +62,9 @@ const PATH_RANK = [
   /about|o-nas|o-firmie|team|zespol/i,
   /offer|oferta|services|uslugi|product|produkt|solutions|rozwiazania|pricing|cennik/i,
   /case|realizacj|portfolio|klienci|customers|projects|projekty/i,
+  /partner|integrac|integration|technolog|metod|process|proces|how-we-work|jak-pracujemy/i,
   /contact|kontakt/i,
-  /blog|insights|news|aktualnosci|wiedza/i,
+  /blog|insights|news|aktualnosci|nowosci|changelog|wiedza/i,
 ]
 
 function rankPath(pathname: string): number {

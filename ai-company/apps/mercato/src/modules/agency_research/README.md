@@ -154,8 +154,8 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 | 6.3 | — (task run + `qa_result`) | plan_qa + validator | Q-P: exactly 12 `ready` topics before the plan may be approved; repairs ≤2 |
 | 6.5 | `KLI-PLAN` (new version) | — | `--topic TOPxx` = client selection; otherwise the recommendation as `simulated_selection`, `real_approval: false` |
 | 6.7 | `WEW-ZLECENIE-POSTU` | — (code only) | evidence cards carry the texts, rights copied from proof cards, ≤5 voice rules, adapter limits from `data/adapters.ts`, 7 completion lines |
-| 7.2 | `KLI-POST` | post_author (isolated: instruction + ToV only) | fragments verbatim in the text, links only from the instruction, numbers only from evidence, prohibited claims, metrics in code |
-| 7.3 | `KLI-POST` (new version per pass) | post_editor + validator | Q-T: pass_for_draft / needs_fix / reject; repairs ≤2, then E.1 `qa_exhausted` |
+| 7.2 | `KLI-POST` | post_author (isolated: instruction + ToV only; `deslop` write mode under the profile, `qa.style_hygiene` reports it) | fragments verbatim in the text, links only from the instruction, numbers only from evidence, prohibited claims, metrics in code |
+| 7.3 | `KLI-POST` (new version per pass) | post_editor + validator (`lib/research/deslop.ts`: catalogue phrases and budgets as `slop_pattern` findings, minor/major, never blocking alone) | Q-T: pass_for_draft / needs_fix / reject; repairs ≤2, then E.1 `qa_exhausted` |
 | 8.2 | `WEW-KONFIG-PUBLIKACJI` | — | platform from the adapter catalog, ids null (a name is not an id), connection never a secret, readiness `not_ready` with blockers |
 | 8.3 | `WEW-ZLECENIE-PUBLIKACJI` | — | content hash, idempotency key, content approval ≠ publication consent (both `missing` without real records), nine preflight gates, hold from open E.1 |
 | 8.7 | `WEW-POTWIERDZENIE-PUBLIKACJI` | — | always `not_executed` here; external id / URL null; `retry_allowed: false`; where an adapter would plug in: `lib/research/publication.ts` |

@@ -3,6 +3,7 @@ import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator
 import { renderContractFields } from '../../data/contracts'
 import { planBalanceResult, planQaAgentResult, planTopicsResult } from '../../data/agents/plan'
 import { RESEARCH_PLAN_BALANCE_AGENT_ID, RESEARCH_PLAN_QA_AGENT_ID, RESEARCH_PLAN_TOPICS_AGENT_ID } from './ids.plan'
+import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // P6 — plan writer (6.2) and Q-P (6.3). The writer is two agents, one per output
@@ -31,6 +32,7 @@ const PLAN_RULES = [
   'appear only when a proof card of type measured_case / external_confirmation backs them.',
   'The plan schedules topics; the purchased product is ONE finished post. When',
   '`repair_findings` is non-empty, fix exactly those findings and keep everything else.',
+  DESLOP_PROSE_RULES,
 ].join(' ')
 
 export const planAgents: AiAgentDefinition[] = [

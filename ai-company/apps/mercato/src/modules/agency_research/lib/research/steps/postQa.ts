@@ -18,12 +18,13 @@ import { simulationIssue } from '../simulation'
 import { normalizeForMatch } from '../util'
 import type { StepContext, StepOutcome } from './context'
 import { forbiddenLinks, knownPostIds, normalizeUrl, prohibitedClaimsFound, unsupportedNumbers } from './post'
+import { slopValidatorFindings } from '../deslop'
 
 /**
  * Step 7.3 — Q-T, the independent editor. Code computes the deterministic
  * findings first (fragments verbatim, ids resolved, links allowed, digits backed
  * by a card, prohibited claims, MUST keys, the length metrics, no approval
- * recorded by anyone); the editor agent reads what needs reading and answers the
+ * recorded by anyone, the deslop word lists); the editor agent reads what needs reading and answers the
  * ToV copy checks; the verdict is exactly one of pass_for_draft / needs_fix /
  * reject. Every editor pass is a NEW KLI-POST version with the review inside —
  * versions never change. Exhausted repairs open an E.1 exception.
@@ -82,6 +83,8 @@ export function postValidatorFindings(args: { post: PostData; instruction: Zlece
   }
   if (post.qa.additional_sources_used !== 0 || post.qa.additional_research_performed !== 0) findings.push(finding('other', 'KLI-POST.qa', 'the author reports research outside the instruction'))
   if (post.qa.unsupported_facts_added > 0) findings.push(finding('unsourced_claim', 'KLI-POST.qa.unsupported_facts_added', `${post.qa.unsupported_facts_added} unsupported fact row(s)`))
+  // deslop's deterministic half: catalogue phrases and budgets, minor/major only — the editor confirms them against the ToV.
+  findings.push(...slopValidatorFindings(post.text))
   return findings
 }
 
@@ -183,6 +186,7 @@ const CRITERIA = [
   'Only allowed links and mentions; the CTA promises no page, gift or reaction time without a card.',
   'Length within the target and under the platform limit when one is given.',
   'The author added no sources and did no research; unverifiable items are named, not assumed.',
+  'Style (deslop, detect mode): no invented specific, no forbidden evidence upgrade; catalogue patterns and watched words are listed as slop_pattern findings with the fragment and a fix, the ToV winning on sanctioned structures.',
   'This review is editorial, never the client\'s approval.',
 ]
 

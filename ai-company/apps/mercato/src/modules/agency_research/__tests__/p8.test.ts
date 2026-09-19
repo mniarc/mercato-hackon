@@ -85,7 +85,7 @@ describe('8.2 publication configuration (pure)', () => {
   })
 
   it('marks an unsupported platform NO_ADAPTER with an unknown limit, and a missing platform NO_PLATFORM', () => {
-    const tiktok = buildPublicationConfig({ order: { ...order, officialSocialPlatform: 'TikTok' } }, 'en')
+    const tiktok = buildPublicationConfig({ order: { ...order, officialSocialPlatform: 'Mastodon' } }, 'en')
     expect(tiktok.adapter).toBeNull()
     expect(tiktok.blockers[0]).toMatch(/^NO_ADAPTER/)
     expect(tiktok.data.capabilities.length_limit_or_unknown).toBe('unknown')
