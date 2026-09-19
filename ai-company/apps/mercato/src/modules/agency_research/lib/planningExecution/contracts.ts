@@ -12,6 +12,7 @@ export const planningExecutionOutcomeSchema = z.object({
   taskRunIds: z.array(z.string()), documentVersionIds: z.array(z.string()), agentRunIds: z.array(z.string()),
   spentPln: z.number().nonnegative(), planVersionId: z.string().nullable(), qaTaskRunId: z.string().nullable(),
   qaVerdict: z.enum(['ready_for_approval', 'needs_agent_fix']).nullable(), readyForApproval: z.boolean(),
+  escalationVersionId: z.string().optional(),
 })
 export type PlanningExecutionOutcome = z.infer<typeof planningExecutionOutcomeSchema>
 export type PlanningExecutionResult = PlanningExecutionOutcome

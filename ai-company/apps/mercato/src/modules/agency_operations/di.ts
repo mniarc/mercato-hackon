@@ -27,8 +27,9 @@ import { createBriefReviewService } from './lib/briefStrategyProcess/service'
 import { createAnalysisBriefReviewHandoff } from './lib/analysisProcess/briefReviewHandoff'
 import { AGENCY_BRIEF_HANDOFF_FUNCTION } from './lib/analysisProcess/workflow'
 import { createResearchExceptionHandoff, createPostResearchExceptionHandoff, RESEARCH_EXCEPTION_HANDOFF_FUNCTION } from './lib/researchException/handoff'
-import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION } from './lib/researchException/contracts'
+import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION } from './lib/researchException/contracts'
 import { createStrategyResearchExceptionHandoff } from './lib/researchException/strategyHandoff'
+import { createPlanningResearchExceptionHandoff } from './lib/researchException/planningHandoff'
 import { EMPLOYEE_QUESTION_SERVICE, EMPLOYEE_QUESTION_RESPONSE_FUNCTION } from './lib/employeeQuestions/contracts'
 import { createEmployeeQuestionService } from './lib/employeeQuestions/service'
 import { createStrategyReadinessHandoff, STRATEGY_READINESS_HANDOFF_FUNCTION } from './lib/strategyHandoff/activity'
@@ -91,6 +92,7 @@ export function register(container: AppContainer): void {
     [`workflowFunction:${RESEARCH_EXCEPTION_HANDOFF_FUNCTION}`]: asFunction(() => createResearchExceptionHandoff(container)).scoped(),
     [`workflowFunction:${POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION}`]: asFunction(() => createPostResearchExceptionHandoff(container)).scoped(),
     [`workflowFunction:${STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION}`]: asFunction(() => createStrategyResearchExceptionHandoff(container)).scoped(),
+    [`workflowFunction:${PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION}`]: asFunction(() => createPlanningResearchExceptionHandoff(container)).scoped(),
     [`workflowFunction:${ACCEPT_BRIEF_FUNCTION}`]: asValue(clientTriage.acceptBrief),
     [`workflowFunction:${ACCEPT_STRATEGY_PAIR_FUNCTION}`]: asValue(clientTriage.acceptStrategyPair),
     [BRIEF_REVIEW_SERVICE]: asFunction(() => createBriefReviewService(container)).scoped(),

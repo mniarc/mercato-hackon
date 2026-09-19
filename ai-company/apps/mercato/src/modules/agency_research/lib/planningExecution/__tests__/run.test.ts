@@ -3,6 +3,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../../data/entities'
 import { documentIdFor } from '../../research/envelope'
+import { openEscalation } from '../../research/escalate'
 import type { StepContext } from '../../research/steps/context'
 import { runPlanStep } from '../../research/steps/plan'
 import { runPlanQaLoop } from '../../research/steps/planQa'
@@ -16,6 +17,7 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryp
 jest.mock('../../planningReadiness/read', () => ({ readPlanningReadiness: jest.fn() }))
 jest.mock('../../research/steps/plan', () => ({ runPlanStep: jest.fn() }))
 jest.mock('../../research/steps/planQa', () => ({ runPlanQaLoop: jest.fn() }))
+jest.mock('../../research/escalate', () => ({ openEscalation: jest.fn() }))
 jest.mock('../../store', () => ({ startTaskRun: jest.fn(), finishTaskRun: jest.fn() }))
 
 const scope = { tenantId: 'tenant', organizationId: 'organization' }
@@ -59,7 +61,10 @@ beforeEach(() => {
   jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity, query) => {
     const brief = Object.assign(new AgencyResearchDocument(), { ...scope, orderRef: 'case', templateId: 'WZR-BRIEF', deletedAt: null })
     const candidates = entity === AgencyResearchDocument ? [brief] : entity === AgencyResearchTaskRun ? runs : rows
-    return (candidates.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
+    return (candidates.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => {
+      if (typeof value === 'object' && value !== null && '$in' in value && Array.isArray(value.$in)) return value.$in.includes(Reflect.get(row, key))
+      return Reflect.get(row, key) === value
+    })) ?? null) as never
   })
   jest.mocked(findWithDecryption).mockImplementation(async () => runs as never)
   jest.mocked(startTaskRun).mockImplementation(async (_em, tenantScope, input) => {
@@ -88,6 +93,7 @@ test('runs only planning on the accepted pair and exact strategy lineage with ex
   expect(ctx.orderVersion.version).toBe('2.0')
   expect(startTaskRun).toHaveBeenCalledWith(em, scope, expect.objectContaining({ stepId: '6.1' }))
   expect(runPlanQaLoop).toHaveBeenCalledWith(ctx, { planStep: runPlanStep })
+  expect(openEscalation).not.toHaveBeenCalled()
   expect(readPlanningReadiness).toHaveBeenCalledWith(em, scope, { orderRef: 'case', strategyVersionId: request.strategyVersionId, tovVersionId: request.tovVersionId, process: request.process })
 })
 test.each([undefined, 0, -1])('does not use fallback topic count (%s)', async (topics) => {
@@ -112,18 +118,64 @@ test('saved result replays without rerunning models even after readiness changes
   expect(await execute()).toEqual(original)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
 })
+
+test('exhausted plan QA saves exact exception evidence and replays without creating another exception', async () => {
+  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => {
+    context.taskRunIds.push('plan-qa')
+    return { taskRunId: 'plan-qa', planVersionId: 'plan', verdict: 'needs_agent_fix', repairs: 2, readyForApproval: false,
+      findings: [{ code: 'missing_evidence', path: 'KLI-PLAN.topics[0]', gap: 'No supporting source', severity: 'blocking', owner: 'agent' }] as never }
+  })
+  jest.mocked(openEscalation).mockImplementation(async (context) => {
+    context.taskRunIds.push('exception-task')
+    context.documentVersionIds.push('exception-version')
+    return { versionId: 'exception-version', taskRunId: 'exception-task', data: {} as never }
+  })
+  const result = await execute()
+  expect(result).toMatchObject({ status: 'completed', readyForApproval: false, escalationVersionId: 'exception-version',
+    taskRunIds: expect.arrayContaining(['plan-qa', 'exception-task']), documentVersionIds: expect.arrayContaining(['plan', 'exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(ctx, expect.objectContaining({
+    code: 'qa_exhausted', triggerStep: '6.3', blockedSteps: ['6.4'], resumeStep: '6.2',
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: expect.any(String), permittedNextStep: 'none' }],
+    evidence: expect.arrayContaining([{ ref: 'plan-qa', fact: expect.any(String) }, { ref: 'plan', fact: expect.any(String) },
+      { ref: 'KLI-PLAN.topics[0]', fact: 'missing_evidence: No supporting source' }]),
+  }), expect.arrayContaining([{ document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }]))
+  expect(await execute()).toEqual(result)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
+  expect(runPlanQaLoop).toHaveBeenCalledTimes(1)
+})
 test('concurrent duplicate calls claim once and preserve the in-flight run', async () => {
   const results = await Promise.all([execute(), execute()])
   expect(startTaskRun).toHaveBeenCalledTimes(1)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
   expect(results.some((result) => result.status === 'completed')).toBe(true)
 })
-test('paused budget is saved with generated plan and no invented QA', async () => {
-  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => { context.ledger.assertCanSpend('6.3', 'qa', 4); throw new Error('unreachable') })
+test('paused budget saves its task evidence with the generated plan and replays without invented QA or extra spend', async () => {
+  jest.mocked(runPlanQaLoop).mockImplementation(async (context) => {
+    runs.push(Object.assign(new AgencyResearchTaskRun(), { ...scope, orderRef: 'case', id: 'paused-plan-qa', stepId: '6.3', status: 'paused_budget',
+      inputVersions: [context.orderVersion, { document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }],
+    }))
+    runs.push(Object.assign(new AgencyResearchTaskRun(), { ...scope, orderRef: 'case', id: 'done-plan-repair', stepId: '6.2', status: 'done' }))
+    context.taskRunIds.push('paused-plan-qa', 'done-plan-repair')
+    context.ledger.assertCanSpend('6.3', 'qa', 4)
+    throw new Error('unreachable')
+  })
+  jest.mocked(openEscalation).mockImplementation(async (context) => {
+    context.taskRunIds.push('budget-exception-task')
+    context.documentVersionIds.push('budget-exception-version')
+    return { versionId: 'budget-exception-version', taskRunId: 'budget-exception-task', data: {} as never }
+  })
   const paused = await execute()
-  expect(paused).toMatchObject({ status: 'paused_budget', planVersionId: 'plan', qaTaskRunId: null, readyForApproval: false })
-  expect(await execute()).toEqual(paused)
+  expect(paused).toMatchObject({ status: 'paused_budget', planVersionId: 'plan', qaTaskRunId: null, readyForApproval: false, escalationVersionId: 'budget-exception-version',
+    taskRunIds: expect.arrayContaining(['paused-plan-qa', 'budget-exception-task']), documentVersionIds: expect.arrayContaining(['plan', 'budget-exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(ctx, expect.objectContaining({
+    code: 'budget_exhausted', triggerStep: '6.3', resumeStep: '6.3', blockedSteps: ['6.3', '6.4'],
+    summary: expect.stringContaining('0.00 PLN spent of 3 PLN'), evidence: [expect.objectContaining({ ref: 'paused-plan-qa' })],
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+  }), expect.arrayContaining([{ document_id: 'KLI-PLAN@case', version: '1.0', status: 'draft' }]))
+  expect(await execute({ maxCostPln: 50 })).toEqual(paused)
   expect(runPlanStep).toHaveBeenCalledTimes(1)
+  expect(runPlanQaLoop).toHaveBeenCalledTimes(1)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
 })
 test('interrupted failed activation is not retried', async () => {
   jest.mocked(runPlanStep).mockRejectedValue(new Error('interrupted'))

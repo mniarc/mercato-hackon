@@ -5,6 +5,7 @@ import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../../data/entities'
 import { limits } from '../../../data/templates'
 import { documentIdFor } from '../../research/envelope'
+import { openEscalation } from '../../research/escalate'
 import type { StepContext } from '../../research/steps/context'
 import { runStrategyStep } from '../../research/steps/strategy'
 import { runTovStep } from '../../research/steps/tov'
@@ -19,6 +20,7 @@ jest.mock('../../strategyReadiness', () => ({ resolveStrategyReadiness: jest.fn(
 jest.mock('../../research/steps/strategy', () => ({ runStrategyStep: jest.fn() }))
 jest.mock('../../research/steps/tov', () => ({ runTovStep: jest.fn() }))
 jest.mock('../../research/steps/strategyQa', () => ({ runStrategyQaLoop: jest.fn() }))
+jest.mock('../../research/escalate', () => ({ openEscalation: jest.fn() }))
 jest.mock('../../store', () => ({ startTaskRun: jest.fn(), finishTaskRun: jest.fn() }))
 
 const scope = { tenantId: 'tenant', organizationId: 'organization' }
@@ -42,6 +44,16 @@ let contexts: StepContext[]
 let activations: AgencyResearchTaskRun[]
 
 function execute() { return runStrategyExecution({ em, scope, request, models, runAgent, runner: 'orchestrator' }) }
+
+async function pauseTovForBudget(ctx: StepContext): Promise<never> {
+  activations.push(Object.assign(new AgencyResearchTaskRun(), {
+    ...scope, orderRef, id: 'paused-tov', stepId: '5.3', status: 'paused_budget',
+    inputVersions: [ctx.orderVersion, { document_id: 'KLI-STRATEGIA@case', version: '1.0', status: 'draft' }],
+  }))
+  ctx.taskRunIds.push('paused-tov')
+  ctx.ledger.assertCanSpend('5.3', 'tov-agent', 4)
+  throw new Error('unreachable')
+}
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -85,7 +97,9 @@ beforeEach(() => {
       ...scope, orderRef, templateId: 'WZR-BRIEF', id: 'brief-document', currentVersionId: request.briefVersionId, status: 'approved',
     })
     const rows = entity === AgencyResearchTaskRun ? [freeze, ...activations] : entity === AgencyResearchDocument ? [document] : versions
-    return (rows.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
+    return (rows.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) =>
+      value && typeof value === 'object' && '$in' in value
+        ? (value.$in as unknown[]).includes(Reflect.get(row, key)) : Reflect.get(row, key) === value)) ?? null) as never
   })
   jest.mocked(findWithDecryption).mockImplementation(async (_em, _entity, query) => (
     activations.filter((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) as never
@@ -97,6 +111,11 @@ beforeEach(() => {
     return activation
   })
   jest.mocked(finishTaskRun).mockImplementation(async (_em, row, outcome) => { Object.assign(row, outcome) })
+  jest.mocked(openEscalation).mockImplementation(async (ctx) => {
+    ctx.taskRunIds.push('budget-exception-task')
+    ctx.documentVersionIds.push('budget-exception-version')
+    return { taskRunId: 'budget-exception-task', versionId: 'budget-exception-version', data: {} } as never
+  })
   jest.mocked(runStrategyStep).mockImplementation(async (ctx) => {
     contexts.push(ctx)
     ctx.strategyOutputs!.strategy = { document_id: 'KLI-STRATEGIA@case', version: '1.0', versionId: 'strategy', data: {}, status: 'draft' }
@@ -173,11 +192,15 @@ test.each(['absent', 'ambiguous'])('requires one frozen order pin, not latest or
 })
 
 test('keeps the generated strategy reference when the following step pauses for budget', async () => {
-  jest.mocked(runTovStep).mockImplementation(async (ctx) => {
-    ctx.ledger.assertCanSpend('5.3', 'tov-agent', 4)
-    throw new Error('unreachable')
-  })
-  expect(await execute()).toMatchObject({ status: 'paused_budget', strategyVersionId: 'strategy', tovVersionId: null, qaTaskRunId: null })
+  jest.mocked(runTovStep).mockImplementation(pauseTovForBudget)
+  expect(await execute()).toMatchObject({ status: 'paused_budget', strategyVersionId: 'strategy', tovVersionId: null, qaTaskRunId: null,
+    escalationVersionId: 'budget-exception-version', taskRunIds: expect.arrayContaining(['paused-tov', 'budget-exception-task']),
+    documentVersionIds: expect.arrayContaining(['budget-exception-version']) })
+  expect(openEscalation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    code: 'budget_exhausted', triggerStep: '5.3', resumeStep: '5.3', summary: expect.stringContaining('0.00 PLN spent of 3 PLN'),
+    evidence: [expect.objectContaining({ ref: 'paused-tov' })],
+    allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
+  }), expect.arrayContaining([{ document_id: 'KLI-STRATEGIA@case', version: '1.0', status: 'draft' }]))
   expect(runStrategyQaLoop).not.toHaveBeenCalled()
 })
 
@@ -216,15 +239,33 @@ test('replays the persisted result before readiness, without accepting caller-ma
 })
 
 test('replays a paused receipt without spending again even if the caller raises the cap', async () => {
-  jest.mocked(runTovStep).mockImplementation(async (ctx) => {
-    ctx.ledger.assertCanSpend('5.3', 'tov-agent', 4)
-    throw new Error('unreachable')
-  })
+  jest.mocked(runTovStep).mockImplementation(pauseTovForBudget)
   const paused = await execute()
   expect(paused.status).toBe('paused_budget')
   expect(await runStrategyExecution({ em, scope, models, runAgent, runner: 'orchestrator', request: { ...request, maxCostPln: 50 } })).toEqual(paused)
   expect(runStrategyStep).toHaveBeenCalledTimes(1)
   expect(runTovStep).toHaveBeenCalledTimes(1)
+  expect(openEscalation).toHaveBeenCalledTimes(1)
+})
+
+test('finds the paused QA task when a later repair task already succeeded', async () => {
+  jest.mocked(runStrategyQaLoop).mockImplementation(async (ctx) => {
+    activations.push(Object.assign(new AgencyResearchTaskRun(), {
+      ...scope, orderRef, id: 'paused-qa', stepId: '5.4', status: 'paused_budget', inputVersions: [ctx.orderVersion],
+    }), Object.assign(new AgencyResearchTaskRun(), {
+      ...scope, orderRef, id: 'completed-repair', stepId: '5.2', status: 'done',
+    }))
+    ctx.taskRunIds.push('paused-qa', 'completed-repair')
+    ctx.ledger.assertCanSpend('5.4', 'qa-agent', 4)
+    throw new Error('unreachable')
+  })
+  expect(await execute()).toMatchObject({ status: 'paused_budget', escalationVersionId: 'budget-exception-version' })
+  expect(openEscalation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+    triggerStep: '5.4', evidence: [expect.objectContaining({ ref: 'paused-qa' })],
+  }), expect.anything())
+  expect(findOne).toHaveBeenCalledWith(em, AgencyResearchTaskRun, expect.objectContaining({
+    ...scope, orderRef, id: { $in: expect.arrayContaining(['paused-qa', 'completed-repair']) }, status: 'paused_budget',
+  }), { orderBy: { createdAt: 'desc' } }, scope)
 })
 
 test('serializes same-acceptance claims and releases the lock before the first model step', async () => {

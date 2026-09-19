@@ -11,7 +11,7 @@ import { POST_EXECUTION_FUNCTION, POST_EXECUTION_RESULT_KEY, POST_EXECUTION_STEP
 import { POST_REVIEW_HANDOFF_FUNCTION } from '../../lib/postApproval/contracts'
 import { PUBLICATION_PREPARATION_FUNCTION, PUBLICATION_PREPARATION_RESULT_KEY, PUBLICATION_PREPARATION_STEP_ID } from '../../lib/publicationPreparation/contracts'
 import { createResearchExceptionFragment, RESEARCH_EXCEPTION_STEP_ID } from '../../lib/researchException/workflow'
-import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../../lib/researchException/contracts'
+import { POST_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, RESEARCH_EXCEPTION_RESULT_KEY } from '../../lib/researchException/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -54,6 +54,7 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: 'strategy_pair_continuation', stepName: 'Pair review or planning readiness handoff recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_pair_waiting', stepName: 'Pair review still needs action', stepType: 'END' },
     { stepId: PLANNING_EXECUTION_STEP_ID, stepName: 'Planning phase outcome recorded', stepType: 'AUTOMATED' },
+    { stepId: 'planning_exception_checked', stepName: 'Saved planning escalation checked', stepType: 'AUTOMATED' },
     { stepId: 'plan_review', stepName: 'Plan review handoff recorded', stepType: 'END' },
     { stepId: 'plan_topic_decision', stepName: 'Plan acceptance and topic choice recorded', stepType: 'AUTOMATED' },
     { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'AUTOMATED' },
@@ -125,7 +126,13 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
       activities: [{ activityId: 'invite_strategy_review', activityName: 'agencyStrategyPairInvitation', activityType: 'EXECUTE_FUNCTION',
         config: { functionName: STRATEGY_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
-    { transitionId: 'invite_plan_review', fromStepId: PLANNING_EXECUTION_STEP_ID, toStepId: 'plan_review', trigger: 'auto',
+    { transitionId: 'check_planning_exception', fromStepId: PLANNING_EXECUTION_STEP_ID, toStepId: 'planning_exception_checked', trigger: 'auto',
+      activities: [{ activityId: 'planning_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: PLANNING_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, args: {} } }] },
+    { transitionId: 'assign_planning_exception', fromStepId: 'planning_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
+    { transitionId: 'invite_plan_review', fromStepId: 'planning_exception_checked', toStepId: 'plan_review', trigger: 'auto',
+      condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'none' },
       activities: [{ activityId: 'invite_plan_review', activityName: 'agencyPlanInvitation', activityType: 'EXECUTE_FUNCTION',
         config: { functionName: PLAN_REVIEW_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'build_post_instruction', fromStepId: 'plan_topic_decision', toStepId: 'post_instruction', trigger: 'auto',
