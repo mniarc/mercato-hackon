@@ -9,7 +9,15 @@ import pg from 'pg'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const app = path.join(root, 'apps', 'mercato')
 const runtime = path.join(app, '.mercato', 'agency-dev')
-const spec = 'apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-001-vertical-slice.spec.ts'
+const journeySpecs = {
+  canonical: 'TC-AGENCY-001-vertical-slice.spec.ts',
+  purchase: 'TC-AGENCY-003-demo-purchase.spec.ts',
+}
+
+export function agencyJourneySpec(journey = 'canonical') {
+  if (!Object.hasOwn(journeySpecs, journey)) throw new Error('AGENCY_TEST_JOURNEY must be canonical or purchase')
+  return `apps/mercato/src/modules/agency_operations/__integration__/${journeySpecs[journey]}`
+}
 const composeProject = `agency-dev-${createHash('sha256').update(root.toLowerCase()).digest('hex').slice(0, 8)}`
 
 function port(value, fallback) {
@@ -50,11 +58,13 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     AUTO_SPAWN_WORKERS: 'lazy',
     AUTO_SPAWN_SCHEDULER: 'false',
     DEMO_MODE: 'false',
-    OM_INTEGRATION_EXACT_SPEC: spec,
+    OM_INTEGRATION_EXACT_SPEC: agencyJourneySpec(overrides.AGENCY_TEST_JOURNEY),
     OM_INTEGRATION_MODULES: 'agency_operations',
-    OM_TEST_ACTION_TIMEOUT_MS: '20000',
-    OM_TEST_NAVIGATION_TIMEOUT_MS: '60000',
+    // Native-module development compilation includes page hydration and its first API call.
+    OM_TEST_ACTION_TIMEOUT_MS: '60000',
+    OM_TEST_NAVIGATION_TIMEOUT_MS: '120000',
     OM_AGENCY_TRIAGE_MODE: overrides.OM_AGENCY_TRIAGE_MODE ?? sharedEnvironment.OM_AGENCY_TRIAGE_MODE ?? 'disabled',
+    OM_AGENCY_DEMO_PURCHASE_ENABLED: overrides.OM_AGENCY_DEMO_PURCHASE_ENABLED ?? sharedEnvironment.OM_AGENCY_DEMO_PURCHASE_ENABLED ?? 'false',
     ...(overrides.AGENCY_TEST_NATIVE_TRIAGE === '1' ? {
       AGENCY_TEST_NATIVE_TRIAGE: '1',
       AGENCY_TEST_NATIVE_POST: overrides.AGENCY_TEST_NATIVE_POST === '1' ? '1' : '0',
@@ -174,7 +184,7 @@ async function main() {
       if (!response.ok) throw new Error('Agency dev app is not ready. Start yarn dev:agency first.')
     }
     await run(process.execPath, [path.join(root, 'node_modules', '@playwright', 'test', 'cli.js'),
-      'test', '--config', '.ai/qa/tests/playwright.config.ts', spec, '--retries=0', '--workers=1', ...flags], env)
+      'test', '--config', '.ai/qa/tests/playwright.config.ts', env.OM_INTEGRATION_EXACT_SPEC, '--retries=0', '--workers=1', ...flags], env)
     return
   }
 

@@ -2,6 +2,10 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useLocale, useT } from '@open-mercato/shared/lib/i18n/context'
+import { ErrorMessage, LoadingMessage } from '@open-mercato/ui/backend/detail'
+import { useDemoPurchase } from '../../../../../components/purchase/useDemoPurchase'
+import { DemoPurchaseStatus } from '../../../../../components/purchase/DemoPurchaseStatus'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { Input } from '@open-mercato/ui/primitives/input'
 import { Label } from '@open-mercato/ui/primitives/label'
@@ -10,17 +14,6 @@ import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageH
 import { PortalCard, PortalCardHeader } from '@open-mercato/ui/portal/components/PortalCard'
 
 type Props = { params: { orgSlug: string } }
-
-// STD-OFERTA (START-KOMUNIKACJI-PL-01). Shown read-only; the client never types
-// SKU / price — they are copied from the catalog offer version. Swap to a live
-// catalog fetch once the product is seeded (OM-01).
-const PRODUCT = {
-  sku: 'START-KOMUNIKACJI-PL-01',
-  name: 'START KOMUNIKACJI',
-  priceNet: 2500,
-  currency: 'PLN',
-  priceStatus: 'Proponowana cena pilotażowa — nieaktywna oferta sprzedaży.',
-}
 
 const GOAL_MAX = 240
 
@@ -86,99 +79,58 @@ function Field(props: {
   )
 }
 
-// Shape the submit payload as WEW-DANE-ZAMOWIENIA (per WZR-ZAMOWIENIE contract).
-function toOrderData(form: OrderForm) {
-  return {
-    product_selection: {
-      sku: PRODUCT.sku,
-      offer_version: 'v1',
-      price_net: PRODUCT.priceNet,
-      currency: PRODUCT.currency,
-    },
-    brand: { display_name: form.brandDisplayName, website_url: form.brandWebsiteUrl },
-    market_language: { market: form.market, language: form.language },
-    buyer_contact: { name: form.contactName, email: form.contactEmail, contact_id: null },
-    billing: {
-      buyer_type: form.billingBuyerType,
-      legal_name: form.billingLegalName,
-      country: form.billingCountry,
-      billing_address: form.billingAddress,
-      tax_id: form.billingBuyerType === 'company' ? form.billingTaxId : 'not_applicable',
-    },
-    official_social: form.officialSocialUrl
-      ? { url: form.officialSocialUrl, platform: null, provenance: 'client_provided' }
-      : { url: null, platform: null, provenance: 'none_provided' },
-    purchase_goal: form.purchaseGoal.trim() ? form.purchaseGoal.trim() : null,
-    terms_confirmation: { terms_version: PRODUCT.sku, state: 'provided', event_ref: null },
-  }
-}
-
 export default function AgencyOrderPage({ params }: Props) {
   const { orgSlug } = params
   const [form, setForm] = React.useState<OrderForm>(emptyForm)
   const [errors, setErrors] = React.useState<string[]>([])
-  const [submitted, setSubmitted] = React.useState(false)
+  const t = useT()
+  const locale = useLocale()
+  const purchase = useDemoPurchase(orgSlug)
+  const { offer, loading, busy, error, receipt } = purchase
 
   const set = (key: keyof OrderForm) => (value: string) => setForm((prev) => ({ ...prev, [key]: value }))
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
     const missing: string[] = []
     const req: [boolean, string][] = [
-      [!form.brandDisplayName.trim(), 'Nazwa marki'],
-      [!form.brandWebsiteUrl.trim(), 'Adres WWW'],
-      [!form.market.trim(), 'Rynek'],
-      [!form.language.trim(), 'Język'],
-      [!form.contactName.trim(), 'Osoba kontaktowa'],
-      [!form.contactEmail.trim(), 'E-mail kontaktowy'],
-      [!form.billingLegalName.trim(), 'Nazwa prawna nabywcy'],
-      [!form.billingCountry.trim(), 'Kraj'],
-      [!form.billingAddress.trim(), 'Adres rozliczeniowy'],
-      [form.billingBuyerType === 'company' && !form.billingTaxId.trim(), 'NIP (dla firmy)'],
-      [!form.acceptTerms, 'Akceptacja warunków'],
+      [!form.brandDisplayName.trim(), t('agency.order.brandName')],
+      [!form.brandWebsiteUrl.trim(), t('agency.order.website')],
+      [!form.market.trim(), t('agency.order.market')],
+      [!form.language.trim(), t('agency.order.languageRequired')],
+      [!form.contactName.trim(), t('agency.order.contactRequired')],
+      [!form.contactEmail.trim(), t('agency.order.emailRequired')],
+      [!form.billingLegalName.trim(), t('agency.order.legalName')],
+      [!form.billingCountry.trim(), t('agency.order.country')],
+      [!form.billingAddress.trim(), t('agency.order.billingAddress')],
+      [form.billingBuyerType === 'company' && !form.billingTaxId.trim(), t('agency.order.taxIdRequired')],
+      [!form.acceptTerms, t('agency.order.acceptTermsRequired')],
     ]
     for (const [isMissing, label] of req) if (isMissing) missing.push(label)
     setErrors(missing)
-    if (missing.length === 0) setSubmitted(true)
+    if (missing.length === 0 && offer?.enabled && !busy) {
+      const { acceptTerms: _accepted, ...buyer } = form
+      await purchase.start(buyer)
+    }
   }
 
-  if (submitted) {
-    const data = toOrderData(form)
-    return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-        <PortalPageHeader label="Zamówienie" title="Dane przyjęte" />
-        <PortalCard>
-          <PortalCardHeader title="Podsumowanie (WEW-DANE-ZAMOWIENIA)" description="Na tej podstawie utworzymy zamówienie." />
-          <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">{JSON.stringify(data, null, 2)}</pre>
-        </PortalCard>
-        <PortalCard className="border-dashed">
-          <p className="text-sm text-muted-foreground">
-            Następny krok (w budowie): utworzenie zamówienia na produkt {PRODUCT.sku} oraz płatność
-            testowa. Po potwierdzeniu płatności system wyśle zdarzenie <code>agency.case.paid</code>,
-            które uruchomi realizację po stronie agencji.
-          </p>
-        </PortalCard>
-        <div className="flex justify-between">
-          <Button variant="outline" onClick={() => setSubmitted(false)}>Wróć do edycji</Button>
-          <Link href={`/${orgSlug}/portal/agency`}><Button variant="ghost">Do oferty</Button></Link>
-        </div>
-      </div>
-    )
-  }
+  if (receipt) return <DemoPurchaseStatus receipt={receipt} orgSlug={orgSlug} enabled={offer?.enabled === true} busy={busy} error={error} confirm={purchase.confirm} refresh={purchase.refresh} />
+  if (loading) return <LoadingMessage label={t('agency.purchase.loading', 'Loading the demo offer…')} />
+  if (!offer) return <ErrorMessage label={error ?? t('agency.purchase.loadError', 'The demo offer is unavailable. Reload this page to try again.')} />
 
   const goalLeft = GOAL_MAX - form.purchaseGoal.length
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <PortalPageHeader
-        label="Zamówienie"
-        title="START KOMUNIKACJI"
-        description="Podaj dane firmy i marki. Adres WWW jest wymagany — od niego zaczyna się audyt."
+        label={t('agency.order.label')}
+        title={offer.name}
+        description={t('agency.order.description')}
       />
 
       {errors.length > 0 ? (
         <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive">
-          <p className="mb-1 font-medium">Uzupełnij wymagane pola:</p>
+          <p className="mb-1 font-medium">{t('agency.order.requiredFields')}</p>
           <ul className="list-disc pl-5">
             {errors.map((error) => (
               <li key={error}>{error}</li>
@@ -187,93 +139,92 @@ export default function AgencyOrderPage({ params }: Props) {
         </div>
       ) : null}
 
+      {error ? <ErrorMessage label={error} /> : null}
+      {!offer.enabled ? <ErrorMessage label={t('agency.purchase.disabled', 'Demo checkout is disabled. An operator must enable the test purchase flow.')} /> : null}
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         <PortalCard>
-          <PortalCardHeader label="Produkt (z katalogu)" title={PRODUCT.name} description={PRODUCT.priceStatus} />
+          <PortalCardHeader label={t('agency.purchase.demoOffer', 'Demo offer')} title={offer.name} description={t('agency.purchase.noCharge', 'Demo only. No money is charged and no paid agent calls are authorized.')} />
           <dl className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
-            <div><dt className="text-muted-foreground">SKU</dt><dd>{PRODUCT.sku}</dd></div>
-            <div><dt className="text-muted-foreground">Cena netto</dt><dd>{PRODUCT.priceNet} {PRODUCT.currency}</dd></div>
-            <div><dt className="text-muted-foreground">Zakres</dt><dd>1 marka · 1 rynek · 1 język · 1 kanał</dd></div>
-            <div><dt className="text-muted-foreground">Poprawki</dt><dd>bez limitu w zakresie</dd></div>
+            <div><dt className="text-muted-foreground">{t('agency.order.sku')}</dt><dd>{offer.sku}</dd></div>
+            <div><dt className="text-muted-foreground">{t('agency.purchase.testAmount', 'Test amount')}</dt><dd>{offer.amount} {offer.currency}</dd></div>
+            <div><dt className="text-muted-foreground">{t('agency.order.scope')}</dt><dd>{t('agency.order.scopeValue')}</dd></div>
+            <div><dt className="text-muted-foreground">{t('agency.order.revisions')}</dt><dd>{t('agency.order.revisionsValue')}</dd></div>
           </dl>
         </PortalCard>
 
         <PortalCard>
-          <PortalCardHeader title="Marka i rynek" />
+          <PortalCardHeader title={t('agency.order.brandMarket')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="brandDisplayName" label="Nazwa marki" value={form.brandDisplayName} onChange={set('brandDisplayName')} required />
-            <Field id="brandWebsiteUrl" label="Adres WWW" value={form.brandWebsiteUrl} onChange={set('brandWebsiteUrl')} required type="url" placeholder="https://" />
-            <Field id="market" label="Rynek" value={form.market} onChange={set('market')} required placeholder="np. Polska" />
-            <Field id="language" label="Język komunikacji" value={form.language} onChange={set('language')} required placeholder="np. polski" />
+            <Field id="brandDisplayName" label={t('agency.order.brandName')} value={form.brandDisplayName} onChange={set('brandDisplayName')} required />
+            <Field id="brandWebsiteUrl" label={t('agency.order.website')} value={form.brandWebsiteUrl} onChange={set('brandWebsiteUrl')} required type="url" placeholder="https://" />
+            <Field id="market" label={t('agency.order.market')} value={form.market} onChange={set('market')} required placeholder={t('agency.order.countryPlaceholder')} />
+            <Field id="language" label={t('agency.order.language')} value={form.language} onChange={set('language')} required placeholder={t('agency.order.languagePlaceholder')} />
           </div>
         </PortalCard>
 
         <PortalCard>
-          <PortalCardHeader title="Kontakt kupującego" />
+          <PortalCardHeader title={t('agency.order.buyerContact')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="contactName" label="Osoba decyzyjna" value={form.contactName} onChange={set('contactName')} required />
-            <Field id="contactEmail" label="E-mail" value={form.contactEmail} onChange={set('contactEmail')} required type="email" />
+            <Field id="contactName" label={t('agency.order.decisionMaker')} value={form.contactName} onChange={set('contactName')} required />
+            <Field id="contactEmail" label={t('agency.order.email')} value={form.contactEmail} onChange={set('contactEmail')} required type="email" />
           </div>
         </PortalCard>
 
         <PortalCard>
-          <PortalCardHeader title="Dane nabywcy do rozliczenia" />
+          <PortalCardHeader title={t('agency.order.billing')} />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="billingBuyerType">Typ nabywcy <span className="text-destructive">*</span></Label>
+              <Label htmlFor="billingBuyerType">{t('agency.order.buyerType')} <span className="text-destructive">*</span></Label>
               <select
                 id="billingBuyerType"
                 className="h-9 rounded-md border border-input bg-background px-3 text-sm"
                 value={form.billingBuyerType}
                 onChange={(event) => setForm((prev) => ({ ...prev, billingBuyerType: event.target.value as BuyerType }))}
               >
-                <option value="company">Firma</option>
-                <option value="individual">Osoba prywatna</option>
+                <option value="company">{t('agency.order.company')}</option>
+                <option value="individual">{t('agency.order.individual')}</option>
               </select>
             </div>
-            <Field id="billingLegalName" label="Nazwa prawna nabywcy" value={form.billingLegalName} onChange={set('billingLegalName')} required />
-            <Field id="billingCountry" label="Kraj" value={form.billingCountry} onChange={set('billingCountry')} required placeholder="np. Polska" />
-            <Field id="billingTaxId" label={form.billingBuyerType === 'company' ? 'NIP' : 'NIP (nie dotyczy)'} value={form.billingTaxId} onChange={set('billingTaxId')} required={form.billingBuyerType === 'company'} />
+            <Field id="billingLegalName" label={t('agency.order.legalName')} value={form.billingLegalName} onChange={set('billingLegalName')} required />
+            <Field id="billingCountry" label={t('agency.order.country')} value={form.billingCountry} onChange={set('billingCountry')} required placeholder={t('agency.order.countryPlaceholder')} />
+            <Field id="billingTaxId" label={form.billingBuyerType === 'company' ? t('agency.order.taxId') : t('agency.order.taxIdNotApplicable')} value={form.billingTaxId} onChange={set('billingTaxId')} required={form.billingBuyerType === 'company'} />
             <div className="sm:col-span-2">
-              <Field id="billingAddress" label="Adres rozliczeniowy" value={form.billingAddress} onChange={set('billingAddress')} required />
+              <Field id="billingAddress" label={t('agency.order.billingAddress')} value={form.billingAddress} onChange={set('billingAddress')} required />
             </div>
           </div>
         </PortalCard>
 
         <PortalCard>
-          <PortalCardHeader title="Oficjalny profil społecznościowy (opcjonalnie)" description="Jeden profil marki do audytu, jeśli istnieje." />
-          <Field id="officialSocialUrl" label="Link do profilu" value={form.officialSocialUrl} onChange={set('officialSocialUrl')} type="url" placeholder="https://" />
+          <PortalCardHeader title={t('agency.order.social')} description={t('agency.order.socialHint')} />
+          <Field id="officialSocialUrl" label={t('agency.order.socialLink')} value={form.officialSocialUrl} onChange={set('officialSocialUrl')} type="url" placeholder="https://" />
         </PortalCard>
 
         <PortalCard>
-          <PortalCardHeader title="Cel w jednym zdaniu (opcjonalnie)" description="Wstępne oczekiwanie — nie zatwierdzony brief." />
+          <PortalCardHeader title={t('agency.order.goal')} description={t('agency.order.goalHint')} />
           <Textarea
             id="purchaseGoal"
             value={form.purchaseGoal}
             maxLength={GOAL_MAX}
             onChange={(event) => set('purchaseGoal')(event.target.value)}
             rows={3}
-            placeholder="np. uporządkować komunikację przed nową ofertą"
+            placeholder={t('agency.order.goalPlaceholder')}
           />
           <p className="mt-1 text-right text-xs text-muted-foreground">{goalLeft}/{GOAL_MAX}</p>
         </PortalCard>
 
+        <PortalCard>
+          <PortalCardHeader title={t('agency.purchase.terms', 'Demo terms')} description={`${t('agency.purchase.termsVersion', 'Terms version')}: ${offer.termsVersion} · ${t('agency.purchase.offerVersion', 'Offer version')}: ${offer.offerVersion}`} />
+          <p className="whitespace-pre-wrap text-sm">{locale === 'pl' ? offer.terms.pl : offer.terms.en}</p>
+        </PortalCard>
         <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            className="mt-0.5 h-4 w-4"
-            checked={form.acceptTerms}
-            onChange={(event) => setForm((prev) => ({ ...prev, acceptTerms: event.target.checked }))}
-          />
-          <span>
-            Potwierdzam stałe warunki produktu {PRODUCT.name} (1 marka · 1 rynek · 1 język · 1 kanał;
-            poprawki bez limitu w zakresie; cena {PRODUCT.priceNet} {PRODUCT.currency} netto).
-          </span>
+          <input type="checkbox" className="mt-0.5 h-4 w-4" checked={form.acceptTerms} disabled={!offer.enabled || busy}
+            onChange={(event) => setForm((prev) => ({ ...prev, acceptTerms: event.target.checked }))} />
+          <span>{t('agency.purchase.acceptTerms', 'I accept the exact demo terms shown above. No money will be charged.')} ({offer.termsVersion})</span>
         </label>
 
         <div className="flex justify-between">
-          <Link href={`/${orgSlug}/portal/agency`}><Button type="button" variant="outline">Wróć</Button></Link>
-          <Button type="submit" size="lg">Złóż zamówienie</Button>
+          <Link href={`/${orgSlug}/portal/agency`}><Button type="button" variant="outline">{t('agency.order.back')}</Button></Link>
+          <Button type="submit" size="lg" disabled={!offer.enabled || busy}>{t('agency.purchase.start', 'Create demo order — no charge')}</Button>
         </div>
       </form>
     </div>

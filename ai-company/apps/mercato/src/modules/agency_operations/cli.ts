@@ -7,6 +7,8 @@ import { configureAgencyAnalysisProcess } from './lib/analysisProcess'
 import { configureEmployeeQuestionWorkflow } from './lib/employeeQuestions/configure'
 import { configurePlanReviewWorkflow } from './lib/planReview/configure'
 import { configurePostReviewWorkflow } from './lib/postReview/configure'
+import { configureDemoPurchase } from './lib/orderBootstrap/configure'
+import { configureDemoPurchaseWorkflow } from './lib/orderBootstrap/workflow'
 
 const configureTov: ModuleCli = {
   command: 'configure-tov',
@@ -118,4 +120,24 @@ const configurePostReview: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview]
+const configurePurchase: ModuleCli = {
+  command: 'configure-demo-purchase',
+  async run(argv) {
+    const options = new Map<string, string>()
+    for (let index = 0; index < argv.length; index += 2) {
+      if (!['--tenant', '--organization', '--user'].includes(argv[index]) || !argv[index + 1]) {
+        throw new Error('[internal] Usage: agency_operations configure-demo-purchase --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>')
+      }
+      options.set(argv[index].slice(2), argv[index + 1])
+    }
+    const input = { tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user') }
+    const container = await createRequestContainer()
+    try {
+      const configuration = await configureDemoPurchase(container, input)
+      const workflow = await configureDemoPurchaseWorkflow(container, input)
+      process.stdout.write(`${JSON.stringify({ configuration, workflow })}\n`)
+    } finally { await container.dispose() }
+  },
+}
+
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase]

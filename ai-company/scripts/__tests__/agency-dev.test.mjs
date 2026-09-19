@@ -3,6 +3,15 @@ import test from 'node:test'
 import path from 'node:path'
 import { agencyEnvironment, assertUnpaidDemoEnvironment } from '../agency-dev.mjs'
 
+test('journey selection reuses the same runner and keeps demo purchasing explicit', () => {
+  assert.match(agencyEnvironment({}).OM_INTEGRATION_EXACT_SPEC, /TC-AGENCY-001-/)
+  const purchase = agencyEnvironment({}, { AGENCY_TEST_JOURNEY: 'purchase', OM_AGENCY_DEMO_PURCHASE_ENABLED: '1' })
+  assert.match(purchase.OM_INTEGRATION_EXACT_SPEC, /TC-AGENCY-003-/)
+  assert.equal(purchase.OM_AGENCY_DEMO_PURCHASE_ENABLED, '1')
+  assert.equal(agencyEnvironment({}).OM_AGENCY_DEMO_PURCHASE_ENABLED, 'false')
+  assert.throws(() => agencyEnvironment({}, { AGENCY_TEST_JOURNEY: '../other' }), /AGENCY_TEST_JOURNEY/)
+})
+
 test('app and fixtures share isolated persistent DB, queue, cache, attachments and secrets', () => {
   const inherited = { DATABASE_URL: 'postgres://shared/team', JWT_SECRET: 'different', QUEUE_BASE_DIR: 'shared-queue' }
   const app = agencyEnvironment(inherited)

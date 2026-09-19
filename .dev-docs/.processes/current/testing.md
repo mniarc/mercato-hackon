@@ -30,6 +30,20 @@ These are local demo credentials, not production credentials or live model keys.
 Use `localhost` for the browser and runner: this dev-server configuration rejects
 dynamic script requests from `127.0.0.1` with 403, leaving forms unhydrated.
 
+For the approved zero-charge purchase journey, set
+`OM_AGENCY_DEMO_PURCHASE_ENABLED=1` in the app and runner terminals, and set
+`AGENCY_TEST_JOURNEY=purchase` in the runner before `yarn test:agency:headed`.
+The test provisions its native demo catalog/payment configuration. For manual
+use, run `node scripts/agency-dev.mjs cli agency_operations configure-demo-purchase
+--tenant <tenant-id> --organization <organization-id> --user <staff-user-id>`
+with the same flag and an authorized staff user, then open the existing portal
+offer/order page. The server pins 2,500 PLN and versioned demo terms; the native
+mock gateway charges no money. Confirmation creates one case waiting for
+execution, not automatic paid research or completed fulfilment. Production
+purchase remains disabled. The development runner allows cold-page hydration
+and its first API call 60 seconds, with navigation bounded at 120 seconds;
+these are ceilings, not sleeps or automatic retries.
+
 First start initializes only an empty database, with platform defaults but without
 optional example datasets. `Ctrl+C` stops the app while the database remains
 available for the next start. `yarn dev:agency:setup` is explicit
@@ -76,8 +90,15 @@ fixtures and workers: database, queue, auth/encryption configuration, and base
 URL. Setting only `BASE_URL` can silently send fixtures to another database.
 Use the maintained runner, exact-spec discovery, one worker, and zero retries.
 Tests create and clean up only their own fixtures, leaving manual demo data alone.
-Prefer one cross-surface journey; keep detailed access/data assertions in focused
-tests. Report coarse progress steps, not polling noise.
+Journeys prove real user outcomes across real UI, API, workflow and persistence.
+Fixtures may substitute worker intelligence and source material, never saved
+approvals or producer successes; those must come through the real application path.
+Keep one final persistence check for the outcome, not duplicate checkpoints.
+Exercise distinct retry behavior only when justified by an actual observed bug;
+do not confuse that scenario with automatically retrying a failed journey.
+Keep detailed contract and access assertions in focused tests outside the browser.
+Diagnose failures before changing assertions or fixture data; do not mirror
+internal field shapes as the journey's contract. Report coarse progress, not polling noise.
 
 `test:agency:demo` saves numbered screenshots at meaningful user-visible
 checkpoints and attaches them to the Playwright HTML report. Report the run result,
