@@ -162,7 +162,8 @@ Expected live cost beyond 4.2: ≈ 9 Sonnet + 3 Haiku calls (P5–P7) plus repai
 `document-versions`, `task-runs` (staff, `agency_research.documents.view`) and the portal route
 `GET /api/agency_research/portal/brief?order_ref=` (customer JWT; returns only the client view and the ≤8
 questions — the surface Krysia's portal renders; ownership hook `assertCustomerOwnsOrder` is a TODO until orders
-are persisted). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
+are persisted) and `GET /api/agency_research/portal/documents?order_ref=[&output=KLI-STRATEGIA|KLI-TOV|KLI-PLAN|KLI-POST|KLI-PAKIET]`
+(the list of the order's client documents with status / version / `simulation`, or one document's client view). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
 `WZR-PLAN`, `WZR-POST` and `WZR-PAKIET` (questions only for the brief).
 
 One-page map of the whole chain, the agents and what is stored: [`WORKFLOW.md`](./WORKFLOW.md).

@@ -12,6 +12,11 @@ export const features = [
     module: 'agency_research',
   },
   {
+    id: 'agency_research.portal.documents.view',
+    title: 'Read own strategy, tone of voice, plan, post and package in the customer portal',
+    module: 'agency_research',
+  },
+  {
     id: 'agency_research.documents.view',
     title: 'View stored research documents, versions and sources',
     module: 'agency_research',
