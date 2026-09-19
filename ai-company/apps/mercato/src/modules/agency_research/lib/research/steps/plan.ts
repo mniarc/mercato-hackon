@@ -284,10 +284,17 @@ const finding = (code: QaFinding['code'], path: string, gap: string, owner: QaFi
  * every id stored, readiness backed by evidence, a recommendation that is a ready
  * topic, and no numeric promise without a measured / external proof card.
  */
+const NUMERIC_EFFECT = /\b\d+\s?(%|proc\.|percent|razy|x\b|godzin|dni|tygodni|weeks|days|hours)/gi
+
 export function planValidatorFindings(args: { plan: PlanData; strategia: StrategiaData; zrodla: ZrodlaData; topicCount: number }): QaFinding[] {
   const { plan, strategia, zrodla, topicCount } = args
   const findings: QaFinding[] = []
   const known = knownPlanIds(strategia, zrodla)
+  const allowedNumbers = new Set(
+    [...strategia.proof_architecture.map((row) => row.allowed_claim), strategia.uvp.working_sentence, strategia.message_hierarchy.main_promise.text].flatMap((text) =>
+      (text.match(NUMERIC_EFFECT) ?? []).map((m) => m.replace(/\s+/g, '').toLowerCase()),
+    ),
+  )
   if (plan.topics.length !== topicCount) findings.push(finding('limit_exceeded', 'KLI-PLAN.topics', `${plan.topics.length} topics; the pinned offer has ${topicCount}`))
   const days = plan.topics.map((topic) => topic.day)
   if (new Set(days).size !== days.length) findings.push(finding('contradiction', 'KLI-PLAN.topics', 'two topics share a day'))
@@ -304,7 +311,10 @@ export function planValidatorFindings(args: { plan: PlanData; strategia: Strateg
     if (topic.seed_ids.length + topic.fact_ids.length === 0) findings.push(finding('unsourced_claim', path, 'topic cites no seed or fact'))
     if (topic.readiness === 'ready' && topic.fact_ids.length === 0 && topic.seed_ids.length === 0) findings.push(finding('unsourced_claim', `${path}.readiness`, 'ready without evidence'))
     if (topic.angle.steps.length === 0 && topic.angle.example === null) findings.push(finding('other', `${path}.angle`, 'angle has neither steps nor an example — not concrete enough to write from', 'agent', 'major'))
-    const numeric = /\b\d+\s?(%|proc\.|percent|razy|x\b|godzin|dni|tygodni|weeks|days|hours)/i.test(`${topic.main_message} ${topic.evidence_excerpt} ${topic.post_goal}`)
+    // A number the strategy already allows as a claim (the client's "80% done" thesis, capped at declared_method with
+    // its limitations) is the strategy's responsibility; the plan needs measured proof only for numbers of its own.
+    const numbers = (`${topic.main_message} ${topic.evidence_excerpt} ${topic.post_goal}`.match(NUMERIC_EFFECT) ?? []).map((m) => m.replace(/\s+/g, '').toLowerCase())
+    const numeric = numbers.some((n) => !allowedNumbers.has(n))
     const measured = topic.proof_ids.some((id) => {
       const card = zrodla.proof_cards.find((proof) => proof.proof_id === id)
       return card?.proof_type === 'measured_case' || card?.proof_type === 'external_confirmation'

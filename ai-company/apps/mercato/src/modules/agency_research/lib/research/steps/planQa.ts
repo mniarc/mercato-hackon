@@ -82,7 +82,8 @@ export async function runPlanQa(opts: PlanQaOptions): Promise<PlanQaResult & { s
     input: {
       order: { brand: opts.order.brand, market: opts.order.market, language: opts.order.language, websiteUrl: opts.order.websiteUrl, purchaseGoal: opts.order.purchaseGoal, sku: opts.order.sku },
       outputLanguage: opts.outputLanguage,
-      plan: opts.plan,
+      // Version labels move on every rerun and say nothing about quality; without them the verdict replays from cache.
+      plan: { ...opts.plan, plan_context: { ...opts.plan.plan_context, versions: {} } },
       pillars: opts.strategia.pillars.map((p) => ({ pillar_id: p.pillar_id, area: p.area, audience_question: p.audience_question })),
       seeds: opts.zrodla.content_bank.map((s) => ({ seed_id: s.seed_id, audience_question: s.audience_question, source_claim: s.source_claim.text, readiness: s.readiness })),
       audience: opts.plan.plan_context.audience,
