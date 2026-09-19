@@ -1,4 +1,13 @@
 {
+  "agencyOperations.cases.process.postExecution.title": "Saved post and editor outcome",
+  "agencyOperations.cases.process.postExecution.completed": "Post authoring and editor checks finished. See the saved QA verdict.",
+  "agencyOperations.cases.process.postExecution.paused_budget": "Post production paused at the configured spending limit.",
+  "agencyOperations.cases.process.postExecution.execution_incomplete": "Post production has no complete saved outcome.",
+  "agencyOperations.cases.process.postExecution.not_configured": "Post production was not enabled or configured.",
+  "agencyOperations.cases.process.postExecution.not_ready": "Post production prerequisites were not ready.",
+  "agencyOperations.cases.process.postExecution.readyForReview": "Saved QA marked this version ready for client review.",
+  "agencyOperations.cases.process.postExecution.notReadyForReview": "This saved post result is not ready for client review.",
+  "agencyOperations.cases.process.postExecution.noApproval": "A post or editor result is not client approval or consent to publish.",
   "agencyOperations.cases.process.postInstruction.title": "Saved post instruction",
   "agencyOperations.cases.process.postInstruction.ready": "The instruction was saved for the client-selected topic.",
   "agencyOperations.cases.process.postInstruction.not_ready": "The post instruction could not be prepared.",

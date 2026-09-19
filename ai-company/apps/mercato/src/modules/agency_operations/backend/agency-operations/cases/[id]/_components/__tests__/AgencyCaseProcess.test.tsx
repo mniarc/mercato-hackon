@@ -190,3 +190,22 @@ test.each([
   }
   expect(apiCall).toHaveBeenCalledTimes(1)
 })
+
+test('shows the saved post and editor exception without presenting completed execution as ready or approved', async () => {
+  const postExecution = {
+    status: 'completed', orderRef: 'case-id', instructionVersionId: 'instruction-v1', selectionSubmissionId: 'submission-id',
+    taskRunIds: ['author-task', 'editor-task'], documentVersionIds: ['post-v2'], agentRunIds: ['author-run', 'editor-run'],
+    spentPln: 0.5, postVersionId: 'post-v2', qaTaskRunId: 'editor-task', qaVerdict: 'needs_fix', readyForReview: false,
+    escalationVersionId: 'editor-exception-v1',
+  }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postExecution }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.postExecution.completed')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postExecution.notReadyForReview')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postExecution.noApproval')).toBeTruthy()
+  expect(screen.queryByText('agencyOperations.cases.process.postExecution.readyForReview')).toBeNull()
+  expect(screen.getByText(JSON.stringify(postExecution))).toBeTruthy()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})

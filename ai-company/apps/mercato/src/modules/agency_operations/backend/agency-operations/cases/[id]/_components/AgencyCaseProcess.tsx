@@ -172,6 +172,17 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.postInstruction} title={translate(`${key}.postInstruction.title`)} />
               </div>
             ) : null}
+            {submission.postExecution ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.postExecution.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.postExecution.${submission.postExecution.status}`)}</p>
+                {submission.postExecution.status === 'completed' || submission.postExecution.status === 'paused_budget' ? (
+                  <p className="text-sm">{translate(`${key}.postExecution.${submission.postExecution.readyForReview ? 'readyForReview' : 'notReadyForReview'}`)}</p>
+                ) : 'reason' in submission.postExecution ? <p className="text-sm text-muted-foreground">{submission.postExecution.reason}</p> : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.postExecution.noApproval`)}</p>
+                <JsonDisplay data={submission.postExecution} title={translate(`${key}.postExecution.title`)} />
+              </div>
+            ) : null}
             {submission.tasks.map((task) => (
               <div key={task.id} className="flex flex-wrap items-center gap-2">
                 <Button type="button" asChild variant="outline">

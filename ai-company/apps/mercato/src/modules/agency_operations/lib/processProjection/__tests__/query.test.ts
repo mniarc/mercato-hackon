@@ -289,3 +289,30 @@ test('projects the saved post instruction for this native case and exact selecti
   saved.context = {}
   expect(projectSubmissionProcess(submission, saved, []).postInstruction).toBeNull()
 })
+
+test('projects saved post/editor references only for the native case and exact topic decision', () => {
+  const outcome = {
+    status: 'completed', orderRef: caseId, instructionVersionId: 'instruction-v1', selectionSubmissionId: submissionId,
+    taskRunIds: ['author-task', 'editor-task'], documentVersionIds: ['post-v2'], agentRunIds: ['author-run', 'editor-run'],
+    spentPln: 0.5, postVersionId: 'post-v2', qaTaskRunId: 'editor-task', qaVerdict: 'needs_fix', readyForReview: false,
+    escalationVersionId: 'editor-exception-v1',
+  }
+  const saved = workflow('post_production', {}, 'COMPLETED')
+  for (const status of ['completed', 'paused_budget']) {
+    saved.context = { agencyPostExecution: { result: { ...outcome, status } } }
+    expect(projectSubmissionProcess(submission, saved, []).postExecution).toEqual({ ...outcome, status })
+    saved.context = { agencyPostExecution: { result: { ...outcome, status, selectionSubmissionId: customerEntityId } } }
+    expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
+  }
+  saved.context = { agencyPostExecution: { result: { ...outcome, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
+  saved.context = { agencyPostExecution: { result: outcome } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
+  saved.workflowId = NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
+  saved.context = { agencyPostInstruction: { result: { status: 'ready', orderRef: caseId } } }
+  expect(projectSubmissionProcess(submission, saved, []).postExecution).toBeNull()
+  const disabled = { status: 'not_configured', orderRef: caseId, reason: 'execution_disabled' }
+  saved.context = { agencyPostExecution: { result: disabled } }
+  expect(projectSubmissionProcess(submission, saved, []).postExecution).toEqual(disabled)
+})

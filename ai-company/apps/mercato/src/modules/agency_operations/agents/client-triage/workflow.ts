@@ -7,6 +7,7 @@ import { STRATEGY_EXECUTION_FUNCTION, STRATEGY_EXECUTION_RESULT_KEY, STRATEGY_EX
 import { STRATEGY_PAIR_CONTINUATION_FUNCTION, STRATEGY_PAIR_CONTINUATION_RESULT_KEY } from '../../lib/strategyPairApproval/contracts'
 import { PLANNING_EXECUTION_FUNCTION, PLANNING_EXECUTION_RESULT_KEY, PLANNING_EXECUTION_STEP_ID, PLAN_REVIEW_HANDOFF_FUNCTION } from '../../lib/planningExecution/contracts'
 import { POST_INSTRUCTION_FUNCTION, POST_INSTRUCTION_RESULT_KEY } from '../../lib/planApproval/contracts'
+import { POST_EXECUTION_FUNCTION, POST_EXECUTION_RESULT_KEY, POST_EXECUTION_STEP_ID } from '../../lib/postExecution/contracts'
 
 export const NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID = 'agency_operations.client-submission.native.v1'
 export const PREPARE_CLIENT_TRIAGE_FUNCTION = 'agency_operations.prepareClientTriage'
@@ -47,7 +48,8 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: PLANNING_EXECUTION_STEP_ID, stepName: 'Planning phase outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'plan_review', stepName: 'Plan review handoff recorded', stepType: 'END' },
     { stepId: 'plan_topic_decision', stepName: 'Plan acceptance and topic choice recorded', stepType: 'AUTOMATED' },
-    { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'END' },
+    { stepId: 'post_instruction', stepName: 'Post instruction readiness recorded', stepType: 'AUTOMATED' },
+    { stepId: POST_EXECUTION_STEP_ID, stepName: 'Post author and editor outcome recorded', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'END' },
@@ -104,6 +106,10 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { transitionId: 'build_post_instruction', fromStepId: 'plan_topic_decision', toStepId: 'post_instruction', trigger: 'auto',
       activities: [{ activityId: 'build_post_instruction', activityName: POST_INSTRUCTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
         config: { functionName: POST_INSTRUCTION_FUNCTION, args: {} } }] },
+    { transitionId: 'execute_post', fromStepId: 'post_instruction', toStepId: POST_EXECUTION_STEP_ID, trigger: 'auto',
+      activities: [{ activityId: 'execute_post', activityName: POST_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
+        retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
+        config: { functionName: POST_EXECUTION_FUNCTION, args: {} } }] },
     { transitionId: 'unapplied', fromStepId: 'routed', toStepId: 'unapplied', trigger: 'auto', priority: 10, condition: { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: 'unapplied' } },
     { transitionId: 'reply_received', fromStepId: 'client_reply', toStepId: 'reply_received', trigger: 'auto' },
   ],

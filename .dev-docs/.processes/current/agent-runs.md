@@ -153,9 +153,17 @@ A QA-ready plan creates a native customer review task. Its response goes through
 G before saving plan approval and one explicit topic choice. That saved decision
 feeds the teammate's deterministic post-instruction compiler (no model call);
 employees can see the selected topic, exact instruction or blocking reason.
-This does not generate a post or grant publication consent. Older configured
+Post production additionally requires `postExecution: { "maxCostPln": <explicit-positive-cap> }`
+on the original analysis policy and the execution flag below. It runs only the
+teammate author/editor against the exact instruction, selected topic and accepted
+ToV. Repairs stay within that run; duplicate handoffs replay its saved outcome.
+Employees see the post/QA references, budget pause or exception. This does not
+grant client approval or publication consent. Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
+On Windows, send workflow JSON as UTF-8 (Node `fetch` or explicit UTF-8 bytes);
+PowerShell's default request encoding can corrupt Polish labels. Compare the
+saved definition with the source after native schema normalization.
 For an existing installation, initialize the plan-review task definition without
 enabling paid analysis using `node scripts/agency-dev.mjs cli agency_operations
 configure-plan-review --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>`.

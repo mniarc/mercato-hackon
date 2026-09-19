@@ -27,10 +27,12 @@ import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID 
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
 import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
 import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
+import { createPlanReviewFixture, deletePlanReviewFixture, type PlanReviewFixture } from './support/planReview'
 
 export const integrationMeta = {
   dependsOnModules: [
     'agency_operations',
+    'agency_research',
     'attachments',
     'auth',
     'customer_accounts',
@@ -223,9 +225,9 @@ async function loginEmployee(
   await expect(page).toHaveURL(/\/backend(?:\/.*)?$/, { timeout: 20_000 })
 }
 
-test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
-  test.use({ trace: 'retain-on-failure' })
+test.use({ trace: 'retain-on-failure' })
 
+test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
   let cleanupCurrentRun: (() => Promise<void>) | undefined
 
   test.afterEach(async ({}, testInfo) => {
@@ -267,6 +269,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     const provider = process.env.AGENCY_TEST_NATIVE_TRIAGE === '1' ? await startNativeTriageProvider() : null
     let nativeRecovery: { workflowInstanceId: string; submissionId: string } | null = null
     let briefReview: BriefReviewFixture | null = null
+    let planReview: PlanReviewFixture | null = null
     let resources: CreatedResources = {
       caseId: null,
       attachmentId: null,
@@ -280,6 +283,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             () => resources,
           )
         }
+        if (planReview) await deletePlanReviewFixture(planReview)
         if (briefReview) await deleteBriefReviewFixture(briefReview)
         await deleteAttachmentIfExists(request, adminToken, resources.attachmentId)
         await deleteCreatedDatabaseRows(resources, tenantId, organizationId)
@@ -574,6 +578,57 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await capture('brief-response-received')
       })
 
+      if (provider) {
+        await runDemoPhase('Approve plan and choose a topic', 'Exact plan choice compiled into a saved post instruction', async () => {
+          planReview = await createPlanReviewFixture({ brief: briefReview!, userId: provisioningUserId, customerUserId: customerUserId! })
+          provider.allowPlanApproval({ documentId: planReview.documentId, versionId: planReview.versionId,
+            taskId: planReview.taskId, selectedTopicId: planReview.selectedTopicId })
+          await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${planReview.taskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+          await expect(page.getByRole('heading', { name: 'Review your content plan', exact: true })).toBeVisible()
+          expect(planReview.selectedTopicId).not.toBe(planReview.recommendedTopicId)
+          await page.getByRole('checkbox', { name: 'I approve this exact plan version', exact: true }).check()
+          await page.locator('[data-crud-field-id="selectedTopicId"]').getByRole('combobox').click()
+          await page.getByRole('option', { name: new RegExp(`\\(${planReview.selectedTopicId}\\)$`) }).click()
+          await capture('plan-explicit-topic-choice')
+          const endpoint = `/api/agency/plan-reviews/${planReview.taskId}`
+          const received = page.waitForResponse((response) => new URL(response.url()).pathname === endpoint && response.request().method() === 'POST')
+          await page.getByRole('button', { name: 'Send response', exact: true }).click()
+          const response = await received
+          expect(response.ok(), await response.text()).toBeTruthy()
+          const receipt = await response.json() as { requestId: string; status: string }
+          expect(receipt.status).toBe('response_received')
+          await drainIntegrationQueue('workflow-invoke-agent')
+          const plan = planReview
+          await expect.poll(async () => withClient(async (client) => {
+            const rows = await client.query<{ status: string; summary: { result?: unknown } }>(
+              "SELECT status,summary FROM agency_research_task_runs WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND step_id='6.7' ORDER BY created_at DESC LIMIT 1",
+              [tenantId, organizationId, intakeResult.caseId])
+            return rows.rows[0]
+          }), { timeout: 30_000 }).toMatchObject({ status: 'done', summary: { result: {
+            status: 'ready', planVersionId: plan.versionId, selectedTopicId: plan.selectedTopicId, selectionSubmissionId: receipt.requestId,
+          } } })
+          const saved = await withClient(async (client) => {
+            const approved = await client.query<{ approval_records: unknown[] }>(
+              'SELECT approval_records FROM agency_research_document_versions WHERE id=$1 AND tenant_id=$2 AND organization_id=$3 AND order_ref=$4',
+              [plan.versionId, tenantId, organizationId, intakeResult.caseId])
+            const instruction = await client.query<{ data: unknown; input_versions: unknown[]; simulation_flag: boolean; approval_records: unknown[] }>(
+              "SELECT data,input_versions,simulation_flag,approval_records FROM agency_research_document_versions WHERE tenant_id=$1 AND organization_id=$2 AND order_ref=$3 AND template_id='WZR-ZLECENIE-POSTU' ORDER BY version_no DESC LIMIT 1",
+              [tenantId, organizationId, intakeResult.caseId])
+            return { approved: approved.rows[0], instruction: instruction.rows[0] }
+          })
+          expect(saved.approved.approval_records).toEqual(expect.arrayContaining([expect.objectContaining({
+            documentVersionId: plan.versionId, selectedTopicId: plan.selectedTopicId, approvePlan: true,
+            source: expect.objectContaining({ submissionId: receipt.requestId, invitationTaskId: plan.taskId }),
+          })]))
+          expect(saved.instruction).toMatchObject({ data: { selected_item: { topic_id: plan.selectedTopicId } }, simulation_flag: false, approval_records: [] })
+          expect(saved.instruction.input_versions).toEqual(expect.arrayContaining([
+            expect.objectContaining({ document_id: `KLI-PLAN@${intakeResult.caseId}`, version: plan.version }),
+          ]))
+          expect(provider.calls.filter((call) => call.disposition === 'approve')).toHaveLength(1)
+          await capture('plan-response-compiled')
+        })
+      }
+
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
         await loginEmployee(page, employeeEmail, employeePassword, capture)
         await capture('employee-signed-in')
@@ -623,7 +678,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           await page.getByTestId('task-decision-obstacle_resolved').click()
           await drainIntegrationQueue('workflow-invoke-agent')
           await pollWorkflowInstance(request, adminToken, nativeRecovery.workflowInstanceId, (instance) => instance.status === 'COMPLETED' && instance.currentStepId === 'answered')
-          expect(provider.calls).toHaveLength(3)
+          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(1)
           const duplicate = await page.request.post(new URL(`/api/workflows/tasks/${task!.id}/complete`, BASE_URL).toString(), { data: { decisionId: 'obstacle_resolved', formData: { triageRecoveryReason: 'Repeated', triageRecoveryEvidence: 'Repeated' } } })
           expect(duplicate.ok()).toBe(false)
           const runs = await withClient(async (client) => client.query<{ status: string }>(
@@ -631,7 +686,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             [nativeRecovery!.workflowInstanceId, tenantId, organizationId],
           ))
           expect(runs.rows.map((run) => run.status)).toEqual(['error', 'ok'])
-          expect(provider.calls).toHaveLength(3)
+          expect(provider.calls.filter((call) => call.disposition === 'answer')).toHaveLength(1)
           await capture('native-triage-recovered')
           return
         }

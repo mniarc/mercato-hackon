@@ -31,8 +31,8 @@ export async function configureAgencyAnalysisProcess(container: AppContainer, ra
     throw new Error('[internal] Analysis is already configured; publish a new native workflow version to change its execution policy')
   }
   if (input.policy.through === '4.2') await configureBriefReviewWorkflow(container, input)
-  if (input.policy.strategyExecution || input.policy.planningExecution) await configureStrategyPairReviewWorkflow(container, input)
-  if (input.policy.planningExecution) await configurePlanReviewWorkflow(container, input)
+  if (input.policy.strategyExecution || input.policy.planningExecution || input.policy.postExecution) await configureStrategyPairReviewWorkflow(container, input)
+  if (input.policy.planningExecution || input.policy.postExecution) await configurePlanReviewWorkflow(container, input)
   const result = await authoring.upsertOwnedDefinition(em, {
     ownerModule: 'agency_operations', ownerId: 'analysis', workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
     workflowName: 'Agency analysis', description: 'Case-scoped teammate research with explicitly authorized execution limits; not payment or client approval.',

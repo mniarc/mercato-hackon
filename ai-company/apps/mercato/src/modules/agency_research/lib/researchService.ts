@@ -30,6 +30,7 @@ import { resolveStrategyReadiness } from './strategyReadiness'
 import { readStrategyReview } from './strategyReview/read'
 import { runStrategyExecution, strategyExecutionRequestSchema } from './strategyExecution'
 import { runPlanningExecution, planningExecutionRequestSchema } from './planningExecution'
+import { runPostExecution, postExecutionRequestSchema } from './postExecution'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -392,6 +393,21 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const agentRunIds: string[] = []
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPlanningExecution({
+        em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+      })
+    },
+    async runPostExecution({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] post execution requires an explicit tenant, organization and execution user')
+      const parsed = postExecutionRequestSchema.parse(request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] post execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runPostExecution({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
         runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
       })

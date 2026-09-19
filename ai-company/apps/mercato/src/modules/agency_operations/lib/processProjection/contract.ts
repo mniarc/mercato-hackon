@@ -5,6 +5,7 @@ import { analysisProcessResultSchema } from '../analysisProcess/contracts'
 import { postInstructionExecutionResultSchema, strategyProcessReferenceSchema } from '@/modules/agency_research/lib/contracts'
 import { strategyExecutionActivityResultSchema } from '../strategyExecution/contracts'
 import { planningExecutionActivityResultSchema } from '../planningExecution/contracts'
+import { postExecutionActivityResultSchema } from '../postExecution/contracts'
 
 const strategyDocumentReferenceSchema = z.object({
   documentId: z.string().min(1), versionId: z.string().min(1),
@@ -76,6 +77,7 @@ export const caseProcessSubmissionSchema = z.object({
   strategyPairContinuation: caseStrategyPairContinuationSchema.nullable().optional(),
   planningExecution: planningExecutionActivityResultSchema.nullable().optional(),
   postInstruction: postInstructionExecutionResultSchema.nullable().optional(),
+  postExecution: postExecutionActivityResultSchema.nullable().optional(),
   tasks: z.array(z.object({
     id: z.uuid(),
     status: z.string(),

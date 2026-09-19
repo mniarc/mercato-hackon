@@ -280,11 +280,12 @@ const asIssue = (item: QaFinding): DocumentIssue => ({ code: item.code.toUpperCa
  * and the publication consent are separate records the spine owns.
  */
 export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: StepContext) => Promise<StepOutcome> }): Promise<PostQaLoopResult> {
-  const maxRepairs = limits.content.postRepairAttempts
+  if (ctx.postInputs && !ctx.postOutputs) throw new Error('[internal] Pinned post QA requires its own post output')
+  const maxRepairs = ctx.postQaRepairAttempts ?? limits.content.postRepairAttempts
   const load = async () => {
-    const post = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-POST')
-    const instruction = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZLECENIE-POSTU')
-    const tov = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
+    const post = ctx.postInputs ? ctx.postOutputs!.post : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-POST')
+    const instruction = ctx.postInputs ? ctx.postInputs.instruction : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZLECENIE-POSTU')
+    const tov = ctx.postInputs ? ctx.postInputs.tov : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
     if (!post || !instruction || !tov) throw new Error('[internal] 7.3 needs current KLI-POST, WEW-ZLECENIE-POSTU and KLI-TOV versions')
     const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
     return { post, instruction, tov, inputVersions: [ctx.orderVersion, pin(post), pin(instruction), pin(tov)] }
@@ -311,7 +312,9 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
         onEvent: ctx.onEvent,
       })
       const reviewed = applyEditorReview({ outputLanguage: ctx.order.outputLanguage, post, review: result.review, verdict: result.verdict })
-      const simulation = simulationIssue(current.inputVersions)
+      const simulation = simulationIssue(ctx.postInputs
+        ? current.inputVersions.filter((input) => input.document_id !== current.post.document_id)
+        : current.inputVersions)
       const issues: DocumentIssue[] = [...result.findings.map(asIssue), ...(simulation ? [{ ...simulation, path: 'target.publication_status' }] : [])]
       const view = renderPostClientView({ outputLanguage: ctx.order.outputLanguage, brand: ctx.order.brand, data: reviewed })
       const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
@@ -329,6 +332,12 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
         simulation: simulation !== null,
       })
       savedId = saved.version.id
+      if (ctx.postInputs && ctx.postOutputs) {
+        ctx.postOutputs.post = {
+          document_id: saved.envelope.document_id, version: saved.envelope.version, status: saved.envelope.status,
+          versionId: saved.version.id, data: reviewed,
+        }
+      }
       ctx.documentVersionIds.push(savedId)
     } catch (error) {
       await finishTaskRun(ctx.em, run, { status: error instanceof BudgetPausedError ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })

@@ -1,6 +1,6 @@
 import { createServer } from 'node:http'
 import { z } from 'zod'
-import { clientTriageInterpretationSchema } from '../../agents/client-triage/contract'
+import { clientTriageInterpretationSchema, inputSchema } from '../../agents/client-triage/contract'
 
 export const NATIVE_TRIAGE_FIXTURE_MODEL = 'agency-triage-fixture'
 export const NATIVE_TRIAGE_FIXTURE_TOKEN = 'agency-triage-fixture-only'
@@ -21,7 +21,8 @@ const requestSchema = z.object({
 })
 
 export async function startNativeTriageProvider(port = 5003) {
-  const calls: Array<{ status: number; disposition?: 'answer' | 'clarify' }> = []
+  const calls: Array<{ status: number; disposition?: 'answer' | 'clarify' | 'approve' }> = []
+  let expectedPlan: { documentId: string; versionId: string; taskId: string; selectedTopicId: string } | undefined
   let pendingFailure = false
   const server = createServer(async (request, response) => {
     const send = (status: number, payload: unknown) => {
@@ -42,16 +43,30 @@ export async function startNativeTriageProvider(port = 5003) {
       }
       const parsed = requestSchema.safeParse(JSON.parse(body))
       if (!parsed.success) return fail(400, 'Unexpected model, stream mode, or structured triage request')
-      const input = JSON.stringify(parsed.data.input.filter((message) => message.role === 'user'))
+      const userMessages = parsed.data.input.filter((message) => message.role === 'user')
+      const input = JSON.stringify(userMessages)
+      const planApproval = userMessages.flatMap((message) => typeof message.content === 'string' ? [message.content] : message.content.flatMap((part) => part.text ? [part.text] : []))
+        .some((text) => {
+          if (!expectedPlan) return false
+          try {
+            const candidate = inputSchema.safeParse(JSON.parse(text))
+            if (!candidate.success) return false
+            const original = candidate.data.original
+            const review = original.planReviewResponse
+            return review?.kind === 'approval' && review.approvePlan === true && review.taskId === expectedPlan.taskId
+              && review.plan.documentId === expectedPlan.documentId && review.plan.versionId === expectedPlan.versionId
+              && original.documentVersionReference === expectedPlan.versionId && review.selectedTopicId === expectedPlan.selectedTopicId
+          } catch { return false }
+        })
       const markers = Object.entries(NATIVE_TRIAGE_FIXTURE_MARKERS).filter(([, marker]) => input.includes(marker))
-      if (markers.length !== 1) return fail(400, 'Exactly one explicit triage fixture marker required')
-      const disposition = markers[0][0] as 'answer' | 'clarify'
+      if ((!planApproval && markers.length !== 1) || (planApproval && markers.length)) return fail(400, 'One explicit triage fixture marker or registered exact plan approval required')
+      const disposition = planApproval ? 'approve' : markers[0][0] as 'answer' | 'clarify'
       if (pendingFailure) {
         pendingFailure = false
         return fail(400, 'Deliberate non-retryable triage fixture failure')
       }
       const interpretation = clientTriageInterpretationSchema.parse({
-        parts: [{ intent: 'question', summary: 'Explicit demonstration submission', rationale: 'Deterministic intelligence fixture, not live inference.', needsClarification: disposition === 'clarify', recommendedDisposition: disposition }],
+        parts: [{ intent: planApproval ? 'approval' : 'question', summary: 'Explicit demonstration submission', rationale: 'Deterministic intelligence fixture, not live inference.', needsClarification: disposition === 'clarify', recommendedDisposition: disposition }],
         rationale: 'Deterministic intelligence fixture, not live inference.', recommendedDisposition: disposition,
         responseMessage: disposition === 'clarify' ? 'Which outcome would you like us to work on?' : 'Your submission is available for review.',
       })
@@ -77,6 +92,7 @@ export async function startNativeTriageProvider(port = 5003) {
   return {
     baseUrl: `http://127.0.0.1:${address.port}/v1`, calls,
     failNext: () => { pendingFailure = true },
+    allowPlanApproval: (plan: NonNullable<typeof expectedPlan>) => { expectedPlan = { ...plan } },
     close: () => new Promise<void>((resolve, reject) => {
       server.close((error) => error ? reject(error) : resolve())
       server.closeIdleConnections()

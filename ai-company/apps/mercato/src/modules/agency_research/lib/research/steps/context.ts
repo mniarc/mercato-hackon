@@ -26,6 +26,8 @@ export type PlanningExecutionInputs = {
   konkurencja: StrategyExecutionInput
 }
 export type PlanningExecutionOutputs = { plan: StrategyExecutionInput | null }
+export type PostExecutionInputs = { instruction: StrategyExecutionInput; tov: StrategyExecutionInput }
+export type PostExecutionOutputs = { post: StrategyExecutionInput | null }
 
 /**
  * What every process step receives. A step: loads its pinned inputs through the
@@ -70,6 +72,9 @@ export type StepContext = {
   planningInputs?: PlanningExecutionInputs
   planningOutputs?: PlanningExecutionOutputs
   planningQaRepairAttempts?: number
+  postInputs?: PostExecutionInputs
+  postOutputs?: PostExecutionOutputs
+  postQaRepairAttempts?: number
 }
 
 export type StepOutcome = {
