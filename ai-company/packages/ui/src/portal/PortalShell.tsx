@@ -78,7 +78,99 @@ function LogOutIcon({ className }: { className?: string }) {
   )
 }
 
+function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  )
+}
+
+function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  )
+}
+
+const PORTAL_THEME_STORAGE_KEY = 'om:portal:theme'
+
+/**
+ * Portal light/dark toggle. The design system swaps token values via the `dark`
+ * class on the document element, so switching themes is a matter of adding /
+ * removing that class and persisting the choice per viewer.
+ */
+function PortalThemeToggle({ t }: { t: (key: string, fallback?: string) => string }) {
+  const [isDark, setIsDark] = useState<boolean>(true)
+
+  useEffect(() => {
+    let stored: string | null = null
+    try {
+      stored = window.localStorage.getItem(PORTAL_THEME_STORAGE_KEY)
+    } catch {
+      stored = null
+    }
+    const dark = stored ? stored === 'dark' : document.documentElement.classList.contains('dark')
+    setIsDark(dark)
+    document.documentElement.classList.toggle('dark', dark)
+  }, [])
+
+  const toggle = useCallback(() => {
+    setIsDark((prev) => {
+      const next = !prev
+      document.documentElement.classList.toggle('dark', next)
+      try {
+        window.localStorage.setItem(PORTAL_THEME_STORAGE_KEY, next ? 'dark' : 'light')
+      } catch {
+        // ignore storage failures (private mode, blocked cookies)
+      }
+      return next
+    })
+  }, [])
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      aria-pressed={!isDark}
+    >
+      {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
+      {isDark ? t('portal.nav.themeLight', 'Tryb jasny') : t('portal.nav.themeDark', 'Tryb ciemny')}
+    </button>
+  )
+}
+
 /* ---- Sidebar nav item ---- */
+
+function NavItemIcon({ item }: { item: { icon?: string; href?: string; id?: string } }) {
+  const href = item.href ?? ''
+  let key = item.icon ?? ''
+  if (!key) {
+    if (href.includes('/dashboard')) key = 'grid'
+    else if (href.includes('/materials')) key = 'upload'
+    else if (href.includes('/cases')) key = 'folder'
+    else if (href.includes('/tasks')) key = 'check'
+    else if (href.includes('/profile')) key = 'user'
+    else if (href.includes('/order') || href.includes('/purchases')) key = 'bag'
+    else if (/\/portal\/agency\/?$/.test(href)) key = 'sparkles'
+  }
+  const p = 'size-[18px] shrink-0'
+  const s = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, viewBox: '0 0 24 24', className: p }
+  switch (key) {
+    case 'grid': return (<svg {...s}><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>)
+    case 'sparkles': return (<svg {...s}><path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18 15l.9 2.3L21 18l-2.1.7L18 21l-.9-2.3L15 18l2.1-.7z"/></svg>)
+    case 'upload': return (<svg {...s}><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M4 17v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>)
+    case 'folder': return (<svg {...s}><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>)
+    case 'check': case 'tasks': case 'check-square': case 'clipboard-check': return (<svg {...s}><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>)
+    case 'user': case 'profile': return (<svg {...s}><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>)
+    case 'bag': case 'orders': case 'shopping-bag': return (<svg {...s}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>)
+    case 'clock': return (<svg {...s}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>)
+    case 'shield-check': return (<svg {...s}><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>)
+    default: return (<svg {...s}><circle cx="12" cy="12" r="3.2"/></svg>)
+  }
+}
 
 function SidebarNavItem({
   item,
@@ -104,14 +196,16 @@ function SidebarNavItem({
   if (item.href) {
     return (
       <Link href={item.href} className={cls} data-menu-item-id={item.id} onClick={onClick}>
-        {label}
+        <NavItemIcon item={item as { icon?: string; href?: string; id?: string }} />
+        <span className="truncate">{label}</span>
       </Link>
     )
   }
   if (item.onClick) {
     return (
       <button type="button" className={cls} data-menu-item-id={item.id} onClick={() => { item.onClick?.(); onClick?.() }}>
-        {label}
+        <NavItemIcon item={item as { icon?: string; href?: string; id?: string }} />
+        <span className="truncate">{label}</span>
       </button>
     )
   }
@@ -239,6 +333,7 @@ export function PortalShell({
       labelKey: item.labelKey,
       label: item.label,
       href: item.href,
+      icon: item.icon,
     }))
     return mergeMenuItems(builtIn, injectedMainItems)
   }, [authenticated, autoNavGroups, injectedMainItems])
@@ -251,6 +346,7 @@ export function PortalShell({
       labelKey: item.labelKey,
       label: item.label,
       href: item.href,
+      icon: item.icon,
     }))
     return mergeMenuItems(builtIn, injectedAccountItems)
   }, [authenticated, autoNavGroups, injectedAccountItems])
@@ -396,6 +492,7 @@ export function PortalShell({
             )}
           </div>
         </div>
+        <PortalThemeToggle t={t} />
         <button
           type="button"
           onClick={onLogout}

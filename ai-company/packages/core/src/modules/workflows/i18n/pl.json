@@ -1485,7 +1485,7 @@
   "workflows.portal.tasks.form.submitting": "Przesyłanie…",
   "workflows.portal.tasks.label": "Twoje sprawy",
   "workflows.portal.tasks.loadError": "Nie udało się wczytać Twoich zadań.",
-  "workflows.portal.tasks.nav": "Zadania",
+  "workflows.portal.tasks.nav": "Do akceptacji",
   "workflows.portal.tasks.open": "Czeka na Ciebie",
   "workflows.portal.tasks.overdue": "Po terminie {date}",
   "workflows.portal.tasks.status.CANCELLED": "Anulowane",
