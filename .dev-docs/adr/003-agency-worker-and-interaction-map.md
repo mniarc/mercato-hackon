@@ -8,7 +8,7 @@ Sources: all 102 stories in [user-stories](../../.specs/user-stories).
 Keep replaceable judgment workers under
 `ai-company/apps/mercato/src/modules/agency_operations/agents/<role>/`, with
 `contract.ts`, `prompt.ts`, and `definition.ts` together. Author native
-`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The 10 agency-owned role
+`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The five agency-owned role
 folders below are side-effect-free, disabled scaffolds: importing them must not
 call `defineAgent` or register anything. The root `ai-agents.ts` is the sole native
 registration point. It is empty by default; `OM_AGENCY_TRIAGE_ENABLED=true`
@@ -61,11 +61,10 @@ fetch websites or read attachments.
 | Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card_extractor`, `competitor_synthesizer` → competitor comparison. |
 | Findings and research QA — `agency_research` | F08-1, F08-2, F08-3 | Steps 3.6–3.8: `field_mapper`, `question_writer`, `readiness_assessor`, `research_qa` → findings, QA and code-owned frozen package. |
 | Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: `brief_writer`, `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
-| `strategy-author` | F21-1, F21-2 | Accepted brief + verified evidence + strategy template → strategy proposal; teammate ToV and pair QA follow. |
-| `quality-reviewer` | F23-1, F27-1, F38-1, F38-2 | Exact strategy-pair, plan or delivery artifacts + criteria → findings and proposed correction/readiness; audit/brief QA remain teammate-owned. |
-| `content-planner` | F26-2 | Accepted brief/strategy/ToV + configured topic count → source-backed 30-day, one-channel plan and recommendation. |
-| `post-copywriter` | F30-2 | Exact post instruction + accepted dependencies → one proposed text-post version. |
-| `post-editor` | F31-1, F31-2 | Post + instruction + evidence + channel constraints → QA result, correction, targeted research return, client question, or exception. |
+| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: `strategy_writer`, `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |
+| Content plan and QA — `agency_research` | F26-2, F27-1 | Steps 6.2–6.3: `plan_writer`, `plan_qa` → versioned plan and QA; selection/post instruction are code-owned steps, not another agent. |
+| Post writing/editing — `agency_research` | F30-2, F31-1, F31-2 | Steps 7.2–7.3: `post_author`, `post_editor` → versioned draft and editorial QA; targeted research, customer changes and exceptions still need their real handoffs. |
+| Package checks — `agency_research` code | F38-1, F38-2 | `research/steps/package.ts` + `research/packaging.ts` assemble existing outputs, project verified takeaways and check completeness/closure; no generic agency QA worker or new customer package approval. |
 | `client-triage` | F42-1, F42-2 | Original submission + scoped context → intents/mixed parts, rationale, and uncertainty; authorized routing is separate. |
 | `scope-assessment` | F43-1, F43-2 | Triaged change + pinned offer → in-scope, clarification, outside-scope, or employee-exception proposal; not impact analysis. |
 | `change-impact` | F44-1, F44-2 | In-scope decision + actual dependencies → affected fields/versions/tasks, unchanged parts, and proposed allowed return point. |
@@ -79,18 +78,27 @@ strategy process must bind the accepted brief, strategy proposal, ToV revision,
 and pair QA. The teammate `agency` portal remains the customer surface.
 
 Teammate `agency_research` owns source research, audit, competitor comparison,
-findings/QA, and brief drafting/QA. Agent names in its rows above carry the
-`agency_research.` prefix and are registered by that module's `ai-agents.ts`;
-the five overlapping agency role folders are removed, not aliased or copied.
+findings/QA, brief drafting/QA, strategy/ToV, planning and post production/QA.
+Its publication documents and package checks are deterministic code, not agents.
+Agent names in its rows above carry the `agency_research.` prefix and are
+registered by that module's `ai-agents.ts`.
+The overlapping agency research and production role folders are removed, not
+aliased or copied; only sales explanation, client triage, scope assessment, change
+impact and client communication remain in the agency definition catalog.
 Resolve `agencyResearchService` through its public `lib/contracts/agencyResearch`
 contract. `run` accepts a trusted server identity, scoped order data and `through`
-(`3.2`, `3.5`, `3.8`, or `4.2`); it returns exact task/document/native-run references
-and QA outcomes. `status` exposes persisted progress; `getClientView` exposes the
-customer-safe brief projection. T26/T27 own the agency case/workflow handoffs,
+(`3.2`, `3.5`, `3.8`, `4.2`, `5.4`, `6.7`, `7.3`, `8.7`, `9.3`); it returns exact
+task/document/native-run references and QA outcomes. `status` exposes persisted
+progress; `getClientView` exposes the
+customer-safe document projections. T26–T32 own the agency case/workflow handoffs,
 including supplementary research and customer review; service availability does
 not prove those interactions complete. Do not register competing research or
-brief workers in `agency_operations`, or call individual teammate agents to
+production workers in `agency_operations`, or call individual teammate agents to
 bypass their evidence, QA and persistence pipeline.
+Available checkpoints are not authorized end-to-end business completion:
+simulated selection, missing exact-version consent, unexecuted publication and
+undelivered packages remain explicit integration gaps. Do not activate an agency
+placeholder to conceal those gaps or change `agency_tov` to resolve them.
 
 The opt-in case adapter lives in `agency_operations/lib/analysisProcess/`.
 Authorized staff pin stage, spend setting and product selection in a native

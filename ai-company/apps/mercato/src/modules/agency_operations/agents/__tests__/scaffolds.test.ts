@@ -2,15 +2,12 @@
 import { z } from 'zod'
 import * as definitions from '..'
 import { aiAgents } from '../../ai-agents'
-import { outputSchema as qualityOutput } from '../quality-reviewer/contract'
 
-test('exports only the ten agency-owned worker roles without competing research scaffolds', () => {
+test('exports only the five agency-owned worker roles without competing research or production scaffolds', () => {
   const ids = Object.values(definitions).map((definition) => definition.id).sort()
-  expect(new Set(ids).size).toBe(10)
+  expect(new Set(ids).size).toBe(5)
   expect(ids).toEqual([
-    'change_impact', 'client_communication', 'client_triage', 'content_planner',
-    'post_copywriter', 'post_editor', 'quality_reviewer', 'sales_advisor',
-    'scope_assessment', 'strategy_author',
+    'change_impact', 'client_communication', 'client_triage', 'sales_advisor', 'scope_assessment',
   ].map((name) => `agency_operations.${name}`).sort())
   expect(aiAgents).toEqual([])
 })
@@ -32,17 +29,3 @@ test.each(Object.values(definitions).map((definition) => [definition.id, definit
     }
   },
 )
-
-test('quality review keeps future agency stages and rejects teammate-owned audit and brief review', () => {
-  const review = {
-    reviewedRefs: [{ documentId: 'strategy', version: 'v1' }], criteriaVersion: 'criteria-v1',
-    findings: [], rationale: 'The strategy matches the supplied criteria.',
-  }
-  expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'pass' }).success).toBe(true)
-  expect(qualityOutput.safeParse({ ...review, stage: 'plan', recommendation: 'rework' }).success).toBe(true)
-  expect(qualityOutput.safeParse({ ...review, stage: 'delivery', recommendation: 'ready', clientSafeConclusions: [] }).success).toBe(true)
-  expect(qualityOutput.safeParse({ ...review, stage: 'audit', recommendation: 'ready' }).success).toBe(false)
-  expect(qualityOutput.safeParse({ ...review, stage: 'brief', recommendation: 'needs_client_data' }).success).toBe(false)
-  expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'needs_client_data' }).success).toBe(false)
-  expect(qualityOutput.safeParse({ ...review, stage: 'strategy_pair', recommendation: 'approved' }).success).toBe(false)
-})

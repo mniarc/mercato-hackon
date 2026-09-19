@@ -1,10 +1,5 @@
 /** Side-effect-free native orchestrator inputs, not registration or activation. */
 export { agentDefinition as salesAdvisor } from './sales-advisor/definition'
-export { agentDefinition as strategyAuthor } from './strategy-author/definition'
-export { agentDefinition as qualityReviewer } from './quality-reviewer/definition'
-export { agentDefinition as contentPlanner } from './content-planner/definition'
-export { agentDefinition as postCopywriter } from './post-copywriter/definition'
-export { agentDefinition as postEditor } from './post-editor/definition'
 export { agentDefinition as clientTriage } from './client-triage/definition'
 export { agentDefinition as scopeAssessment } from './scope-assessment/definition'
 export { agentDefinition as changeImpact } from './change-impact/definition'
