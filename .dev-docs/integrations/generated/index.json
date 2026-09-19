@@ -1,8 +1,40 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T17:10:16.151Z",
-  "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
+  "generatedAt": "2026-09-19T18:39:38.972Z",
+  "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered teammate agents. The native agency_operations.client_triage router is additionally mapped so its journal observations are recognized; it is not a teammate producer. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
   "agents": [
+    {
+      "id": "agency_operations.client_triage",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/definition.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/activities.ts",
+      "notes": "Native G submission interpretation/router, registered under CLIENT_TRIAGE_AGENT_ID when triage is enabled. Its completed run does not prove any downstream producer or handoff.",
+      "fixture": "observed",
+      "live": "not_observed",
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.034Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_operations.client_triage",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "2d6c4453-0882-4367-85eb-7b52fe190adb",
+          "workflowInstanceId": "d0dbcf1a-4393-47e2-ad65-b045c537add3"
+        }
+      },
+      "proofRunIds": {
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
+        "live": []
+      }
+    },
     {
       "id": "agency_research.page_extractor",
       "processId": "agency_operations.analysis.v1",
@@ -13,12 +45,27 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 19,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.046Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.page_extractor",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "a9981608-b8c1-4cf6-bbcc-166b7e9d2355",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -32,12 +79,27 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.039Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.proof_builder",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "fe669b82-f7bd-43cd-b25f-1432bc637b76",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -51,12 +113,27 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.040Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.content_seeder",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "59a3b0f6-8c07-46a3-b173-9ac370546270",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -108,12 +185,27 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.040Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.conflict_finder",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "4fd673b6-3736-4988-8618-4f518d5fef57",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -127,12 +219,27 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.042Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.coverage_assessor",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "d05f00db-dd5d-4b2d-9ccc-e76cecd68138",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -146,12 +253,27 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.043Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.audit_mapper",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "781ed133-7169-4f17-919b-8efec9393193",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -165,12 +287,27 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.041Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.audit_voice",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "fa2f1f74-bd58-4308-b487-6f3901c67bdc",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -184,12 +321,27 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.044Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.audit_gaps_assets",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "58ff6095-abcc-412c-9469-c5e7fd9763dc",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -203,12 +355,27 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.042Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.competitor_selector",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "4ad15d11-536a-4e63-a855-06a520834a92",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -222,12 +389,26 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.048Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.competitor_card",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "a976d0a0-2498-4a96-a15d-febf5d61e504",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -241,12 +422,26 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.044Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.competitor_channels",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "f52ecdfc-88fc-4319-977d-5bdcc6a13364",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -260,12 +455,26 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 1,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.048Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.competitor_synthesizer",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "2d3fc57f-e5cf-44f1-a974-557c266699e1",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -279,12 +488,26 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.054Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.field_mapper",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "f7531687-8a80-4a8d-ba37-bd5a6944ba95",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -298,12 +521,26 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.050Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.question_writer",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "f0bff3ba-5714-43b4-bd59-57babbfe4311",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -317,12 +554,26 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.053Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.readiness_assessor",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "35e1df50-ae04-474a-a6b8-4b0d9acc37f1",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -336,12 +587,26 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.050Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.research_qa",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "3f241622-aeee-4b4d-9b4f-7949bea52249",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -355,12 +620,26 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.055Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.brief_writer.offer_audience_direction",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "ab651fb3-bbe4-4484-bc69-7d1beb470413",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -374,12 +653,26 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.056Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.brief_writer.promise_voice",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "32edc2b0-cfcd-418b-ae36-cd90918b7a47",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -393,12 +686,26 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.055Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.brief_writer.channel_success_assets",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "9a16e8c5-e0c4-4f7f-b05d-70aba7a28031",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -412,12 +719,26 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 1,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.052Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "agentId": "agency_research.brief_qa",
+        "phase": "completed",
+        "refs": {
+          "agentRunId": "fae33ac5-f736-41bf-a88e-7f50858a54e2",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -692,15 +1013,15 @@
     },
     {
       "id": "agency_tov.source_scout",
-      "processId": "agency_tov.cli.discover",
+      "processId": "agency_tov_source_discovery",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/corpus/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
       "integrationIds": [
         "scout-to-tov-targets"
       ],
-      "notes": "Conditional CLI --discover only; not invoked by native workflow or canonical agency flow.",
+      "notes": "Authorized case-scoped app API invokes the teammate scout through native agentRuntime at step agency_tov_source_discovery and reads its saved target result. CLI --discover also remains. This source connection is not executed proof or a completed normalized-corpus handoff.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -719,12 +1040,27 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 1,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.062Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "paid-capture-to-analysis",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
+          "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -751,12 +1087,28 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.057Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "research-sources-to-audit",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "614848fe-e781-48ea-8ff4-91de25c86de1",
+          "consumerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
+          "outputVersionId": "40129284-e972-4e44-a884-c2885b674c84"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -767,12 +1119,27 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.058Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "research-audit-to-findings",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
+          "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+          "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -783,12 +1150,27 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 2,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.059Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "research-competitors-to-findings",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
+          "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+          "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -799,12 +1181,27 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
-      "fixture": "not_observed",
+      "fixture": "observed",
       "live": "not_observed",
-      "observationCount": 0,
-      "last": null,
+      "observationCount": 3,
+      "last": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.061Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "research-findings-to-brief",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+          "consumerRunId": "31c8c7ff-5917-411a-89fa-3e15e2a0eb6c",
+          "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+        }
+      },
       "proofRunIds": {
-        "fixture": [],
+        "fixture": [
+          "c110bccb-5a20-4583-bdbd-deef8255437f"
+        ],
         "live": []
       }
     },
@@ -924,12 +1321,12 @@
     },
     {
       "id": "scout-to-tov-targets",
-      "processId": "agency_tov.cli.discover",
-      "source": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "connection": "defined",
-      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
-      "notes": "CLI target selection exists. No canonical app trigger or handoff proven.",
+      "processId": "agency_tov_source_discovery",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/[id]/route.ts",
+      "notes": "App start/read routes expose persisted native scout targets. This edge ends at saved target selection, not corpus collection or specialist production; no execution observation is implied.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -941,6 +1338,1061 @@
     }
   ],
   "unmapped": [],
-  "runs": [],
+  "runs": [
+    {
+      "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
+      "mode": "fixture",
+      "journey": "TC-AGENCY-002",
+      "lastReached": {
+        "schemaVersion": 1,
+        "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
+        "time": "2026-09-19T18:27:06.163Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "checkpointId": "journey",
+        "phase": "failed",
+        "reason": "execution"
+      },
+      "failedEventCount": 1,
+      "events": [
+        {
+          "schemaVersion": 1,
+          "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
+          "time": "2026-09-19T18:22:50.199Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "started"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
+          "time": "2026-09-19T18:27:06.163Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "failed",
+          "reason": "execution"
+        }
+      ]
+    },
+    {
+      "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+      "mode": "fixture",
+      "journey": "TC-AGENCY-002",
+      "lastReached": {
+        "schemaVersion": 1,
+        "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+        "time": "2026-09-19T18:30:04.151Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "research-sources-to-audit",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "4b982e39-9a52-483b-a62e-d0eea5affc8f",
+          "consumerRunId": "f04904dd-28ee-4a37-a84c-8b7078057826",
+          "outputVersionId": "7bfa9f2a-2fb3-4bf6-bf32-22da6a4ee7a5"
+        }
+      },
+      "failedEventCount": 1,
+      "events": [
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:28:23.430Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "started"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:29:03.848Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00-native-signup-email-verified",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:29:27.116Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00-paid-case-native-research-queued",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:29:35.389Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00b-private-material-saved-on-paid-case",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.023Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "failed",
+          "reason": "execution"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.138Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_operations.client_triage",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "7cc4b375-fcef-4747-b7a0-c3f2c075e581",
+            "workflowInstanceId": "08adeafa-f1d3-45b4-a8bd-4931ca5f82f5"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.139Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bc50c967-890a-418e-a9b4-c0f1a1dc6baa",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.140Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ba427fd7-9d52-4286-907e-a5647a8ba9bc",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.141Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "16bd3a95-70c9-42b4-941b-afe8575dc802",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.142Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "a11b28e5-38ff-416b-b2dd-b3e0334cbb87",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.142Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "08bd3f48-eab5-463f-b35c-0e63e492f4d9",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.143Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "441789f1-689c-4aaa-97a0-97ab11fa746b",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.143Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.conflict_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ce3c3503-fbba-4240-8aea-afd34240291c",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.144Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "5d1776e8-5faf-48b1-b8b3-57f02aa10f26",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.145Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fa9e6ea8-f0ed-4de2-8223-55120550f300",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.145Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.proof_builder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "264d7175-d562-4e7c-b78d-8f65d87e9dee",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.146Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.content_seeder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3f7b4a92-9bb3-4483-b189-bf99d1e09b19",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.146Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.coverage_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bb59cdc8-6fa6-42a4-8f74-51f20fac2add",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.147Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4ad93584-ac3d-4520-bb5e-68c386715537",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.147Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4fb08d22-dabd-45a1-9fba-11bece447a03",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.148Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_gaps_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "080c7b79-cd0a-4a91-ad98-a7327606b310",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.149Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_selector",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "32b45ca9-d444-47ad-9ca4-2206a43db2f9",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.149Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e496b2e9-0bef-49dd-83fc-1e3b4c6aa448",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.150Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "b256ce3f-cefc-4739-86a4-9e923ac72646",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.150Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e917e9ef-53b8-4faf-acd8-94848f303c60",
+            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
+          "time": "2026-09-19T18:30:04.151Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-sources-to-audit",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "4b982e39-9a52-483b-a62e-d0eea5affc8f",
+            "consumerRunId": "f04904dd-28ee-4a37-a84c-8b7078057826",
+            "outputVersionId": "7bfa9f2a-2fb3-4bf6-bf32-22da6a4ee7a5"
+          }
+        }
+      ]
+    },
+    {
+      "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+      "mode": "fixture",
+      "journey": "TC-AGENCY-002",
+      "lastReached": {
+        "schemaVersion": 1,
+        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+        "time": "2026-09-19T18:36:54.062Z",
+        "journey": "TC-AGENCY-002",
+        "mode": "fixture",
+        "integrationId": "paid-capture-to-analysis",
+        "phase": "completed",
+        "refs": {
+          "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
+          "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
+          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+        }
+      },
+      "failedEventCount": 1,
+      "events": [
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:35:20.034Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "started"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:02.756Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00-native-signup-email-verified",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:16.889Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00-paid-case-native-research-queued",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:23.463Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "00b-private-material-saved-on-paid-case",
+          "phase": "completed"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:53.944Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "checkpointId": "journey",
+          "phase": "failed",
+          "reason": "execution"
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.032Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "163d6e7d-701e-4ee0-9e8f-3cd7c1027809",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.033Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "8a3dc74c-9b46-4d22-aad5-f04f9eb71cce",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.034Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f6e9b626-71df-427c-b4df-f63e864c1a7d",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.034Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_operations.client_triage",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "2d6c4453-0882-4367-85eb-7b52fe190adb",
+            "workflowInstanceId": "d0dbcf1a-4393-47e2-ad65-b045c537add3"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.035Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e4c2027c-230e-42f9-bb1a-87d2e1cbba58",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.036Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "da499701-764c-4734-9c06-2ea94c7de943",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.037Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "81cb0115-9169-405f-b9d6-718b353c89ee",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.038Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_channels",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e4da5919-5329-40cb-9dfc-bc6920b9511f",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.038Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "e8e93253-3abe-453e-96a2-7817e76b33d0",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.039Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.proof_builder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fe669b82-f7bd-43cd-b25f-1432bc637b76",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.040Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.content_seeder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "59a3b0f6-8c07-46a3-b173-9ac370546270",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.040Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.conflict_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4fd673b6-3736-4988-8618-4f518d5fef57",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.041Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fa2f1f74-bd58-4308-b487-6f3901c67bdc",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.042Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_selector",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4ad15d11-536a-4e63-a855-06a520834a92",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.042Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.coverage_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d05f00db-dd5d-4b2d-9ccc-e76cecd68138",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.043Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "781ed133-7169-4f17-919b-8efec9393193",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.044Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.audit_gaps_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "58ff6095-abcc-412c-9469-c5e7fd9763dc",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.044Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_channels",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f52ecdfc-88fc-4319-977d-5bdcc6a13364",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.045Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.research_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "944a2463-8d25-4ad7-92af-95c2e2b13aaa",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.045Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.readiness_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3043f2d7-782d-43de-b816-22f4f0578ef8",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.046Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "a9981608-b8c1-4cf6-bbcc-166b7e9d2355",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.047Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_card",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f31a410e-6cd3-4dab-8931-a293fedcf29a",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.047Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.offer_audience_direction",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "8c3c9973-4e61-4822-ad1b-551cbc419841",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.048Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_card",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "a976d0a0-2498-4a96-a15d-febf5d61e504",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.048Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.competitor_synthesizer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "2d3fc57f-e5cf-44f1-a974-557c266699e1",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.049Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.question_writer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "dce5fd3f-7e36-4992-9a64-c21db20c6246",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.050Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.question_writer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f0bff3ba-5714-43b4-bd59-57babbfe4311",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.050Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.research_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "3f241622-aeee-4b4d-9b4f-7949bea52249",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.051Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.promise_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "1a805a9e-7b4c-42fb-839d-65024eb3cf5f",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.052Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "fae33ac5-f736-41bf-a88e-7f50858a54e2",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.052Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.field_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "0bf561b3-95ba-4232-ab8d-db02af5ac45e",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.053Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.readiness_assessor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "35e1df50-ae04-474a-a6b8-4b0d9acc37f1",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.054Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.field_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "f7531687-8a80-4a8d-ba37-bd5a6944ba95",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.054Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.channel_success_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "14de47f7-1d4d-4b16-aa69-f1b71036ae60",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.055Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.offer_audience_direction",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ab651fb3-bbe4-4484-bc69-7d1beb470413",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.055Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.channel_success_assets",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "9a16e8c5-e0c4-4f7f-b05d-70aba7a28031",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.056Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "agentId": "agency_research.brief_writer.promise_voice",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "32edc2b0-cfcd-418b-ae36-cd90918b7a47",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.057Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-sources-to-audit",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "614848fe-e781-48ea-8ff4-91de25c86de1",
+            "consumerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
+            "outputVersionId": "40129284-e972-4e44-a884-c2885b674c84"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.057Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-audit-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
+            "consumerRunId": "0de57578-40d2-4e80-8b6e-38f4e0104f93",
+            "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.058Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-audit-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
+            "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+            "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.058Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-competitors-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
+            "consumerRunId": "0de57578-40d2-4e80-8b6e-38f4e0104f93",
+            "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.059Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-competitors-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
+            "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+            "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.060Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-findings-to-brief",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+            "consumerRunId": "48f3c870-d9a5-4ffd-8f82-e4a1c6438ff2",
+            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.060Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-findings-to-brief",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+            "consumerRunId": "1f6c7a9f-1eea-4421-896f-473e1aa62776",
+            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.061Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "research-findings-to-brief",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
+            "consumerRunId": "31c8c7ff-5917-411a-89fa-3e15e2a0eb6c",
+            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
+          "time": "2026-09-19T18:36:54.062Z",
+          "journey": "TC-AGENCY-002",
+          "mode": "fixture",
+          "integrationId": "paid-capture-to-analysis",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
+            "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
+            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          }
+        }
+      ]
+    }
+  ],
   "diagnostics": []
 }
