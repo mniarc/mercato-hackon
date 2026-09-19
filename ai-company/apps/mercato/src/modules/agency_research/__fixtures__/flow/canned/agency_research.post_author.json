@@ -123,7 +123,8 @@
         "links": "Jeden dozwolony link do strony FLOW; brak wzmianek.",
         "evidence_limitations": [
           "Brak przykładu wdrożenia; deklaracje własne FLOW."
-        ]
+        ],
+        "style_hygiene": "Profil: KLI-TOV FLOW v1 (simulated_draft; szkic autoryzowany przez completion). Usunięte wzorce: otwieracz \"Prawda jest taka\", zakończenie-podsumowanie, jeden łącznik \"Ponadto\". Konflikt: pytanie otwierające dozwolone przez sentence_pattern profilu, zostawione."
       }
     }
   },
@@ -268,7 +269,8 @@
         "links": "Jeden dozwolony link do strony FLOW; brak wzmianek.",
         "evidence_limitations": [
           "Brak przykładu wdrożenia; deklaracje własne FLOW."
-        ]
+        ],
+        "style_hygiene": "Profil: KLI-TOV FLOW v1 (simulated_draft; szkic autoryzowany przez completion). Poprawka wg findings redaktora; bez nowych wzorców. Konflikt: brak."
       }
     }
   }

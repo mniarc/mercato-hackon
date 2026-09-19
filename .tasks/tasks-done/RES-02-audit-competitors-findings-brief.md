@@ -1,6 +1,6 @@
 # RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA
 
-State: active (merged; original live-through-4.2 proof remains pending)
+State: done (merged; live through 4.2 recorded on order demo-open-mercato-3 — see Done when)
 Sources: F07, F08, F09
 Depends on: RES-01
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`
@@ -21,9 +21,11 @@ integrated by the coordinator into one step chain over a `StepContext`.
 - Fixture through the real CLI + database `--through 4.2`: 3.7 to_fix → repair → ready → 3.8 frozen → 4.1 →
   4.2 (needs_agent_fix after 2 repairs on an unchanged fixture brief); E.1 record opened and printed when the
   repair cannot change the documents. DONE 2026-09-19.
-- Live run on Open Mercato `--through 4.2`: PENDING — the OpenRouter key refused the first Sonnet call
-  ("requires more credits… can only afford 63591 tokens"); needs credit headroom for the provider's ~65k
-  output-token reservation (≈ $1 per Sonnet call). Rerun and record the ledger once topped up.
+- Live run on Open Mercato `--through 4.2`: DONE 2026-09-19 as part of the RES-03 chain, order `demo-open-mercato-3`
+  (`yarn mercato agency_research status --order-ref demo-open-mercato-3`): 3.7 ready after repairs, 3.8 frozen, 4.1 #1 done,
+  4.2 #1 done — KLI-BRIEF v8 `ready_for_review`, verdict needs_client_data (the 8 questions), 4 agent runs on the final
+  pass. The first attempts failed on the OpenRouter credit wall (~65k output-token reservation per Sonnet call); the
+  order ledger totals 162.40 PLN across all reruns. Reconciled 2026-09-19 from the stored task runs, no new run.
 
 ## Constraints
 - Reduce-call inputs carry no timestamps (cache keys must survive reruns).
