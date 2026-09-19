@@ -1,12 +1,12 @@
 # Agency agents — prompt review copy
 
-Generated 2026-09-19 20:11 UTC from the registered agent definitions (40 agents).
-Source of truth is the code: `apps/mercato/src/modules/agency_research/lib/agents/*.ts` (research chain; shared rules in `shared.ts`, deslop rules in `deslop.ts`) and `apps/mercato/src/modules/agency_tov/ai-agents.ts` (corpus lane).
+Generated 2026-09-19 20:12 UTC from the registered agent definitions (40 agents).
+Source of truth is the prompt pack: `apps/mercato/src/modules/agency_research/data/prompts/agents.v2.pl.json` and `apps/mercato/src/modules/agency_tov/data/prompts/agents.v2.pl.json` (Agenci v2 by Rafał, Polish, one entry per agent id, loaded by `lib/agents/prompts.ts`); an agent missing from the pack falls back to the English composition in `lib/agents/*.ts` (shared rules in `shared.ts`, deslop rules in `deslop.ts`).
 Each prompt below is the exact system prompt the model receives, split one sentence per line for editing. Field definitions rendered from Rafał's WZR-* contracts (`data/contracts.v1_1.json`) are included where the agent carries them.
 
 ## How to propose a change
 
-- Edit the sentence(s) here and note the agent id; the change is then applied in the `.ts` file (the strings are joined with spaces at run time).
+- Edit the sentence(s) here and note the agent id; the change is then applied to the entry of that id in the prompt pack JSON (bump `version` there so cached outputs are not replayed).
 - Model tiers: extract/QA = `openrouter/anthropic/claude-haiku-4.5`, synthesis = `openrouter/anthropic/claude-sonnet-5` (overridable per tier with `OM_AGENCY_RESEARCH_MODEL_*`).
 - Every agent is tool-less and read-only: its whole world is the JSON input the step builds; every id it cites must exist in that input (gates drop the rest). Prompts should keep that contract.
 - Output shape is fixed by the zod schema listed under *Returns*; a prompt can change *how* fields are filled, not *which* fields exist.
