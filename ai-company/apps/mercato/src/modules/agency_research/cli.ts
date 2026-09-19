@@ -110,7 +110,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
  *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
  *     [--people "Name, role, https://…; Name2"] [--onboarding <answers.json>] \
- *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--dry-run] [--yes] [--refetch] \
+ *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--resume-from 3.8] [--dry-run] [--yes] [--refetch] \
  *     [--tenant <id> --org <id> --user <id>]
  *
  * The orchestrator runner is the default (persisted `agent_runs`, admission,
@@ -131,6 +131,8 @@ const run: ModuleCli = {
     const maxCostPln = args['max-cost-pln'] ? Number(args['max-cost-pln']) : limits.cost.defaultMaxPlnPerRun
     const through = (args.through ?? '3.2') as ResearchStep
     if (!researchSteps.includes(through)) throw new Error(`[internal] --through must be one of ${researchSteps.join(', ')}`)
+    const resumeFrom = args['resume-from'] as ResearchStep | undefined
+    if (resumeFrom && !researchSteps.includes(resumeFrom)) throw new Error(`[internal] --resume-from must be one of ${researchSteps.join(', ')}`)
     const models = defaultModels()
     const runnerName = args.runner ?? 'orchestrator'
 
@@ -172,6 +174,7 @@ const run: ModuleCli = {
       onboardingContext: args.onboarding ? onboardingContextSchema.parse(JSON.parse(fs.readFileSync(args.onboarding, 'utf8'))) : null,
       scrapeProfilePosts: runnerName === 'fixture' ? undefined : profileScraperFrom(db),
       through,
+      resumeFrom: resumeFrom ?? null,
       selectedTopicId: args.topic ?? null,
       freshSelection: args.refetch === 'true',
       maxCostPln,

@@ -166,7 +166,9 @@ export async function runBriefQa(opts: BriefQaOptions): Promise<BriefQaResult & 
     parse: (raw) => briefQaAgentResult.parse(raw).data,
     // The agent's findings must point somewhere in the brief or the map; a stray path is dropped.
     gate: (data) => {
-      const kept = data.findings.filter((f) => /^(KLI-BRIEF|WEW-USTALENIA|WEW-ZRODLA)/.test(f.path)).slice(0, 20)
+      // The agent often names the input key it read (`brief.`, `field_map[`) instead of the document; same place, so normalise.
+      const normalised = data.findings.map((f) => ({ ...f, path: f.path.replace(/^brief\./, 'KLI-BRIEF.').replace(/^field_map/, 'WEW-USTALENIA.field_map').replace(/^readiness/, 'WEW-USTALENIA.readiness') }))
+      const kept = normalised.filter((f) => /^(KLI-BRIEF|WEW-USTALENIA|WEW-ZRODLA)/.test(f.path)).slice(0, 20)
       return { value: { ...data, findings: kept }, issues: [], kept: kept.length, dropped: data.findings.length - kept.length }
     },
   })

@@ -38,6 +38,12 @@ describe('3.7 finding reclassification', () => {
     expect(out.fix_step).toBe('3.5')
   })
 
+  it('a client-owned finding never carries a repair step, even when the QA wrote prose into fix_step (prompt v2)', () => {
+    const [out] = reclassifyRecordedClaims([finding({ code: 'missing_must_field', path: 'WEW-USTALENIA.field_map[priority_audience]', owner: 'client', fix_step: 'Client must confirm which segment is the priority', gap: 'three proposed segments await the client' })], zrodla)
+    expect(out.owner).toBe('client')
+    expect(out.fix_step).toBeNull()
+  })
+
   it('client-owned blockers alone leave the analysis ready', () => {
     const result = mergeQaVerdict({ verdict: 'to_fix', summary: 's', findings: [finding({ owner: 'client', fix_step: null })] }, [])
     expect(result.verdict).toBe('ready')
