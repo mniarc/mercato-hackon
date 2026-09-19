@@ -32,3 +32,9 @@ describe('client view fitting', () => {
     expect(view.markdown).toContain('Shortened to the client-view word budget')
   })
 })
+
+it('does not treat "np." or "m.in." as the end of a sentence when cutting', () => {
+  const view = fitClientView('WZR-BRIEF', ['# B', '', ...Array.from({ length: 60 }, () => '**Czego nie obiecujemy:** Podawanie liczb efektu bez danych, np. "skraca czas o 40%". Drugie zdanie, m.in. o ROI. Trzecie zdanie o gwarancjach.')], 'pl')
+  expect(view.markdown).toContain('np. "skraca czas o 40%".')
+  expect(view.markdown).not.toMatch(/np\.\n/)
+})

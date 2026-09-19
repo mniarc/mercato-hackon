@@ -23,7 +23,8 @@ export function checkClientView(templateId: TemplateId, markdown: string): Clien
   return { markdown, words, limit, issue }
 }
 
-const SENTENCE_BREAK = /(?<=[.!?…])\s+(?=[^a-ząćęłńóśźż])/u
+// A sentence ends at . ! ? … followed by a capital — never after an abbreviation (np., m.in., tzn., itp., itd., tj., ok., e.g., i.e.)
+const SENTENCE_BREAK = /(?<![Nn]p\.|[Mm]\.in\.|[Tt]zn\.|[Ii]tp\.|[Ii]td\.|[Tt]j\.|[Oo]k\.|e\.g\.|i\.e\.|\bvs\.)(?<=[.!?…])\s+(?=[^a-ząćęłńóśźż'"„(])/u
 const FIT_NOTE = { pl: '_Skrócono do limitu słów widoku klienta; pełna treść jest w dokumencie wewnętrznym._', en: '_Shortened to the client-view word budget; the full text is in the internal document._' }
 
 function firstSentences(line: string, count: number): string {
