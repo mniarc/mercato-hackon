@@ -11,6 +11,8 @@ import { limits } from '../../data/templates'
  */
 
 export type LedgerEntry = {
+  /** Epoch ms when the call was recorded — lets a task run take only its own entries. */
+  at: number
   step: string
   agentId: string
   model: string | null
@@ -148,6 +150,7 @@ export function createLedger(opts: LedgerOptions = {}): Ledger {
         }
       }
       const entry: LedgerEntry = {
+        at: now().getTime(),
         step,
         agentId,
         model: usage?.model ?? null,

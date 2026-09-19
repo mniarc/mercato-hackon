@@ -107,6 +107,52 @@ export function validatorFindings(documents: AnalysisDocuments): QaFinding[] {
   return findings
 }
 
+const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_vs_interpretation', 'other'])
+
+/**
+ * A first-party claim the register records WITH its limitation is correct research:
+ * the site says it, the register says the site says it and that nothing backs it.
+ * A QA finding that asks an author step to "fix" such a fact is really a question
+ * for the client (supply the basis, or accept hedged wording), so its owner becomes
+ * `client` and it stops routing repairs that cannot change anything.
+ */
+/** Evidence no author step can obtain from public sources — "lack of public knowledge is not a company defect" (Rafał). */
+const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data)/i
+
+/** An author step owns only the document its path names; the QA agent's own routing is advisory. */
+function fixStepForPath(path: string): AuthorStepId | null {
+  if (/^WEW-ZRODLA/.test(path)) return '3.2'
+  if (/^WEW-AUDYT/.test(path)) return '3.3'
+  if (/^WEW-KONKURENCJA/.test(path)) return '3.5'
+  if (/^WEW-USTALENIA/.test(path)) return '3.6'
+  return null
+}
+
+export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaData, ustalenia?: UstaleniaData | null): QaFinding[] {
+  const byId = new Map(zrodla.facts.map((fact) => [fact.fact_id, fact]))
+  const awaitingClient = new Set<string>((ustalenia?.field_map ?? []).filter((row) => row.decision_state === 'awaiting_client').map((row) => row.field_key))
+  return findings.map((f) => {
+    if (f.owner === 'client' || f.owner === 'staff') return f
+    // A findings-map row already waiting for the client is a question by definition, not a missing field an agent forgot.
+    const fieldKey = f.path.match(/^WEW-USTALENIA\.field_map[.[]\s*['"]?(\w+)/)?.[1]
+    if (f.code === 'missing_must_field' && fieldKey && awaitingClient.has(fieldKey)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: 'the findings map already records this field as awaiting the client; it is a question for 4.3' }
+    }
+    // Asking for interviews, benchmarks or a methodology is a request to the client, not a rerun of a reading step.
+    if (NON_PUBLIC_EVIDENCE.test(f.gap)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence that public sources cannot provide; recorded as a question / evidence request for the client' }
+    }
+    if (CLAIM_CODES.has(f.code)) {
+      const cited = [...new Set(`${f.path} ${f.gap}`.match(/\bF\d{2,}\b/g) ?? [])].map((id) => byId.get(id)).filter((fact): fact is NonNullable<typeof fact> => Boolean(fact))
+      if (cited.length && cited.every((fact) => fact.kind === 'first_party_claim' && fact.limitation)) {
+        return { ...f, owner: 'client', fix_step: null, fix_hint: 'recorded as a first-party claim with its limitation; the client supplies the basis or accepts hedged wording (question / evidence request)' }
+      }
+    }
+    const routed = fixStepForPath(f.path)
+    return routed && routed !== f.fix_step ? { ...f, fix_step: routed } : f
+  })
+}
+
 /**
  * Pure verdict rule over all findings: a blocking finding an agent step can fix →
  * to_fix; a blocking finding nobody in the process can fix (staff, or no step) →
@@ -179,7 +225,8 @@ export async function runAnalysisQa(opts: AnalysisQaOptions): Promise<{ result: 
     parse: (raw) => researchQaResult.parse(raw).data,
     gate: (result) => ({ value: result, issues: [], kept: result.findings.length, dropped: 0 }),
   })
-  return { result: mergeQaVerdict(judged.value, validator), validator, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
+  const reclassified = { ...judged.value, findings: reclassifyRecordedClaims(judged.value.findings, opts.documents.zrodla, opts.documents.ustalenia) }
+  return { result: mergeQaVerdict(reclassified, validator), validator, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
 }
 
 export type AuthorStepId = '3.2' | '3.3' | '3.4' | '3.5' | '3.6'
@@ -242,6 +289,13 @@ export async function runQaLoop(ctx: StepContext, opts: { authorSteps: AuthorSte
         if (!author) continue
         ctx.log(`3.7 → repair ${stepId} (attempt ${repairs} of ${maxRepairs})`)
         await author({ ...ctx, repairFindings: blocking.filter((f) => f.fix_step === stepId), attempt: repairs + 1 })
+      }
+      // A new register from 3.2 carries only the client's material; the competitor facts 3.4 appended
+      // must be re-appended, or every citation in WEW-KONKURENCJA dangles.
+      const competitors = opts.authorSteps['3.4']
+      if (fixSteps.includes('3.2') && !fixSteps.some((s) => s === '3.4' || s === '3.5') && competitors && documents.konkurencja) {
+        ctx.log(`3.7 → 3.4 re-run after the register changed (competitor facts re-appended)`)
+        await competitors({ ...ctx, repairFindings: [], attempt: repairs + 1 })
       }
       continue
     }
