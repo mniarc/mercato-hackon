@@ -18,5 +18,5 @@ reload and harmless replay. Major boundaries live in
 [ADR-001](../../.dev-docs/adr/001-agency-feature-boundaries.md).
 
 This is clarification only: no artifact approval, fresh classification or full
-agent continuation. Exact-version review is [T22](../T22-version-bound-client-review.md);
+agent continuation. Exact-version review is [T22](T22-version-bound-client-review.md);
 client interaction UI is [T20](T20-client-clarification-ui.md).

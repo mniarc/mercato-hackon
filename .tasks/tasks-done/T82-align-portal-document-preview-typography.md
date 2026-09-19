@@ -1,6 +1,8 @@
 # T82 - Align portal document preview typography
 
-State: implemented; further UI bugfixing and visual confirmation handed to teammate
+State: done (bounded renderer styling and focused verification)
+Delivery: `00337927a`; further UI bugfixing and visual confirmation belong to the
+teammate. This task does not claim a new browser capture or visual acceptance.
 Source: user-reported portal review screenshot
 Owns: the agency portal document-review renderer and its focused component test.
 

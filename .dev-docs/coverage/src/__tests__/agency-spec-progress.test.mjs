@@ -254,10 +254,34 @@ test('HTML summary keeps settled and proposed source counts separate from proof 
   assert.match(html, /Settled scope[\s\S]*?1 <small>stories<\/small>[\s\S]*?Implemented <strong data-count="0">0<\/strong>[\s\S]*?Partial <strong data-count="1">1<\/strong>/)
   assert.match(html, /Proposed scope[\s\S]*?not automatically missing work[\s\S]*?1 <small>stories<\/small>[\s\S]*?Unassessed <strong data-count="1">1<\/strong>/)
   assert.match(html, /linked or done task is not story completeness/i)
+  assert.match(html, /Two independent dimensions:[\s\S]*?No run recorded[\s\S]*?neither missing code nor a failed test/)
+  assert.match(html, /Story code status is derived:[\s\S]*?mixed assessed states → Partial/)
+  assert.match(html, /Task done records bounded task delivery, not story completion/)
+  assert.match(html, /Code implementation · acceptance criteria/)
+  assert.match(html, /Verification proof · independent/)
   assert.doesNotMatch(html, /product completion percentage/i)
   assert.match(html, /Manual assessment inputs:[\s\S]*?\.dev-docs\/coverage\/assessments\/FNN\.json[\s\S]*?1 feature files; edit these/)
   assert.match(html, /\.dev-docs\/coverage\/generated-report\.html[\s\S]*?refresh; do not edit/)
   assert.match(html, /node scripts\/agency-spec-progress\.mjs --refresh/)
+})
+
+test('HTML criterion rows keep code, proof and remaining reasons visibly independent', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1')], taskFiles: [], adrFiles: [],
+    coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1', 'partial', {
+      evidence: [{ path: 'ai-company/partial.ts', note: 'Legacy note says the primary path works but records no remaining reason.' }],
+      missing: [], verification: { focused: 'passed', nativeApp: 'not_run', liveModel: 'unknown' },
+    }), assessed('AC2')] }])],
+  })
+  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/generated-report.html' })
+  assert.match(html, /Code: Partial/)
+  assert.match(html, /Focused proof: Passed/)
+  assert.match(html, /Native app \/ fixture proof: No run recorded/)
+  assert.match(html, /Live-model proof: Not assessed/)
+  assert.match(html, /No run is recorded\. This is not a failed test and does not mean code is missing\./)
+  assert.match(html, /Recorded evidence and notes/)
+  assert.match(html, /Remaining reason[\s\S]*?No structured remaining reason recorded/)
+  assert.match(html, /Legacy note says the primary path works but records no remaining reason\./)
 })
 
 test('machine inventory is deterministic and excludes every manual assessment field', () => {

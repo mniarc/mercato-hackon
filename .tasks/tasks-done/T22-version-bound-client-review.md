@@ -1,7 +1,7 @@
 # T22 - Connect a real version-bound review invitation
 
-State: implemented through the exact research strategy/ToV pair review
-Depends on: T15, T17
+State: done (exact research strategy/ToV pair review; legacy T17 remains separate)
+Depends on: T15; delivered strategy execution and paired review/acceptance contracts
 Owns: agency review invitation/receipt adapter; teammate owns review rendering
 Sources: F24-1, F24-2, F41-1, F45-1, F53-1, F55-1; teammate portal spec section 10
 
@@ -34,3 +34,10 @@ existing Markdown renderer and native customer tasks. The teammate
 `/api/agency/strategy-reviews/{taskId}`; `strategyPairApproval` applies the exact
 saved decision. T17's separate legacy JSON endpoint does not drive this flow.
 Connected fixture proof belongs to TC-AGENCY-002, not a claim of paid-model proof.
+
+Verification evidence: the full headed TC-AGENCY-002 journey recorded in
+`ef3b5390d` reads the produced exact pair and submits its real customer decision
+through the native review/G path before planning and post production. Focused
+`strategyPairReview` checks cover native visibility, stale/mismatched pairs,
+replay and immutable snapshots. This closes the invitation/receipt boundary,
+not T47's separate partial-decision continuation or full F24/F41/F45 stories.
