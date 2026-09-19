@@ -29,6 +29,7 @@ import {
   type GroundingRepair,
 } from './grounding'
 import { groupByProfile, profileMetaFor } from '../corpus'
+import { PROMPT_PACK_VERSION } from '../prompts'
 
 /**
  * Map → reduce over a post corpus.
@@ -213,7 +214,7 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
     const started = Date.now()
     const { value, cached } = await step(
       `batch ${batch.index + 1}/${total} ${profile.displayName}`,
-      `batch:${fingerprint([profile.profileUrl, batch.index, postIds, opts.outputLanguage])}`,
+      `batch:${fingerprint([profile.profileUrl, batch.index, postIds, opts.outputLanguage, PROMPT_PACK_VERSION])}`,
       tovBatchAnalystResult,
       (data) => groundObservation(data, batch.posts),
       () => opts.runAgent(TOV_BATCH_ANALYST_AGENT_ID, input, { runTimeoutMs: batchTimeoutMs }),
@@ -250,7 +251,7 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
     const authorPosts = groups.get(profile.profileUrl) ?? []
     const { value, cached } = await step(
       `profile ${profile.displayName}`,
-      `profile:${fingerprint([profile.profileUrl, batches.map((b) => b.observation), opts.outputLanguage])}`,
+      `profile:${fingerprint([profile.profileUrl, batches.map((b) => b.observation), opts.outputLanguage, PROMPT_PACK_VERSION])}`,
       tovProfileSynthesizerResult,
       (data) => groundProfileVoice(data, authorPosts),
       () => opts.runAgent(TOV_PROFILE_SYNTHESIZER_AGENT_ID, input, { runTimeoutMs: synthesisTimeoutMs }),
@@ -269,7 +270,7 @@ export async function runTovPipeline(opts: TovPipelineOptions): Promise<TovPipel
   const started = Date.now()
   const { value: brand, cached } = await step(
     'brand',
-    `brand:${fingerprint([opts.brand, brandInput.profiles.map((p) => p.voice), opts.outputLanguage])}`,
+    `brand:${fingerprint([opts.brand, brandInput.profiles.map((p) => p.voice), opts.outputLanguage, PROMPT_PACK_VERSION])}`,
     tovBrandSynthesizerResult,
     (data) => groundBrandVoice(data, opts.posts),
     () => opts.runAgent(TOV_BRAND_SYNTHESIZER_AGENT_ID, brandInput, { runTimeoutMs: synthesisTimeoutMs }),

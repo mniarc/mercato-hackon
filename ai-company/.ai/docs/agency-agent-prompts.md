@@ -1,6 +1,6 @@
 # Agency agents — prompt review copy
 
-Generated 2026-09-19 20:12 UTC from the registered agent definitions (40 agents).
+Generated 2026-09-19 21:33 UTC from the registered agent definitions (40 agents).
 Source of truth is the prompt pack: `apps/mercato/src/modules/agency_research/data/prompts/agents.v2.pl.json` and `apps/mercato/src/modules/agency_tov/data/prompts/agents.v2.pl.json` (Agenci v2 by Rafał, Polish, one entry per agent id, loaded by `lib/agents/prompts.ts`); an agent missing from the pack falls back to the English composition in `lib/agents/*.ts` (shared rules in `shared.ts`, deslop rules in `deslop.ts`).
 Each prompt below is the exact system prompt the model receives, split one sentence per line for editing. Field definitions rendered from Rafał's WZR-* contracts (`data/contracts.v1_1.json`) are included where the agent carries them.
 
