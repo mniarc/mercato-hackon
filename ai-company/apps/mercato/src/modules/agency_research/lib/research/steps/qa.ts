@@ -117,6 +117,9 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
  * `client` and it stops routing repairs that cannot change anything.
  */
 /** Evidence no author step can obtain from public sources — "lack of public knowledge is not a company defect" (Rafał). */
+/** A gap the QA agent itself attributes to a pending client decision. */
+export const CLIENT_DECISION_GAP = /(awaiting[_ ]client|awaiting the client|undecided by the client|client (has not|hasn't|must) (decide|confirm|choose|select)|client decision|pending client|decyzj\w* klienta)/i
+
 export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
@@ -141,6 +144,9 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
     // Asking for interviews, benchmarks or a methodology is a request to the client, not a rerun of a reading step.
     if (NON_PUBLIC_EVIDENCE.test(f.gap)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence that public sources cannot provide; recorded as a question / evidence request for the client' }
+    }
+    if (CLIENT_DECISION_GAP.test(f.gap)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: 'the finding itself says the client has not decided; a question for 4.3, not a rewrite' }
     }
     if (CLAIM_CODES.has(f.code)) {
       const cited = [...new Set(`${f.path} ${f.gap}`.match(/\bF\d{2,}\b/g) ?? [])].map((id) => byId.get(id)).filter((fact): fact is NonNullable<typeof fact> => Boolean(fact))

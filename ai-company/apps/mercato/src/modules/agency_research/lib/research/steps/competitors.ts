@@ -45,6 +45,8 @@ export type CompetitorsPipelineOptions = {
   concurrency?: number
   onEvent?: (event: PipelineEvent) => void
   repairFindings?: unknown[]
+  /** A stored selection to read again instead of searching: keeps a plain rerun on the same companies (and its caches). */
+  reuseSelection?: Candidates['candidates']
   groundingRetries?: number
   now?: () => Date
   log?: (message: string) => void
@@ -221,16 +223,21 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
   })
   const orderCtx = { brand: opts.order.brand, market: opts.order.market, language: opts.order.language, websiteUrl: opts.order.websiteUrl, purchaseGoal: opts.order.purchaseGoal }
 
-  // 3.4a — discovery in code, selection by the agent among real hits.
+  // 3.4a — discovery in code, selection by the agent among real hits. Search results move between runs;
+  // a plain rerun keeps the stored selection so the same pages, cards and every downstream cache hold.
   const hits: SearchHit[] = []
-  for (const query of competitorQueries(opts.order, opts.businessProfile)) {
-    const found = await opts.searchWeb(query, { limit: 5 })
-    log(`search "${query}": ${found.length} hits`)
-    hits.push(...found)
+  if (!opts.reuseSelection?.length) {
+    for (const query of competitorQueries(opts.order, opts.businessProfile)) {
+      const found = await opts.searchWeb(query, { limit: 5 })
+      log(`search "${query}": ${found.length} hits`)
+      hits.push(...found)
+    }
   }
   const vetted = vetSearchHits(hits, opts.order.websiteUrl)
-  if (vetted.length === 0) issues.push({ code: 'NO_COMPETITOR_HITS', severity: 'limitation', detail: 'search returned no company hosts to compare with; competitor sections are empty', path: 'selection' })
-  const selection = vetted.length
+  if (!opts.reuseSelection?.length && vetted.length === 0) issues.push({ code: 'NO_COMPETITOR_HITS', severity: 'limitation', detail: 'search returned no company hosts to compare with; competitor sections are empty', path: 'selection' })
+  const selection = opts.reuseSelection?.length
+    ? { value: { candidates: opts.reuseSelection, excluded: [] }, issues: [] as GateIssue[], cached: true }
+    : vetted.length
     ? await step<Candidates>({
         step: '3.4',
         agentId: RESEARCH_COMPETITOR_SELECTOR_AGENT_ID,
@@ -582,6 +589,12 @@ export async function runCompetitorsStep(ctx: StepContext): Promise<StepOutcome>
   const run34 = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '3.4', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run34.id)
   let run35: Awaited<ReturnType<typeof startTaskRun>> | null = null
+  const previousComparison = ctx.repairFindings.length ? null : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
+  const storedSelection = previousComparison ? konkurencjaDataSchema.safeParse(previousComparison.data) : null
+  const reuseSelection = storedSelection?.success && storedSelection.data.selection.length
+    ? storedSelection.data.selection.map((row) => ({ company: row.company, url: row.url, competition_type: row.competition_type, shared_problem_scope: row.shared_problem_scope, market_scale_difference: row.market_scale_difference, reason: row.reason }))
+    : undefined
+  if (reuseSelection) ctx.log(`3.4 reuses the stored selection (${reuseSelection.map((c) => c.company).join(', ')}) — no new search`)
   try {
     const result = await runCompetitorsPipeline({
       order: ctx.order,
@@ -597,6 +610,7 @@ export async function runCompetitorsStep(ctx: StepContext): Promise<StepOutcome>
       concurrency: ctx.concurrency,
       onEvent: ctx.onEvent,
       repairFindings: ctx.repairFindings,
+      reuseSelection,
       log: ctx.log,
     })
     // 3.4 outputs: the supplemented register and the comparison cards.

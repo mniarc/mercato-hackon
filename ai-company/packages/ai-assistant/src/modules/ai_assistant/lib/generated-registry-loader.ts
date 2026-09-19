@@ -140,7 +140,21 @@ export async function compileAndImportGenerated(
         sourcemap: false,
         write: false,
         logLevel: 'silent',
-        alias: { '@': appRoot },
+        // The app's tsconfig maps `@/.mercato/*` to the app root and every other
+        // `@/*` to `src/*`; a single `alias` cannot express both, and app modules
+        // that import each other through `@/modules/...` failed to bundle.
+        plugins: [
+          {
+            name: 'app-path-alias',
+            setup(build) {
+              build.onResolve({ filter: /^@\// }, (args) => {
+                const rest = args.path.slice(2)
+                const base = rest.startsWith('.mercato/') ? appRoot : path.join(appRoot, 'src')
+                return build.resolve(path.join(base, rest), { kind: args.kind, resolveDir: args.resolveDir })
+              })
+            },
+          },
+        ],
       })
       fs.writeFileSync(jsPath, result.outputFiles[0].text)
     } else {

@@ -59,3 +59,13 @@ describe('Q-S finding reclassification', () => {
     expect(out.fix_step).toBe('5.2')
   })
 })
+
+describe('pending client decisions', () => {
+  it('a gap the QA itself attributes to an undecided client is the client\'s question (3.7 and Q-S)', async () => {
+    const { reclassifyStrategyFindings } = await import('../lib/research/steps/strategyQa')
+    const [a] = reclassifyRecordedClaims([finding({ code: 'missing_must_field', path: 'WEW-AUDYT.journey', owner: 'agent', fix_step: '3.3', gap: 'no destination exists; the candidates are all undecided by the client' })], zrodla)
+    const [b] = reclassifyStrategyFindings([finding({ code: 'missing_must_field', path: 'KLI-STRATEGIA.strategic_choice.decision', owner: 'agent', fix_step: '5.2', gap: 'the three anchor decisions are all marked awaiting_client in the brief' })])
+    expect([a.owner, b.owner]).toEqual(['client', 'client'])
+    expect([a.fix_step, b.fix_step]).toEqual([null, null])
+  })
+})
