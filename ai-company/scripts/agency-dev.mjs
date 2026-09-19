@@ -54,6 +54,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
     OM_INTEGRATION_MODULES: 'agency_operations',
     OM_TEST_ACTION_TIMEOUT_MS: '20000',
     OM_TEST_NAVIGATION_TIMEOUT_MS: '60000',
+    OM_AGENCY_TRIAGE_MODE: overrides.OM_AGENCY_TRIAGE_MODE ?? sharedEnvironment.OM_AGENCY_TRIAGE_MODE ?? 'disabled',
     ...(overrides.AGENCY_TEST_NATIVE_TRIAGE === '1' ? {
       AGENCY_TEST_NATIVE_TRIAGE: '1',
       OM_ENABLE_ENTERPRISE_MODULES: 'true',
@@ -61,6 +62,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
       OM_ENABLE_ENTERPRISE_MODULES_SSO: 'false',
       OM_ENABLE_ENTERPRISE_MODULES_SECURITY: 'false',
       OM_AGENCY_TRIAGE_ENABLED: 'true',
+      OM_AGENCY_TRIAGE_MODE: 'fixture',
       AGENCY_TOV_EXECUTION_ENABLED: 'false',
       AGENCY_ANALYSIS_EXECUTION_ENABLED: 'false',
       OM_AI_PROVIDER: 'openrouter',
@@ -73,6 +75,14 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
       OPENROUTER_BASE_URL: 'http://127.0.0.1:5003/v1',
       AGENCY_OPERATIONS_AI_BASE_URL: 'http://127.0.0.1:5003/v1',
     } : {}),
+  }
+}
+
+export function assertUnpaidDemoEnvironment(env) {
+  if (env.OM_AGENCY_TRIAGE_MODE === 'live'
+    || /^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '')
+    || /^(true|1)$/i.test(env.AGENCY_TOV_EXECUTION_ENABLED ?? '')) {
+    throw new Error('Routine agency tests cannot use live execution. Start the app and runner with agency execution disabled, or use the local intelligence fixture.')
   }
 }
 
@@ -139,6 +149,7 @@ async function main() {
   }
 
   if (action === 'test') {
+    assertUnpaidDemoEnvironment(env)
     if (!flags.includes('--list')) {
       const response = await fetch(`${env.BASE_URL}/login`, { signal: AbortSignal.timeout(120000) })
       if (!response.ok) throw new Error('Agency dev app is not ready. Start yarn dev:agency first.')

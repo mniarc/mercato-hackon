@@ -132,6 +132,15 @@ changes require native version publishing. This is execution permission, not
 proof of payment or customer acceptance. The research service's budget accounting
 is not a provider-enforced billing ceiling.
 
+For continuation after exact brief acceptance, a `through: "4.2"` policy may
+also contain `strategyExecution: { "maxCostPln": <explicit-positive-cap> }`.
+Omitting it leaves strategy execution unconfigured; the analysis cap never
+authorizes strategy spending. The existing native submission workflow calls the
+teammate strategy/ToV/QA phase with pinned inputs and displays its saved outcome.
+Repeated acceptance handoffs replay the saved result; interrupted or budget-paused
+work is not automatically restarted. This does not grant client acceptance of the
+resulting pair or start planning. Full STD-LIMITY enforcement remains separate.
+
 Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
 existing portal materials API accepts `process: {"kind":"analysis"}` and a private
 JSON file containing `order` plus optional `socialPosts`/`pages`, using the teammate
@@ -153,21 +162,39 @@ With the same Enterprise prerequisites, configure the scope once:
 node scripts/agency-dev.mjs cli agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>
 ```
 
-This grants only `agent_orchestrator.agents.run` to the native workflow identity.
+This grants `agent_orchestrator.agents.run` and `agency_research.manage` to the
+native workflow identity for interpretation and authorized brief acceptance.
 Configuration refuses to overwrite an existing definition; changes use native
-workflow version publishing. Native triage currently permits only the explicit
-localhost intelligence fixture; live activation fails with an unsupported-limits
-error. Client submissions in fixture mode use `INVOKE_AGENT`;
-clients cannot select workers. Answer/clarify can route; other typed results are
-saved as explicitly unapplied. Agent failure enters a native employee UserTask;
+workflow version publishing. `OM_AGENCY_TRIAGE_MODE` selects `disabled` (default),
+`fixture`, or `live`. The legacy enabled flag selects fixture-only when no mode
+is supplied; it never enables live execution. Both enabled modes use `INVOKE_AGENT`;
+clients cannot select workers. Answer/clarify and exact invited brief acceptance
+have routes; unsupported typed results remain explicitly unapplied. Acceptance
+can continue to configured strategy execution, without bypassing its execution
+flag or spending authorization. Agent failure enters a native employee UserTask;
 its sole resolution decision returns to the original triage input.
 
-Keep the flag false for the deterministic baseline. Prompts and the shared model
+Keep the mode disabled for the deterministic baseline. Live readiness requires
+the shared `OM_AI_PROVIDER=openrouter`, an `OM_AI_MODEL=openrouter/<model-id>`, a
+private key and explicit positive integers for `OM_AGENT_RUN_TIMEOUT_MS`,
+`OM_AGENT_PROVIDER_RETRY_MAX` and `OM_AGENT_PROVIDER_RETRY_BASE_MS`. Remove stale
+fixture endpoints/model allowlists; conflicting module model overrides are rejected.
+The check makes no provider call and does not prove credit, model access, effective
+tenant overrides or output quality. Do not select live until paid execution is approved.
+
+For `yarn dev:agency`, pass the mode in the launching process, as with the
+Enterprise flags; the launcher otherwise pins disabled. Routine `test:agency`
+commands reject live triage or enabled research/ToV execution. App and runner must
+use the same configuration; the runner cannot reconfigure an already running app.
+
+Prompts and the shared model
 environment are not pinned by workflow versioning. Native run timeout does not
 cancel an in-flight provider request; activity timeout/retry settings are not
-agent budgets. No monetary/token cap is enforced by this binding. Paid execution
-is blocked until native enforcement and approved versioned bounds exist, followed
-by a separately approved live proof; opt-in cannot bypass that gap.
+agent budgets. No hard monetary/token cap is enforced by this binding. Readiness
+prepares live execution; the paid proof remains separate. T24 still owns pinned
+product configuration and task-wide accounting. Do not require provider cancellation or
+zero cost overshoot as invented demo prerequisites, or claim that a bounded demo
+completes product-wide STD-LIMITY pinning and task accounting.
 
 The canonical headed demo passed on the persistent database: native clarification,
 client reply, controlled provider failure, authorized employee resolution, same-workflow

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import path from 'node:path'
-import { agencyEnvironment } from '../agency-dev.mjs'
+import { agencyEnvironment, assertUnpaidDemoEnvironment } from '../agency-dev.mjs'
 
 test('app and fixtures share isolated persistent DB, queue, cache, attachments and secrets', () => {
   const inherited = { DATABASE_URL: 'postgres://shared/team', JWT_SECRET: 'different', QUEUE_BASE_DIR: 'shared-queue' }
@@ -35,7 +35,18 @@ test('native triage proof overrides live provider credentials with the loopback 
   assert.equal(env.OM_AI_AVAILABLE_PROVIDERS, 'openrouter')
   assert.equal(env.OM_AI_AVAILABLE_MODELS_OPENROUTER, 'agency-triage-fixture')
   assert.equal(env.OM_AGENCY_TRIAGE_ENABLED, 'true')
+  assert.equal(env.OM_AGENCY_TRIAGE_MODE, 'fixture')
   assert.equal(env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS, 'true')
   assert.equal(env.AGENCY_TOV_EXECUTION_ENABLED, 'false')
   assert.equal(agencyEnvironment({}).OM_AGENCY_TRIAGE_ENABLED, undefined)
+  assert.equal(agencyEnvironment({}).OM_AGENCY_TRIAGE_MODE, 'disabled')
+})
+
+test('routine demo rejects live activation but allows explicit local intelligence fixtures', () => {
+  assert.throws(() => assertUnpaidDemoEnvironment(agencyEnvironment({ OM_AGENCY_TRIAGE_MODE: 'live' })), /cannot use live execution/)
+  assert.throws(() => assertUnpaidDemoEnvironment(agencyEnvironment({ AGENCY_ANALYSIS_EXECUTION_ENABLED: 'true' })), /cannot use live execution/)
+  assert.throws(() => assertUnpaidDemoEnvironment(agencyEnvironment({ AGENCY_TOV_EXECUTION_ENABLED: '1' })), /cannot use live execution/)
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(agencyEnvironment({})))
+  assert.doesNotThrow(() => assertUnpaidDemoEnvironment(agencyEnvironment({ OM_AGENCY_TRIAGE_MODE: 'live' }, { AGENCY_TEST_NATIVE_TRIAGE: '1' })))
+  assert.equal(agencyEnvironment({}, { OM_AGENCY_TRIAGE_MODE: 'live' }).OM_AGENCY_TRIAGE_MODE, 'live')
 })
