@@ -24,14 +24,14 @@ const BRIEF_RULES = [
   'inventing. Cite `fact_ids` / `evidence_ids` / `sample_ids` / `allowed_proof_ids` only from',
   'the input. Do not ask the client for company data or the purchased scope. When',
   '`repair_findings` is non-empty, fix exactly those findings and keep everything else.',
-  'When `previous_brief` is present, preserve its unaffected content; change only what the',
-  'current findings, client answers or repair findings and their real dependencies require.',
   'The client reads the whole brief in 500–700 words, so every prose field stays under 70',
   'words, says its thing once (never repeat a sentence that belongs to another field) and',
   'reads as plain sentences a client can act on — evidence ids and input field names (`people`,',
   '`buyer_map`) never appear inside prose,',
   'they belong only in the id fields. `people` are the people who speak for the brand; their',
   'own posts and talks are the `sample_ids` and `fact_ids` listed under each of them.',
+  'When `previous_brief` is present, preserve its unaffected content; change only what the',
+  'current findings, client answers or repair findings and their real dependencies require.',
   DESLOP_PROSE_RULES,
 ].join(' ')
 

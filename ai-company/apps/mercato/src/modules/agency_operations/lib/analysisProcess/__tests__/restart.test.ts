@@ -88,7 +88,6 @@ test('explicit --from stays within the original intake policy and a paused workf
   await expect(restartAnalysisCase(container, input)).rejects.toMatchObject({ status: 409 })
   expect(startWorkflow).not.toHaveBeenCalled()
 })
-
 test('paused on an employee exception writes the bounded override into the live instance without cancelling it', async () => {
   previous.status = 'PAUSED'; previous.currentStepId = 'research_exception'
   await expect(restartAnalysisCase(container, { ...input, resumeFrom: '3.2' })).resolves.toMatchObject({

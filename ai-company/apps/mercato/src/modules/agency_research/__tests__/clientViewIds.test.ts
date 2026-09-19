@@ -15,3 +15,8 @@ describe('client view — evidence ids never reach the client', () => {
     expect(stripEvidenceIds(text)).toBe(text)
   })
 })
+
+it('leaves no stubs behind a stripped comparison or dash', () => {
+  expect(stripEvidenceIds('kontrastuje z osobistym tonem Mudy (L05 vs L35).')).toBe('kontrastuje z osobistym tonem Mudy.')
+  expect(stripEvidenceIds('bez danych — F58, F61–F64.')).toBe('bez danych.')
+})

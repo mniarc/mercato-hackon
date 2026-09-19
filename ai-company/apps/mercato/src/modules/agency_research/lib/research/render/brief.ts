@@ -27,6 +27,7 @@ const T = {
     questions: 'Pytania do Ciebie',
     why: 'dlaczego',
     ourMaterial: 'naszym materiale z researchu',
+    peopleList: 'spośród osób wypowiadających się w imieniu marki',
     hint: 'podpowiedź',
     proposal: 'propozycja do potwierdzenia',
     decided: 'potwierdzone',
@@ -52,6 +53,7 @@ const T = {
     questions: 'Questions for you',
     why: 'why',
     ourMaterial: 'our research material',
+    peopleList: 'among the people who speak for the brand',
     hint: 'hint',
     proposal: 'proposal to confirm',
     decided: 'confirmed',
@@ -129,12 +131,13 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
   const clientWords = (text: string) => stripEvidenceIds(text)
     .replace(/\b(priority_offer|priority_audience|business_direction|buyer_reality|promise_constraints|voice_preferences|channel_and_cta|success_and_limits|assets_and_permissions|open_assumptions)\b/g, (key) => `„${FIELD_LABELS[args.outputLanguage][key as keyof typeof FIELD_LABELS['pl']]}”`)
     .replace(/\b(buyer_map|offer_map|field_map|journey|proof_cards|language_samples)\b/g, t.ourMaterial)
+    .replace(/\b(?:z listy |from the )?people\b/g, t.peopleList)
     .replace(/\s*\((?:gap|hypothesis|hipoteza|luka)\)/gi, '')
   const questionLines = questions.map((q, index) => `${index + 1}. **${clientWords(q.question)}** _(${t.hint}: ${clientWords(q.hint)})_`)
   const questionBlock = [`## ${t.questions}`, ...(questionLines.length ? questionLines : ['—'])]
   const budget = limits.clientText.briefWordsMax
   const bodyBudget = Math.max(200, budget - countClientWords(questionBlock.join('\n')))
-  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => stripEvidenceIds(line)), args.outputLanguage, bodyBudget, { keepEveryLine: true })
+  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => clientWords(line)), args.outputLanguage, bodyBudget, { keepEveryLine: true })
   const markdown = `${fitted.markdown}\n${questionBlock.join('\n')}\n`
   const view = checkClientView('WZR-BRIEF', markdown)
   const issues: DocumentIssue[] = []

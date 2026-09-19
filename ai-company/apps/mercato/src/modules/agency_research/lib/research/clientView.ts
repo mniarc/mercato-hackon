@@ -23,7 +23,8 @@ export function checkClientView(templateId: TemplateId, markdown: string): Clien
   return { markdown, words, limit, issue }
 }
 
-const SENTENCE_BREAK = /(?<=[.!?…])\s+(?=[^a-ząćęłńóśźż])/u
+// A sentence ends at . ! ? … followed by a capital — never after an abbreviation (np., m.in., tzn., itp., itd., tj., ok., e.g., i.e.)
+const SENTENCE_BREAK = /(?<![Nn]p\.|[Mm]\.in\.|[Tt]zn\.|[Ii]tp\.|[Ii]td\.|[Tt]j\.|[Oo]k\.|e\.g\.|i\.e\.|\bvs\.)(?<=[.!?…])\s+(?=[^a-ząćęłńóśźż'"„(])/u
 const FIT_NOTE = { pl: '_Skrócono do limitu słów widoku klienta; pełna treść jest w dokumencie wewnętrznym._', en: '_Shortened to the client-view word budget; the full text is in the internal document._' }
 
 function firstSentences(line: string, count: number): string {
@@ -46,13 +47,14 @@ function firstSentences(line: string, count: number): string {
 /** Evidence ids are internal: the client reads "(…)" groups of ids and bare id runs as nothing at all. */
 export function stripEvidenceIds(text: string): string {
   const id = '(?:(?:S|F|C|P|L|A|B|T|X|G|D|Q|ER|TOP)-?\\d{2,}|VOICE-[AB])'
-  const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b)\\s*${id})*`
+  const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b|\\bvs\\.?)\\s*${id})*`
   return text
     .replace(new RegExp(`\\s*\\(\\s*${run}\\s*\\)`, 'g'), '')
     .replace(new RegExp(`\\s*\\b(?:w|in|see|zob\\.)\\s+${run}(?=[\\s,.;:)]|$)`, 'g'), '')
     .replace(new RegExp(`\\b${run}\\b`, 'g'), '')
     .replace(/\s+([,.;:!?)])/g, '$1')
-    .replace(/\(\s*\)/g, '')
+    .replace(/\(\s*(?:vs\.?|i|oraz|and)?\s*\)/g, '')
+    .replace(/\s+[—–-]\s*([.;,])/g, '$1')
     .replace(/,\s*,/g, ',')
     .replace(/[ \t]{2,}/g, ' ')
     .trim()
