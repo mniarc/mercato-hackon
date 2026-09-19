@@ -160,7 +160,7 @@ export function gateSynthesis(data: Synthesis, known: Set<string>, companies: st
       strength = 'described_approach'
       issues.push(issue('NO_AUTO_PROMOTION', `difference_candidates[${index}]`, 'no proof card behind the candidate; lowered to described_approach'))
     }
-    if (/\b(only|jedyn\w*|unique|unikaln\w*|wyłączn\w*|exclusive)\b/i.test(candidate.comparison) && !candidate.unknown.trim()) {
+    if (/\b(the only|only (one|company|framework|platform|vendor|provider)|jedyn\w*|unique|unikaln\w*|wyłączn\w*|exclusive)\b/i.test(candidate.comparison) && !candidate.unknown.trim()) {
       issues.push(issue('UNIQUENESS_FROM_ABSENCE', `difference_candidates[${index}]`, 'uniqueness asserted without naming what is unknown', 'blocking'))
     }
     return { candidate_id: `D${String(index + 1).padStart(2, '0')}`, ...candidate, proof_ids, fact_ids, allowed_claim_strength: strength }

@@ -97,7 +97,8 @@ export function maxSupportLevel(proofIds: string[], proofById: Map<string, Proof
   return best
 }
 
-const UNIQUENESS = /\b(jedyn\w*|unikaln\w*|unikatow\w*|only\b|unique\w*|niepowtarzaln\w*)/i
+/** An exclusivity claim: "the only", "unique", "jedyni" — not the adverb "only" ("write only the edge" is the client's tagline). */
+const UNIQUENESS = /\b(jedyn\w*|unikaln\w*|unikatow\w*|niepowtarzaln\w*|the only\b|only (one|company|framework|platform|vendor|provider|solution|tool)\b|unique\w*|no (one|body) else\b|nikt inny\b|exclusive(ly)?\b|wyłączn\w*)/i
 const EVERYONE_ELSE = /^(wszys\w*|everyone|everybody|all\s+others?|inni|others?|konkurencj\w*|the\s+competition|rynek|the\s+market)\b/i
 
 /** "Everyone else" in three words or fewer is not an alternative; a named route or supplier type is. */
