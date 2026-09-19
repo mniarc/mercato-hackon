@@ -46,13 +46,14 @@ function firstSentences(line: string, count: number): string {
 /** Evidence ids are internal: the client reads "(…)" groups of ids and bare id runs as nothing at all. */
 export function stripEvidenceIds(text: string): string {
   const id = '(?:(?:S|F|C|P|L|A|B|T|X|G|D|Q|ER|TOP)-?\\d{2,}|VOICE-[AB])'
-  const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b)\\s*${id})*`
+  const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b|\\bvs\\.?)\\s*${id})*`
   return text
     .replace(new RegExp(`\\s*\\(\\s*${run}\\s*\\)`, 'g'), '')
     .replace(new RegExp(`\\s*\\b(?:w|in|see|zob\\.)\\s+${run}(?=[\\s,.;:)]|$)`, 'g'), '')
     .replace(new RegExp(`\\b${run}\\b`, 'g'), '')
     .replace(/\s+([,.;:!?)])/g, '$1')
-    .replace(/\(\s*\)/g, '')
+    .replace(/\(\s*(?:vs\.?|i|oraz|and)?\s*\)/g, '')
+    .replace(/\s+[—–-]\s*([.;,])/g, '$1')
     .replace(/,\s*,/g, ',')
     .replace(/[ \t]{2,}/g, ' ')
     .trim()
