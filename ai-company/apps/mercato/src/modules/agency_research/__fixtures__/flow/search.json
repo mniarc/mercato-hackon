@@ -1,0 +1,34 @@
+{
+  "*": [
+    {
+      "url": "https://northlight.example/",
+      "title": "Northlight Studio — badania i projektowanie",
+      "snippet": "Badania użytkowników, prototypy, wdrożenia dla B2B."
+    },
+    {
+      "url": "https://www.linkedin.com/company/northlight-studio/",
+      "title": "Northlight Studio | LinkedIn",
+      "snippet": "aggregator"
+    },
+    {
+      "url": "https://makeitflow.pl/index.php",
+      "title": "FLOW",
+      "snippet": "the client itself"
+    },
+    {
+      "url": "https://kubik.example/",
+      "title": "Kubik Digital — software house",
+      "snippet": "Systemy dla przemysłu, integracje ERP."
+    },
+    {
+      "url": "https://pracownia-ekspres.example/",
+      "title": "Pracownia Ekspres",
+      "snippet": "Projektowanie stron w 48h."
+    },
+    {
+      "url": "https://kubik.example/blog/erp",
+      "title": "Kubik blog",
+      "snippet": "same host again"
+    }
+  ]
+}

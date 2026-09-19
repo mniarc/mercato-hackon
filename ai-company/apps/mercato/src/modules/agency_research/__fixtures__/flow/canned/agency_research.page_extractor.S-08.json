@@ -1,0 +1,30 @@
+{
+  "kind": "research",
+  "data": {
+    "facts": [
+      {
+        "local_ref": "f1",
+        "claim": "Warsztat odkrywczy trwa dwa dni i kończy się mapą problemu.",
+        "quote": "Warsztat odkrywczy trwa dwa dni i kończy się mapą problemu",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "mechanizm"
+        ],
+        "limitation": null
+      },
+      {
+        "local_ref": "f2",
+        "claim": "Northlight nie obiecuje wyników sprzedażowych.",
+        "quote": "Nie obiecujemy wyników sprzedażowych; obiecujemy przetestowane założenia",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "promise"
+        ],
+        "limitation": null
+      }
+    ],
+    "language_samples": [],
+    "audience_signals": [],
+    "page_summary": "Oferta z czasami etapów."
+  }
+}

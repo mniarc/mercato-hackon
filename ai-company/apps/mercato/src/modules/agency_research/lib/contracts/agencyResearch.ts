@@ -10,7 +10,7 @@ import { orderDataSchema } from '../../data/schemas/zamowienie'
 
 export const AGENCY_RESEARCH_SERVICE = 'agencyResearchService' as const
 
-export const researchSteps = ['3.2'] as const
+export const researchSteps = ['3.2', '3.5'] as const
 export type ResearchStep = (typeof researchSteps)[number]
 
 export const researchRunRequestSchema = z.object({

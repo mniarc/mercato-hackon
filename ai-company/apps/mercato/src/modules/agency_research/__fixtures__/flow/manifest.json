@@ -1,5 +1,39 @@
 {
-  "https://makeitflow.pl/index.php": { "file": "pages/home.md", "access": "full", "title": "Centrum Badawcze FLOW — opis i FAQ" },
-  "https://makeitflow.pl/projekty/flowco-ai": { "file": "pages/flowco.md", "access": "full", "title": "Flowco.AI (ta sama warstwa FAQ)" },
-  "https://makeitflow.pl/promocje-konsumenckie": { "access": "unavailable", "error": "title only, no readable content" }
+  "https://makeitflow.pl/index.php": {
+    "file": "pages/home.md",
+    "access": "full",
+    "title": "Centrum Badawcze FLOW — opis i FAQ"
+  },
+  "https://makeitflow.pl/projekty/flowco-ai": {
+    "file": "pages/flowco.md",
+    "access": "full",
+    "title": "Flowco.AI (ta sama warstwa FAQ)"
+  },
+  "https://makeitflow.pl/promocje-konsumenckie": {
+    "access": "unavailable",
+    "error": "title only, no readable content"
+  },
+  "https://northlight.example/": {
+    "file": "pages/northlight.md",
+    "access": "full",
+    "title": "Northlight Studio"
+  },
+  "https://northlight.example/oferta": {
+    "file": "pages/northlight-oferta.md",
+    "access": "full",
+    "title": "Oferta Northlight Studio"
+  },
+  "https://northlight.example/kontakt": {
+    "access": "unavailable",
+    "error": "form only"
+  },
+  "https://kubik.example/": {
+    "file": "pages/kubik.md",
+    "access": "full",
+    "title": "Kubik Digital"
+  },
+  "https://pracownia-ekspres.example/": {
+    "access": "unavailable",
+    "error": "timeout"
+  }
 }

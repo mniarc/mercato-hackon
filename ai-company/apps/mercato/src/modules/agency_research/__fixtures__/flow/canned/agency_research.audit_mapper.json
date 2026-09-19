@@ -1,0 +1,154 @@
+{
+  "kind": "research",
+  "data": {
+    "offer_map": [
+      {
+        "service": "Badania i diagnoza",
+        "described_audience": "Klient potrzebujący określić problem i wymagania; segment nieustalony.",
+        "problem": "Rozpoznanie potrzeb i ograniczeń.",
+        "result": "Podstawa decyzji o rozwiązaniu; konkretny artefakt nieudokumentowany.",
+        "mechanism": "Potrzeby użytkowników, cel biznesowy, organizacja pracy, możliwości techniczne.",
+        "limits": "Brak dowodu efektów.",
+        "fact_ids": [
+          "F01",
+          "F03",
+          "F04"
+        ]
+      },
+      {
+        "service": "Projektowanie i wdrożenie rozwiązań cyfrowych",
+        "described_audience": "Firmy z problemem procesowym.",
+        "problem": "Przejście od pomysłu do działającego rozwiązania.",
+        "result": "Deklarowane: krótszy cykl.",
+        "mechanism": "AI przy uzasadnieniu biznesowym, rozwiązania bez AI.",
+        "limits": "Brak case z miernikiem.",
+        "fact_ids": [
+          "F05",
+          "F12",
+          "F13"
+        ]
+      },
+      {
+        "service": "Szkolenia AI i obsługa promocji",
+        "described_audience": "nieustalony",
+        "problem": "nieustalony",
+        "result": "nieustalony",
+        "mechanism": "nieustalony",
+        "limits": "Tylko nazwa obszaru w FAQ.",
+        "fact_ids": [
+          "F02"
+        ]
+      },
+      {
+        "service": "Wymyślona usługa",
+        "described_audience": "x",
+        "problem": "x",
+        "result": "x",
+        "mechanism": "x",
+        "limits": "x",
+        "fact_ids": [
+          "F99"
+        ]
+      }
+    ],
+    "buyer_map": [
+      {
+        "status": "evidence",
+        "initiator": "Właściciel procesu lub produktu — hipoteza audytora.",
+        "user": "Osoba wykonująca proces; nie zidentyfikowano realnej grupy.",
+        "decision_maker": "unknown",
+        "purchase_moment": "Potrzeba poprawy działania bez pewności co do specyfikacji.",
+        "job": "Wyjaśnić problem i ustalić uzasadniony zakres rozwiązania.",
+        "objections": [
+          "Hipoteza: musimy najpierw przygotować specyfikację."
+        ],
+        "selection_criteria": null,
+        "selection_criteria_status": "unknown",
+        "direct_customer_voice": false,
+        "fact_ids": [
+          "F03",
+          "F04",
+          "A01"
+        ]
+      }
+    ],
+    "message_map": [
+      {
+        "message": "Badania, projektowanie, wdrażanie",
+        "category": "Zakres kompetencji",
+        "audience": "Szeroki odbiorca rozwiązań cyfrowych",
+        "benefit": "Spójność etapów — interpretacja, nie dowód wyniku.",
+        "mechanism": "Zakres i model współpracy",
+        "proof_ids": [
+          "P01"
+        ],
+        "risk": "To nie udowodnione UVP.",
+        "fact_ids": [
+          "F01",
+          "F09"
+        ]
+      },
+      {
+        "message": "Szybciej, taniej, lepiej dzięki diagnozie",
+        "category": "Deklaracja korzyści",
+        "audience": "Decydent budżetowy",
+        "benefit": "Korzyść bez miernika.",
+        "mechanism": "Diagnoza i wdrożenia",
+        "proof_ids": [
+          "P77"
+        ],
+        "risk": "Silny język korzyści bez dowodu.",
+        "fact_ids": [
+          "F10"
+        ]
+      }
+    ],
+    "journey": [
+      {
+        "stage": "Zainteresowanie",
+        "material": "Publiczny LinkedIn",
+        "promise": "Produkty cyfrowe, wydarzenia.",
+        "cta": "Pytanie do odbiorcy lub zaproszenie.",
+        "destination_status": "Widoczny kierunek; nie testowano.",
+        "friction": "Niska konwersja z LinkedIn do rozmowy.",
+        "friction_status": "observed",
+        "possible_improvement": "Ustalić następny krok spójny z tematem.",
+        "research_limitation": "Brak danych o przejściu do rozmowy.",
+        "fact_ids": [
+          "F13",
+          "F15"
+        ]
+      },
+      {
+        "stage": "Rozmowa",
+        "material": "WWW kontakt",
+        "promise": "Kontakt bez specyfikacji.",
+        "cta": "E-mail i telefon.",
+        "destination_status": "Widoczny kontakt; obsługi nie sprawdzono.",
+        "friction": null,
+        "friction_status": "not_established_in_available_evidence",
+        "possible_improvement": "Wskazać, co przygotować na rozmowę.",
+        "research_limitation": null,
+        "fact_ids": [
+          "F07"
+        ]
+      }
+    ],
+    "relationship": [
+      {
+        "area": "Edukacja i konsultacje",
+        "finding": "Profil deklaruje publikacje i warsztaty.",
+        "status": "first_party_claim",
+        "fact_ids": [
+          "F09"
+        ]
+      },
+      {
+        "area": "Obsługa po projekcie",
+        "finding": "Brak publicznych danych.",
+        "status": "unknown",
+        "fact_ids": []
+      }
+    ]
+  }
+}

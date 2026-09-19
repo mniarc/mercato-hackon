@@ -1,0 +1,45 @@
+{
+  "kind": "research",
+  "data": {
+    "candidates": [
+      {
+        "company": "Northlight Studio",
+        "url": "https://northlight.example/",
+        "competition_type": "direct competitor",
+        "shared_problem_scope": "Badania, prototyp i wdrożenie dla B2B.",
+        "market_scale_difference": "unknown",
+        "reason": "Ten sam zakres i odbiorca."
+      },
+      {
+        "company": "Kubik Digital",
+        "url": "https://kubik.example/",
+        "competition_type": "alternative route provider",
+        "shared_problem_scope": "Wdrożenie systemów przemysłowych bez etapu badań.",
+        "market_scale_difference": "Większy zespół (40 inżynierów).",
+        "reason": "Alternatywa dla klienta, który ma specyfikację."
+      },
+      {
+        "company": "Pracownia Ekspres",
+        "url": "https://pracownia-ekspres.example/",
+        "competition_type": "category benchmark",
+        "shared_problem_scope": "Szybkie wdrożenia.",
+        "market_scale_difference": "unknown",
+        "reason": "Benchmark tempa."
+      },
+      {
+        "company": "Wymyślona Firma",
+        "url": "https://wymyslona.example/",
+        "competition_type": "direct competitor",
+        "shared_problem_scope": "x",
+        "market_scale_difference": "x",
+        "reason": "nie z wyników"
+      }
+    ],
+    "excluded": [
+      {
+        "url": "https://www.linkedin.com/company/northlight-studio/",
+        "why": "profil w agregatorze"
+      }
+    ]
+  }
+}

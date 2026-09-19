@@ -235,10 +235,23 @@ export function collectCitedIds(value: unknown, out = new Map<string, string[]>(
   return out
 }
 
+/** Singular `*_id` string values are the document's own identities (B01, G01, D01…), not citations. */
+export function ownIds(value: unknown, out = new Set<string>()): Set<string> {
+  if (Array.isArray(value)) value.forEach((item) => ownIds(item, out))
+  else if (value && typeof value === 'object') {
+    for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
+      if (/_id$/.test(key) && typeof child === 'string') out.add(child)
+      else ownIds(child, out)
+    }
+  }
+  return out
+}
+
 export function unresolvedCitations(data: unknown, known: Set<string>): GateIssue[] {
   const issues: GateIssue[] = []
+  const resolvable = new Set([...known, ...ownIds(data)])
   for (const [path, ids] of collectCitedIds(data)) {
-    for (const id of ids) if (!known.has(id)) issues.push(issue('UNRESOLVED_CITATION', path, `${id} is not a stored id`, 'blocking'))
+    for (const id of ids) if (!resolvable.has(id)) issues.push(issue('UNRESOLVED_CITATION', path, `${id} is not a stored id`, 'blocking'))
   }
   return issues
 }

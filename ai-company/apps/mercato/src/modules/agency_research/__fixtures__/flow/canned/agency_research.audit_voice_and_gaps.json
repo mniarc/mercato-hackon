@@ -1,0 +1,166 @@
+{
+  "kind": "research",
+  "data": {
+    "voice_audit": {
+      "sample_size": "6 krótkich fragmentów z 4 materiałów; brak pełnego korpusu.",
+      "formality": {
+        "finding": "WWW przystępne; posty swobodne.",
+        "sample_ids": [
+          "L01",
+          "L02",
+          "L04"
+        ],
+        "interpretation_limit": null
+      },
+      "directness": {
+        "finding": "Krótkie zdania i bezpośrednie zaproszenia.",
+        "sample_ids": [
+          "L01",
+          "L06"
+        ],
+        "interpretation_limit": null
+      },
+      "technical_level": {
+        "finding": "Tematy technologiczne oswajane prostym językiem.",
+        "sample_ids": [
+          "L01"
+        ],
+        "interpretation_limit": null
+      },
+      "emotion": {
+        "finding": "Entuzjazm w zaproszeniach, koleżeńskość w gratulacjach.",
+        "sample_ids": [
+          "L03",
+          "L06"
+        ],
+        "interpretation_limit": null
+      },
+      "claim_certainty": {
+        "finding": "Silny język korzyści bez miernika.",
+        "sample_ids": [
+          "L05"
+        ],
+        "interpretation_limit": null
+      },
+      "recurring_phrases": {
+        "finding": "Nie ustalono powtarzalnego słownika na tak małej próbce.",
+        "sample_ids": [],
+        "interpretation_limit": null
+      },
+      "channel_difference": {
+        "finding": "FAQ wyjaśnia zasady; posty budują relację.",
+        "sample_ids": [
+          "L01",
+          "L04",
+          "L99"
+        ],
+        "interpretation_limit": "Różne funkcje kanałów są obserwacją kontekstu, nie dowodem niespójności."
+      },
+      "future_voice_status": "Przyszły głos jest decyzją klienta; audyt go nie ustala."
+    },
+    "gaps": [
+      {
+        "observation": "Szerokie portfolio bez decyzji o priorytecie komunikacji.",
+        "business_impact_hypothesis": null,
+        "evidence_ids": [
+          "F02",
+          "X01"
+        ],
+        "priority": "must",
+        "needed": "Decyzja o ofercie i odbiorcy.",
+        "destination": "WEW-USTALENIA → KLI-BRIEF.priority_offer",
+        "finding_type": "observed_portfolio_plus_pending_decision",
+        "consequence_for_work": "Nie ustalamy priorytetu za klienta."
+      },
+      {
+        "observation": "Brak case z miernikiem wyniku.",
+        "business_impact_hypothesis": "Hipoteza: obietnice efektu nie mają pokrycia.",
+        "evidence_ids": [
+          "P01",
+          "P02"
+        ],
+        "priority": "must",
+        "needed": "Jeden zanonimizowany case.",
+        "destination": "WEW-USTALENIA → evidence_requests",
+        "finding_type": "missing_result_evidence",
+        "consequence_for_work": "Claim efektu zablokowany; komunikujemy metodę."
+      },
+      {
+        "observation": "CTA bez wskazanego właściciela obsługi.",
+        "business_impact_hypothesis": null,
+        "evidence_ids": [
+          "F07"
+        ],
+        "priority": "should",
+        "needed": "Owner kontaktu.",
+        "destination": "KLI-BRIEF.channel_and_cta",
+        "finding_type": "operational_unknown",
+        "consequence_for_work": "Publikacja z CTA wymaga ownera."
+      },
+      {
+        "observation": "Mała próbka języka.",
+        "business_impact_hypothesis": null,
+        "evidence_ids": [
+          "L01",
+          "L02"
+        ],
+        "priority": "could",
+        "needed": "Więcej materiałów lub decyzja o nowym ToV.",
+        "destination": "KLI-BRIEF.voice_preferences",
+        "finding_type": "sample_limitation",
+        "consequence_for_work": "Nowy ToV jako propozycja."
+      },
+      {
+        "observation": "Brak kryteriów wyboru nabywców.",
+        "business_impact_hypothesis": null,
+        "evidence_ids": [
+          "A01"
+        ],
+        "priority": "should",
+        "needed": "Pytanie w briefie.",
+        "destination": "KLI-BRIEF.priority_audience",
+        "finding_type": "unknown_customer_evidence",
+        "consequence_for_work": "Segment jako hipoteza."
+      },
+      {
+        "observation": "Szósta luka ponad limit.",
+        "business_impact_hypothesis": null,
+        "evidence_ids": [
+          "F01"
+        ],
+        "priority": "could",
+        "needed": "x",
+        "destination": "x",
+        "finding_type": "x",
+        "consequence_for_work": "x"
+      }
+    ],
+    "reusable_assets": [
+      {
+        "asset": "Opis czterech obszarów diagnozy",
+        "value_for_audience": "Pomaga przygotować opis trudności.",
+        "proof_ids": [
+          "P01"
+        ],
+        "seed_ids": [
+          "T01",
+          "T05"
+        ],
+        "availability": "parafrazy publiczne",
+        "limit": "Checklisty są propozycją, nie artefaktem firmy."
+      },
+      {
+        "asset": "Zasada doboru AI",
+        "value_for_audience": "Odróżnia firmę od 'AI wszędzie'.",
+        "proof_ids": [
+          "P02"
+        ],
+        "seed_ids": [
+          "T03"
+        ],
+        "availability": "publiczne",
+        "limit": "Nie dowód unikalności."
+      }
+    ]
+  }
+}
