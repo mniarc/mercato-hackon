@@ -77,7 +77,7 @@ test('starts a pending native payment, never activating on initiation', async ()
 test('failed-payment retry keeps the purchase identity and never activates before capture', async () => {
   const service = createDemoPurchaseService(container, activate)
   transaction.unifiedStatus = 'failed'
-  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canRetryPayment: true })
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canRetryPayment: true, canConfirmPayment: false })
   const replacement = Object.assign(new GatewayTransaction(), transaction, { id: uuid(30), providerSessionId: 'replacement_session', unifiedStatus: 'pending' })
   retrySession.mockResolvedValue(replacement)
   expect(await service.retryPayment(identity, order.id, { providerSessionId: 'mock_session' })).toMatchObject({
@@ -190,8 +190,32 @@ test('a confirmation retry after activation failure reuses the reserved case ide
   const service = createDemoPurchaseService(container, activate)
   activate.mockRejectedValueOnce(new Error('temporary failure'))
   await expect(service.confirm(identity, order.id)).rejects.toThrow('temporary failure')
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canConfirmPayment: true })
   expect(await service.confirm(identity, order.id)).toMatchObject({ status: 'paid', caseId: uuid(9) })
   expect(activate.mock.calls.map(([value]) => value.caseId)).toEqual([uuid(9), uuid(9)])
+})
+
+test('a cancelled payment returns its real receipt without confirmation or service activation', async () => {
+  transaction.unifiedStatus = 'cancelled'
+  const receipt = await createDemoPurchaseService(container, activate).confirm(identity, order.id)
+  expect(receipt).toMatchObject({ orderId: order.id, paymentId: payment.id, status: 'blocked',
+    canConfirmPayment: false, canRetryPayment: false, reason: 'Native test payment is cancelled.', caseId: null })
+  expect(confirmGateway).not.toHaveBeenCalled()
+  expect(reconcileCaptured).not.toHaveBeenCalled()
+  expect(activate).not.toHaveBeenCalled()
+  expect(startPaidAnalysis).not.toHaveBeenCalled()
+})
+
+test('confirmation eligibility follows actual session and verified capture, not a generic blocked label', () => {
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'pending_payment', canConfirmPayment: true })
+  transaction.providerSessionId = null
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'pending_payment', canConfirmPayment: false })
+  expect(purchaseReceipt(order, payment, null)).toMatchObject({ canConfirmPayment: false })
+  transaction.providerSessionId = 'mock_session'
+  transaction.unifiedStatus = 'captured'; transaction.capturedAmount = '2499'
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canConfirmPayment: false })
+  transaction.capturedAmount = '2500'
+  expect(purchaseReceipt(order, payment, transaction)).toMatchObject({ status: 'blocked', canConfirmPayment: true })
 })
 
 test('direct teammate activation launches once after commit and returns current processing without a second bootstrap', async () => {

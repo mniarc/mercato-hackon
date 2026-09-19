@@ -1,6 +1,10 @@
 # T84 — Request publication consent after content approval
 
-Status: backend implemented; 20 focused checks and app typecheck passed; native end-to-end proof and teammate UI integration remain. Sources: F32-3 AC1–4, existing T66/T83.
+State: active
+Sources: F32-3 AC1–4, existing T66/T83.
+
+Backend implemented; 20 focused checks and app typecheck passed. Native end-to-end
+proof and teammate UI integration remain.
 
 Deliver a staff-triggered native customer task for an already approved exact post
 and currently configured destination. Keep the completed content review immutable;

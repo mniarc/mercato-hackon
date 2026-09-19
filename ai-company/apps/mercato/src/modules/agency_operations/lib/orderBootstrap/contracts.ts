@@ -42,6 +42,7 @@ export const demoPurchaseReceiptSchema = z.object({
   workflowInstanceId: z.uuid().nullable(),
   reason: z.string().optional(),
   canRetryPayment: z.boolean().optional(),
+  canConfirmPayment: z.boolean().optional(),
   processing: paidCaseProcessingSchema.optional(),
 })
 

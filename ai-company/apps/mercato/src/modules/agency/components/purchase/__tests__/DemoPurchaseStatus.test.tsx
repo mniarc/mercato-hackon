@@ -50,3 +50,17 @@ test('the purchase hook preserves the server processing receipt', async () => {
   await act(async () => { await result.current.start({ brandDisplayName: 'Brand' } as Parameters<typeof result.current.start>[0]) })
   expect(result.current.receipt?.processing).toEqual(processing)
 })
+
+test('blocked payment offers confirmation only when the server permits it, retaining refresh and failed-payment retry', () => {
+  const callbacks = { confirm: jest.fn(), refresh: jest.fn(), retryPayment: jest.fn() }
+  const blocked: DemoPurchaseReceipt = { ...receipt, status: 'blocked', caseId: null, workflowInstanceId: null,
+    canConfirmPayment: false, canRetryPayment: false, reason: 'Native test payment is cancelled.' }
+  const view = renderWithProviders(<DemoPurchaseStatus receipt={blocked} orgSlug="acme" enabled busy={false} error={null} {...callbacks} />, { dict: translations })
+  expect(screen.queryByRole('button', { name: /confirm/i })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: translations['agency.purchase.refresh'] })).toBeVisible()
+  view.rerender(<DemoPurchaseStatus receipt={{ ...blocked, canConfirmPayment: true }} orgSlug="acme" enabled busy={false} error={null} {...callbacks} />)
+  expect(screen.getByRole('button', { name: translations['agency.purchase.retryConfirm'] })).toBeVisible()
+  view.rerender(<DemoPurchaseStatus receipt={{ ...blocked, canRetryPayment: true }} orgSlug="acme" enabled busy={false} error={null} {...callbacks} />)
+  expect(screen.getByRole('button', { name: translations['agency.purchase.retryPayment'] })).toBeVisible()
+  expect(screen.queryByRole('button', { name: /confirm/i })).not.toBeInTheDocument()
+})

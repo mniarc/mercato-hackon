@@ -32,7 +32,7 @@ export function assertPurchaseOwner(order: SalesOrder, identity: PurchaseIdentit
 export function purchaseReceipt(order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction | null): DemoPurchaseReceipt {
   const binding = readPurchaseBinding(order)
   const base = { orderId: order.id, paymentId: payment.id, providerSessionId: transaction?.providerSessionId ?? null,
-    caseId: binding.caseId ?? null, workflowInstanceId: binding.workflowInstanceId ?? null }
+    caseId: binding.caseId ?? null, workflowInstanceId: binding.workflowInstanceId ?? null, canConfirmPayment: false }
   if (!transaction) return { ...base, status: 'pending_payment' }
   if (!matchesDemoPayment(order, payment, transaction)) {
     return { ...base, status: 'blocked', reason: 'Native payment does not match this demo purchase.' }
@@ -40,13 +40,13 @@ export function purchaseReceipt(order: SalesOrder, payment: SalesPayment, transa
   if (isVerifiedDemoCapture(order, payment, transaction)) {
     return binding.caseId && binding.workflowInstanceId && Number(payment.capturedAmount) === demoOffer.amount
       ? { ...base, status: 'paid' }
-      : { ...base, status: 'blocked', reason: 'Test payment captured; purchase activation needs confirmation retry.' }
+      : { ...base, status: 'blocked', reason: 'Test payment captured; purchase activation needs confirmation retry.', canConfirmPayment: true }
   }
   if (!['pending', 'authorized'].includes(transaction.unifiedStatus)) {
     return { ...base, status: 'blocked', reason: `Native test payment is ${transaction.unifiedStatus}.`,
       canRetryPayment: !binding.caseId && !binding.workflowInstanceId && isRetryableDemoPayment(order, payment, transaction) }
   }
-  return { ...base, status: 'pending_payment' }
+  return { ...base, status: 'pending_payment', canConfirmPayment: Boolean(transaction.providerSessionId) }
 }
 
 export function createDemoPurchaseService(container: AwilixContainer, activateOverride?: ActivatePaidPurchase): DemoPurchaseService {
@@ -118,7 +118,8 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         if (!payment) throw new CrudHttpError(409, { error: 'Start this purchase payment first.' })
         let transaction = await gateway.read(payment.id)
         if (!transaction) throw new CrudHttpError(409, { error: 'Start this purchase payment session first.' })
-        if (!matchesDemoPayment(order, payment, transaction)) return purchaseReceipt(order, payment, transaction)
+        const currentReceipt = purchaseReceipt(order, payment, transaction)
+        if (!currentReceipt.canConfirmPayment) return currentReceipt
         transaction = await gateway.confirm(transaction)
         if (!isVerifiedDemoCapture(order, payment, transaction)) return purchaseReceipt(order, payment, transaction)
         await sales.reconcileCaptured(payment)

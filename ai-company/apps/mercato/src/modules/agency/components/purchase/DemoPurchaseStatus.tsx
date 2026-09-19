@@ -31,7 +31,7 @@ export function DemoPurchaseStatus({ receipt, orgSlug, enabled, busy, error, con
     <div className="flex flex-wrap gap-3">
       {completed ? <Button asChild><Link href={`/${orgSlug}/portal/agency/cases/${encodeURIComponent(receipt.caseId!)}`}>{t('agency.purchase.openCase', 'Open your agency case')}</Link></Button> : null}
       {receipt.canRetryPayment ? <Button disabled={!enabled || busy} onClick={() => { void retryPayment() }}>{t('agency.purchase.retryPayment')}</Button>
-        : receipt.status === 'pending_payment' || receipt.status === 'blocked' ? <Button disabled={!enabled || busy} onClick={() => { void confirm() }}>{receipt.status === 'blocked' ? t('agency.purchase.retryConfirm', 'Retry confirmation — no charge') : t('agency.purchase.confirm', 'Confirm test payment — no charge')}</Button> : null}
+        : receipt.canConfirmPayment ? <Button disabled={!enabled || busy} onClick={() => { void confirm() }}>{receipt.status === 'blocked' ? t('agency.purchase.retryConfirm', 'Retry confirmation — no charge') : t('agency.purchase.confirm', 'Confirm test payment — no charge')}</Button> : null}
       <Button variant="outline" disabled={busy} onClick={() => { void refresh() }}>{t('agency.purchase.refresh', 'Refresh payment status')}</Button>
       <Button asChild variant="ghost"><Link href={`/${orgSlug}/portal/agency`}>{t('agency.purchase.back', 'Back to offer')}</Link></Button>
     </div>
