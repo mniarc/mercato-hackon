@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchTaskRun } from '../../data/entities'
@@ -15,7 +16,7 @@ import type { RunStrategyExecutionOptions } from '../strategyExecution/run'
 import { claimPostExecution, savedPostExecution } from './claim'
 import { postExecutionRequestSchema, type PostExecutionRequest, type PostExecutionResult, type PostExecutionOutcome } from './contracts'
 
-export type RunPostExecutionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PostExecutionRequest }
+export type RunPostExecutionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PostExecutionRequest; readSpecialistTov?: ReadSpecialistTov }
 
 /** 7.1–7.3 only: a reviewed draft is neither customer acceptance nor publication consent. */
 export async function runPostExecution(opts: RunPostExecutionOptions): Promise<PostExecutionResult> {
@@ -25,7 +26,7 @@ export async function runPostExecution(opts: RunPostExecutionOptions): Promise<P
   const saved = await savedPostExecution(em, scope, request)
   if (saved) return saved
   const postQaRepairAttempts = limits.content.postRepairAttempts
-  const claim = await claimPostExecution(em, scope, request, opts.models, postQaRepairAttempts)
+  const claim = await claimPostExecution(em, scope, request, opts.models, postQaRepairAttempts, opts.readSpecialistTov)
   if ('existing' in claim) return claim.existing
   const { ready, summary } = claim
   const taskRunIds = [claim.activationTaskRunId]

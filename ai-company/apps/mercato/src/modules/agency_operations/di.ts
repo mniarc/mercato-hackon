@@ -19,6 +19,10 @@ import { CLIENT_TRIAGE_FUNCTION_NAME, deterministicClientTriage } from './lib/cl
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
+import { STAFF_TOV_COMPLETION_HANDLER, STAFF_TOV_INTAKE_SERVICE } from './lib/tovIntake/contracts'
+import { createQueueSpecialistCheckActivity, createSpecialistContinuationHandler } from './lib/strategyExecution/specialistContinuation'
+import { STRATEGY_SPECIALIST_WAIT_FUNCTION } from './lib/strategyExecution/contracts'
+import { createStaffTovIntakeService } from './lib/tovIntake/service'
 import { createClientTriageActivities } from './agents/client-triage/activities'
 import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION, ACCEPT_POST_FUNCTION } from './agents/client-triage/workflow'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
@@ -117,6 +121,8 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [`workflowFunction:${STRATEGY_REVIEW_HANDOFF_FUNCTION}`]: asFunction(() => createStrategyReviewHandoff(container)).scoped(),
     [`workflowFunction:${STRATEGY_EXECUTION_FUNCTION}`]: asFunction(() => createStrategyExecutionActivity(container)).scoped(),
+    [STAFF_TOV_COMPLETION_HANDLER]: asFunction(() => createSpecialistContinuationHandler(container)).scoped(),
+    [`workflowFunction:${STRATEGY_SPECIALIST_WAIT_FUNCTION}`]: asFunction(() => createQueueSpecialistCheckActivity(container)).scoped(),
     [`workflowFunction:${STRATEGY_READINESS_HANDOFF_FUNCTION}`]: asFunction(() => createStrategyReadinessHandoff(container)).scoped(),
     [EMPLOYEE_QUESTION_SERVICE]: asFunction(() => createEmployeeQuestionService(container)).scoped(),
     [`workflowFunction:${EMPLOYEE_QUESTION_RESPONSE_FUNCTION}`]: asFunction(
@@ -142,6 +148,9 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [CLIENT_MATERIAL_INTAKE_SERVICE]: asFunction(
       () => createClientMaterialIntakeService(container),
+    ).scoped(),
+    [STAFF_TOV_INTAKE_SERVICE]: asFunction(
+      () => createStaffTovIntakeService(container),
     ).scoped(),
     [CLIENT_CASE_QUERY_SERVICE]: asFunction(
       () => createClientCaseQueryService(container),

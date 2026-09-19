@@ -11,7 +11,9 @@ export async function savedStrategyExecution(em: EntityManager, scope: ResearchS
   }, { orderBy: { createdAt: 'asc', id: 'asc' } }, scope)
   const run = runs.find((candidate) => {
     const summary = candidate.summary as Record<string, unknown> | null
+    const specialist = summary?.specialistTov as { versionId?: string } | undefined
     return summary?.briefVersionId === request.briefVersionId && summary?.acceptanceSubmissionId === request.acceptanceSubmissionId
+      && (!request.specialistTov || specialist?.versionId === request.specialistTov.versionId)
   })
   if (!run) return null
   const summary = run.summary as Record<string, unknown>

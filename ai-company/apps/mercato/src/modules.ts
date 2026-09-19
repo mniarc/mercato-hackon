@@ -229,5 +229,8 @@ if (enterpriseModulesEnabled && enterpriseAgentsEnabled) {
   enabledModules.push({ id: 'agency_tov', from: '@app' })
   // AI agency — audit and research agents (P3 sources / audit / competitors / findings, P4 brief).
   // Same SDK, same gate: only enabled alongside the orchestrator.
-  enabledModules.push({ id: 'agency_research', from: '@app' })
+  enabledModules.push({ id: 'agency_research', from: '@app',
+    // Historical records keep their stable ID; only agency_tov may author new ToV.
+    overrides: { ai: { agents: { 'agency_research.tov_writer': null } } },
+  })
 }

@@ -1,5 +1,6 @@
 /** @jest-environment node */
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../../data/entities'
 import { documentIdFor } from '../../research/envelope'
@@ -31,7 +32,9 @@ let rows: AgencyResearchDocumentVersion[]
 let runs: AgencyResearchTaskRun[]
 let ctx: StepContext
 let ready: Extract<PlanningReadiness, { status: 'ready' }>
-const execute = (overrides: Partial<PlanningExecutionRequest> = {}) => runPlanningExecution({ em, scope, request: { ...request, ...overrides }, models, runner: 'orchestrator', runAgent: jest.fn() })
+const execute = (overrides: Partial<PlanningExecutionRequest> = {}, readSpecialistTov?: Parameters<typeof runPlanningExecution>[0]['readSpecialistTov']) => runPlanningExecution({
+  em, scope, request: { ...request, ...overrides }, models, runner: 'orchestrator', runAgent: jest.fn(), ...(readSpecialistTov ? { readSpecialistTov } : {}),
+})
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -95,6 +98,22 @@ test('runs only planning on the accepted pair and exact strategy lineage with ex
   expect(runPlanQaLoop).toHaveBeenCalledWith(ctx, { planStep: runPlanStep })
   expect(openEscalation).not.toHaveBeenCalled()
   expect(readPlanningReadiness).toHaveBeenCalledWith(em, scope, { orderRef: 'case', strategyVersionId: request.strategyVersionId, tovVersionId: request.tovVersionId, process: request.process })
+})
+test('planning consumes the exact current specialist ToV version without a research ToV row', async () => {
+  const specialistReference = { owner: 'agency_tov' as const, kind: 'KLI-TOV' as const,
+    researchRunId: '44444444-4444-4444-8444-444444444444', documentId: '55555555-5555-4555-8555-555555555555',
+    versionId: request.tovVersionId, version: '3.0' }
+  ready.accepted.pair.tov = { ...ready.accepted.pair.tov, documentId: specialistReference.documentId,
+    versionId: specialistReference.versionId, version: specialistReference.version, documentStatus: 'ready_for_review',
+    versionStatus: 'draft', specialistReference }
+  const specialist = { ...specialistReference, brand: 'Pinned brand', isCurrent: true, body: {}, renderedMd: '# ToV', citations: [] } as unknown as SpecialistTovDocument
+  const readSpecialistTov = jest.fn(async () => specialist)
+  await expect(execute({}, readSpecialistTov)).resolves.toMatchObject({ status: 'completed', tovVersionId: specialistReference.versionId })
+  expect(ctx.planningInputs?.tov).toMatchObject({ document_id: `agency_tov:${specialistReference.documentId}`,
+    version: specialistReference.version, versionId: specialistReference.versionId, specialistTov: specialistReference })
+  expect(ctx.planningInputs?.tov.data).toBe(specialist.body)
+  expect(readPlanningReadiness).toHaveBeenCalledWith(em, scope, expect.objectContaining({ tovVersionId: specialistReference.versionId }), readSpecialistTov)
+  expect(readSpecialistTov).toHaveBeenCalledWith(scope, specialistReference)
 })
 test.each([undefined, 0, -1])('does not use fallback topic count (%s)', async (topics) => {
   const order = rows[5].data as { product_selection: { result_limits: { topics?: number } } }

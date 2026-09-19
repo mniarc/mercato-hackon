@@ -1,4 +1,6 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import { AGENCY_TOV_RESEARCH_SERVICE, type AgencyTovResearchService } from '@/modules/agency_tov/lib/researchService'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { runMaterialRevision } from './materialRevision/run'
 import { materialRevisionRequestSchema } from './materialRevision/contracts'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
@@ -60,9 +62,6 @@ import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
-import { runStrategyStep } from './research/steps/strategy'
-import { runTovStep } from './research/steps/tov'
-import { runStrategyQaLoop } from './research/steps/strategyQa'
 import { runPlanStep } from './research/steps/plan'
 import { runPlanQaLoop } from './research/steps/planQa'
 import { runSelectionStep } from './research/steps/selection'
@@ -249,6 +248,9 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
  * task run has recorded it. Agents remain read-only throughout.
  */
 export async function runResearch(opts: RunResearchOptions): Promise<RunResearchOutcome> {
+  if (reaches(opts.through, '5.4')) {
+    throw new Error('[internal] Research whole-pipeline execution ends at 4.2. Use the accepted-case native strategy and agency_tov specialist continuation for later phases; the competing ToV writer is retired.')
+  }
   const { em, scope, orderRef } = opts
   const order = orderDataSchema.parse(opts.order)
   const facts = orderFactsOf(order)
@@ -345,17 +347,9 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
       },
     },
     {
-      // 5.2 strategy → 5.3 ToV → 5.4 Q-S on the pair (repairs ≤ 2, then E.1). Approval 5.5 belongs to the spine;
-      // every consumer below runs in simulation until the client has approved.
+      // Historical phase identity retained; new work goes through the accepted-case specialist path.
       step: '5.4',
-      run: async (c) => {
-        await runStrategyStep(c)
-        await runTovStep(c)
-        const qa = await runStrategyQaLoop(c, { strategyStep: runStrategyStep, tovStep: runTovStep })
-        strategyQaVerdict = qa.verdict
-        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
-        return { taskRunId: qa.taskRunId, versionId: qa.strategyVersionId, status: qa.verdict === 'ready_for_approval' ? 'done' : 'to_fix' }
-      },
+      run: async () => { throw new Error('[internal] Strategy requires the accepted-case native specialist continuation') },
     },
     {
       // 6.2 plan → 6.3 Q-P → 6.5 selection (client's topic or the recommendation, simulated) → 6.7 post instruction (code only).
@@ -464,6 +458,8 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
 type Container = { resolve(name: string): unknown }
 
 export function createAgencyResearchService(container: Container): AgencyResearchService {
+  const readSpecialistTov: ReadSpecialistTov = (scope, reference) =>
+    (container.resolve(AGENCY_TOV_RESEARCH_SERVICE) as AgencyTovResearchService).getDocumentVersion(scope, reference)
   return {
     async run({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] research requires an explicit tenant, organization and execution user')
@@ -546,6 +542,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         runner: 'orchestrator',
         models: defaultModels(),
         agentRunIds,
+        readSpecialistTov,
       })
     },
     async runPlanning({ context, request }) {
@@ -560,7 +557,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPlanningExecution({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
       })
     },
     async runPostExecution({ context, request }) {
@@ -575,7 +572,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPostExecution({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
       })
     },
     async runPostRevision({ context, request }) {
@@ -591,7 +588,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPostRevision({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
       })
     },
     async runPostEvidence({ context, request }) {
@@ -606,7 +603,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId,
         workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPostEvidence({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds })
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov })
     },
     async getClientView(scope, orderRef, templateId) {
       const em = (container.resolve('em') as EntityManager).fork()
@@ -627,7 +624,8 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       return readBriefReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
     },
     async getStrategyReview(scope, orderRef, strategyVersionId, tovVersionId) {
-      return readStrategyReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, strategyVersionId, tovVersionId)
+      return readStrategyReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, strategyVersionId, tovVersionId,
+        readSpecialistTov)
     },
     async getPostReview(scope, orderRef, versionId) {
       return readPostReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
@@ -639,16 +637,16 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       return acceptStrategyPair(container as AppContainer, input)
     },
     async getStrategyPairAcceptance(scope, input) {
-      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanningReadiness(scope, input) {
-      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanReview(scope, input) {
-      return readPlanReview((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanReview((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanAcceptance(scope, input) {
-      return readPlanAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanAcceptance((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async acceptPlan(rawInput) {
       const input = acceptPlanInputSchema.parse(rawInput)
@@ -657,7 +655,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
-      return acceptPlan((container.resolve('em') as EntityManager).fork(), input)
+      return acceptPlan((container.resolve('em') as EntityManager).fork(), input, readSpecialistTov)
     },
     async getPostAcceptance(scope, input) {
       return readPostAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
@@ -707,7 +705,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       if (!await rbac.userHasAllFeatures(context.userId, ['agency_research.manage'], scope)) {
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
-      return runPostInstructionExecution({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed })
+      return runPostInstructionExecution({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed, readSpecialistTov })
     },
     async getBriefAcceptance(scope, orderRef, versionId) {
       return readBriefAcceptance((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)

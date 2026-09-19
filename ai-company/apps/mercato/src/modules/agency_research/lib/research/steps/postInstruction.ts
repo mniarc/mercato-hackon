@@ -3,7 +3,6 @@ import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import { briefDataSchema, type BriefData } from '../../../data/schemas/brief'
 import { planDataSchema, type PlanData, type PlanTopic } from '../../../data/schemas/plan'
 import { strategiaDataSchema, type StrategiaData } from '../../../data/schemas/strategia'
-import { tovDataSchema, type TovData } from '../../../data/schemas/tov'
 import { zrodlaDataSchema, type ZrodlaData } from '../../../data/schemas/zrodla'
 import { completionCategories, zleceniePostuDataSchema, type ZleceniePostuData } from '../../../data/schemas/zleceniePostu'
 import { adapterFor } from '../../../data/adapters'
@@ -12,6 +11,7 @@ import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun }
 import { renderZleceniePostu } from '../render/zleceniePostu'
 import { simulationIssue } from '../simulation'
 import type { StepContext, StepOutcome } from './context'
+import { parseDownstreamTov, tovForbiddenWording, tovInstructionRules, tovShortPattern, type DownstreamTov } from './tovInput'
 
 /**
  * Step 6.7 — WEW-ZLECENIE-POSTU, compiled without a model. The selected topic
@@ -33,7 +33,7 @@ export type PostInstructionInput = {
   plan: PlanData
   planVersion: InputVersion
   strategia: StrategiaData
-  tov: TovData
+  tov: DownstreamTov
   tovVersion: InputVersion
   brief: BriefData
   zrodla: ZrodlaData
@@ -241,13 +241,14 @@ export function assemblePostInstruction(input: PostInstructionInput): PostInstru
     example_option: t.readerExample(topic.angle.example?.text ?? null),
   }
 
-  const rules = [...tov.voice_principles.map((principle) => principle.author_behavior), tov.wording.sentence_pattern].filter((rule) => rule.trim().length > 0).slice(0, limits.content.voiceExtractRulesMax)
+  const rules = tovInstructionRules(tov).filter((rule) => rule.trim().length > 0).slice(0, limits.content.voiceExtractRulesMax)
+  const shortPattern = tovShortPattern(tov)
   const voice: ZleceniePostuData['voice_extract'] = {
     tov_id: input.tovVersion.document_id,
     tov_version: input.tovVersion.version,
     rules,
-    forbidden_cliches: tov.wording.cliches,
-    short_pattern: t.shortPattern(tov.wording.sentence_pattern),
+    forbidden_cliches: tovForbiddenWording(tov),
+    short_pattern: t.shortPattern(shortPattern),
   }
 
   const adapter = adapterFor(order.officialSocialPlatform)
@@ -322,7 +323,10 @@ export function assemblePostInstruction(input: PostInstructionInput): PostInstru
   return { data: zleceniePostuDataSchema.parse(data), issues }
 }
 
-const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
+const pin = (v: InputVersion & { versionId: string }): InputVersion => ({
+  document_id: v.document_id, version: v.version, status: v.status,
+  ...(v.specialistTov ? { specialistTov: v.specialistTov } : {}),
+})
 
 /** The instruction's inputs per the WZR-ZLECENIE-POSTU handoff: the plan with its selection, strategy, ToV, brief and the frozen register. */
 export async function runPostInstructionStep(ctx: StepContext): Promise<StepOutcome> {
@@ -343,7 +347,7 @@ export async function runPostInstructionStep(ctx: StepContext): Promise<StepOutc
       plan: planDataSchema.parse(plan.data),
       planVersion: pin(plan),
       strategia: strategiaDataSchema.parse(strategia.data),
-      tov: tovDataSchema.parse(tov.data),
+      tov: parseDownstreamTov(tov),
       tovVersion: pin(tov),
       brief: briefDataSchema.parse(brief.data),
       zrodla: zrodlaDataSchema.parse(zrodla.data),

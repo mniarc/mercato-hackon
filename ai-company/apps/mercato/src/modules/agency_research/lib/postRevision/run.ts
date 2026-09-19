@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchTaskRun } from '../../data/entities'
@@ -15,7 +16,7 @@ import type { RunStrategyExecutionOptions } from '../strategyExecution/run'
 import { POST_REVISION_STEP, claimPostRevision, savedPostRevision } from './claim'
 import { postRevisionRequestSchema, type PostRevisionRequest, type PostRevisionResult, type PostRevisionOutcome } from './contracts'
 
-export type RunPostRevisionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PostRevisionRequest }
+export type RunPostRevisionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PostRevisionRequest; readSpecialistTov?: ReadSpecialistTov }
 
 /** Trusted G adapter authorizes this exact content-only directive and revision cap before invoking the native runner. */
 export async function runPostRevision(opts: RunPostRevisionOptions): Promise<PostRevisionResult> {
@@ -24,7 +25,7 @@ export async function runPostRevision(opts: RunPostRevisionOptions): Promise<Pos
   const saved = await savedPostRevision(em, scope, request)
   if (saved) return saved
   const postQaRepairAttempts = limits.content.postRepairAttempts
-  const claim = await claimPostRevision(em, scope, request, opts.models, postQaRepairAttempts)
+  const claim = await claimPostRevision(em, scope, request, opts.models, postQaRepairAttempts, opts.readSpecialistTov)
   if ('existing' in claim) return claim.existing
   const { ready } = claim
   const activation = await findOneWithDecryption(em, AgencyResearchTaskRun, {

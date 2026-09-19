@@ -4,6 +4,7 @@ import { CLIENT_TRIAGE_AGENT_ID } from './contract'
 import { createClientTriageExceptionFragment } from '../../lib/clientTriageException/workflow'
 import { STRATEGY_READINESS_HANDOFF_FUNCTION, STRATEGY_READINESS_RESULT_KEY } from '../../lib/strategyHandoff/contracts'
 import { STRATEGY_EXECUTION_FUNCTION, STRATEGY_EXECUTION_RESULT_KEY, STRATEGY_EXECUTION_STEP_ID, STRATEGY_REVIEW_HANDOFF_FUNCTION } from '../../lib/strategyExecution/contracts'
+import { STRATEGY_SPECIALIST_SIGNAL, STRATEGY_SPECIALIST_WAIT_FUNCTION, STRATEGY_SPECIALIST_WAIT_STEP_ID } from '../../lib/strategyExecution/contracts'
 import { STRATEGY_PAIR_CONTINUATION_FUNCTION, STRATEGY_PAIR_CONTINUATION_RESULT_KEY } from '../../lib/strategyPairApproval/contracts'
 import { PLANNING_EXECUTION_FUNCTION, PLANNING_EXECUTION_RESULT_KEY, PLANNING_EXECUTION_STEP_ID, PLAN_REVIEW_HANDOFF_FUNCTION } from '../../lib/planningExecution/contracts'
 import { POST_INSTRUCTION_FUNCTION, POST_INSTRUCTION_RESULT_KEY } from '../../lib/planApproval/contracts'
@@ -94,6 +95,8 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
     { stepId: PUBLICATION_PREPARATION_STEP_ID, stepName: 'Publication instruction prepared; sending not authorized', stepType: 'END' },
     { stepId: 'strategy_readiness', stepName: 'Strategy readiness recorded', stepType: 'AUTOMATED' },
     { stepId: STRATEGY_EXECUTION_STEP_ID, stepName: 'Strategy phase outcome recorded', stepType: 'AUTOMATED' },
+    { stepId: STRATEGY_SPECIALIST_WAIT_STEP_ID, stepName: 'Waiting for the case specialist tone of voice', stepType: 'WAIT_FOR_SIGNAL',
+      signalConfig: { signalName: STRATEGY_SPECIALIST_SIGNAL } },
     { stepId: 'strategy_exception_checked', stepName: 'Saved strategy escalation checked', stepType: 'AUTOMATED' },
     { stepId: 'strategy_review', stepName: 'Strategy pair review handoff recorded', stepType: 'AUTOMATED' },
     { stepId: 'strategy_invited', stepName: 'Strategy pair invitation available', stepType: 'END' },
@@ -202,7 +205,15 @@ export const nativeClientSubmissionDefinition: WorkflowDefinitionData = {
       activities: [{ activityId: 'execute_strategy', activityName: STRATEGY_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
         retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
         config: { functionName: STRATEGY_EXECUTION_FUNCTION, args: {} } }] },
-    { transitionId: 'check_strategy_exception', fromStepId: STRATEGY_EXECUTION_STEP_ID, toStepId: 'strategy_exception_checked', trigger: 'auto',
+    { transitionId: 'wait_specialist_tov', fromStepId: STRATEGY_EXECUTION_STEP_ID, toStepId: STRATEGY_SPECIALIST_WAIT_STEP_ID, trigger: 'auto', priority: 100,
+      condition: { field: `${STRATEGY_EXECUTION_RESULT_KEY}.result.reason`, operator: '=', value: 'specialist_tov_pending' },
+      activities: [{ activityId: 'queue_specialist_check', activityName: 'agencySpecialistWaitCheck', activityType: 'EXECUTE_FUNCTION',
+        config: { functionName: STRATEGY_SPECIALIST_WAIT_FUNCTION, args: {} } }] },
+    { transitionId: 'resume_strategy_with_specialist', fromStepId: STRATEGY_SPECIALIST_WAIT_STEP_ID, toStepId: STRATEGY_EXECUTION_STEP_ID, trigger: 'auto',
+      activities: [{ activityId: 'execute_strategy', activityName: STRATEGY_EXECUTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION', async: true,
+        retryPolicy: { maxAttempts: 1, initialIntervalMs: 0, backoffCoefficient: 1, maxIntervalMs: 0 },
+        config: { functionName: STRATEGY_EXECUTION_FUNCTION, args: {} } }] },
+    { transitionId: 'check_strategy_exception', fromStepId: STRATEGY_EXECUTION_STEP_ID, toStepId: 'strategy_exception_checked', trigger: 'auto', priority: 10,
       activities: [{ activityId: 'strategy_exception', activityName: RESEARCH_EXCEPTION_RESULT_KEY, activityType: 'EXECUTE_FUNCTION',
         config: { functionName: STRATEGY_RESEARCH_EXCEPTION_HANDOFF_FUNCTION, args: {} } }] },
     { transitionId: 'assign_strategy_exception', fromStepId: 'strategy_exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',

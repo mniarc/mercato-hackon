@@ -27,3 +27,26 @@ it('exposes the service by the name other modules resolve, with a duck-typed run
   expect(typeof service.status).toBe('function')
   await expect(service.run({ context: { tenantId: '', organizationId: '', userId: '' }, request: { orderRef: 'x', order: {} as never } })).rejects.toThrow(/explicit tenant/)
 })
+
+it('disables only the competing ToV writer through the native app override contract', () => {
+  const previous = { enterprise: process.env.OM_ENABLE_ENTERPRISE_MODULES, agents: process.env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS }
+  process.env.OM_ENABLE_ENTERPRISE_MODULES = 'true'
+  process.env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS = 'true'
+  try {
+    jest.isolateModules(() => {
+      const { enabledModules } = require('../../../modules') as typeof import('../../../modules')
+      const { applyAgentOverrideMap } = require('@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-overrides') as typeof import('@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-overrides')
+      const overrides = enabledModules.find((entry) => entry.id === 'agency_research')?.overrides?.ai?.agents
+      expect(overrides).toEqual({ 'agency_research.tov_writer': null })
+      const original = [{ id: 'agency_research.tov_writer' }, { id: 'agency_research.strategy_qa' }, { id: 'agency_tov.brand_synthesizer' }]
+      expect(applyAgentOverrideMap(original as never, overrides as never).map((agent) => agent.id))
+        .toEqual(['agency_research.strategy_qa', 'agency_tov.brand_synthesizer'])
+      expect(original[0].id).toBe('agency_research.tov_writer')
+    })
+  } finally {
+    if (previous.enterprise === undefined) delete process.env.OM_ENABLE_ENTERPRISE_MODULES
+    else process.env.OM_ENABLE_ENTERPRISE_MODULES = previous.enterprise
+    if (previous.agents === undefined) delete process.env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS
+    else process.env.OM_ENABLE_ENTERPRISE_MODULES_AGENTS = previous.agents
+  }
+})

@@ -1,4 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import type { ResearchMaterialSource } from '../../contracts/agencyResearch'
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
@@ -37,6 +38,8 @@ export type PostExecutionOutputs = { post: StrategyExecutionInput | null }
  * with the fixture runner; the step is what the service and the CLI call.
  */
 export type StepContext = {
+  /** Authoritative specialist content for this exact pair; never a research-owned ToV draft. */
+  specialistTov?: SpecialistTovDocument
   em: EntityManager
   scope: ResearchScope
   orderRef: string

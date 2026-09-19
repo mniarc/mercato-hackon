@@ -1,5 +1,5 @@
 /** @jest-environment node */
-import { carryCompetitorEntries, resumedResearchTaskSteps, retainCollectedSourceIds } from '../lib/researchService'
+import { carryCompetitorEntries, resumedResearchTaskSteps, retainCollectedSourceIds, runResearch } from '../lib/researchService'
 import { zrodlaDataSchema, sourceSchema, factSchema, languageSampleSchema } from '../data/schemas/zrodla'
 import type { CollectedSource } from '../lib/research/fetch'
 
@@ -14,6 +14,15 @@ test('initial analysis recovery includes in-flight QA repairs but never later ph
 
 test('explicit later CLI ranges retain only their own groups', () => {
   expect(resumedResearchTaskSteps('5.4', '7.3')).toEqual(['5.1', '5.2', '5.3', '5.4', '6.1', '6.2', '6.3', '6.5', '6.7', '7.1', '7.2', '7.3'])
+})
+
+test('retired whole-pipeline ToV production fails before any earlier work or spending', async () => {
+  const runAgent = jest.fn()
+  const em = { flush: jest.fn(), findOne: jest.fn() }
+  await expect(runResearch({ through: '5.4', runAgent, em } as never)).rejects.toThrow('competing ToV writer is retired')
+  expect(runAgent).not.toHaveBeenCalled()
+  expect(em.flush).not.toHaveBeenCalled()
+  expect(em.findOne).not.toHaveBeenCalled()
 })
 
 test('a new private client source cannot take an old competitor ID during source repair', () => {

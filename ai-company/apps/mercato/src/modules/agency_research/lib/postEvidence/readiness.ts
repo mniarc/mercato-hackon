@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun, AgencyResearchSource } from '../../data/entities'
@@ -21,7 +22,7 @@ const activationSchema = z.object({
 })
 
 /** No caller supplies claims, raw source text, URLs, selection or approved foundation versions. */
-export async function readPostEvidenceInputs(em: EntityManager, scope: ResearchScope, request: RunPostEvidenceRequest) {
+export async function readPostEvidenceInputs(em: EntityManager, scope: ResearchScope, request: RunPostEvidenceRequest, readSpecialistTov?: ReadSpecialistTov) {
   const where = { ...scope, orderRef: request.orderRef }
   const notReady = (reason: string) => ({ status: 'not_ready' as const, orderRef: request.orderRef, reason })
   const parent = await findOneWithDecryption(em, AgencyResearchDocument, { ...where, templateId: 'WZR-POST', deletedAt: null }, undefined, scope)
@@ -45,13 +46,18 @@ export async function readPostEvidenceInputs(em: EntityManager, scope: ResearchS
     && parsed.data.instructionVersionId === request.instructionVersionId
     && parsed.data.executionResult.qaTaskRunId === qa.id && parsed.data.executionResult.postVersionId === post.id)
   if (!activation?.success) return notReady('post_production_binding_missing')
-  const ready = await readPostExecutionInputs(em, scope, { orderRef: request.orderRef,
+  const executionInput = { orderRef: request.orderRef,
     instructionVersionId: request.instructionVersionId, selectionSubmissionId: activation.data.selectionSubmissionId,
-    process: activation.data.process, maxCostPln: request.maxCostPln })
+    process: activation.data.process, maxCostPln: request.maxCostPln }
+  const ready = readSpecialistTov
+    ? await readPostExecutionInputs(em, scope, executionInput, readSpecialistTov)
+    : await readPostExecutionInputs(em, scope, executionInput)
   if (ready.status === 'not_ready') return ready
   const pins = z.array(inputVersionSchema).safeParse(post.inputVersions)
   if (!pins.success || [ready.instruction, ready.tov].some((input) => !pins.data.some((pin) =>
-    pin.document_id === input.document_id && pin.version === input.version))) return notReady('post_input_changed')
+    pin.document_id === input.document_id && pin.version === input.version
+      && (!input.specialistTov || (pin.specialistTov?.researchRunId === input.specialistTov.researchRunId
+        && pin.specialistTov.versionId === input.specialistTov.versionId))))) return notReady('post_input_changed')
   const sourceParent = await findOneWithDecryption(em, AgencyResearchDocument, { ...where, templateId: 'WZR-ZRODLA', deletedAt: null }, undefined, scope)
   const sourcesVersion = sourceParent?.currentVersionId ? await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
     ...where, id: sourceParent.currentVersionId, templateId: 'WZR-ZRODLA',

@@ -6,6 +6,11 @@ import { groupByProfile } from './corpus'
 import { citationsOf, finishResearchRun, importCorpus, loadCorpus, saveDocumentVersion, startResearchRun, type StoredCorpus, type TovScope } from './store'
 import { runTovPipeline, type TovAgentRunner, type TovPipelineOptions, type TovPipelineResult } from './tov/pipeline'
 import { linkResolverFor, renderBrandTov, renderProfileVoice } from './tov/render'
+import { readTovDocumentVersion, type TovDocumentVersionRequest } from './documentVersion/read'
+import type { SpecialistTovDocument } from './documentVersion/contracts'
+
+export type { TovDocumentVersionRequest } from './documentVersion/read'
+export type { SpecialistTovDocument, SpecialistTovReference } from './documentVersion/contracts'
 
 export const AGENCY_TOV_RESEARCH_SERVICE = 'agencyTovResearchService' as const
 
@@ -27,6 +32,8 @@ export type TovResearchResult = {
 }
 export interface AgencyTovResearchService {
   run(input: TovResearchInput): Promise<TovResearchResult>
+  /** Server-only: caller owns staff ACL or exact customer-task/case authorization. */
+  getDocumentVersion(scope: TovScope, reference: TovDocumentVersionRequest): Promise<SpecialistTovDocument | null>
 }
 type Container = { resolve(name: string): unknown }
 
@@ -97,6 +104,9 @@ export async function runStoredTovResearch(input: {
 
 export function createAgencyTovResearchService(container: Container): AgencyTovResearchService {
   return {
+    async getDocumentVersion(scope, reference) {
+      return readTovDocumentVersion((container.resolve('em') as EntityManager).fork(), scope, reference)
+    },
     async run(input) {
       const { context, brand, outputLanguage, options } = input
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('ToV research requires an explicit tenant, organization and execution user')

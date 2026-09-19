@@ -1,4 +1,6 @@
 import type { InputVersion } from '../../../data/schemas/envelope'
+import type { SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
+import type { TovBrandVoice } from '@/modules/agency_tov/data/validators'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
 import { reclassifyProductionFindings } from './qa'
@@ -62,7 +64,7 @@ function isEmpty(value: unknown): boolean {
 /** Deterministic checks — the validator half of 5.4. */
 export function strategyValidatorFindings(args: {
   strategy: StrategiaData
-  tov: TovData
+  tov?: TovData
   brief: BriefData
   zrodla: ZrodlaData
   audyt: AudytData
@@ -80,14 +82,16 @@ export function strategyValidatorFindings(args: {
     for (const id of ids) if (!knownStrategy.has(id)) findings.push(finding('unresolved_reference', `KLI-STRATEGIA.${path}`, `${id} is not a stored id`, '5.2'))
   }
   const knownTov = knownTovIds(zrodla, strategy)
-  for (const [path, ids] of collectCitedIds(tov)) {
+  for (const [path, ids] of collectCitedIds(tov ?? {})) {
     for (const id of ids) if (!knownTov.has(id)) findings.push(finding('unresolved_reference', `KLI-TOV.${path}`, `${id} is not a stored id`, '5.3'))
   }
 
   const strategyRecord = strategy as unknown as Record<string, unknown>
   for (const key of STRATEGY_MUST) if (isEmpty(strategyRecord[key])) findings.push(finding('missing_must_field', `KLI-STRATEGIA.${key}`, `MUST field ${key} is empty`, '5.2'))
-  const tovRecord = tov as unknown as Record<string, unknown>
-  for (const key of TOV_MUST) if (isEmpty(tovRecord[key])) findings.push(finding('missing_must_field', `KLI-TOV.${key}`, `MUST field ${key} is empty`, '5.3'))
+  if (tov) {
+    const tovRecord = tov as unknown as Record<string, unknown>
+    for (const key of TOV_MUST) if (isEmpty(tovRecord[key])) findings.push(finding('missing_must_field', `KLI-TOV.${key}`, `MUST field ${key} is empty`, '5.3'))
+  }
 
   const [minPillars, maxPillars] = limits.content.pillars
   if (strategy.pillars.length < minPillars || strategy.pillars.length > maxPillars) {
@@ -118,17 +122,22 @@ export function strategyValidatorFindings(args: {
     if (key.length >= 2 && key.every((w) => promiseText.includes(w))) findings.push(finding('contradiction', 'KLI-STRATEGIA.message_hierarchy.main_promise', `the promise repeats a claim the brief prohibits: "${prohibited}"`, '5.2'))
   }
 
-  if (tov.voice_principles.length !== PRINCIPLES_COUNT) findings.push(finding('limit_exceeded', 'KLI-TOV.voice_principles', `${tov.voice_principles.length} principles; exactly ${PRINCIPLES_COUNT} expected`, '5.3'))
-  const axes = new Set(tov.style_axes.map((a) => a.axis))
-  for (const axis of STYLE_AXES) if (!axes.has(axis)) findings.push(finding('missing_must_field', `KLI-TOV.style_axes.${axis}`, `style axis ${axis} missing`, '5.3'))
-  const types = new Set(tov.evidence_language.map((e) => e.type))
-  for (const type of EVIDENCE_TYPES) if (!types.has(type)) findings.push(finding('missing_must_field', `KLI-TOV.evidence_language.${type}`, `evidence language for ${type} missing`, '5.3'))
-  const [minChecks, maxChecks] = limits.content.copyChecks
-  if (tov.copy_checks.length < minChecks || tov.copy_checks.length > maxChecks) findings.push(finding('limit_exceeded', 'KLI-TOV.copy_checks', `${tov.copy_checks.length} copy checks; ${minChecks}–${maxChecks} expected`, '5.3'))
-  for (const [index, pair] of tov.before_after.entries()) {
-    if (pair.status === 'grounded' && !pair.fact_ids.length) findings.push(finding('unsourced_claim', `KLI-TOV.before_after[${index}]`, 'a pair marked grounded cites no fact', '5.3'))
+  // Legacy research-owned documents retain their historical shape checks. The
+  // specialist validates its own native schema/grounding; pair QA assesses that
+  // exact body rather than inventing a second writer's fields.
+  if (tov) {
+    if (tov.voice_principles.length !== PRINCIPLES_COUNT) findings.push(finding('limit_exceeded', 'KLI-TOV.voice_principles', `${tov.voice_principles.length} principles; exactly ${PRINCIPLES_COUNT} expected`, '5.3'))
+    const axes = new Set(tov.style_axes.map((a) => a.axis))
+    for (const axis of STYLE_AXES) if (!axes.has(axis)) findings.push(finding('missing_must_field', `KLI-TOV.style_axes.${axis}`, `style axis ${axis} missing`, '5.3'))
+    const types = new Set(tov.evidence_language.map((e) => e.type))
+    for (const type of EVIDENCE_TYPES) if (!types.has(type)) findings.push(finding('missing_must_field', `KLI-TOV.evidence_language.${type}`, `evidence language for ${type} missing`, '5.3'))
+    const [minChecks, maxChecks] = limits.content.copyChecks
+    if (tov.copy_checks.length < minChecks || tov.copy_checks.length > maxChecks) findings.push(finding('limit_exceeded', 'KLI-TOV.copy_checks', `${tov.copy_checks.length} copy checks; ${minChecks}–${maxChecks} expected`, '5.3'))
+    for (const [index, pair] of tov.before_after.entries()) {
+      if (pair.status === 'grounded' && !pair.fact_ids.length) findings.push(finding('unsourced_claim', `KLI-TOV.before_after[${index}]`, 'a pair marked grounded cites no fact', '5.3'))
+    }
+    if (tov.before_after.length < limits.content.beforeAfterPairs) findings.push(finding('limit_exceeded', 'KLI-TOV.before_after', `${tov.before_after.length} pairs; ${limits.content.beforeAfterPairs} expected`, '5.3', 'major'))
   }
-  if (tov.before_after.length < limits.content.beforeAfterPairs) findings.push(finding('limit_exceeded', 'KLI-TOV.before_after', `${tov.before_after.length} pairs; ${limits.content.beforeAfterPairs} expected`, '5.3', 'major'))
 
   if (args.strategyClientViewMd) {
     const words = countClientWords(args.strategyClientViewMd)
@@ -185,7 +194,8 @@ export type StrategyQaOptions = {
   order: OrderFacts
   outputLanguage: 'pl' | 'en'
   strategy: StrategiaData
-  tov: TovData
+  tov: TovData | TovBrandVoice
+  specialistTov?: SpecialistTovDocument
   brief: BriefData
   zrodla: ZrodlaData
   audyt: AudytData
@@ -225,7 +235,7 @@ export async function runStrategyQa(opts: StrategyQaOptions): Promise<StrategyQa
     timeouts: { extract: DEFAULT_EXTRACT_TIMEOUT_MS, synthesis: DEFAULT_SYNTHESIS_TIMEOUT_MS, qa: DEFAULT_EXTRACT_TIMEOUT_MS },
     stats,
   })
-  const validator = opts.validatorFindings ?? strategyValidatorFindings(opts)
+  const validator = opts.validatorFindings ?? strategyValidatorFindings({ ...opts, tov: opts.specialistTov ? undefined : opts.tov as TovData })
   const { value } = await step<StrategyQaAgentData>({
     step: '5.4',
     agentId: RESEARCH_STRATEGY_QA_AGENT_ID,
@@ -296,14 +306,21 @@ async function clientViewOf(ctx: StepContext, versionId: string): Promise<string
  * `qa_exhausted`. A clean pair moves both documents to `ready_for_review`; the
  * client's acceptance (5.5–5.7) is recorded elsewhere.
  */
-export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: (ctx: StepContext) => Promise<StepOutcome>; tovStep: (ctx: StepContext) => Promise<StepOutcome> }): Promise<StrategyQaLoopResult> {
+export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: (ctx: StepContext) => Promise<StepOutcome>; tovStep?: (ctx: StepContext) => Promise<StepOutcome> }): Promise<StrategyQaLoopResult> {
   const maxRepairs = ctx.strategyQaRepairAttempts ?? limits.generation.qaRepairAttemptsPerRun
   let repairs = 0
   for (;;) {
     const pair = await loadPair(ctx)
-    const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
+    const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status,
+      ...(v.specialistTov ? { specialistTov: v.specialistTov } : {}) })
     const inputVersions: InputVersion[] = [ctx.orderVersion, pin(pair.strategy), pin(pair.tov), pin(pair.brief), pin(pair.zrodla), pin(pair.audyt), ...(pair.konkurencja ? [pin(pair.konkurencja)] : [])]
     const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '5.4', attempt: repairs + 1, runner: ctx.runner, models: ctx.models, inputVersions })
+    if (ctx.specialistTov) {
+      const { owner, kind, researchRunId, documentId, versionId, version } = ctx.specialistTov
+      run.summary = { specialistTov: { owner, kind, researchRunId, documentId, versionId, version },
+        briefVersionId: pair.brief.versionId, strategyVersionId: pair.strategy.versionId }
+      await ctx.em.flush()
+    }
     ctx.taskRunIds.push(run.id)
     let result: StrategyQaResult
     try {
@@ -311,13 +328,14 @@ export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: 
         order: ctx.order,
         outputLanguage: ctx.order.outputLanguage,
         strategy: strategiaDataSchema.parse(pair.strategy.data),
-        tov: tovDataSchema.parse(pair.tov.data),
+        tov: ctx.specialistTov?.body ?? tovDataSchema.parse(pair.tov.data),
+        specialistTov: ctx.specialistTov,
         brief: briefDataSchema.parse(pair.brief.data),
         zrodla: zrodlaDataSchema.parse(pair.zrodla.data),
         audyt: audytDataSchema.parse(pair.audyt.data),
         konkurencja: pair.konkurencja ? konkurencjaDataSchema.parse(pair.konkurencja.data) : null,
         strategyClientViewMd: await clientViewOf(ctx, pair.strategy.versionId),
-        tovClientViewMd: await clientViewOf(ctx, pair.tov.versionId),
+        tovClientViewMd: ctx.specialistTov?.renderedMd ?? await clientViewOf(ctx, pair.tov.versionId),
         runAgent: ctx.runAgent,
         ledger: ctx.ledger,
         models: ctx.models,
@@ -332,20 +350,24 @@ export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: 
     const blocking = result.findings.filter((f) => f.severity === 'blocking' && f.owner === 'agent')
     const fixSteps = [...new Set(blocking.map(fixStepOf).filter((s): s is '5.2' | '5.3' => s !== null))]
 
-    if (result.verdict === 'needs_agent_fix' && repairs < maxRepairs && fixSteps.length) {
+    if (result.verdict === 'needs_agent_fix' && repairs < maxRepairs && fixSteps.length
+      && !(ctx.specialistTov && fixSteps.includes('5.3'))) {
       await finishTaskRun(ctx.em, run, { status: 'to_fix', qaResult: { verdict: result.verdict, findings: result.findings, summary: result.summary, repairs }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
       repairs += 1
       if (fixSteps.includes('5.2')) {
         ctx.log(`5.4 → repair 5.2 (attempt ${repairs} of ${maxRepairs})`)
         await deps.strategyStep({ ...ctx, repairFindings: blocking.filter((f) => fixStepOf(f) === '5.2'), attempt: ctx.attempt + repairs })
       }
-      ctx.log(`5.4 → repair 5.3 (attempt ${repairs} of ${maxRepairs})`)
-      await deps.tovStep({ ...ctx, repairFindings: blocking.filter((f) => fixStepOf(f) === '5.3'), attempt: ctx.attempt + repairs })
+      if (!ctx.specialistTov) {
+        if (!deps.tovStep) throw new Error('[internal] ToV correction requires its authoritative specialist')
+        await deps.tovStep({ ...ctx, repairFindings: blocking.filter((f) => fixStepOf(f) === '5.3'), attempt: ctx.attempt + repairs })
+      }
       continue
     }
 
     const ready = result.verdict === 'ready_for_approval'
     for (const templateId of ['WZR-STRATEGIA', 'WZR-TOV'] as const) {
+      if (ctx.specialistTov && templateId === 'WZR-TOV') continue
       if (ctx.strategyInputs) {
         const versionId = templateId === 'WZR-STRATEGIA' ? pair.strategy.versionId : pair.tov.versionId
         const changed = await ctx.em.nativeUpdate(AgencyResearchDocument, {
@@ -381,8 +403,12 @@ export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: 
           ...blocking.slice(0, 10).map((f) => ({ ref: f.path, fact: `${f.code}: ${f.gap}` })),
         ],
         blockedSteps: ['5.5', '6.2', '6.3', '6.5', '6.7', '7.2'],
-        decisionQuestion: `Which blocking finding should be accepted as an explicit limit, and which author step (${fixSteps.join(', ') || primaryStep}) should be rerun with guidance?`,
-        allowedResolutions: strategyQaExhaustedResolutions(primaryStep),
+        decisionQuestion: ctx.specialistTov && fixSteps.includes('5.3')
+          ? 'Ask the tone-of-voice specialist to correct the recorded findings; keep this exact pair blocked until a new specialist version is assessed.'
+          : `Which blocking finding should be accepted as an explicit limit, and which author step (${fixSteps.join(', ') || primaryStep}) should be rerun with guidance?`,
+        allowedResolutions: ctx.specialistTov && fixSteps.includes('5.3')
+          ? [{ code: 'keep_blocked', requiredEvidence: 'The specialist correction required and responsible person.', permittedNextStep: 'none' }]
+          : strategyQaExhaustedResolutions(primaryStep),
         resumeStep: '5.4',
       },
       inputVersions,

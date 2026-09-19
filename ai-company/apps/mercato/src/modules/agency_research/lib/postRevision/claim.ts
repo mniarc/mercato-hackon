@@ -8,6 +8,7 @@ import { fingerprint } from '../research/util'
 import { startTaskRun, type ResearchScope } from '../store'
 import { postRevisionOutcomeSchema, type PostRevisionRequest, type PostRevisionResult } from './contracts'
 import { readPostRevisionInputs, type PostRevisionReady } from './readiness'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 
 export const POST_REVISION_STEP = '7.5'
 
@@ -29,7 +30,7 @@ export async function savedPostRevision(em: EntityManager, scope: ResearchScope,
     reason: run.status === 'running' ? 'in_progress_or_interrupted' : run.status === 'failed' ? 'failed' : 'result_unavailable' }
 }
 
-export async function claimPostRevision(em: EntityManager, scope: ResearchScope, request: PostRevisionRequest, models: ModelSet, repairAttempts: number): Promise<
+export async function claimPostRevision(em: EntityManager, scope: ResearchScope, request: PostRevisionRequest, models: ModelSet, repairAttempts: number, readSpecialistTov?: ReadSpecialistTov): Promise<
   { activationTaskRunId: string; ready: PostRevisionReady } | { existing: PostRevisionResult }
 > {
   return em.transactional(async (transaction) => {
@@ -43,9 +44,11 @@ export async function claimPostRevision(em: EntityManager, scope: ResearchScope,
       ...scope, orderRef: request.orderRef, stepId: POST_REVISION_STEP, status: 'running',
     }, undefined, scope)
     if (active) return { existing: { status: 'not_ready', orderRef: request.orderRef, reason: 'revision_in_progress' } } as const
-    const ready = await readPostRevisionInputs(transaction, scope, request)
+    const ready = await readPostRevisionInputs(transaction, scope, request, readSpecialistTov)
     if (ready.status === 'not_ready') return { existing: ready }
-    const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+    const pin = ({ document_id, version, status, specialistTov }: InputVersion): InputVersion => ({
+      document_id, version, status, ...(specialistTov ? { specialistTov } : {}),
+    })
     const activation = await startTaskRun(transaction, scope, { orderRef: request.orderRef, brand: ready.order.brand,
       stepId: POST_REVISION_STEP, attempt: 1, runner: 'system', models,
       inputVersions: [ready.orderInput, ready.instruction, ready.tov, ready.previousPost].map(pin) })

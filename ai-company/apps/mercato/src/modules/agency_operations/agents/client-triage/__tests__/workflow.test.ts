@@ -30,6 +30,20 @@ test('continues after saved readiness through one asynchronous native activity w
   })
 })
 
+test('parks missing specialist ToV and resumes only the same strategy branch after its native signal', () => {
+  expect(nativeClientSubmissionDefinition.steps.find(step => step.stepId === 'strategy_specialist_waiting')).toMatchObject({
+    stepType: 'WAIT_FOR_SIGNAL', signalConfig: { signalName: 'agency.strategy-specialist.ready' },
+  })
+  expect(nativeClientSubmissionDefinition.transitions.find(transition => transition.transitionId === 'wait_specialist_tov')).toMatchObject({
+    fromStepId: 'strategy_execution', toStepId: 'strategy_specialist_waiting', priority: 100,
+    condition: { field: `${STRATEGY_EXECUTION_RESULT_KEY}.result.reason`, value: 'specialist_tov_pending' },
+  })
+  expect(nativeClientSubmissionDefinition.transitions.find(transition => transition.transitionId === 'resume_strategy_with_specialist')).toMatchObject({
+    fromStepId: 'strategy_specialist_waiting', toStepId: 'strategy_execution',
+    activities: [{ async: true, retryPolicy: { maxAttempts: 1 }, config: { functionName: STRATEGY_EXECUTION_FUNCTION } }],
+  })
+})
+
 test.each([
   ['planning_execution', 'planning_exception_checked', 'agency_operations.handoffPlanningResearchException', 'plan_review'],
   ['post_production', 'post_exception_checked', 'agency_operations.handoffPostResearchException', 'post_review'],

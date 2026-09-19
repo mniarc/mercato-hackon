@@ -16,9 +16,12 @@ const readiness = { status: 'ready', orderRef: caseId, brief: { versionId },
   acceptance: { documentVersionId: versionId, source: { submissionId, workflowInstanceId: workflowId } }, process: processRef }
 const context = { userId: principalId, stepInstanceId: stepId, workflowInstance: { id: workflowId, ...scope, workflowId: 'agency_operations.client-submission.native.v1' } }
 const runStrategy = jest.fn()
+const resolveForCase = jest.fn()
+const specialistTov = { owner: 'agency_tov', kind: 'KLI-TOV', researchRunId: uuid(20), documentId: uuid(21), versionId: uuid(22), version: '1.0' }
 const container = { resolve: (key: string) => {
   if (key === 'em') return {}
   if (key === 'agencyResearchService') return { runStrategy }
+  if (key === 'agencyStaffTovIntakeService') return { resolveForCase }
   throw new Error(`Unexpected dependency ${key}`)
 } }
 const completed = { status: 'completed', orderRef: caseId, taskRunIds: ['run'], documentVersionIds: ['strategy', 'tov'], agentRunIds: ['agent'], spentPln: 0.1,
@@ -36,6 +39,7 @@ function arrange(options: { ready?: unknown; definition?: unknown; analysis?: un
     .mockResolvedValueOnce((options.analysis ?? { id: analysisId, definitionId, workflowId: processRef.workflowId, version: 3 }) as never)
     .mockResolvedValueOnce((options.definition ?? definition()) as never)
   runStrategy.mockReset().mockResolvedValue(completed)
+  resolveForCase.mockReset().mockResolvedValue({ status: 'ready', workflowInstanceId: uuid(23), reference: specialistTov })
   guard.mockReset()
 }
 beforeEach(() => arrange())
@@ -44,10 +48,24 @@ test('uses exact original process authorization and native principal, not caller
   await expect(createStrategyExecutionActivity(container as never)({ maxCostPln: 9000, userId: uuid(99) }, context)).resolves.toEqual(completed)
   expect(runStrategy).toHaveBeenCalledWith({
     context: { ...scope, userId: principalId, workflowInstanceId: workflowId, stepId: 'strategy_execution', invocationId: stepId },
-    request: { orderRef: caseId, briefVersionId: versionId, acceptanceSubmissionId: submissionId, process: processRef, maxCostPln: 2 },
+    request: { orderRef: caseId, briefVersionId: versionId, acceptanceSubmissionId: submissionId, process: processRef, maxCostPln: 2, specialistTov },
   })
   expect(guard).toHaveBeenCalledTimes(1)
   expect(find.mock.calls[4][2]).toEqual({ ...scope, id: definitionId, workflowId: processRef.workflowId, version: 3, deletedAt: null })
+  expect(resolveForCase).toHaveBeenCalledWith({ ...scope, caseId })
+})
+
+test.each([
+  ['missing', null, 'provide_specialist_corpus'],
+  ['running', uuid(23), 'wait_for_specialist'],
+  ['attention_required', uuid(23), 'review_specialist_run'],
+])('waits actionably for %s specialist intake without calling any fallback writer', async (status, specialistWorkflowInstanceId, nextAction) => {
+  resolveForCase.mockResolvedValue({ status, workflowInstanceId: specialistWorkflowInstanceId })
+  await expect(createStrategyExecutionActivity(container as never)({}, context)).resolves.toMatchObject({
+    status: 'not_ready', reason: 'specialist_tov_pending', orderRef: caseId, templateId: 'KLI-TOV',
+    executionUserId: principalId, specialistWorkflowInstanceId, nextAction,
+  })
+  expect(runStrategy).not.toHaveBeenCalled()
 })
 
 test.each([undefined, { maxCostPln: -1 }, { maxCostPln: 0 }])('missing/invalid strategy cap never inherits analysis cap: %j', async (authorization) => {

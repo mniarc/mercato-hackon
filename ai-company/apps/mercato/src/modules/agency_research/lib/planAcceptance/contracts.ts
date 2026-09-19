@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { briefAcceptanceSourceSchema } from '../briefAcceptance/contracts'
 import type { StrategyReviewVersion } from '../strategyReview/types'
+import type { SpecialistTovReference } from '@/modules/agency_tov/lib/documentVersion/contracts'
 
 export const planReviewRequestSchema = z.object({ orderRef: z.string().min(1), planVersionId: z.uuid() }).strict()
 export type PlanReviewRequest = z.infer<typeof planReviewRequestSchema>
@@ -27,6 +28,7 @@ export type PlanReviewReady = {
   topics: { topicId: string; title: string; recommended: boolean }[];
   recommendedTopicId: string; qaTaskRunId: string;
   briefVersionId: string; strategyVersionId: string; tovVersionId: string;
+  specialistTov?: SpecialistTovReference;
   receipt: PlanAcceptanceRecord | null;
 }
 export type PlanReview = PlanReviewReady | PlanReviewNotReady

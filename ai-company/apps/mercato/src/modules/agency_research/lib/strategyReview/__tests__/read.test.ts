@@ -47,6 +47,25 @@ beforeEach(() => {
 
 function read() { return readStrategyReview(em, scope, orderRef, 'strategy-version', 'tov-version') }
 
+test('projects the specialist original content and exact scoped pair QA without a research ToV row', async () => {
+  documents = documents.filter((document) => document.templateId !== 'WZR-TOV')
+  versions = versions.filter((version) => version.templateId !== 'WZR-TOV')
+  const reference = { owner: 'agency_tov' as const, kind: 'KLI-TOV' as const,
+    researchRunId: '11111111-1111-4111-8111-111111111111', documentId: '22222222-2222-4222-8222-222222222222',
+    versionId: '33333333-3333-4333-8333-333333333333', version: '1.0' }
+  runs = [run({ summary: { specialistTov: reference, strategyVersionId: 'strategy-version', briefVersionId: 'brief-version' },
+    inputVersions: [pin('KLI-STRATEGIA'), pin('KLI-BRIEF'), { document_id: `agency_tov:${reference.documentId}`, version: '1.0', specialistTov: reference }] })]
+  const reader = jest.fn().mockResolvedValue({ ...reference, brand: 'Original brand', isCurrent: true, body: {}, citations: [], renderedMd: '# Original specialist voice' })
+  const result = await readStrategyReview(em, scope, orderRef, 'strategy-version', reference.versionId, reader)
+  expect(result?.tov).toMatchObject({ documentId: reference.documentId, versionId: reference.versionId,
+    clientViewMd: '# Original specialist voice', specialistReference: reference, documentStatus: 'ready_for_review' })
+  expect(result?.qa).toMatchObject({ state: 'assessed', taskRunId: 'qa', verdict: 'ready_for_approval' })
+  expect(result?.brief?.versionId).toBe('brief-version')
+  expect(reader).toHaveBeenCalledWith(scope, reference)
+  reader.mockResolvedValue(null)
+  expect(await readStrategyReview(em, scope, orderRef, 'strategy-version', reference.versionId, reader)).toBeNull()
+})
+
 test('returns the exact pair, same-run QA and shared brief without internal content or an acceptance claim', async () => {
   const result = await read()
   expect(result).toMatchObject({

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { z } from 'zod'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
@@ -8,6 +9,11 @@ import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import { AgencyCase } from '../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE, tovProcessRequestSchema } from './contracts'
+import {
+  STAFF_TOV_INTAKE_ATTACHMENT_ENTITY_ID,
+  STAFF_TOV_INTAKE_CONTEXT_KEY,
+  staffTovIntakeContextSchema,
+} from './tovIntake/contracts'
 
 export const AGENCY_TOV_WORKFLOW_ID = 'agency_operations.tov-research.v1'
 export const AGENCY_TOV_FUNCTION_NAME = 'agency_operations.researchToneOfVoice'
@@ -73,22 +79,33 @@ export function createTovWorkflowActivity(container: AppContainer) {
     const completed = z.object({ result: z.object({ researchRunId: z.uuid(), documentVersionIds: z.array(z.uuid()), agentRunIds: z.array(z.uuid()) }) })
       .safeParse(context.workflowInstance.context[AGENCY_TOV_RESULT_CONTEXT_KEY])
     if (completed.success) return completed.data.result
-    if (['COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATING'].includes(context.workflowInstance.status)) {
+    if (['COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATING', 'COMPENSATED'].includes(context.workflowInstance.status)) {
       throw new Error('[internal] Tone-of-voice activity cannot restart a terminal workflow')
     }
     const scope = { tenantId: context.workflowInstance.tenantId, organizationId: context.workflowInstance.organizationId }
+    const staffIntake = staffTovIntakeContextSchema.safeParse(context.workflowInstance.context[STAFF_TOV_INTAKE_CONTEXT_KEY])
     const agencyCase = await findOneWithDecryption(container.resolve<EntityManager>('em'), AgencyCase, {
-      id: input.caseId, ...scope, workflowInstanceId: context.workflowInstance.id, deletedAt: null,
+      id: input.caseId, ...scope,
+      ...(staffIntake.success ? { customerEntityId: staffIntake.data.customerEntityId } : { workflowInstanceId: context.workflowInstance.id }),
+      deletedAt: null,
     }, undefined, scope)
     if (!agencyCase) throw new Error('[internal] Agency case is outside the workflow scope')
+    if (staffIntake.success && (staffIntake.data.caseId !== agencyCase.id || staffIntake.data.initiatedByUserId !== context.userId)) {
+      throw new Error('[internal] Staff tone-of-voice intake is outside the workflow principal or case scope')
+    }
     const material = await container.resolve<AttachmentService>('attachmentService').readScoped({
-      attachmentId: agencyCase.materialAttachmentId,
+      attachmentId: staffIntake.success ? staffIntake.data.corpusAttachmentId : agencyCase.materialAttachmentId,
       auth: { sub: context.userId, tenantId: scope.tenantId, orgId: scope.organizationId },
-      expectedOwner: { entityId: AGENCY_CASE_ATTACHMENT_ENTITY_ID, recordId: agencyCase.id },
+      expectedOwner: staffIntake.success
+        ? { entityId: STAFF_TOV_INTAKE_ATTACHMENT_ENTITY_ID, recordId: staffIntake.data.intakeId }
+        : { entityId: AGENCY_CASE_ATTACHMENT_ENTITY_ID, recordId: agencyCase.id },
       expectedAssignment: { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: agencyCase.id },
       expectedPartitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE,
       requirePrivatePartition: true,
     })
+    if (staffIntake.success && createHash('sha256').update(material.buffer).digest('hex') !== staffIntake.data.corpusSha256) {
+      throw new Error('[internal] Staff tone-of-voice corpus no longer matches the pinned intake')
+    }
     const posts = await parseTovMaterial(material.buffer)
     const service = container.resolve<{
       run: (input: {

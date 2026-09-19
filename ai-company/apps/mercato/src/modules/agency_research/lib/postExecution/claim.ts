@@ -7,6 +7,7 @@ import { startTaskRun, type ResearchScope } from '../store'
 import type { ModelSet } from '../research/pipeline'
 import { postExecutionOutcomeSchema, type PostExecutionRequest, type PostExecutionResult } from './contracts'
 import { readPostExecutionInputs, type PostExecutionReady } from './readiness'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 
 export async function savedPostExecution(em: EntityManager, scope: ResearchScope, request: PostExecutionRequest): Promise<PostExecutionResult | null> {
   const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...scope, orderRef: request.orderRef, stepId: '7.1' }, { orderBy: { createdAt: 'asc', id: 'asc' } }, scope)
@@ -25,7 +26,7 @@ export async function savedPostExecution(em: EntityManager, scope: ResearchScope
     reason: run.status === 'running' ? 'in_progress_or_interrupted' : run.status === 'failed' ? 'failed' : 'result_unavailable' }
 }
 
-export async function claimPostExecution(em: EntityManager, scope: ResearchScope, request: PostExecutionRequest, models: ModelSet, repairAttempts: number): Promise<
+export async function claimPostExecution(em: EntityManager, scope: ResearchScope, request: PostExecutionRequest, models: ModelSet, repairAttempts: number, readSpecialistTov?: ReadSpecialistTov): Promise<
   { activationTaskRunId: string; ready: PostExecutionReady; summary: Record<string, unknown> } | { existing: PostExecutionResult }
 > {
   return em.transactional(async (transaction) => {
@@ -35,13 +36,15 @@ export async function claimPostExecution(em: EntityManager, scope: ResearchScope
     if (!brief) return { existing: { status: 'not_ready', orderRef: request.orderRef, reason: 'brief_not_current_or_accepted' } } as const
     const existing = await savedPostExecution(transaction, scope, request)
     if (existing) return { existing }
-    const ready = await readPostExecutionInputs(transaction, scope, request)
+    const ready = await readPostExecutionInputs(transaction, scope, request, readSpecialistTov)
     if (ready.status === 'not_ready') return { existing: ready }
     const summary = { process: request.process, instructionVersionId: request.instructionVersionId,
       selectionSubmissionId: request.selectionSubmissionId, planVersionId: ready.planVersionId, selectedTopicId: ready.selectedTopicId,
       instructionTaskRunId: ready.instructionTaskRunId, tovVersionId: ready.tov.versionId, orderVersionId: ready.orderInput.versionId,
       limits: { maxCostPln: request.maxCostPln, postRepairAttempts: repairAttempts }, steps: ['7.2', '7.3'] }
-    const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+    const pin = ({ document_id, version, status, specialistTov }: InputVersion): InputVersion => ({
+      document_id, version, status, ...(specialistTov ? { specialistTov } : {}),
+    })
     const activation = await startTaskRun(transaction, scope, { orderRef: request.orderRef, brand: ready.order.brand,
       stepId: '7.1', attempt: 1, runner: 'system', models, inputVersions: [ready.orderInput, ready.instruction, ready.tov].map(pin) })
     activation.summary = summary

@@ -27,12 +27,17 @@ const scope = { tenantId: 'tenant', organizationId: 'organization' }
 const transaction = jest.fn()
 const em = { transactional: transaction, flush: jest.fn() } as unknown as EntityManager
 const orderRef = 'case'
+const specialistTov = { owner: 'agency_tov' as const, kind: 'KLI-TOV' as const,
+  researchRunId: '44444444-4444-4444-8444-444444444444', documentId: '55555555-5555-4555-8555-555555555555',
+  versionId: '66666666-6666-4666-8666-666666666666', version: '1.0' }
+const readSpecialistTov = jest.fn()
 const request: StrategyExecutionRequest = {
   orderRef,
   briefVersionId: '11111111-1111-4111-8111-111111111111',
   acceptanceSubmissionId: '22222222-2222-4222-8222-222222222222',
   process: { workflowDefinitionId: '33333333-3333-4333-8333-333333333333', workflowId: 'native-analysis', version: 2 },
   maxCostPln: 3,
+  specialistTov,
 }
 const models = { extract: 'configured-extract', synthesis: 'configured-synthesis', qa: 'configured-qa' }
 const runAgent = jest.fn()
@@ -43,20 +48,21 @@ let freeze: AgencyResearchTaskRun
 let contexts: StepContext[]
 let activations: AgencyResearchTaskRun[]
 
-function execute() { return runStrategyExecution({ em, scope, request, models, runAgent, runner: 'orchestrator' }) }
+function execute() { return runStrategyExecution({ em, scope, request, models, runAgent, runner: 'orchestrator', readSpecialistTov }) }
 
-async function pauseTovForBudget(ctx: StepContext): Promise<never> {
+async function pauseQaForBudget(ctx: StepContext): Promise<never> {
   activations.push(Object.assign(new AgencyResearchTaskRun(), {
-    ...scope, orderRef, id: 'paused-tov', stepId: '5.3', status: 'paused_budget',
+    ...scope, orderRef, id: 'paused-qa', stepId: '5.4', status: 'paused_budget',
     inputVersions: [ctx.orderVersion, { document_id: 'KLI-STRATEGIA@case', version: '1.0', status: 'draft' }],
   }))
-  ctx.taskRunIds.push('paused-tov')
-  ctx.ledger.assertCanSpend('5.3', 'tov-agent', 4)
+  ctx.taskRunIds.push('paused-qa')
+  ctx.ledger.assertCanSpend('5.4', 'qa-agent', 4)
   throw new Error('unreachable')
 }
 
 beforeEach(() => {
   jest.clearAllMocks()
+  readSpecialistTov.mockResolvedValue({ ...specialistTov, brand: 'Persisted brand', isCurrent: true, body: {}, renderedMd: '# Exact specialist content', citations: [] })
   contexts = []
   activations = []
   let transactionTail = Promise.resolve()
@@ -133,15 +139,15 @@ beforeEach(() => {
   jest.mocked(runStrategyQaLoop).mockImplementation(async (ctx) => {
     contexts.push(ctx)
     ctx.taskRunIds.push('pair-qa')
-    return { taskRunId: 'pair-qa', verdict: 'ready_for_approval', findings: [], repairs: 0, strategyVersionId: 'strategy', tovVersionId: 'tov' }
+    return { taskRunId: 'pair-qa', verdict: 'ready_for_approval', findings: [], repairs: 0, strategyVersionId: 'strategy', tovVersionId: specialistTov.versionId }
   })
 })
 
-test('starts only 5.1 and reuses the original author and QA steps on exact frozen inputs', async () => {
+test('authors strategy and assesses the exact specialist ToV without invoking a competing writer', async () => {
   expect(await execute()).toEqual({
-    status: 'completed', orderRef, taskRunIds: ['activation', 'strategy-task', 'tov-task', 'pair-qa'],
-    documentVersionIds: ['strategy', 'tov'], agentRunIds: [], spentPln: 0,
-    strategyVersionId: 'strategy', tovVersionId: 'tov', qaTaskRunId: 'pair-qa', qaVerdict: 'ready_for_approval',
+    status: 'completed', orderRef, taskRunIds: ['activation', 'strategy-task', 'pair-qa'],
+    documentVersionIds: ['strategy'], agentRunIds: [], spentPln: 0,
+    strategyVersionId: 'strategy', tovVersionId: specialistTov.versionId, qaTaskRunId: 'pair-qa', qaVerdict: 'ready_for_approval', specialistTov,
   })
   expect(startTaskRun).toHaveBeenCalledTimes(1)
   expect(startTaskRun).toHaveBeenCalledWith(em, scope, expect.objectContaining({
@@ -154,15 +160,16 @@ test('starts only 5.1 and reuses the original author and QA steps on exact froze
       freezeTaskRunId: 'freeze', limits: { maxCostPln: 3, qaRepairAttemptsPerRun: limits.generation.qaRepairAttemptsPerRun },
     }),
   }))
-  expect(contexts).toHaveLength(3)
+  expect(contexts).toHaveLength(2)
   expect(contexts[1]).toBe(contexts[0])
-  expect(contexts[2]).toBe(contexts[0])
+  expect(contexts[0].specialistTov?.renderedMd).toBe('# Exact specialist content')
   expect(contexts[0].strategyInputs?.brief.versionId).toBe(request.briefVersionId)
   expect(contexts[0].strategyInputs?.zrodla.versionId).toBe('version-1')
   expect(contexts[0].orderVersion.version).toBe('2.0')
   expect(contexts[0].runAgent).toBe(runAgent)
   expect(contexts[0].ledger.snapshot().cap).toBe(3)
-  expect(runStrategyQaLoop).toHaveBeenCalledWith(contexts[0], { strategyStep: runStrategyStep, tovStep: runTovStep })
+  expect(runStrategyQaLoop).toHaveBeenCalledWith(contexts[0], { strategyStep: runStrategyStep })
+  expect(runTovStep).not.toHaveBeenCalled()
   for (const call of findOne.mock.calls) {
     expect(call[2]).toMatchObject({ ...scope, orderRef })
     expect(call[4]).toEqual(scope)
@@ -174,6 +181,14 @@ test('does not write or invoke agents when accepted-brief readiness is missing',
   expect(await execute()).toEqual({ status: 'not_ready', orderRef, reason: 'brief_not_approved' })
   expect(findOne).not.toHaveBeenCalled()
   expect(startTaskRun).not.toHaveBeenCalled()
+  expect(runStrategyStep).not.toHaveBeenCalled()
+})
+
+test('waits for the configured specialist rather than generating substitute ToV content', async () => {
+  expect(await runStrategyExecution({ em, scope, request: { ...request, specialistTov: undefined }, models, runAgent, runner: 'orchestrator', readSpecialistTov }))
+    .toEqual({ status: 'not_ready', orderRef, reason: 'specialist_tov_required' })
+  expect(startTaskRun).not.toHaveBeenCalled()
+  expect(runTovStep).not.toHaveBeenCalled()
   expect(runStrategyStep).not.toHaveBeenCalled()
 })
 
@@ -192,16 +207,16 @@ test.each(['absent', 'ambiguous'])('requires one frozen order pin, not latest or
 })
 
 test('keeps the generated strategy reference when the following step pauses for budget', async () => {
-  jest.mocked(runTovStep).mockImplementation(pauseTovForBudget)
-  expect(await execute()).toMatchObject({ status: 'paused_budget', strategyVersionId: 'strategy', tovVersionId: null, qaTaskRunId: null,
-    escalationVersionId: 'budget-exception-version', taskRunIds: expect.arrayContaining(['paused-tov', 'budget-exception-task']),
+  jest.mocked(runStrategyQaLoop).mockImplementation(pauseQaForBudget)
+  expect(await execute()).toMatchObject({ status: 'paused_budget', strategyVersionId: 'strategy', tovVersionId: specialistTov.versionId, qaTaskRunId: null,
+    escalationVersionId: 'budget-exception-version', taskRunIds: expect.arrayContaining(['paused-qa', 'budget-exception-task']),
     documentVersionIds: expect.arrayContaining(['budget-exception-version']) })
   expect(openEscalation).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
-    code: 'budget_exhausted', triggerStep: '5.3', resumeStep: '5.3', summary: expect.stringContaining('0.00 PLN spent of 3 PLN'),
-    evidence: [expect.objectContaining({ ref: 'paused-tov' })],
+    code: 'budget_exhausted', triggerStep: '5.4', resumeStep: '5.4', summary: expect.stringContaining('0.00 PLN spent of 3 PLN'),
+    evidence: [expect.objectContaining({ ref: 'paused-qa' })],
     allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: 'The reason and who must act.', permittedNextStep: 'none' }],
   }), expect.arrayContaining([{ document_id: 'KLI-STRATEGIA@case', version: '1.0', status: 'draft' }]))
-  expect(runStrategyQaLoop).not.toHaveBeenCalled()
+  expect(runTovStep).not.toHaveBeenCalled()
 })
 
 test('returns negative QA and the teammate escalation without synthesizing approval', async () => {
@@ -239,12 +254,12 @@ test('replays the persisted result before readiness, without accepting caller-ma
 })
 
 test('replays a paused receipt without spending again even if the caller raises the cap', async () => {
-  jest.mocked(runTovStep).mockImplementation(pauseTovForBudget)
+  jest.mocked(runStrategyQaLoop).mockImplementation(pauseQaForBudget)
   const paused = await execute()
   expect(paused.status).toBe('paused_budget')
   expect(await runStrategyExecution({ em, scope, models, runAgent, runner: 'orchestrator', request: { ...request, maxCostPln: 50 } })).toEqual(paused)
   expect(runStrategyStep).toHaveBeenCalledTimes(1)
-  expect(runTovStep).toHaveBeenCalledTimes(1)
+  expect(runTovStep).not.toHaveBeenCalled()
   expect(openEscalation).toHaveBeenCalledTimes(1)
 })
 
@@ -290,7 +305,7 @@ test('serializes same-acceptance claims and releases the lock before the first m
 test.each(['done', 'running'])('does not rerun an interrupted or historical activation without a saved receipt (%s)', async (status) => {
   activations.push(Object.assign(new AgencyResearchTaskRun(), {
     ...scope, orderRef, id: 'historical-activation', stepId: '5.1', status,
-    summary: { briefVersionId: request.briefVersionId, acceptanceSubmissionId: request.acceptanceSubmissionId },
+    summary: { briefVersionId: request.briefVersionId, acceptanceSubmissionId: request.acceptanceSubmissionId, specialistTov },
   }))
   expect(await execute()).toEqual({
     status: 'execution_incomplete', orderRef, activationTaskRunId: 'historical-activation',

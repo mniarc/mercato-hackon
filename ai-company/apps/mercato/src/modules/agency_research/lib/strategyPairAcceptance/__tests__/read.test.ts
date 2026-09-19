@@ -38,6 +38,21 @@ test('separate linked decisions produce a complete current accepted pair', async
   expect(readStrategyReview).toHaveBeenCalledWith({}, scope, input.orderRef, input.strategyVersionId, input.tovVersionId)
 })
 
+test('specialist ToV acceptance is derived from exact receipts on the strategy version', async () => {
+  const specialistReference = { owner: 'agency_tov' as const, kind: 'KLI-TOV' as const, researchRunId: uuid(30),
+    documentId: pair.tov.documentId, versionId: pair.tov.versionId, version: '1.0' }
+  const specialistPair = { ...pair, tov: { ...pair.tov, documentStatus: 'ready_for_review', versionStatus: 'draft', specialistReference } }
+  jest.mocked(readStrategyReview).mockResolvedValue(specialistPair)
+  jest.mocked(findOneWithDecryption).mockResolvedValue({ approvalRecords: [record('strategy'), record('tov')] } as never)
+  const readSpecialistTov = jest.fn()
+  await expect(readStrategyPairAcceptance({} as never, scope, input, readSpecialistTov)).resolves.toMatchObject({
+    status: 'accepted', remainingDocuments: [], acceptances: { strategy: { scope: 'strategy' }, tov: { scope: 'tov' } },
+    pair: { tov: { specialistReference } },
+  })
+  expect(readStrategyReview).toHaveBeenCalledWith({}, scope, input.orderRef, input.strategyVersionId, input.tovVersionId, readSpecialistTov)
+  expect(findOneWithDecryption).toHaveBeenCalledTimes(1)
+})
+
 test('one record cannot imply consent for the other document', async () => {
   jest.mocked(readStrategyReview).mockResolvedValue({ ...pair, tov: { ...pair.tov, documentStatus: 'ready_for_review', versionStatus: 'ready_for_review' } })
   await expect(readStrategyPairAcceptance({} as never, scope, input)).resolves.toMatchObject({ status: 'partial', remainingDocuments: ['tov'], acceptances: { tov: null } })

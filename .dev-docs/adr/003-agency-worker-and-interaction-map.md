@@ -62,7 +62,7 @@ fetch websites or read attachments.
 | Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card`, `competitor_channels`, `competitor_synthesizer` → competitor comparison. |
 | Findings and research QA — `agency_research` | F08-1, F08-2, F08-3 | Steps 3.6–3.8: `field_mapper`, `question_writer`, `readiness_assessor`, `research_qa` → findings, QA and code-owned frozen package. |
 | Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: section workers `brief_writer.offer_audience_direction`, `brief_writer.promise_voice`, `brief_writer.channel_success_assets`, then `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
-| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |
+| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |
 | Content plan and QA — `agency_research` | F26-2, F27-1 | Steps 6.2–6.3: `plan_writer.topics`, `plan_writer.balance_recommendation`, `plan_qa` → versioned plan and QA; selection/post instruction are code-owned steps, not another agent. |
 | Post writing/editing — `agency_research` | F30-2, F31-1, F31-2 | Steps 7.2–7.3: `post_author`, `post_editor` → versioned draft and editorial QA; targeted research, customer changes and exceptions still need their real handoffs. |
 | Package checks — `agency_research` code | F38-1, F38-2 | `research/steps/package.ts` + `research/packaging.ts` assemble existing outputs, project verified takeaways and check completeness/closure; no generic agency QA worker or new customer package approval. |
@@ -74,12 +74,25 @@ fetch websites or read attachments.
 Teammate `agency_tov` remains outside this directory. Its source scout, batch
 analyst, profile synthesizer, and brand synthesizer remain unchanged; the agency
 process integrates through its public research/document service, not extracted
-or copied ToV internals. Corpus research alone does not complete F22-1: the
+or copied ToV internals. `agency_tov` is the sole ToV content producer, not an
+optional profile enrichment for a second writer. Strategy orchestrates/consumes
+its immutable version; review and downstream workers read that same content.
+Pair approval records may reference it but never rewrite it. Missing corpus or
+specialist output requires an actionable wait and native continuation; QA problems
+return to the specialist, not a fallback research writer. Historical research-owned
+ToV versions remain readable but do not authorize new competing production.
+The legacy whole-pipeline `agency_research run --through 5.4` (and later) is
+retired before any authoring/spend. Earlier research through 4.2 remains available;
+later production uses the accepted-case native specialist/approval continuation.
+The app's supported `modules.ts` AI override disables the historic
+`agency_research.tov_writer` ID for new general/delegated native runs too;
+definitions and stored history remain available for compatibility.
+Corpus research alone does not complete F22-1: the
 strategy process must bind the accepted brief, strategy proposal, ToV revision,
 and pair QA. The teammate `agency` portal remains the customer surface.
 
 Teammate `agency_research` owns source research, audit, competitor comparison,
-findings/QA, brief drafting/QA, strategy/ToV, planning and post production/QA.
+findings/QA, brief drafting/QA, strategy and pair QA, planning and post production/QA.
 Its publication documents and package checks are deterministic code, not agents.
 Agent names in its rows above carry the `agency_research.` prefix and are
 registered by that module's `ai-agents.ts` from `lib/agents/`. See the teammate's

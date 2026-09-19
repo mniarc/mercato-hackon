@@ -1,15 +1,16 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
 import { inputVersionSchema, type TemplateId } from '../../data/schemas/envelope'
 import { orderDataSchema, orderFactsOf, type OrderFacts } from '../../data/schemas/zamowienie'
-import { tovDataSchema } from '../../data/schemas/tov'
 import { zleceniePostuDataSchema } from '../../data/schemas/zleceniePostu'
 import { readPlanAcceptance } from '../planAcceptance/read'
 import { postInstructionReadySchema } from '../postInstructionExecution/contracts'
 import { documentIdFor, versionLabel } from '../research/envelope'
 import type { StrategyExecutionInput } from '../research/steps/context'
+import { parseDownstreamTov, specialistTovInput } from '../research/steps/tovInput'
 import type { ResearchScope } from '../store'
 import type { PostExecutionNotReady, PostExecutionRequest } from './contracts'
 
@@ -19,7 +20,7 @@ export type PostExecutionReady = {
   planVersionId: string; selectedTopicId: string; instructionTaskRunId: string;
 }
 
-export async function readPostExecutionInputs(em: EntityManager, scope: ResearchScope, request: PostExecutionRequest): Promise<PostExecutionReady | PostExecutionNotReady> {
+export async function readPostExecutionInputs(em: EntityManager, scope: ResearchScope, request: PostExecutionRequest, readSpecialistTov?: ReadSpecialistTov): Promise<PostExecutionReady | PostExecutionNotReady> {
   const { orderRef, instructionVersionId, selectionSubmissionId } = request
   const where = { ...scope, orderRef }
   const notReady = (reason: string, templateId?: string): PostExecutionNotReady => ({ status: 'not_ready', orderRef, reason, ...(templateId ? { templateId } : {}) })
@@ -42,7 +43,10 @@ export async function readPostExecutionInputs(em: EntityManager, scope: Research
   if (!compiler || !compiled.success || compiled.data.taskRunId !== compiler.id
     || compiled.data.instructionDocumentId !== instructionDocument.id || compiled.data.instructionVersionId !== instructionVersionId
     || compiled.data.orderRef !== orderRef || compiled.data.selectionSubmissionId !== selectionSubmissionId) return notReady('instruction_selection_missing')
-  const accepted = await readPlanAcceptance(em, scope, { orderRef, planVersionId: compiled.data.planVersionId })
+  const acceptanceInput = { orderRef, planVersionId: compiled.data.planVersionId }
+  const accepted = readSpecialistTov
+    ? await readPlanAcceptance(em, scope, acceptanceInput, readSpecialistTov)
+    : await readPlanAcceptance(em, scope, acceptanceInput)
   if (accepted.status === 'not_ready') return accepted
   const receipt = accepted.receipt
   if (!receipt || accepted.plan.documentStatus !== 'approved' || accepted.plan.versionStatus !== 'approved') return notReady('selection_missing')
@@ -54,14 +58,14 @@ export async function readPostExecutionInputs(em: EntityManager, scope: Research
 
   const expectedIds: Partial<Record<TemplateId, string>> = {
     'WZR-PLAN': accepted.plan.versionId, 'WZR-BRIEF': accepted.briefVersionId,
-    'WZR-STRATEGIA': accepted.strategyVersionId, 'WZR-TOV': accepted.tovVersionId,
+    'WZR-STRATEGIA': accepted.strategyVersionId,
   }
   const snapshot = (row: AgencyResearchDocumentVersion): StrategyExecutionInput => ({
     document_id: documentIdFor(row.templateId as TemplateId, orderRef), version: versionLabel(row.versionNo),
     status: row.status, versionId: row.id, data: row.data,
   })
   const dependencies = new Map<TemplateId, StrategyExecutionInput>()
-  for (const templateId of ['WZR-PLAN', 'WZR-ZAMOWIENIE', 'WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-TOV', 'WZR-ZRODLA', 'WZR-KONKURENCJA'] as const) {
+  for (const templateId of ['WZR-PLAN', 'WZR-ZAMOWIENIE', 'WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-ZRODLA', 'WZR-KONKURENCJA'] as const) {
     const matches = pins.data.filter((pin) => pin.document_id === documentIdFor(templateId, orderRef))
     if (matches.length !== 1 || !/^[1-9]\d*\.0$/.test(matches[0].version)) return notReady('pinned_input_missing', templateId)
     const document = await findOneWithDecryption(em, AgencyResearchDocument, { ...where, templateId, deletedAt: null }, undefined, scope)
@@ -75,9 +79,30 @@ export async function readPostExecutionInputs(em: EntityManager, scope: Research
     dependencies.set(templateId, snapshot(version))
   }
   const orderInput = dependencies.get('WZR-ZAMOWIENIE')!
-  const tov = dependencies.get('WZR-TOV')!
+  const specialistTov = accepted.specialistTov && readSpecialistTov ? await readSpecialistTov(scope, accepted.specialistTov) : null
+  let tov: StrategyExecutionInput | null = null
+  if (accepted.specialistTov) {
+    const pin = pins.data.find((input) => input.document_id === `agency_tov:${accepted.specialistTov!.documentId}`
+      && input.version === accepted.specialistTov!.version && input.specialistTov?.versionId === accepted.specialistTov!.versionId)
+    if (!pin || !specialistTov || !specialistTov.isCurrent || specialistTov.versionId !== accepted.tovVersionId) {
+      return notReady('pinned_input_not_accepted', 'WZR-TOV')
+    }
+    tov = specialistTovInput(specialistTov)
+  } else {
+    const matches = pins.data.filter((pin) => pin.document_id === documentIdFor('WZR-TOV', orderRef))
+    const document = matches.length === 1 ? await findOneWithDecryption(em, AgencyResearchDocument, {
+      ...where, templateId: 'WZR-TOV', deletedAt: null,
+    }, undefined, scope) : null
+    const version = document && /^[1-9]\d*\.0$/.test(matches[0].version) ? await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+      ...where, documentId: document.id, templateId: 'WZR-TOV', versionNo: Number(matches[0].version.split('.')[0]),
+    }, undefined, scope) : null
+    if (!document || !version || document.currentVersionId !== version.id || version.id !== accepted.tovVersionId
+      || document.status !== 'approved' || version.status !== 'approved' || version.simulationFlag) return notReady('pinned_input_not_accepted', 'WZR-TOV')
+    tov = snapshot(version)
+  }
   const order = orderDataSchema.safeParse(orderInput.data)
-  if (!order.success || !tovDataSchema.safeParse(tov.data).success) return notReady('pinned_input_invalid')
+  if (!order.success) return notReady('pinned_input_invalid')
+  try { parseDownstreamTov(tov) } catch { return notReady('pinned_input_invalid') }
   if (instruction.data.voice_extract.tov_id !== tov.document_id || instruction.data.voice_extract.tov_version !== tov.version) return notReady('instruction_tov_mismatch')
   return { status: 'ready', order: orderFactsOf(order.data), orderInput, tov, instruction: snapshot(instructionRow),
     planVersionId: accepted.plan.versionId, selectedTopicId: receipt.selectedTopicId, instructionTaskRunId: compiler.id }

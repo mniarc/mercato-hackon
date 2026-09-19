@@ -1,4 +1,5 @@
 import { LockMode } from '@mikro-orm/core'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchDocument, AgencyResearchTaskRun } from '../../data/entities'
@@ -16,7 +17,7 @@ import type { RunStrategyExecutionOptions } from '../strategyExecution/run'
 import { runPostEvidenceRequestSchema, postEvidenceOutcomeSchema, type RunPostEvidenceRequest, type PostEvidenceResult, type PostEvidenceOutcome } from './contracts'
 import { readPostEvidenceInputs } from './readiness'
 
-export type RunPostEvidenceOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: RunPostEvidenceRequest }
+export type RunPostEvidenceOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: RunPostEvidenceRequest; readSpecialistTov?: ReadSpecialistTov }
 type Ready = Exclude<Awaited<ReturnType<typeof readPostEvidenceInputs>>, { status: 'not_ready' }>
 type OriginalQa = Pick<AgencyResearchTaskRun, 'status' | 'inputVersions' | 'outputVersionId' | 'qaResult' | 'summary' | 'agentRunIds' | 'cost'> & { finishedAt: string | null }
 type Claim = { existing: PostEvidenceResult } | { ready: Ready; sourceTaskId: string; originalQa: OriginalQa }
@@ -51,9 +52,11 @@ export async function runPostEvidence(opts: RunPostEvidenceOptions): Promise<Pos
       return { existing: { status: 'execution_incomplete', orderRef: request.orderRef, activationTaskRunId: existing.id,
         reason: existing.status === 'running' ? 'in_progress_or_interrupted' : existing.status === 'failed' ? 'failed' : 'result_unavailable' } as const }
     }
-    const ready = await readPostEvidenceInputs(transaction, scope, request)
+    const ready = await readPostEvidenceInputs(transaction, scope, request, opts.readSpecialistTov)
     if (ready.status === 'not_ready') return { existing: ready }
-    const pin = ({ document_id, version, status }: typeof ready.instruction) => ({ document_id, version, status })
+    const pin = ({ document_id, version, status, specialistTov }: typeof ready.instruction) => ({
+      document_id, version, status, ...(specialistTov ? { specialistTov } : {}),
+    })
     const sourceTask = await startTaskRun(transaction, scope, { orderRef: request.orderRef, brand: ready.order.brand,
       stepId: '3.2', attempt: 1, runner: opts.runner, models: opts.models,
       inputVersions: [ready.orderInput, ready.previousPost, ready.instruction, ready.tov].map(pin) })

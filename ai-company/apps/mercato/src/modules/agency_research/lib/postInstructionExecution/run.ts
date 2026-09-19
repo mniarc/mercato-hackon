@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
@@ -7,12 +8,13 @@ import { inputVersionSchema, type InputVersion, type TemplateId } from '../../da
 import { planDataSchema } from '../../data/schemas/plan'
 import { briefDataSchema } from '../../data/schemas/brief'
 import { strategiaDataSchema } from '../../data/schemas/strategia'
-import { tovDataSchema } from '../../data/schemas/tov'
 import { zrodlaDataSchema } from '../../data/schemas/zrodla'
 import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { readPlanAcceptance } from '../planAcceptance/read'
 import { documentIdFor, versionLabel } from '../research/envelope'
 import { assemblePostInstruction } from '../research/steps/postInstruction'
+import { parseDownstreamTov, specialistTovInput } from '../research/steps/tovInput'
+import type { StrategyExecutionInput } from '../research/steps/context'
 import { renderZleceniePostu } from '../research/render/zleceniePostu'
 import { startTaskRun, finishTaskRun, saveDocumentVersion, type ResearchScope } from '../store'
 import { postInstructionExecutionRequestSchema, postInstructionReadySchema,
@@ -22,6 +24,7 @@ export type RunPostInstructionExecutionOptions = {
   em: EntityManager
   scope: ResearchScope
   request: PostInstructionExecutionRequest
+  readSpecialistTov?: ReadSpecialistTov
 }
 
 export async function runPostInstructionExecution(opts: RunPostInstructionExecutionOptions): Promise<PostInstructionExecutionResult> {
@@ -37,7 +40,9 @@ export async function runPostInstructionExecution(opts: RunPostInstructionExecut
       ...where, templateId: 'WZR-BRIEF', deletedAt: null,
     }, { lockMode: LockMode.PESSIMISTIC_WRITE }, scope)
     if (!briefDocument) return notReady('brief_not_found')
-    const accepted = await readPlanAcceptance(em, scope, { orderRef, planVersionId })
+    const accepted = opts.readSpecialistTov
+      ? await readPlanAcceptance(em, scope, { orderRef, planVersionId }, opts.readSpecialistTov)
+      : await readPlanAcceptance(em, scope, { orderRef, planVersionId })
     if (accepted.status === 'not_ready') return accepted
     const receipt = accepted.receipt
     if (!receipt || accepted.plan.documentStatus !== 'approved' || accepted.plan.versionStatus !== 'approved') return notReady('selection_missing')
@@ -52,9 +57,9 @@ export async function runPostInstructionExecution(opts: RunPostInstructionExecut
     if (!plan.data.topics.some((topic) => topic.topic_id === receipt.selectedTopicId)) return notReady('selected_topic_missing')
     const dependencies = new Map<TemplateId, AgencyResearchDocumentVersion>()
     const expectedClientIds: Partial<Record<TemplateId, string>> = {
-      'WZR-BRIEF': accepted.briefVersionId, 'WZR-STRATEGIA': accepted.strategyVersionId, 'WZR-TOV': accepted.tovVersionId,
+      'WZR-BRIEF': accepted.briefVersionId, 'WZR-STRATEGIA': accepted.strategyVersionId,
     }
-    for (const templateId of ['WZR-ZAMOWIENIE', 'WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-TOV', 'WZR-ZRODLA', 'WZR-KONKURENCJA'] as const) {
+    for (const templateId of ['WZR-ZAMOWIENIE', 'WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-ZRODLA', 'WZR-KONKURENCJA'] as const) {
       const matchingPins = pins.data.filter((pin) => pin.document_id === documentIdFor(templateId, orderRef))
       if (matchingPins.length !== 1 || !/^[1-9]\d*\.0$/.test(matchingPins[0].version)) return notReady('dependency_missing', templateId)
       const document = templateId === 'WZR-BRIEF' ? briefDocument : await findOneWithDecryption(em, AgencyResearchDocument, {
@@ -75,18 +80,40 @@ export async function runPostInstructionExecution(opts: RunPostInstructionExecut
     const orderRow = dependencies.get('WZR-ZAMOWIENIE')!
     const briefRow = dependencies.get('WZR-BRIEF')!
     const strategyRow = dependencies.get('WZR-STRATEGIA')!
-    const tovRow = dependencies.get('WZR-TOV')!
+    const specialistTov = accepted.specialistTov && opts.readSpecialistTov
+      ? await opts.readSpecialistTov(scope, accepted.specialistTov)
+      : null
+    const legacyTovPin = accepted.specialistTov ? null : pins.data.find((pin) => pin.document_id === documentIdFor('WZR-TOV', orderRef))
+    const legacyTovDocument = legacyTovPin ? await findOneWithDecryption(em, AgencyResearchDocument, {
+      ...where, templateId: 'WZR-TOV', deletedAt: null,
+    }, undefined, scope) : null
+    const tovRow = legacyTovDocument && legacyTovPin ? await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+      ...where, documentId: legacyTovDocument.id, templateId: 'WZR-TOV', versionNo: Number(legacyTovPin.version.split('.')[0]),
+    }, undefined, scope) : null
+    if (accepted.specialistTov
+      ? !specialistTov || !specialistTov.isCurrent || specialistTov.documentId !== accepted.specialistTov.documentId
+        || specialistTov.versionId !== accepted.tovVersionId || specialistTov.version !== accepted.specialistTov.version
+      : !legacyTovPin || !tovRow || !legacyTovDocument || legacyTovDocument.currentVersionId !== tovRow.id
+        || tovRow.id !== accepted.tovVersionId || legacyTovDocument.status !== 'approved' || tovRow.status !== 'approved') {
+      return notReady('dependency_requires_review', 'WZR-TOV')
+    }
+    const tovInput: StrategyExecutionInput = specialistTov ? specialistTovInput(specialistTov) : {
+      document_id: documentIdFor('WZR-TOV', orderRef), version: versionLabel(tovRow!.versionNo), status: tovRow!.status,
+      versionId: tovRow!.id, data: tovRow!.data,
+    }
     const sourcesRow = dependencies.get('WZR-ZRODLA')!
     const orderData = orderDataSchema.safeParse(orderRow.data)
     const brief = briefDataSchema.safeParse(briefRow.data)
     const strategy = strategiaDataSchema.safeParse(strategyRow.data)
-    const tov = tovDataSchema.safeParse(tovRow.data)
     const sources = zrodlaDataSchema.safeParse(sourcesRow.data)
-    if (!orderData.success || !brief.success || !strategy.success || !tov.success || !sources.success) return notReady('dependency_invalid')
+    if (!orderData.success || !brief.success || !strategy.success || !sources.success) return notReady('dependency_invalid')
     const pin = (row: AgencyResearchDocumentVersion): InputVersion => ({
       document_id: documentIdFor(row.templateId as TemplateId, orderRef), version: versionLabel(row.versionNo), status: row.status,
     })
-    const inputVersions = [pin(planRow), ...[...dependencies.values()].map(pin)]
+    const inputVersions = [pin(planRow), ...[...dependencies.values()].map(pin), {
+      document_id: tovInput.document_id, version: tovInput.version, status: tovInput.status,
+      ...(tovInput.specialistTov ? { specialistTov: tovInput.specialistTov } : {}),
+    }]
     const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...where, stepId: '6.7' }, { orderBy: { createdAt: 'desc', id: 'desc' } }, scope)
     const previous = runs.find((run) => {
       const summary = run.summary as Record<string, unknown> | null
@@ -117,7 +144,10 @@ export async function runPostInstructionExecution(opts: RunPostInstructionExecut
         topic_id: receipt.selectedTopicId, status: 'client_selected', decision_id: receipt.source.submissionId,
         decision_version: receipt.version, decision_text: null, real_approval: true,
       } },
-      planVersion: pin(planRow), strategia: strategy.data, tov: tov.data, tovVersion: pin(tovRow), brief: brief.data, zrodla: sources.data,
+      planVersion: pin(planRow), strategia: strategy.data, tov: parseDownstreamTov(tovInput),
+      tovVersion: { document_id: tovInput.document_id, version: tovInput.version, status: tovInput.status,
+        ...(tovInput.specialistTov ? { specialistTov: tovInput.specialistTov } : {}) },
+      brief: brief.data, zrodla: sources.data,
     })
     const blocked = compiled.issues.filter((issue) => issue.severity === 'blocking')
     const task = await startTaskRun(em, scope, { orderRef, brand: order.brand, stepId: '6.7', attempt: 1, runner: 'system', models: {}, inputVersions })

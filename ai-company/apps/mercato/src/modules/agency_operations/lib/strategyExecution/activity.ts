@@ -8,7 +8,8 @@ import { AGENCY_RESEARCH_SERVICE, strategyProcessReferenceSchema, type AgencyRes
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { assertAnalysisExecutionEnabled } from '../analysisProcess/activity'
 import { STRATEGY_READINESS_RESULT_KEY } from '../strategyHandoff/contracts'
-import { STRATEGY_EXECUTION_STEP_ID, strategyExecutionActivityResultSchema, type NativeStrategyExecutionResult } from './contracts'
+import { STAFF_TOV_INTAKE_SERVICE, type StaffTovIntakeService } from '../tovIntake/contracts'
+import { STRATEGY_EXECUTION_RESULT_KEY, STRATEGY_EXECUTION_STEP_ID, STRATEGY_SPECIALIST_SIGNAL_KEY, strategySpecialistWaitSchema, strategyExecutionActivityResultSchema, type NativeStrategyExecutionResult } from './contracts'
 
 const contextSchema = z.object({
   userId: z.uuid(), stepInstanceId: z.uuid().optional(),
@@ -22,12 +23,12 @@ const readinessSchema = z.object({
 })
 const authorizationSchema = z.object({ maxCostPln: z.number().positive() }).strict()
 
-/** Continues the accepted case through the teammate's existing phase runner. */
-export function createStrategyExecutionActivity(container: AppContainer) {
-  return async (_args: unknown, rawContext: unknown): Promise<NativeStrategyExecutionResult> => {
+type StrategyAuthority = { status: 'authorized'; run: Parameters<AgencyResearchService['runStrategy']>[0]; source: WorkflowInstance }
+
+export async function prepareStrategyExecution(container: AppContainer, rawContext: unknown, ownedEm?: EntityManager): Promise<StrategyAuthority | NativeStrategyExecutionResult> {
     const context = contextSchema.parse(rawContext)
     const scope = { tenantId: context.workflowInstance.tenantId, organizationId: context.workflowInstance.organizationId }
-    const em = container.resolve<EntityManager>('em')
+    const em = ownedEm ?? container.resolve<EntityManager>('em')
     const submission = await findOneWithDecryption(em, AgencyClientSubmission, {
       ...scope, workflowInstanceId: context.workflowInstance.id, deletedAt: null,
     }, undefined, scope)
@@ -78,11 +79,41 @@ export function createStrategyExecutionActivity(container: AppContainer) {
       if (!isCrudHttpError(error) || error.status !== 409) throw error
       return { status: 'not_configured', orderRef: agencyCase.id, reason: 'execution_disabled' }
     }
-    return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).runStrategy({
+    return { status: 'authorized', source: source!, run: {
       context: { ...scope, userId: context.userId, workflowInstanceId: source!.id, stepId: STRATEGY_EXECUTION_STEP_ID,
         invocationId: context.stepInstanceId ?? source!.id },
       request: { orderRef: agencyCase.id, briefVersionId: readiness.brief.versionId, acceptanceSubmissionId: submission.id,
         process: readiness.process, maxCostPln: authorization.data.maxCostPln },
+    } }
+}
+
+/** Continues the accepted case through the teammate's existing phase runner. */
+export function createStrategyExecutionActivity(container: AppContainer) {
+  return async (_args: unknown, rawContext: unknown): Promise<NativeStrategyExecutionResult> => {
+    const authority = await prepareStrategyExecution(container, rawContext)
+    if (authority.status !== 'authorized') return authority
+    const { run, source } = authority
+    const pending = z.object({ result: strategySpecialistWaitSchema }).safeParse(source.context?.[STRATEGY_EXECUTION_RESULT_KEY])
+    if (pending.success && pending.data.result.executionUserId !== run.context.userId) {
+      throw new Error('[internal] Specialist continuation must retain the original execution actor')
+    }
+    const signalled = z.object({ workflowInstanceId: z.uuid() }).safeParse(source.context?.[STRATEGY_SPECIALIST_SIGNAL_KEY])
+    const pinnedId = pending.success ? pending.data.result.specialistWorkflowInstanceId : null
+    if (pinnedId && signalled.success && pinnedId !== signalled.data.workflowInstanceId) {
+      throw new Error('[internal] Specialist continuation cannot replace its pinned intake')
+    }
+    const specialist = await container.resolve<StaffTovIntakeService>(STAFF_TOV_INTAKE_SERVICE).resolveForCase({
+      tenantId: run.context.tenantId!, organizationId: run.context.organizationId!, caseId: run.request.orderRef,
+      ...(pinnedId || signalled.success ? { workflowInstanceId: pinnedId ?? (signalled.success ? signalled.data.workflowInstanceId : undefined) } : {}),
+    })
+    if (specialist.status !== 'ready') return strategySpecialistWaitSchema.parse({
+      status: 'not_ready', orderRef: run.request.orderRef, reason: 'specialist_tov_pending', templateId: 'KLI-TOV',
+      specialistWorkflowInstanceId: specialist.workflowInstanceId, executionUserId: run.context.userId,
+      nextAction: specialist.status === 'missing' ? 'provide_specialist_corpus'
+        : specialist.status === 'running' ? 'wait_for_specialist' : 'review_specialist_run',
+    })
+    return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).runStrategy({
+      ...run, request: { ...run.request, specialistTov: specialist.reference },
     })
   }
 }
