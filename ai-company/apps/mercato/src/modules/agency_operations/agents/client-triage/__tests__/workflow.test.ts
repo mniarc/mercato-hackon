@@ -30,19 +30,23 @@ test('continues after saved readiness through one asynchronous native activity w
   })
 })
 
-test('routes exhausted planning to the existing employee task before considering client review', () => {
-  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === 'planning_execution'))
-    .toMatchObject({ toStepId: 'planning_exception_checked', activities: [{ config: { functionName: 'agency_operations.handoffPlanningResearchException' } }] })
-  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'planning_exception_checked'))
+test.each([
+  ['planning_execution', 'planning_exception_checked', 'agency_operations.handoffPlanningResearchException', 'plan_review'],
+  ['post_production', 'post_exception_checked', 'agency_operations.handoffPostResearchException', 'post_review'],
+])('routes exhausted %s to the existing employee task before considering client review', (executionStep, checkedStep, handoffFunction, reviewStep) => {
+  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === executionStep))
+    .toMatchObject({ toStepId: checkedStep, activities: [{ config: { functionName: handoffFunction } }] })
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === checkedStep))
     .toMatchObject([
       { toStepId: 'research_exception', condition: { value: 'employee_exception' } },
-      { toStepId: 'plan_review', condition: { value: 'none' } },
+      { toStepId: reviewStep, condition: { value: 'none' } },
     ])
 })
 
 test.each([
   ['strategy_review', 'agencyStrategyPairInvitation', 'strategy_invited', 'strategy_waiting'],
   ['plan_review', 'agencyPlanInvitation', 'plan_invited', 'planning_waiting'],
+  ['post_review', 'agencyPostInvitation', 'post_review_invited', 'post_review_waiting'],
   ['post_revision_review', 'agencyPostRevisionInvitation', 'post_revision_invited', 'post_revision_waiting'],
 ])('keeps blocked %s waiting without automatic replay or a false completed review', (reviewStep, resultKey, invitedStep, waitingStep) => {
   expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === reviewStep)?.stepType).toBe('AUTOMATED')
@@ -52,6 +56,7 @@ test.each([
       expect.objectContaining({ toStepId: waitingStep, condition: { field: `${resultKey}.result.status`, operator: '=', value: 'blocked' } }),
     ])
   expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === waitingStep)?.stepType).toBe('WAIT_FOR_SIGNAL')
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === invitedStep)?.stepType).toBe('END')
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === waitingStep)).toEqual([])
 })
 

@@ -28,13 +28,44 @@ beforeEach(() => {
 })
 
 test('invites the exact persisted QA-ready post with native principal, ignoring caller references', async () => {
-  await createPostReviewHandoff(container as never)({ postVersionId: uuid(98) }, nativeContext)
+  await expect(createPostReviewHandoff(container as never)({ postVersionId: uuid(98) }, nativeContext)).resolves.toEqual({
+    status: 'invited', orderRef: caseId, invitation: { workflowInstanceId: uuid(20), taskId: uuid(21), replayed: false },
+  })
   expect(invite).toHaveBeenCalledWith({ ...scope, userId: principalId, caseId, postVersionId })
 })
 
 test.each([{ status: 'paused_budget' }, { readyForReview: false }, { qaVerdict: 'needs_fix' }, { postVersionId: null }])('does not invite a non-ready execution: %j', async (change) => {
   arrange({ ...execution, ...change })
-  await expect(createPostReviewHandoff(container as never)({}, nativeContext)).resolves.toEqual({ invitation: null, reason: 'post_not_ready' })
+  await expect(createPostReviewHandoff(container as never)({}, nativeContext)).resolves.toEqual({
+    status: 'blocked', orderRef: caseId, invitation: null,
+    reason: 'status' in change ? 'paused_budget' : 'post_not_ready', nextAction: 'review_qa', execution: { ...execution, ...change },
+  })
+  expect(invite).not.toHaveBeenCalled()
+})
+
+test.each([
+  [{ status: 'not_configured', orderRef: caseId, reason: 'missing_post_authorization' }, 'review_configuration'],
+  [{ status: 'not_ready', orderRef: caseId, reason: 'compiler_blocked', issueCodes: ['MISSING_EVIDENCE'] }, 'review_dependencies'],
+  [{ status: 'execution_incomplete', orderRef: caseId, reason: 'in_progress_or_interrupted', activationTaskRunId: uuid(30) }, 'reconcile_execution'],
+] as const)('preserves the saved expected outcome and inspection guidance: %j', async (result, nextAction) => {
+  arrange(result)
+  await expect(createPostReviewHandoff(container as never)({}, nativeContext)).resolves.toEqual({
+    status: 'blocked', orderRef: caseId, invitation: null, reason: result.reason, nextAction, execution: result,
+  })
+  expect(invite).not.toHaveBeenCalled()
+})
+
+test('retains a scoped reconciliation hold for malformed output, never claiming invitation', async () => {
+  arrange({ status: 'completed', readyForReview: true })
+  await expect(createPostReviewHandoff(container as never)({}, nativeContext)).resolves.toEqual({
+    status: 'blocked', orderRef: caseId, invitation: null, reason: 'missing_post_execution', nextAction: 'reconcile_execution', execution: null,
+  })
+  expect(invite).not.toHaveBeenCalled()
+})
+
+test('does not turn a foreign expected outcome into this case hold', async () => {
+  arrange({ status: 'not_configured', orderRef: uuid(99), reason: 'execution_disabled' })
+  await expect(createPostReviewHandoff(container as never)({}, nativeContext)).rejects.toThrow('originating case selection')
   expect(invite).not.toHaveBeenCalled()
 })
 

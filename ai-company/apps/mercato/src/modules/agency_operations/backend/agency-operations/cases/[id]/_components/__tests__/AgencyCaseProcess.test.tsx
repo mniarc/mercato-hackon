@@ -32,6 +32,24 @@ const process = {
 
 beforeEach(() => jest.clearAllMocks())
 
+test('shows the saved initial post hold with its next step without inventing resume', async () => {
+  const postReviewHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'missing_post_authorization', nextAction: 'review_configuration',
+    execution: { status: 'not_configured', orderRef: 'case-id', reason: 'missing_post_authorization' } }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postReviewHandoff, tasks: [],
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'post_review_waiting', waitingFor: null } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.postReviewHandoff.blocked')).toBeTruthy()
+  expect(screen.getByText('missing_post_authorization')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postReviewHandoff.nextAction.review_configuration')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postReviewHandoff.noResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.postReviewHandoff.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(screen.queryByRole('button', { name: /retry|resume/i })).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
 test.each([
   { status: 'blocked', orderRef: 'case-id', invitation: null, reason: 'missing_post_revision_authorization', nextAction: 'review_configuration' },
   { status: 'invited', orderRef: 'case-id', versionId: 'post-v2', invitation: { workflowInstanceId: 'post-review-run', taskId: 'client-review', replayed: false } },

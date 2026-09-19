@@ -5,7 +5,7 @@ import { analysisProcessResultSchema } from '../analysisProcess/contracts'
 import { postInstructionExecutionResultSchema, strategyProcessReferenceSchema, publicationPreparationResultSchema } from '@/modules/agency_research/lib/contracts'
 import { strategyExecutionActivityResultSchema, strategyReviewHandoffResultSchema } from '../strategyExecution/contracts'
 import { planningExecutionActivityResultSchema, planningReviewHandoffResultSchema } from '../planningExecution/contracts'
-import { postExecutionActivityResultSchema } from '../postExecution/contracts'
+import { postExecutionActivityResultSchema, postReviewHandoffResultSchema } from '../postExecution/contracts'
 import { briefRevisionActivityResultSchema } from '../briefRevision/contracts'
 import { postRevisionActivityResultSchema, postRevisionReviewHandoffResultSchema } from '../postRevision/contracts'
 
@@ -92,6 +92,7 @@ export const caseProcessSubmissionSchema = z.object({
   planningReviewHandoff: planningReviewHandoffResultSchema.nullable().optional(),
   postInstruction: postInstructionExecutionResultSchema.nullable().optional(),
   postExecution: postExecutionActivityResultSchema.nullable().optional(),
+  postReviewHandoff: postReviewHandoffResultSchema.nullable().optional(),
   postRevision: postRevisionActivityResultSchema.nullable().optional(),
   postRevisionHandoff: postRevisionReviewHandoffResultSchema.nullable().optional(),
   publicationPreparation: publicationPreparationResultSchema.nullable().optional(),

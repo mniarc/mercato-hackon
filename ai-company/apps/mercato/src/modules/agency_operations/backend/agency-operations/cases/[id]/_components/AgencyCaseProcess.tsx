@@ -238,6 +238,29 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
                 <JsonDisplay data={submission.postExecution} title={translate(`${key}.postExecution.title`)} />
               </div>
             ) : null}
+            {submission.postReviewHandoff ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.postReviewHandoff.title`)}</h3>
+                <StatusBadge variant={submission.postReviewHandoff.status === 'blocked' ? 'warning' : 'neutral'}>
+                  {translate(`${key}.postReviewHandoff.${submission.postReviewHandoff.status}`)}
+                </StatusBadge>
+                {submission.postReviewHandoff.status === 'blocked' ? (
+                  <>
+                    <p className="text-sm"><code>{submission.postReviewHandoff.reason}</code></p>
+                    <p className="text-sm">{translate(`${key}.postReviewHandoff.nextAction.${submission.postReviewHandoff.nextAction}`)}</p>
+                  </>
+                ) : null}
+                <p className="text-sm text-muted-foreground">{translate(`${key}.postReviewHandoff.noResume`)}</p>
+                {submission.workflow ? (
+                  <Button type="button" asChild variant="outline">
+                    <Link href={`/backend/instances/${submission.postReviewHandoff.status === 'invited' ? submission.postReviewHandoff.invitation.workflowInstanceId : submission.workflow.id}`}>
+                      {translate(`${key}.postReviewHandoff.inspectWorkflow`)}
+                    </Link>
+                  </Button>
+                ) : null}
+                <JsonDisplay data={submission.postReviewHandoff} title={translate(`${key}.postReviewHandoff.title`)} />
+              </div>
+            ) : null}
             {submission.postRevision ? (
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">{translate(`${key}.postRevision.title`)}</h3>

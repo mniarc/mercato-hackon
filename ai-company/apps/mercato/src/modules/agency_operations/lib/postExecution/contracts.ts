@@ -14,3 +14,16 @@ export const postExecutionActivityResultSchema = z.discriminatedUnion('status', 
 ])
 
 export type NativePostExecutionResult = z.infer<typeof postExecutionActivityResultSchema>
+
+export const postReviewHandoffResultSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('invited'), orderRef: z.string().min(1),
+    invitation: z.object({ workflowInstanceId: z.uuid(), taskId: z.uuid(), replayed: z.boolean() }),
+  }),
+  z.object({
+    status: z.literal('blocked'), orderRef: z.string().min(1), invitation: z.null(), reason: z.string().min(1),
+    nextAction: z.enum(['review_configuration', 'review_dependencies', 'reconcile_execution', 'review_qa', 'review_employee_exception']),
+    execution: postExecutionActivityResultSchema.nullable(),
+  }),
+])
+export type PostReviewHandoffResult = z.infer<typeof postReviewHandoffResultSchema>

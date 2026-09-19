@@ -41,6 +41,20 @@ function workflow(step: string, context: Record<string, unknown> = {}, status = 
 
 beforeEach(() => jest.clearAllMocks())
 
+test('projects a saved initial post hold only with its case-scoped production outcome', () => {
+  const execution = { status: 'not_configured', orderRef: caseId, reason: 'missing_post_authorization' }
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: execution.reason, nextAction: 'review_configuration', execution }
+  const saved = workflow('post_review_waiting', { [POST_EXECUTION_RESULT_KEY]: { result: execution }, agencyPostInvitation: { result: blocked } })
+  const projected = projectSubmissionProcess(submission, saved, [])
+  expect(projected.postReviewHandoff).toEqual(blocked)
+  expect(projected.workflow?.waitingFor).toBeNull()
+  expect(projected.tasks).toEqual([])
+  saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: { ...execution, orderRef: customerEntityId } }, agencyPostInvitation: { result: blocked } }
+  expect(projectSubmissionProcess(submission, saved, []).postReviewHandoff).toBeNull()
+  saved.context = { agencyPostInvitation: { result: { ...blocked, execution: null, reason: 'missing_post_execution', nextAction: 'reconcile_execution' } } }
+  expect(projectSubmissionProcess(submission, saved, []).postReviewHandoff).toMatchObject({ status: 'blocked', reason: 'missing_post_execution' })
+})
+
 const postCorrection = Object.assign(new AgencyClientSubmission(), submission, {
   original: { ...submission.original, text: 'Shorten the opening.', postReviewResponse: {
     channel: 'portal', kind: 'message', taskId: customerEntityId, externalEventId: 'post-change',

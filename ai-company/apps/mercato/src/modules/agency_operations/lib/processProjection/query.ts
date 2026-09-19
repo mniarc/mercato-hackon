@@ -24,7 +24,7 @@ import { PLANNING_EXECUTION_RESULT_KEY, planningExecutionActivityResultSchema, p
 import { POST_INSTRUCTION_RESULT_KEY } from '../planApproval/contracts'
 import { postInstructionExecutionResultSchema, publicationPreparationResultSchema } from '@/modules/agency_research/lib/contracts'
 import { PUBLICATION_PREPARATION_RESULT_KEY } from '../publicationPreparation/contracts'
-import { POST_EXECUTION_RESULT_KEY, postExecutionActivityResultSchema } from '../postExecution/contracts'
+import { POST_EXECUTION_RESULT_KEY, postExecutionActivityResultSchema, postReviewHandoffResultSchema } from '../postExecution/contracts'
 import { BRIEF_REVISION_RESULT_KEY, briefRevisionActivityResultSchema } from '../briefRevision/contracts'
 import { POST_REVISION_RESULT_KEY, postRevisionActivityResultSchema, postRevisionReviewHandoffResultSchema } from '../postRevision/contracts'
 import { caseBriefRevisionHandoffSchema, caseStrategyHandoffSchema, caseStrategyPairContinuationSchema, type CaseAnalysisProcess, type CaseProcessResponse, type CaseProcessSubmission } from './contract'
@@ -76,6 +76,18 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const planningReviewHandoff = planningReviewHandoffResultSchema.safeParse(record(context.agencyPlanInvitation).result)
   const postInstruction = postInstructionExecutionResultSchema.safeParse(record(context[POST_INSTRUCTION_RESULT_KEY]).result)
   const postExecution = postExecutionActivityResultSchema.safeParse(record(context[POST_EXECUTION_RESULT_KEY] ?? context.agencyPostExecution).result)
+  const postReviewHandoff = postReviewHandoffResultSchema.safeParse(record(context.agencyPostInvitation).result)
+  const scopedPostExecution = native && postExecution.success && postExecution.data.orderRef === submission.caseId
+    && (!('selectionSubmissionId' in postExecution.data) || postExecution.data.selectionSubmissionId === submission.id)
+    ? postExecution.data : null
+  const scopedPostReviewHandoff = native && postReviewHandoff.success && postReviewHandoff.data.orderRef === submission.caseId
+    && (postReviewHandoff.data.status === 'blocked'
+      ? postReviewHandoff.data.execution === null
+        ? !postExecution.success && postReviewHandoff.data.reason === 'missing_post_execution'
+        : scopedPostExecution !== null && isDeepStrictEqual(postReviewHandoff.data.execution, scopedPostExecution)
+      : scopedPostExecution?.status === 'completed' && scopedPostExecution.readyForReview
+        && scopedPostExecution.qaVerdict === 'pass_for_draft' && !!scopedPostExecution.postVersionId && !scopedPostExecution.escalationVersionId)
+    ? postReviewHandoff.data : null
   const publicationPreparation = publicationPreparationResultSchema.safeParse(record(context[PUBLICATION_PREPARATION_RESULT_KEY]).result)
   const scaffold = workflow?.workflowId === CLIENT_SUBMISSION_WORKFLOW_ID
   const active = workflow?.status === 'PAUSED' || workflow?.status === 'WAITING_FOR_ACTIVITIES' || workflow?.status === 'RUNNING'
@@ -117,9 +129,8 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
     postInstruction: native && postInstruction.success && postInstruction.data.orderRef === submission.caseId
       && (postInstruction.data.status !== 'ready' || postInstruction.data.selectionSubmissionId === submission.id)
       ? postInstruction.data : null,
-    postExecution: native && postExecution.success && postExecution.data.orderRef === submission.caseId
-      && ((postExecution.data.status !== 'completed' && postExecution.data.status !== 'paused_budget') || postExecution.data.selectionSubmissionId === submission.id)
-      ? postExecution.data : null,
+    postExecution: scopedPostExecution,
+    postReviewHandoff: scopedPostReviewHandoff,
     publicationPreparation: native && publicationPreparation.success && publicationPreparation.data.orderRef === submission.caseId
       && (publicationPreparation.data.status !== 'prepared' || publicationPreparation.data.acceptanceSubmissionId === submission.id)
       ? publicationPreparation.data : null,
