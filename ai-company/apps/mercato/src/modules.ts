@@ -226,4 +226,7 @@ if (enterpriseModulesEnabled && enterpriseAgentsEnabled) {
   // AI agency — tone-of-voice research agents (hackathon). Declares its agents
   // with the orchestrator SDK, so it is only enabled alongside it.
   enabledModules.push({ id: 'agency_tov', from: '@app' })
+  // AI agency — audit and research agents (P3 sources / audit / competitors / findings, P4 brief).
+  // Same SDK, same gate: only enabled alongside the orchestrator.
+  enabledModules.push({ id: 'agency_research', from: '@app' })
 }

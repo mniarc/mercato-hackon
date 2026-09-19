@@ -1,0 +1,85 @@
+{
+  "kind": "research",
+  "data": {
+    "coverage": [
+      {
+        "requirement": "segment",
+        "readiness": "conditional",
+        "evidence_ids": [
+          "A01"
+        ],
+        "gap": "Rola odbiorcy jest interpretacją dostawcy; brak głosu klienta.",
+        "owner": "klient"
+      },
+      {
+        "requirement": "problem",
+        "readiness": "conditional",
+        "evidence_ids": [
+          "F03",
+          "F04",
+          "A01"
+        ],
+        "gap": "Problem opisany z perspektywy oferty.",
+        "owner": "klient"
+      },
+      {
+        "requirement": "zakup",
+        "readiness": "blocked",
+        "evidence_ids": [],
+        "gap": "Brak sytuacji zakupowych i kryteriów wyboru.",
+        "owner": "klient"
+      },
+      {
+        "requirement": "oferta",
+        "readiness": "ready",
+        "evidence_ids": [
+          "F01",
+          "F02",
+          "F05"
+        ],
+        "gap": null,
+        "owner": "none"
+      },
+      {
+        "requirement": "mechanizm",
+        "readiness": "ready",
+        "evidence_ids": [
+          "F03",
+          "F05",
+          "P01",
+          "P02"
+        ],
+        "gap": null,
+        "owner": "none"
+      },
+      {
+        "requirement": "dowód",
+        "readiness": "ready",
+        "evidence_ids": [],
+        "gap": null,
+        "owner": "none"
+      },
+      {
+        "requirement": "alternatywy",
+        "readiness": "conditional",
+        "evidence_ids": [
+          "F04"
+        ],
+        "gap": "Alternatywy (własny zespół, software house) są hipotezą.",
+        "owner": "agencja"
+      },
+      {
+        "requirement": "język",
+        "readiness": "conditional",
+        "evidence_ids": [
+          "L01",
+          "L02",
+          "L03",
+          "L04"
+        ],
+        "gap": "Krótka próbka; kierunek przyszłego ToV wymaga decyzji.",
+        "owner": "klient"
+      }
+    ]
+  }
+}

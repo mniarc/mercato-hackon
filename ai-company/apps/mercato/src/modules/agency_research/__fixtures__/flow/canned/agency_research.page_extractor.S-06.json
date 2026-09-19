@@ -1,0 +1,33 @@
+{
+  "kind": "research",
+  "data": {
+    "facts": [
+      {
+        "local_ref": "f1",
+        "claim": "FLOW promuje wydarzenie dla startupów i występuje jako partner inkubacyjny; styl jest entuzjastyczny i zapraszający.",
+        "quote": "Jako partner inkubacyjny kibicujemy każdemu zespołowi",
+        "kind": "observed",
+        "use_scope": [
+          "proof",
+          "channel"
+        ],
+        "limitation": "Aktywność społecznościowa nie dowodzi efektów biznesowych."
+      }
+    ],
+    "language_samples": [
+      {
+        "local_ref": "l1",
+        "excerpt": "gorąco zapraszamy na Demo Day Idea Global Akcelerator",
+        "situation": "zaproszenie",
+        "suggested_audience": "społeczność startupowa",
+        "linguistic_features": [
+          "entuzjazm",
+          "zaproszenie wprost"
+        ],
+        "observed_function": "promuje wydarzenie partnera"
+      }
+    ],
+    "audience_signals": [],
+    "page_summary": "Krótkie zaproszenie na Demo Day programu inkubacyjnego."
+  }
+}

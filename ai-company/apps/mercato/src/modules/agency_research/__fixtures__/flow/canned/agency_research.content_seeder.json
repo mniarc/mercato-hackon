@@ -1,0 +1,215 @@
+{
+  "kind": "research",
+  "data": {
+    "content_bank": [
+      {
+        "audience_question": "Od czego zacząć, gdy chcemy nowego narzędzia?",
+        "angle": "Cztery pytania przed wyborem technologii",
+        "source_claim": "Punktem wyjścia są potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne.",
+        "source_claim_fact_ids": [
+          "F03"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P01"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Czy musimy mieć specyfikację, żeby rozmawiać z dostawcą?",
+        "angle": "Rozmowa bez specyfikacji",
+        "source_claim": "Klient może zgłosić się bez specyfikacji; istniejący dokument jest weryfikowany względem potrzeb i ograniczeń.",
+        "source_claim_fact_ids": [
+          "F04"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P01"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Kiedy AI ma sens w naszym procesie?",
+        "angle": "Uzasadnienie biznesowe przed AI",
+        "source_claim": "AI wdrażane tylko przy uzasadnieniu biznesowym; są też rozwiązania bez AI.",
+        "source_claim_fact_ids": [
+          "F05"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P02"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Jak sprawdzić założenia zanim wydamy budżet?",
+        "angle": "Krótszy cykl = wcześniejsza weryfikacja",
+        "source_claim": "Krótszy cykl łączy się z wcześniejszym sprawdzeniem założeń i poznaniem opinii użytkowników.",
+        "source_claim_fact_ids": [
+          "F12"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "conditional",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Co składa się na diagnozę przed projektem?",
+        "angle": "Cztery obszary diagnozy",
+        "source_claim": "Diagnoza obejmuje potrzeby użytkowników, cel biznesowy, organizację pracy i możliwości techniczne.",
+        "source_claim_fact_ids": [
+          "F03"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P01"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Cały cykl czy jeden etap — jak wybrać model współpracy?",
+        "angle": "Cały cykl albo etap",
+        "source_claim": "Współpraca obejmuje cały cykl produktu albo wybrany etap wspólnie z zespołem klienta.",
+        "source_claim_fact_ids": [],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P01"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Ile to kosztuje?",
+        "angle": "Cena po diagnozie",
+        "source_claim": "Ceny ustalane indywidualnie po diagnozie, netto w PLN.",
+        "source_claim_fact_ids": [
+          "F06"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Czym jest Flowco.AI?",
+        "angle": "Własny projekt B+R jako dowód kompetencji",
+        "source_claim": "Flowco.AI to własny projekt B+R o profilach konsumenckich ze śladu cyfrowego.",
+        "source_claim_fact_ids": [
+          "F01"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "conditional",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Co daje partnerstwo w programie inkubacyjnym?",
+        "angle": "Partner inkubacyjny, nie właściciel wyników",
+        "source_claim": "FLOW jest partnerem inkubacyjnym HugeTECH Revolution.",
+        "source_claim_fact_ids": [
+          "F08"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P04"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Jak brzmi 'produkt cyfrowy' w praktyce?",
+        "angle": "Produkty cyfrowe od diagnozy do wdrożenia",
+        "source_claim": "Firma tworzy produkty cyfrowe, łącząc diagnozę i wdrożenia.",
+        "source_claim_fact_ids": [
+          "F10",
+          "F11"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Jak szybko zobaczymy prototyp?",
+        "angle": "Prototyp, nie gwarancja",
+        "source_claim": "AI skraca drogę od pomysłu do działającego rozwiązania.",
+        "source_claim_fact_ids": [
+          "F12"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "conditional",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Od czego zacząć, gdy chcemy nowego narzędzia do pracy?",
+        "angle": "Cztery pytania przed wyborem technologii",
+        "source_claim": "Punktem wyjścia są potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne.",
+        "source_claim_fact_ids": [
+          "F03"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [
+          "P01"
+        ],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "ready",
+        "readiness_reason": null
+      },
+      {
+        "audience_question": "Jak rozmawiać o budżecie z zespołem?",
+        "angle": "Ulga dla budżetu bez liczby",
+        "source_claim": "Krótszy cykl przedstawiany jako ulga dla budżetu.",
+        "source_claim_fact_ids": [
+          "F14"
+        ],
+        "proposed_utility": "Autorska checklista lub pytania pomocnicze do tego ujęcia; nie proces FLOW.",
+        "proof_ids": [],
+        "prohibited_claims": [
+          "Nie obiecywać wyniku, którego nie ma w faktach."
+        ],
+        "readiness": "conditional",
+        "readiness_reason": null
+      }
+    ]
+  }
+}
