@@ -36,6 +36,10 @@ not to re-check the same fact.
 
 Close partial settled stories through real teammate implementations and their
 required normal-use alternatives; task counts are not product completion.
+P0: replace reachable production scaffolds with authoritative teammate implementations
+and connect their real process into the app before adding local fallback behavior.
+Preserve native workflow/auth/approval boundaries and test-only intelligence fixtures;
+neither is a substitute production agent to remove merely because it is an adapter.
 Independent workstreams: T27/T58 client answers → accepted brief → strategy/ToV
 → plan invitation; T65 payment recovery; approved T66 exact-target consent,
 retaining `canSend:false`. T25 demo purchase and T59 copy extraction are delivered.
@@ -56,8 +60,10 @@ Finish only when the authorized scope and required alternatives are delivered an
 proved, or report exact external decisions after useful authorized work is exhausted.
 
 Check known teammate branches every 45 minutes; integrate actual updates with
-ancestry and dirty work preserved. Unchanged refs require no rerun. No automatic
-pushes, paid model calls, real payments/publication or routine database resets.
+ancestry and dirty work preserved. Unchanged refs require no rerun. The user now
+authorizes pushing coherent verified milestones and useful demo/manual-testing tools
+on main; leave unfinished work out. No paid model calls, real payments/publication
+or routine database resets.
 Intelligence fixtures must not fabricate client decisions, approvals or producer success.
 The renewed product goal is active; this loop is not a separate background scheduler.
 
