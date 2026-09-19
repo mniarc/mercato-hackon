@@ -4,7 +4,10 @@ Use `ai-company/docker/agency/compose.yml` and the existing root Dockerfile.
 The native build runs packages → generation → packages → Next production build.
 Agency module flags match at build/runtime; local runtime state and secrets are excluded.
 Test fixture execution is disabled; production agent execution needs explicit configuration.
-Build proof is still pending; packaging alone does not prove a deployed customer journey.
+The frozen `1209dbd26` baseline passed build, offline image verification and portable
+packaging. It excludes newer integrations; clean server boot and the latest joined
+journey remain unproved. For installation steps and PowerShell/Bash helpers, see
+the [server setup guide](../../../.demo-docs/server-setup/guide.md).
 
 ## Package
 

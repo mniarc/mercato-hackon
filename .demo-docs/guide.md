@@ -1,6 +1,8 @@
 # Agency demo: presenter guide
 
 See the [architecture overview](architecture.md) for components and ownership.
+To install the packaged app on a server, use the
+[server setup guide and PowerShell/Bash helpers](server-setup/guide.md).
 
 ## What this demonstrates today
 
@@ -12,7 +14,9 @@ gateway, producers, approvals, database and workflow transitions remain real.
 
 The sole `agency_tov` specialist integration passed 174 focused checks and app
 typechecking; navigation passed 38 focused checks. The shared fixture/live harness
-is still being connected. An earlier full demo passed, but it does **not** prove
+and native-run collector are integrated, with seven focused harness checks and
+typechecking passed; the updated full fixture journey has not run. An earlier
+full demo passed, but it does **not** prove
 the latest whole journey. Present a current run's actual checkpoints; report a
 hold/failure rather than calling an unfinished step successful. Nothing sends a
 publication; `canSend:false` remains the boundary.
@@ -109,7 +113,7 @@ Screenshots: `ai-company/.ai/qa/test-results/artifacts/`; browser report:
 evidence before another run replaces it. Separate manual captures live in `.visuals/`.
 The [integration report](../.dev-docs/integrations/generated/generated-report.html) distinguishes
 source wiring from fixture/live execution. Its initial report has zero observations
-until the collector is connected; a registered agent is not evidence it ran.
+until a current journey supplies journals; a registered agent is not evidence it ran.
 For server packaging use [deployment instructions](../.dev-docs/.processes/current/deployment.md).
 The frozen `1209dbd26` image and portable bundle have passed build, offline
 verification and packaging. They exclude later main integrations; clean server
