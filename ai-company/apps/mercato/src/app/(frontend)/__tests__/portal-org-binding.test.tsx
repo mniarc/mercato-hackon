@@ -1,6 +1,12 @@
 import React from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 
+const initialPageRegistration: string[] = []
+jest.mock('@/modules', () => ({ enabledModules: [] }))
+jest.mock('@open-mercato/shared/modules/overrides', () => ({
+  applyModuleOverridesFromEnabledModules: jest.fn(() => initialPageRegistration.push('overrides')),
+}))
+
 jest.mock('@/.mercato/generated/frontend-routes.generated', () => ({
   frontendRoutes: [],
 }), { virtual: true })
@@ -29,7 +35,7 @@ jest.mock('@open-mercato/shared/modules/registry', () => ({
     params: { orgSlug: 'org-b' },
   })),
   getFrontendRouteManifests: jest.fn(() => []),
-  registerFrontendRouteManifests: jest.fn(),
+  registerFrontendRouteManifests: jest.fn(() => initialPageRegistration.push('routes')),
 }))
 
 const headerStore = { get: jest.fn() }
@@ -146,6 +152,10 @@ const customerAuth = {
 }
 
 describe('frontend customer portal org binding', () => {
+  it('applies configured page overrides before registering the initial route loaders', () => {
+    expect(initialPageRegistration).toEqual(['overrides', 'routes'])
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     headerStore.get.mockReturnValue('/org-b/portal/dashboard')

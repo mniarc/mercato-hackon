@@ -15,7 +15,10 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { resolveLocalizedTitleMetadata } from '@/lib/metadata'
 import { resolvePageMiddlewareRedirect } from '@open-mercato/shared/lib/middleware/page-executor'
 import { frontendMiddlewareEntries } from '@/.mercato/generated/frontend-middleware.generated'
+import { enabledModules } from '@/modules'
+import { applyModuleOverridesFromEnabledModules } from '@open-mercato/shared/modules/overrides'
 
+applyModuleOverridesFromEnabledModules(enabledModules, { domains: ['routes'] })
 registerFrontendRouteManifests(frontendRoutes)
 
 type FrontendParams = { params: Promise<{ slug: string[] }> }
