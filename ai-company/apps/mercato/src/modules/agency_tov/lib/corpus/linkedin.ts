@@ -45,6 +45,21 @@ function count(value: unknown): number {
 }
 
 /**
+ * Apify exports `postedAt.date` as a zone-less "YYYY-MM-DD HH:MM:SS" string;
+ * normalise it (and the epoch fallback) to one ISO-8601 form so `postedAt` sorts
+ * and ranges consistently with every other source (see `groupByProfile` /
+ * `profileMetaFor`, which compare it as a plain string).
+ */
+function normalizePostedAt(postedAt: ApifyLinkedInPostItem['postedAt']): string {
+  if (postedAt?.date) {
+    const parsed = Date.parse(postedAt.date)
+    if (!Number.isNaN(parsed)) return new Date(parsed).toISOString()
+  }
+  if (typeof postedAt?.timestamp === 'number') return new Date(postedAt.timestamp).toISOString()
+  return ''
+}
+
+/**
  * Turns an Apify `linkedin-profile-posts` dataset into the compact post list the ToV agents read. Reposts
  * (a non-empty `header.text` such as "X reposted this") are dropped: they are not
  * the author's voice. The author key is the scraped `query.targetUrl` — the
@@ -84,7 +99,7 @@ export function normalizeLinkedInPosts(items: ApifyLinkedInPostItem[]): Normaliz
       profileUrl: normalizeProfileUrl(profileRaw),
       authorName: item.author?.name?.trim() || item.author?.publicIdentifier || profileRaw,
       url: item.linkedinUrl ?? '',
-      postedAt: item.postedAt?.date ?? (item.postedAt?.timestamp ? new Date(item.postedAt.timestamp).toISOString() : ''),
+      postedAt: normalizePostedAt(item.postedAt),
       text,
       likes: count(item.engagement?.likes),
       comments: count(item.engagement?.comments),
