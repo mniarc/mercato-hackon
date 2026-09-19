@@ -3,7 +3,7 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { readdir } from 'node:fs/promises'
 import path from 'node:path'
-import { buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot, renderHtmlReport } from '../agency-spec-progress.mjs'
+import { buildInventorySnapshot, buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot, renderHtmlReport } from '../../agency-spec-progress.mjs'
 
 const story = (id, domain = 'domain') => ({ path: `.specs/user-stories/${domain}/${id}.md`, text: `# ${id}` })
 const task = (id, text) => ({ path: `.tasks/${id}-task.md`, text })
@@ -70,7 +70,7 @@ test('source provenance is exact; prose alone does not associate task stories', 
 })
 
 test('repository discovery is script-relative and reads the actual inventory without mutations', async () => {
-  assert.equal(defaultAppRoot, fileURLToPath(new URL('../../../', import.meta.url)))
+  assert.equal(defaultAppRoot, fileURLToPath(new URL('../../../../', import.meta.url)))
   const report = await loadReport()
   assert.ok(report.totals.stories > 0)
   assert.ok(report.tasks.length > 0)
@@ -155,10 +155,12 @@ test('filters keep exact feature boundaries, reject unknown IDs and conflicting 
   const report = buildReport({ storyFiles: [story('F01-1'), story('F10-1')], taskFiles: [], adrFiles: [] })
   assert.equal(selectHierarchy(report, { feature: 'F01' }).stories, 1)
   assert.throws(() => selectHierarchy(report, { feature: 'F99' }), /No canonical story/)
-  assert.deepEqual(parseOptions(['--json', '--feature', 'F01']), { json: true, details: false, help: false, html: null, feature: 'F01' })
+  assert.deepEqual(parseOptions(['--json', '--feature', 'F01']), { json: true, details: false, help: false, html: null, refresh: false, feature: 'F01' })
   assert.equal(parseOptions(['--html']).html, true)
   assert.equal(parseOptions(['--html', 'custom.html']).html, 'custom.html')
   assert.throws(() => parseOptions(['--html', '--json']), /on its own/)
+  assert.equal(parseOptions(['--refresh']).refresh, true)
+  assert.throws(() => parseOptions(['--refresh', '--story', 'F01-1']), /on its own/)
   assert.throws(() => parseOptions(['--story', 'F01']), /needs Fnn-n/)
   assert.throws(() => parseOptions(['--feature', 'F01', '--story', 'F01-1']), /not both/)
 })
@@ -240,4 +242,28 @@ test('HTML summary keeps settled and proposed source counts separate from proof 
   assert.match(html, /Proposed scope[\s\S]*?not automatically missing work[\s\S]*?1 <small>stories<\/small>[\s\S]*?Unassessed <strong data-count="1">1<\/strong>/)
   assert.match(html, /linked or done task is not story completeness/i)
   assert.doesNotMatch(html, /product completion percentage/i)
+  assert.match(html, /Manual assessment inputs:[\s\S]*?\.dev-docs\/coverage\/test\.json/)
+  assert.match(html, /node scripts\/agency-spec-progress\.mjs --refresh/)
+})
+
+test('machine inventory is deterministic and excludes every manual assessment field', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1')],
+    taskFiles: [{ ...task('T01', 'State: done\nSources: F20-1'), path: '.tasks/tasks-done/T01-task.md' }],
+    adrFiles: [], coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC2', 'partial', {
+      missing: ['Manual gap'], externalDecision: ['Manual decision'],
+    })] }])],
+  })
+  const first = buildInventorySnapshot(report)
+  assert.equal(JSON.stringify(first), JSON.stringify(buildInventorySnapshot(report)))
+  assert.equal(first.tasks[0].source, '.tasks/tasks-done/T01-task.md')
+  assert.deepEqual(first.hierarchy[0].features[0].children[0].criteria.map((item) => item.id), ['AC1', 'AC2'])
+  const forbidden = new Set(['implementation', 'evidence', 'missing', 'verification', 'externalDecision', 'assessmentSource'])
+  const keys = []
+  const visit = (value) => {
+    if (!value || typeof value !== 'object') return
+    for (const [key, child] of Object.entries(value)) { keys.push(key); visit(child) }
+  }
+  visit(first)
+  assert.deepEqual(keys.filter((key) => forbidden.has(key)), [])
 })
