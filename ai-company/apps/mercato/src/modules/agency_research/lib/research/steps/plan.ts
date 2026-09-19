@@ -4,13 +4,11 @@ import type { QaFinding } from '../../../data/schemas/qa'
 import type { BriefData } from '../../../data/schemas/brief'
 import type { KonkurencjaData } from '../../../data/schemas/konkurencja'
 import type { StrategiaData } from '../../../data/schemas/strategia'
-import type { TovData } from '../../../data/schemas/tov'
 import type { ZrodlaData } from '../../../data/schemas/zrodla'
 import { briefDataSchema } from '../../../data/schemas/brief'
 import { konkurencjaDataSchema } from '../../../data/schemas/konkurencja'
 import { planDataSchema, type PlanData, type PlanTopic } from '../../../data/schemas/plan'
 import { strategiaDataSchema } from '../../../data/schemas/strategia'
-import { tovDataSchema } from '../../../data/schemas/tov'
 import { zrodlaDataSchema } from '../../../data/schemas/zrodla'
 import { planBalanceResult, planTopicsResult, type PlanBalanceSection, type PlanTopicsSection, type PlanWriterInput, type PlanWriterSection, type PlanWriterTopic } from '../../../data/agents/plan'
 import { idPrefixes, limits } from '../../../data/templates'
@@ -24,6 +22,7 @@ import { renderPlan, renderPlanClientView } from '../render/plan'
 import { simulationIssue } from '../simulation'
 import { wordSetSimilarity } from '../util'
 import type { StepContext, StepOutcome } from './context'
+import { parseDownstreamTov, tovVoiceTraits, type DownstreamTov } from './tovInput'
 
 /**
  * Step 6.2 — KLI-PLAN. The configured topic count is split across two day windows,
@@ -39,7 +38,7 @@ export type PlanPipelineOptions = {
   order: OrderFacts
   outputLanguage: 'pl' | 'en'
   strategia: StrategiaData
-  tov: TovData
+  tov: DownstreamTov
   brief: BriefData
   zrodla: ZrodlaData
   konkurencja?: KonkurencjaData | null
@@ -365,7 +364,7 @@ function writerInput(opts: PlanPipelineOptions, section: PlanWriterSection, exis
     creative_boundaries: { not_promoted: strategia.creative_boundaries.not_promoted, prohibited_promises: strategia.creative_boundaries.prohibited_promises, permitted_creativity: strategia.creative_boundaries.permitted_creativity },
     channel_role: { role: strategia.channel_role.role, content_scope: strategia.channel_role.content_scope, limits: strategia.channel_role.limits },
     cta: { goal: brief.channel_and_cta.cta_goal, text: brief.channel_and_cta.cta_text, destination: brief.channel_and_cta.destination },
-    voice_traits: tov.voice_principles.map((p) => p.trait),
+    voice_traits: tovVoiceTraits(tov),
     seeds: zrodla.content_bank.map((s) => ({ seed_id: s.seed_id, audience_question: s.audience_question, angle: s.angle, source_claim: s.source_claim.text, proposed_utility: s.proposed_utility.text, fact_ids: s.fact_ids, proof_ids: s.proof_ids, prohibited_claims: s.prohibited_claims, readiness: s.readiness })),
     facts: zrodla.facts.map((f) => ({ fact_id: f.fact_id, claim: f.claim, kind: f.kind, source_ids: f.source_ids, limitation: f.limitation })),
     proof_cards: zrodla.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, artifact_or_method: p.artifact_or_method, observed_result: p.observed_result, limitations: p.limitations })),
@@ -442,7 +441,10 @@ export async function runPlanPipeline(opts: PlanPipelineOptions): Promise<PlanPi
   return { data: assembled.data, issues, clientViewMd: view.markdown, stats }
 }
 
-const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
+const pin = (v: InputVersion & { versionId: string }): InputVersion => ({
+  document_id: v.document_id, version: v.version, status: v.status,
+  ...(v.specialistTov ? { specialistTov: v.specialistTov } : {}),
+})
 
 /** The plan's inputs per the WZR-PLAN handoff: strategy, ToV, brief, the frozen register, the comparison, and the previous plan on a revision. */
 export async function runPlanStep(ctx: StepContext): Promise<StepOutcome> {
@@ -464,7 +466,7 @@ export async function runPlanStep(ctx: StepContext): Promise<StepOutcome> {
       order: ctx.order,
       outputLanguage: ctx.order.outputLanguage,
       strategia: strategiaDataSchema.parse(strategia.data),
-      tov: tovDataSchema.parse(tov.data),
+      tov: parseDownstreamTov(tov),
       brief: briefDataSchema.parse(brief.data),
       zrodla: zrodlaDataSchema.parse(zrodla.data),
       konkurencja: konkurencja ? konkurencjaDataSchema.parse(konkurencja.data) : null,
@@ -499,7 +501,9 @@ export async function runPlanStep(ctx: StepContext): Promise<StepOutcome> {
       }
     }
     ctx.documentVersionIds.push(saved.version.id)
-    await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats: result.stats }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
+    await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id,
+      summary: { stats: result.stats, ...(tov.specialistTov ? { specialistTov: tov.specialistTov } : {}) },
+      agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
   } catch (error) {
     await finishTaskRun(ctx.em, run, { status: error instanceof BudgetPausedError ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })

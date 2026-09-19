@@ -50,7 +50,9 @@ function SubmissionThread({ item, endpoint, refresh, revision }: {
             <p className="text-sm font-medium">{t(`agency.conversation.disposition.${item.disposition.kind}`)}</p>
             <p className="whitespace-pre-wrap break-words text-sm">{item.disposition.message}</p>
           </div>
-        ) : <p className="text-sm text-muted-foreground">{t('agency.conversation.processing')}</p>}
+        ) : <p className="text-sm text-muted-foreground">{t(item.processing?.state === 'waiting_configuration'
+          ? 'agency.conversation.waitingConfiguration' : 'agency.conversation.processing')}</p>}
+        {item.disposition?.source === 'deterministic_scaffold' ? <p className="text-sm text-muted-foreground">{t('agency.conversation.scaffold')}</p> : null}
         {loading ? <LoadingMessage label={t('agency.conversation.loadingReplies')} /> : null}
         {error ? <ErrorMessage label={t('agency.conversation.loadError')} /> : null}
         {replies.map((reply) => (
@@ -96,7 +98,6 @@ export function CaseConversation({ caseId }: { caseId: string }) {
           <h2 className="text-lg font-semibold">{t('agency.conversation.title')}</h2>
           <Button type="button" variant="outline" disabled={loading} onClick={refresh}>{t('agency.conversation.refresh')}</Button>
         </div>
-        <p className="text-sm text-muted-foreground">{t('agency.conversation.scaffold')}</p>
         {loading ? <LoadingMessage label={t('agency.conversation.loading')} /> : null}
         {error ? <ErrorMessage label={t('agency.conversation.loadError')} /> : null}
         {items ? <>

@@ -1,0 +1,426 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F36-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Pure evaluatePreflight has version/consent/destination/access/format/hold/prior-attempt gates."
+            }
+          ],
+          "missing": [
+            "Bind it to authoritative live configuration, consent and execution ledger before real send."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Pure gate refuses confirmed/unknown prior outcome."
+            }
+          ],
+          "missing": [
+            "No durable prior-attempt loader or route to actual reconciliation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Length/platform mismatch is a blocker and payload text is unchanged."
+            }
+          ],
+          "missing": [
+            "Route internal text defect to 7.3 rather than only return a document blocker."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Concrete blocker reasons are stored in preflight."
+            }
+          ],
+          "missing": [
+            "Connect customer changes to G holds and technical integration exceptions to E."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Prepared content hash/version and destination are explicit; no arbitrary current text is substituted."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F36-2",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Idempotency-key calculation exists, but comments explicitly say no reservation taken."
+            }
+          ],
+          "missing": [
+            "Persist atomic attempt reservation bound to order/version/target."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No transactional reservation mutation exists."
+            }
+          ],
+          "missing": [
+            "Prevent concurrent valid reservations at the storage boundary."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Pure preflight knows confirmed/unknown attempts must block."
+            }
+          ],
+          "missing": [
+            "Enforce against a real durable attempt ledger during reservation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Document guard fields exist; default state is none with empty attempt_refs."
+            }
+          ],
+          "missing": [
+            "Persist actual attempt history and reservation outcomes, not declarative fields only."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F36-3",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Publication lane explicitly never calls an adapter."
+            }
+          ],
+          "missing": [
+            "Implement atomic send-start guard against live reservation/version/consent/hold."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No reservation invalidation or send-start transition exists."
+            }
+          ],
+          "missing": [
+            "Ensure revoked reservation cannot execute."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No message is sent by this implementation."
+            }
+          ],
+          "missing": [
+            "Implement authorized provider send of immutable payload."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Confirmation schema distinguishes outcomes, current builder returns only not_executed."
+            }
+          ],
+          "missing": [
+            "Classify and persist real provider success/rejection/unknown evidence."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Current lane performs no retry and fabricates no success."
+            }
+          ],
+          "missing": [
+            "Implement unknown-outcome reconciliation rather than an invisible resend."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F36-4",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Hold is currently unsupported as an applied G route."
+            }
+          ],
+          "missing": [
+            "Apply original client hold to dependent publication and invalidate unsent reservation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No atomic sending transition exists."
+            }
+          ],
+          "missing": [
+            "Serialize hold/revocation against send-start."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No sending lifecycle exists."
+            }
+          ],
+          "missing": [
+            "Record post-start hold without false cancellation and route to reconciliation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No real consent/reservation/attempt chain is recorded."
+            }
+          ],
+          "missing": [
+            "Persist ordered source-request/consent/reservation/send events."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No attempt is retried in current document-only lane."
+            }
+          ],
+          "missing": [
+            "Enforce no-blind-retry against actual post-start hold/unknown attempts."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

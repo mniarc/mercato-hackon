@@ -22,6 +22,37 @@ yarn test:agency:demo      # Visible run plus checkpoint screenshots
 node scripts/agency-dev.mjs cli <command> <arguments> # Native CLI, same owned DB/runtime
 ```
 
+For short self/team aliases from any working directory, invoke the wrapper by
+its path. It only changes into `ai-company/` and calls the scripts above.
+
+```powershell
+& C:\path\to\App\bin-dev\agency.ps1 start --journey production
+& C:\path\to\App\bin-dev\agency.ps1 status
+& C:\path\to\App\bin-dev\agency.ps1 demo --journey production
+```
+
+```sh
+sh /path/to/App/bin-dev/agency.sh start --journey production
+sh /path/to/App/bin-dev/agency.sh status
+sh /path/to/App/bin-dev/agency.sh demo --journey production
+```
+
+Run either wrapper with `help` for its complete three-command mapping. Defaults,
+localhost port `5002`, database reuse, and screenshot behavior remain owned by
+the existing package scripts and launcher.
+
+Select a non-default journey explicitly on both app and runner. The production
+preset pins the repository's source and loopback intelligence fixtures, native
+post execution and the zero-charge purchase flag; it never selects live models.
+
+```powershell
+yarn dev:agency --journey production
+yarn test:agency:headed --journey production
+```
+
+`canonical` remains the default. `--journey purchase` selects the existing
+zero-charge purchase journey without changing the default scenario.
+
 The app is at `http://localhost:5002`; local demo login is
 `admin@acme.com` / `secret`. PostgreSQL uses `127.0.0.1:5544`, database `agency_dev`,
 with a workspace-specific Compose project and named volume. Runtime state stays
@@ -50,6 +81,13 @@ available for the next start. `yarn dev:agency:setup` is explicit
 initialization recovery; it does not reinstall. Apply pending schema changes with
 `yarn dev:agency:migrate`. Shared platform-package edits can require a scoped
 package build; ordinary app-module edits use the existing Open Mercato hot reload.
+`dev:agency` reuses native package `dist` files and does not watch/build packages.
+After changing a native package, build that workspace (for example,
+`yarn workspace @open-mercato/core build`), then restart only the app if it loaded
+the old package. Typecheck reads source and does not prove `dist` is current.
+Root `yarn dev` includes package builds/watchers and automatic migrations; do not
+switch to it as a routine test repair. Production packaging uses the native
+`yarn build` then `yarn start`, separately from this persistent development loop.
 The launcher reuses Open Mercato's local integration environment: email/push
 delivery is captured or fake, not sent to real recipients. This is not a
 production configuration.
@@ -80,6 +118,12 @@ native-fixture module discovery, use `node scripts/agency-dev.mjs cli generate`
 with the same `AGENCY_TEST_NATIVE_TRIAGE`/`AGENCY_TEST_NATIVE_POST` flags as the
 app. Bare `yarn generate` does not expand those launcher flags and can omit the
 research/orchestrator modules, causing legitimate RBAC failures afterward.
+New translation keys do not require generation when the locale registry already
+imports their source dictionary. If a page renders a literal key, check that
+registration and the live dictionary payload first. A correctly registered key
+missing at runtime can be held in the process-level dictionary cache: restart
+only the app with matching flags, then verify the key. Do not weaken selectors
+or reset the database.
 If changing
 the generated module set leaves Next reporting a missing server module factory,
 restart the app with the matching flags; preserve the database. This is not a
@@ -89,6 +133,9 @@ The separate demo runner must pass the complete matching app environment to
 fixtures and workers: database, queue, auth/encryption configuration, and base
 URL. Setting only `BASE_URL` can silently send fixtures to another database.
 Use the maintained runner, exact-spec discovery, one worker, and zero retries.
+Native fixture mode disables automatic app workers: the existing test drains own
+fixture jobs because the server-dev supervisor otherwise spawns workers with
+`NODE_ENV=production`, which correctly fails the non-production source-fixture guard.
 Tests create and clean up only their own fixtures, leaving manual demo data alone.
 Journeys prove real user outcomes across real UI, API, workflow and persistence.
 Fixtures may substitute worker intelligence and source material, never saved
@@ -97,6 +144,13 @@ Keep one final persistence check for the outcome, not duplicate checkpoints.
 Exercise distinct retry behavior only when justified by an actual observed bug;
 do not confuse that scenario with automatically retrying a failed journey.
 Keep detailed contract and access assertions in focused tests outside the browser.
+Fold newly integrated normal-use behavior into the primary demo when it fits the
+same coherent customer-to-agency flow, including behavior not yet in a journey.
+Do not force unrelated use cases into one oversized scenario.
+The primary demo follows the normal happy path; do not inject payment failures,
+QA defects or exceptions into it. Report genuine failures if they occur. Keep
+separate journeys only for meaningful alternatives not covered by that demo,
+and remove overlapping happy-path sections after equivalent proof exists.
 Diagnose failures before changing assertions or fixture data; do not mirror
 internal field shapes as the journey's contract. Report coarse progress, not polling noise.
 

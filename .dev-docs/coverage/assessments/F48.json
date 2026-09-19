@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F48-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/escalate.ts",
+              "note": "Stored escalation carries observed reason, source task, exact input references, evidence and dependent holds."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Native employee task has role ownership, expected decision and producer return evidence."
+            }
+          ],
+          "missing": [
+            "Only keep_blocked is actionable; producer-listed additional resolutions lack connected execution."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Scoped workflow exception pauses dependent case production; independent cases are not globally blocked."
+            }
+          ],
+          "missing": [
+            "No full cross-document impact scheduler demonstrates selective independent branches."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+              "note": "Routine unready/configuration holds remain waiting without inventing employee exceptions; actual saved escalation uses separate E.1."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Current exception task config sets priority and employee role but no due-date commitment."
+            }
+          ],
+          "missing": [
+            "No path to record a required employee deadline as a case obligation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

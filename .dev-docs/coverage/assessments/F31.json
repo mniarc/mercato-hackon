@@ -1,0 +1,207 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F31-1",
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Exact-version independent editor plus deterministic instruction/facts/ToV/channel/link/mention gates."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Content defects return to 7.2 within bounded internal repair."
+            }
+          ],
+          "missing": [
+            "Missing-proof findings have no scoped process3 evidence-return implementation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/postReview/service.ts",
+              "note": "Only current assessed pass-for-draft post is invited; negative QA stays blocked."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: actual post-author and post-editor worker calls produced one post, native QA saved pass_for_draft, and the positive result opened client review without a manual employee approval. Local intelligence fixture, not live-model proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Exhausted repairs persist E with findings, evidence, allowed decisions and recorded return point; native handoff exists."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Routine QA is independent agent plus deterministic validator, not employee approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: actual post-author and post-editor worker calls produced one post, native QA saved pass_for_draft, and the positive result opened client review without a manual employee approval. Local intelligence fixture, not live-model proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F31-2",
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Editor currently produces 7.2 repair findings; no research return task."
+            }
+          ],
+          "missing": [
+            "Create scoped missing-claim task with QA/post version and 7.3 return binding."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/postExecution/run.ts",
+              "note": "Post producer forbids fresh research and replays its existing activation."
+            }
+          ],
+          "missing": [
+            "Connect evidence-only supplement back to original QA without regenerating unchanged brief/approvals."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Author repair and fresh QA mechanics exist."
+            }
+          ],
+          "missing": [
+            "Connect supplemental-evidence result to actual changed-claim author revision and client review."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/handoff.ts",
+              "note": "Native employee exception and exact-document questions exist."
+            }
+          ],
+          "missing": [
+            "Detect foundational contradiction, hold affected dependencies and route subsequent client answer through G for scoped updates."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts",
+              "note": "Missing/unsupported facts block pass; exhausted repair escalates."
+            }
+          ],
+          "missing": [
+            "A genuine bounded research supplement must be attempted/recorded before its own exhaustion can be resolved."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F20-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Scoped activation pins accepted brief, frozen analysis, configured process and producer tasks 5.2–5.4."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Accepted-brief readiness invoked native strategy, tone-of-voice and paired-QA production. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Activation and tasks persist runner/models, dependency versions and native AgentRun references; existing ledger exposes them."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Readiness requires current typed brief acceptance, current exact frozen foundations and allowed process."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Repair counts come from shared limits; configured native spend cap is pinned."
+            }
+          ],
+          "missing": [
+            "Runtime limits still use module constants rather than resolving an order-pinned version of STD-LIMITY."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    },
+    {
+      "id": "F20-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/planningReadiness/read.ts",
+              "note": "Readiness resolves typed cumulative strategy/ToV acceptance and exact approved brief/version foundations."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Planning consumed the genuinely accepted exact brief/strategy/ToV versions. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/read.ts",
+              "note": "Missing partial acceptance and stale foundations remain explicit not_ready outcomes."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+              "note": "Accepted pair passes planning readiness into actual native 6.1 activity; blocked handoff stays held."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Complete paired approval continued into native planning readiness. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/planningReadiness/read.ts",
+              "note": "Read-only readiness generates no plan and requests no extra client approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. The separate planning producer followed readiness without an extra client decision. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

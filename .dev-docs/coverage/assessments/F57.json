@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F57-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Original client brief response records person/case/content."
+            }
+          ],
+          "missing": [
+            "No demonstrated explicit demo direction choice preserving input without baked scope outcome."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Real native G interpretation and bound brief revision exist."
+            }
+          ],
+          "missing": [
+            "General direction scope qualification and impact routing remain missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
+              "note": "Brief revision creates updated findings/brief and invokes QA."
+            }
+          ],
+          "missing": [
+            "No cross-document affected-version invalidation; both complete audience paths unproved."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Exact brief/pair/plan/post review services exist; post content approval has headed proof."
+            }
+          ],
+          "missing": [
+            "One connected genuine-produced brief through all subsequent client approvals remains unrun."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
+              "note": "No paid model execution or measured alternate-direction production proof is claimed."
+            }
+          ],
+          "missing": [
+            "Observed output differences and actual generation timings for both demo directions are missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC6",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/tasks-done/T58-connected-brief-strategy-plan-journey.md",
+              "note": "Existing test scenarios are not a timed full demo rehearsal."
+            }
+          ],
+          "missing": [
+            "Specified direction/brief/strategy/plan/post presentation windows are unmeasured."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

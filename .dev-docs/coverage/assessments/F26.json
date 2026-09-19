@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F26-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+              "note": "Accepted pair and readiness activate native planning, QA and subsequent plan/topic invitation."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Accepted-pair readiness invoked real planning/QA and created the client plan invitation. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/planningExecution/run.ts",
+              "note": "Activation records process pins, roles/runners, dependency versions and caps."
+            }
+          ],
+          "missing": [
+            "Repair limits still use static module STD-LIMITY constants rather than order-version lookup."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/planningExecution/run.ts",
+              "note": "Plan count is mandatory product_selection.result_limits.topics from pinned order; missing count blocks."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/data/schemas/zamowienie.ts",
+              "note": "Native planning rejects missing count, but generic orderFactsOf still defaults topics to 12."
+            }
+          ],
+          "missing": [
+            "Remove/qualify remaining unconditional 12-topic fallback and client package label; production catalog count needs settlement."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Settle production offer topic count; authorized demo configuration is separate."
+          ]
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    },
+    {
+      "id": "F26-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/planningExecution/run.ts",
+              "note": "Only accepted current brief/strategy/ToV with pinned source and competition inputs reach planner."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+              "note": "Versioned topic structure includes stable IDs, pillar, angle/message/evidence/CTA/channel/day."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+              "note": "Planner enforces 30-day horizon, pinned topic count and one recommended ready topic."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+              "note": "Internal QA repair passes previous plan and findings, saves new versions."
+            }
+          ],
+          "missing": [
+            "Client-requested scoped revision/preservation via 6.5 is not connected."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/planQa.ts",
+              "note": "QA and output explicitly distinguish topic schedule from one delivered post."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

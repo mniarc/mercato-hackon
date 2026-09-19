@@ -339,6 +339,17 @@ describe('DefaultAttachmentService', () => {
     expect(factory.resolveForPartition).not.toHaveBeenCalled()
   })
 
+  it.each(['Previously extracted private text', null])('returns stored extraction (%s) only through the existing scoped read', async (content) => {
+    const { service } = createHarness({ attachment: attachment({ content }) })
+    const result = await service.readScoped({
+      attachmentId: 'attachment-1', auth: scopedAuth,
+      expectedOwner: { entityId: 'documents:document', recordId: 'document-1' },
+      expectedAssignment: { type: 'documents:document', id: 'document-1' }, requirePrivatePartition: true,
+    })
+    expect(result.extractedText).toBe(content)
+    expect(result.buffer).toEqual(Buffer.from('file'))
+  })
+
   it('still rejects a foreign-scope row when the scoped lookup filter regresses', async () => {
     const { service, factory } = createHarness({
       attachment: attachment({ tenantId: 'tenant-2', organizationId: 'org-2' }),

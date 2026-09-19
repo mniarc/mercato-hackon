@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F21-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "Writer and schema produce positioning, value proposition, proof architecture, pillars and creative boundaries."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "Writer receives pinned brief/analysis and persists exact inputVersions and grounded evidence IDs."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
+              "note": "Deterministic support-level and uniqueness checks retain limitations rather than promote unproved claims."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategyQa.ts",
+              "note": "QA explicitly identifies tactical content posing as strategy; post authoring remains separate."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "saveDocumentVersion writes a new draft without client approval records."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: an actually produced strategy and TOV existed as a versioned paired proposal before consent; the positive gated pair reached one shared native review and both exact versions required explicit client approval. Local intelligence fixture, not live-model proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    },
+    {
+      "id": "F21-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "Writer can accept previousStrategy/repairFindings for internal QA repair."
+            }
+          ],
+          "missing": [
+            "No saved client G 5.6 directive invokes scoped strategy revision with source binding."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "Repair prompt receives previous content and targeted findings."
+            }
+          ],
+          "missing": [
+            "Client-directed preservation and necessary dependency-change reasons are not implemented end to end."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+              "note": "Immutable draft versions and QA loops preserve earlier versions."
+            }
+          ],
+          "missing": [
+            "Fresh QA/reapproval after an actual client revision has no connected coordinator path."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Only brief_revision is an authorized change target."
+            }
+          ],
+          "missing": [
+            "Implement in-package client strategy revisions without a round counter or new checkout."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "No applied strategy change-impact directive/continuation exists."
+            }
+          ],
+          "missing": [
+            "Route saved G impact to exact strategy/ToV dependencies without retriage."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

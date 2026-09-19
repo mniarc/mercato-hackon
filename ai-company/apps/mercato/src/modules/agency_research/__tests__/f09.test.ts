@@ -1,4 +1,5 @@
 import path from 'node:path'
+import { briefWriterInputSchema } from '../data/agents/brief'
 import { audytDataSchema, type AudytData } from '../data/schemas/audyt'
 import { briefDataSchema, type BriefData } from '../data/schemas/brief'
 import { orderDataSchema, orderFactsOf } from '../data/schemas/zamowienie'
@@ -12,6 +13,10 @@ import type { StepContext } from '../lib/research/steps/context'
 import { createFixtureRunner } from '../lib/runners'
 import { countClientWords } from '../lib/research/util'
 import * as store from '../lib/store'
+import { openEscalation } from '../lib/research/escalate'
+import { limits } from '../data/templates'
+
+jest.mock('../lib/research/escalate', () => ({ openEscalation: jest.fn() }))
 
 jest.mock('../lib/store', () => {
   const actual = jest.requireActual('../lib/store')
@@ -129,6 +134,19 @@ async function runPipeline(u = ustalenia()) {
 }
 
 describe('runBriefPipeline (4.1)', () => {
+  it('passes the previous brief through every writer input on revision only', async () => {
+    const previous = await runPipeline()
+    expect(previous.calls.every(({ input }) => !('previous_brief' in (input as object)))).toBe(true)
+    const calls: { agentId: string; input: unknown }[] = []
+    await runBriefPipeline({
+      order, outputLanguage: 'pl', ustalenia: ustalenia(), zrodla: zrodla(), audyt: audyt(),
+      previousBrief: previous.data, runAgent: createFixtureRunner(canned, { calls }),
+      ledger: createLedger({ prices: {} }), models,
+    })
+    expect(calls).toHaveLength(3)
+    for (const { input } of calls) expect(briefWriterInputSchema.parse(input).previous_brief).toEqual(previous.data)
+  })
+
   it('assembles the ten fields from three section calls and applies the code-owned rules', async () => {
     const { data, issues, calls, stats } = await runPipeline()
     expect(briefDataSchema.safeParse(data).success).toBe(true)
@@ -208,6 +226,7 @@ describe('brief QA (4.2)', () => {
   })
 
   it('re-runs the brief step once on an agent fault, then judges again and moves the document on', async () => {
+    jest.mocked(openEscalation).mockClear()
     const decided = await runPipeline(allDecided())
     const mocked = store as jest.Mocked<typeof store>
     const versions = { brief: decided.data, ustalenia: allDecided(), zrodla: zrodla() }
@@ -234,6 +253,51 @@ describe('brief QA (4.2)', () => {
     expect(briefStep).toHaveBeenCalledTimes(1)
     expect(outcome).toMatchObject({ verdict: 'ready_for_approval', repairs: 1, taskRunId: 'run-42' })
     expect(document.status).toBe('ready_for_review')
+    expect(openEscalation).not.toHaveBeenCalled()
     expect(mocked.finishTaskRun).toHaveBeenCalledWith(em, { id: 'run-42' }, expect.objectContaining({ status: 'done', qaResult: expect.objectContaining({ verdict: 'ready_for_approval', repairs: 1 }) }))
+  })
+
+  it.each(['author_exhausted', 'client_gap'] as const)('routes %s without confusing missing client answers with author exhaustion', async (scenario) => {
+    const findings = scenario === 'client_gap' ? ustalenia() : allDecided()
+    const draft = await runPipeline(findings)
+    const brief = scenario === 'client_gap' ? draft.data : {
+      ...draft.data, success_and_limits: { ...draft.data.success_and_limits, numerical_target: '10', baseline: null },
+    }
+    const mocked = store as jest.Mocked<typeof store>
+    let briefVersion = 1
+    mocked.currentInputVersion.mockImplementation(async (_em, _scope, _orderRef, templateId) => ({
+      document_id: `${templateId}@o`, version: templateId === 'WZR-BRIEF' ? `${briefVersion}.0` : '1.0', status: 'draft',
+      versionId: templateId === 'WZR-BRIEF' ? `brief-${briefVersion}` : templateId,
+      data: templateId === 'WZR-BRIEF' ? brief : templateId === 'WZR-USTALENIA' ? findings : zrodla(),
+    }))
+    mocked.startTaskRun.mockResolvedValue({ id: 'run-42' } as never)
+    mocked.finishTaskRun.mockResolvedValue(undefined)
+    const document = { status: 'draft' }
+    const em = { findOne: async () => document, flush: jest.fn(), getConnection: () => ({ execute: async () => [{ client_view_md: draft.clientViewMd }] }) }
+    const briefStep = jest.fn(async () => {
+      briefVersion += 1
+      return { taskRunId: `repair-${briefVersion}`, versionId: `brief-${briefVersion}`, status: 'done' }
+    })
+    const ctx = { em, scope: { tenantId: 't', organizationId: 'o' }, orderRef: 'o', order,
+      orderVersion: { document_id: 'WEW-DANE-ZAMOWIENIA@o', version: '1.0' },
+      runAgent: createFixtureRunner(canned), runner: 'fixture', models, ledger: createLedger({ prices: {} }),
+      onEvent: () => {}, log: () => {}, agentRunIds: [], taskRunIds: [], documentVersionIds: [], repairFindings: [], attempt: 1,
+    } as unknown as StepContext
+    jest.mocked(openEscalation).mockReset().mockResolvedValue({ versionId: 'escalation-version', taskRunId: 'escalation-task', data: {} } as never)
+    const outcome = await runBriefQaLoop(ctx, { briefStep })
+    if (scenario === 'client_gap') {
+      expect(outcome.verdict).toBe('needs_client_data')
+      expect(outcome.escalationVersionId).toBeUndefined()
+      expect(openEscalation).not.toHaveBeenCalled()
+      return
+    }
+    expect(briefStep).toHaveBeenCalledTimes(limits.generation.qaRepairAttemptsPerRun)
+    expect(outcome).toMatchObject({ verdict: 'needs_agent_fix', escalationVersionId: 'escalation-version', briefVersionId: `brief-${briefVersion}` })
+    expect(document.status).toBe('draft')
+    expect(openEscalation).toHaveBeenCalledTimes(1)
+    expect(openEscalation).toHaveBeenCalledWith(ctx, expect.objectContaining({ code: 'qa_exhausted', triggerStep: '4.2',
+      evidence: expect.arrayContaining([{ ref: `brief-${briefVersion}`, fact: 'Exact brief version checked by 4.2' }]),
+      allowedResolutions: [{ code: 'keep_blocked', requiredEvidence: expect.any(String), permittedNextStep: 'none' }],
+    }), expect.arrayContaining([{ document_id: 'WZR-BRIEF@o', version: `${briefVersion}.0`, status: 'draft' }]))
   })
 })

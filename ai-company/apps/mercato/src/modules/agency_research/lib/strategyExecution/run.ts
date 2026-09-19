@@ -12,7 +12,7 @@ import { BudgetPausedError, createLedger, type LedgerEvent } from '../research/l
 import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from '../research/pipeline'
 import type { StepContext, StrategyExecutionInput } from '../research/steps/context'
 import { runStrategyStep } from '../research/steps/strategy'
-import { runTovStep } from '../research/steps/tov'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { runStrategyQaLoop } from '../research/steps/strategyQa'
 import { finishTaskRun, type ResearchScope } from '../store'
 import { resolveStrategyReadiness, type StrategyDocumentReference } from '../strategyReadiness'
@@ -30,9 +30,10 @@ export type RunStrategyExecutionOptions = {
   cache?: PipelineCache
   onEvent?: (event: PipelineEvent | LedgerEvent) => void
   log?: (message: string) => void
+  readSpecialistTov?: ReadSpecialistTov
 }
 
-const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+const pin = ({ document_id, version, status, specialistTov }: InputVersion): InputVersion => ({ document_id, version, status, ...(specialistTov ? { specialistTov } : {}) })
 
 export async function runStrategyExecution(opts: RunStrategyExecutionOptions): Promise<StrategyExecutionResult> {
   const request = strategyExecutionRequestSchema.parse(opts.request)
@@ -42,6 +43,12 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
   if (saved) return saved
   const readiness = await resolveStrategyReadiness(em, scope, request)
   if (readiness.status === 'not_ready') return readiness
+  if (!request.specialistTov || !opts.readSpecialistTov) return { status: 'not_ready', orderRef, reason: 'specialist_tov_required' }
+  const specialistTov = await opts.readSpecialistTov(scope, request.specialistTov)
+  if (!specialistTov || !specialistTov.isCurrent || specialistTov.documentId !== request.specialistTov.documentId
+    || specialistTov.version !== request.specialistTov.version || !specialistTov.renderedMd.trim()) {
+    return { status: 'not_ready', orderRef, reason: 'specialist_tov_unavailable' }
+  }
   const where = { ...scope, orderRef }
   const load = async (reference: StrategyDocumentReference): Promise<StrategyExecutionInput | null> => {
     const row = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
@@ -87,7 +94,11 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
   const taskRunIds: string[] = []
   const documentVersionIds: string[] = []
   const agentRunIds = opts.agentRunIds ?? []
-  const strategyOutputs: NonNullable<StepContext['strategyOutputs']> = { strategy: null, tov: null }
+  const strategyOutputs: NonNullable<StepContext['strategyOutputs']> = { strategy: null, tov: {
+    document_id: `agency_tov:${specialistTov.documentId}`, version: specialistTov.version,
+    versionId: specialistTov.versionId, status: 'draft', data: specialistTov.body,
+    specialistTov: request.specialistTov,
+  } }
   const strategyQaRepairAttempts = limits.generation.qaRepairAttemptsPerRun
   const inputVersions = [orderVersion, ...[brief, zrodla, audyt, konkurencja, ustalenia].map(pin)]
   const summary = {
@@ -98,6 +109,7 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     analysisQaTaskRunId: readiness.analysis.qaTaskRunId,
     analysisSetHash: readiness.analysis.setHash,
     limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: strategyQaRepairAttempts },
+    specialistTov: request.specialistTov,
     steps: ['5.2', '5.3', '5.4'],
   }
   const claim = await claimStrategyExecution(em, scope, request, {
@@ -125,18 +137,18 @@ export async function runStrategyExecution(opts: RunStrategyExecutionOptions): P
     fetchPage: async () => { throw new Error('[internal] strategy execution cannot fetch research sources') },
     repairFindings: [], attempt: 1,
     strategyInputs: { brief, zrodla, audyt, konkurencja, ustalenia },
-    strategyOutputs, strategyQaRepairAttempts,
+    strategyOutputs, strategyQaRepairAttempts, specialistTov,
   }
   const result = (status: 'completed' | 'paused_budget'): Extract<StrategyExecutionResult, { taskRunIds: string[] }> => ({
     status, orderRef, taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total,
     strategyVersionId: strategyOutputs.strategy?.versionId ?? null,
     tovVersionId: strategyOutputs.tov?.versionId ?? null,
     qaTaskRunId: null, qaVerdict: null,
+    specialistTov: request.specialistTov,
   })
   try {
     await runStrategyStep(ctx)
-    await runTovStep(ctx)
-    const qa = await runStrategyQaLoop(ctx, { strategyStep: runStrategyStep, tovStep: runTovStep })
+    const qa = await runStrategyQaLoop(ctx, { strategyStep: runStrategyStep })
     return await persistResult({
       ...result('completed'), strategyVersionId: qa.strategyVersionId, tovVersionId: qa.tovVersionId,
       qaTaskRunId: qa.taskRunId, qaVerdict: qa.verdict,

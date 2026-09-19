@@ -29,4 +29,7 @@ describe('resumePoint — orphaned and crashed runs', () => {
   it('resumes at the QA loop when a repair round was in flight', () => {
     expect(resumePoint([run('3.1', 'done'), run('3.2', 'done'), run('3.5', 'done'), run('3.6', 'done'), run('3.7', 'to_fix'), run('3.2', 'done'), run('3.4', 'running')])).toBe('3.8')
   })
+  it('does not rewind an interrupted brief to a previously repaired analysis', () => {
+    expect(resumePoint([run('3.7', 'to_fix'), run('3.7', 'done'), run('3.8', 'done'), run('4.1', 'running')])).toBe('4.2')
+  })
 })

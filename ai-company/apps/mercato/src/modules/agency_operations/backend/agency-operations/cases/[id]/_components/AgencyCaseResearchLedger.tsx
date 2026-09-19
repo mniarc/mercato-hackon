@@ -7,7 +7,7 @@ import { useOrganizationScopeVersion } from '@open-mercato/shared/lib/frontend/u
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { DataTable } from '@open-mercato/ui/backend/DataTable'
 import { ErrorMessage, LoadingMessage } from '@open-mercato/ui/backend/detail'
-import { JsonDisplay } from '@open-mercato/ui/backend/JsonDisplay'
+import { ResearchLineage } from './researchLineage/ResearchLineage'
 import { SectionHeader } from '@open-mercato/ui/backend/SectionHeader'
 import { Button } from '@open-mercato/ui/primitives/button'
 import { StatusBadge } from '@open-mercato/ui/primitives/status-badge'
@@ -127,7 +127,7 @@ function LedgerRecords({ caseId }: { caseId: string }) {
       {version?.id === selectedId ? (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">{translate(`${key}.noApproval`)}</p>
-          <JsonDisplay title={translate(`${key}.selectedVersion`)} data={version} />
+          <ResearchLineage key={version.id} caseId={caseId} initialVersion={version} />
         </div>
       ) : null}
     </div>

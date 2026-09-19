@@ -4,12 +4,12 @@ import { postDataSchema, type PostData } from '../data/schemas/post'
 import { tovDataSchema, type TovData } from '../data/schemas/tov'
 import { orderDataSchema, orderFactsOf } from '../data/schemas/zamowienie'
 import { zleceniePostuDataSchema, type ZleceniePostuData } from '../data/schemas/zleceniePostu'
-import type { PostDraft, PostEditorReview } from '../data/agents/post'
+import type { PostDraft, PostEditorReview, PostEvidenceRequest, PostEvidencePacket } from '../data/agents/post'
 import { createLedger } from '../lib/research/ledger'
 import type { ResearchAgentRunner } from '../lib/research/pipeline'
 import { renderPost, renderPostClientView } from '../lib/research/render/post'
 import { assemblePost, forbiddenLinks, gatePostDraft, postMetrics, prohibitedClaimsFound, runPostPipeline, unsupportedNumbers } from '../lib/research/steps/post'
-import { applyEditorReview, mergePostQaVerdict, postValidatorFindings, runPostQa, runPostQaLoop } from '../lib/research/steps/postQa'
+import { applyEditorReview, gateEditorReview, mergePostQaVerdict, postValidatorFindings, runPostQa, runPostQaLoop } from '../lib/research/steps/postQa'
 import type { StepContext } from '../lib/research/steps/context'
 import { createFixtureRunner } from '../lib/runners'
 import { countClientWords } from '../lib/research/util'
@@ -300,5 +300,50 @@ describe('post QA (7.3)', () => {
     expect(escalation?.data).toMatchObject({ exception_type: { code: 'qa_exhausted', trigger_step: '7.3' }, resume: { next_step_or_null: '7.2' } })
     expect((escalation?.data as { hold: { blocked_task_refs: string[] } }).hold.blocked_task_refs).toContain('7.4')
     expect(mocked.startTaskRun.mock.calls.map((call) => call[2].stepId)).toEqual(['7.3', '7.3', '7.3', 'E.1'])
+  })
+
+  it('saves an explicit source request without consuming author repairs, then returns evidence to the same QA task', async () => {
+    const { data } = await runPipeline()
+    const request: PostEvidenceRequest = { claim: data.claims_map[0].fragment, question: 'Confirm the exact claim in its original source.',
+      sourceRefs: ['S-01'], targetStep: '3.2', returnStep: '7.3' }
+    const base: PostEditorReview = { result: 'pass_for_draft', checked: [], not_verified: [], findings: [], copy_checks: [], summary: 'Checked source claim.' }
+    const runAgent: ResearchAgentRunner = async (_agentId, input) => ({ result: { kind: 'research', data:
+      'supplementary_evidence' in (input as object)
+        ? { ...base, evidence_assessment: { outcome: 'supported', explanation: 'The exact unchanged claim is supported.', factIds: ['return:F01'] } }
+        : { ...base, evidence_request: request } }, usage: null })
+    const { ctx, mocked } = loopContext(runAgent, data)
+    const postStep = jest.fn()
+    const first = await runPostQaLoop(ctx, { postStep })
+    expect(first).toMatchObject({ verdict: 'needs_fix', evidenceRequest: request, repairs: 0 })
+    expect(postStep).not.toHaveBeenCalled()
+    const original = { id: first.taskRunId } as never
+    const packet: PostEvidencePacket = { request, sourceTaskRunId: '10000000-0000-4000-8000-000000000001', facts: [{
+      factId: 'return:F01', claim: request.claim, sourceRefs: ['S-01'], quote: request.claim,
+      limitation: 'Company declaration, not an independently measured result.', kind: 'first_party_claim',
+      useScope: ['internal'], sourceVisibility: 'public',
+    }] }
+    mocked.startTaskRun.mockClear()
+    const returned = await runPostQaLoop(ctx, { postStep, evidenceReturn: { task: original, packet } })
+    expect(returned).toMatchObject({ verdict: 'pass_for_draft', taskRunId: first.taskRunId, repairs: 0 })
+    expect(mocked.startTaskRun).not.toHaveBeenCalled()
+    expect(postStep).not.toHaveBeenCalled()
+    expect(mocked.saveDocumentVersion.mock.calls.every((call) => call[2].templateId === 'WZR-POST')).toBe(true)
+    expect(mocked.saveDocumentVersion.mock.calls.map((call) => (call[2].data as PostData).text)).toEqual([data.text, data.text])
+    expect(mocked.finishTaskRun).toHaveBeenLastCalledWith({}, original, expect.objectContaining({
+      qaResult: expect.objectContaining({ evidenceReturn: packet, verdict: 'pass_for_draft' }),
+    }))
+  })
+
+  it('does not turn missing or ungrounded evidence into a passing review', async () => {
+    const { data } = await runPipeline()
+    const request: PostEvidenceRequest = { claim: data.claims_map[0].fragment, question: 'Check the claim.', sourceRefs: ['S-01'], targetStep: '3.2', returnStep: '7.3' }
+    const base: PostEditorReview = { result: 'pass_for_draft', checked: [], not_verified: [], findings: [], copy_checks: [], summary: 'Claimed pass.' }
+    expect(mergePostQaVerdict([], { ...base, evidence_request: request })).toBe('needs_fix')
+    const invalid = gateEditorReview({ ...base, evidence_request: { ...request, sourceRefs: ['other-order-source'] } }, data, ['S-01'])
+    expect(mergePostQaVerdict([], invalid.value)).toBe('needs_fix')
+    const packet: PostEvidencePacket = { request, sourceTaskRunId: '10000000-0000-4000-8000-000000000001', facts: [] }
+    const unsupported = gateEditorReview({ ...base, evidence_assessment: { outcome: 'supported', explanation: 'No supplied quote.', factIds: ['invented'] } }, data, ['S-01'], packet)
+    expect(unsupported.value.evidence_assessment?.outcome).toBe('unresolved')
+    expect(mergePostQaVerdict([], unsupported.value)).toBe('needs_fix')
   })
 })

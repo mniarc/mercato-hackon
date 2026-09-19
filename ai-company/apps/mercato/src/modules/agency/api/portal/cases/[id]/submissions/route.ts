@@ -68,8 +68,8 @@ export const openApi: OpenApiRouteDoc = {
       errors: [{ status: 401, description: 'Customer authentication required' }, { status: 403, description: 'Inactive or unlinked customer' }, { status: 404, description: 'Case not found in customer scope' }],
     },
     POST: {
-      summary: 'Submit immutable client input to the deterministic triage scaffold',
-      description: 'Native customer session required. Retrying eventId within the same case returns the stored original and decision without running again. Intelligence is an explicitly labelled fixture, not a live model. Only this case material may be referenced; a documentVersionReference is an unverified caller reference, not approval. Clarification waits for a native client reply signal; the reply endpoint is a separate capability.',
+      summary: 'Save immutable client input for the configured native triage process',
+      description: 'Native customer session required. Retrying eventId within the same case returns the stored original and disposition without running again. Missing native configuration leaves the original saved and waiting, never interpreted by a deterministic fallback. Only this case material may be referenced; a documentVersionReference is an unverified caller reference, not approval. Clarification waits for a native client reply signal; the reply endpoint is a separate capability.',
       requestBody: { contentType: 'application/json', schema: clientSubmissionRequestSchema },
       responses: [200, 201].map((status) => ({ status, schema: z.object({ item: clientSubmissionItemSchema, replayed: z.boolean() }) })),
       errors: [{ status: 400, description: 'Invalid submission' }, { status: 401, description: 'Customer authentication required' }, { status: 403, description: 'Inactive or unlinked customer' }, { status: 404, description: 'Case or material not found in customer scope' }, { status: 413, description: 'Request exceeds 100 KB' }],

@@ -1,6 +1,7 @@
 import { limits } from '../../data/templates'
 import type { OrderFacts } from '../../data/schemas/zamowienie'
 import { canonicalUrl, sourceId } from './ids'
+import type { ResearchMaterialSource } from '../contracts/agencyResearch'
 
 /**
  * Source collection (3.2) is code: the website and one official social profile
@@ -46,6 +47,7 @@ export type CollectedSource = {
   published_at: string | null
   read_scope: string
   limitation: string | null
+  source_visibility?: 'public' | 'client_private' | 'unknown'
 }
 
 export type CollectOptions = {
@@ -53,6 +55,7 @@ export type CollectOptions = {
   /** Explicit page list (`--pages`) replaces discovery. */
   pages?: string[]
   socialPosts?: SocialPost[]
+  materialSources?: ResearchMaterialSource[]
   now?: () => Date
   log?: (message: string) => void
 }
@@ -241,6 +244,35 @@ export async function collectSources(order: OrderFacts, opts: CollectOptions): P
       source.access = 'partial'
       source.limitation = 'public view only: no history, statistics or audience data'
     }
+  }
+  // Uploaded evidence is already extracted by native attachments, not a URL to fetch.
+  // Preserve its text verbatim for the existing quote grounding; use the same order cap.
+  const seenAttachments = new Set<string>()
+  for (const material of opts.materialSources ?? []) {
+    if (seenAttachments.has(material.attachmentId)) continue
+    seenAttachments.add(material.attachmentId)
+    const original = material.text?.trim() || null
+    const room = Math.max(0, limits.research.maxTotalChars - totalChars)
+    const text = original && original.length <= room ? original : original && room > 500 ? original.slice(0, room) : null
+    const access = !text ? 'unavailable' : text.length < original!.length ? 'partial' : 'full'
+    if (text) totalChars += text.length
+    collected.push({
+      source_id: sourceId(collected.length),
+      url: `attachment://${material.attachmentId}`,
+      publisher,
+      kind: 'client supplied material',
+      channel: 'file',
+      origin: 'client',
+      source_visibility: 'client_private',
+      access,
+      title: material.fileName,
+      text,
+      bytes: text?.length ?? 0,
+      retrieved_at: retrievedAt,
+      published_at: null,
+      read_scope: `${text ? `${text.length} of ${original!.length} extracted chars read` : 'not read'}; submission ${material.submissionId}; uploaded ${material.submittedAt}`,
+      limitation: !original ? 'native attachment text extraction unavailable' : access !== 'full' ? 'limited by the order text cap' : null,
+    })
   }
   return collected
 }

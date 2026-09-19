@@ -46,8 +46,8 @@ export function createAgencyAnalysisWorkflowDefinition(rawPolicy: AnalysisExecut
     },
     { transitionId: 'assign_research_exception', fromStepId: 'exception_checked', toStepId: RESEARCH_EXCEPTION_STEP_ID, trigger: 'auto',
       condition: { field: `${RESEARCH_EXCEPTION_RESULT_KEY}.result.kind`, operator: '=', value: 'employee_exception' } },
-    // The employee's resolution of the exception re-enters research: the activity resumes from the paused step under the current policy cap.
-    ...exception.transitions.map((transition) => (transition.fromStepId === RESEARCH_EXCEPTION_STEP_ID ? { ...transition, toStepId: 'research' } : transition)),
+    // Recording a continued hold is not permission to resume or spend again.
+    ...exception.transitions,
     ...(handoffBrief ? [{
       transitionId: 'handoff_brief', fromStepId: 'exception_checked', toStepId: 'brief_handoff', trigger: 'auto' as const, condition: noException,
       activities: [{ activityId: 'handoff_brief', activityName: 'agencyBriefInvitation', activityType: 'EXECUTE_FUNCTION' as const,

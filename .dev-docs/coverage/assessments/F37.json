@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F37-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Current confirmation deliberately has null external ID/link/time."
+            }
+          ],
+          "missing": [
+            "Ingest provider evidence and exact message identity."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Retry_allowed is always false; no executed rejection exists."
+            }
+          ],
+          "missing": [
+            "Implement bounded retry policy for provably not-sent retryable failures."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No actual retry path exists."
+            }
+          ],
+          "missing": [
+            "Route authorized retry through refreshed preflight and reservation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Document-only outcome has no executed attempt history."
+            }
+          ],
+          "missing": [
+            "Store actual attempts/retries and escalate permanent/exhausted technical errors."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/handoff.ts",
+              "note": "Employee exception evidence explicitly says continuation unsupported."
+            }
+          ],
+          "missing": [
+            "Implement producer-owned guarded continuation; staff decision must not bypass publication gates."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F37-2",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Pure prior-outcome gate rejects unknown; closure requires confirmed publication."
+            }
+          ],
+          "missing": [
+            "No actual timed-out send is recorded as durable unknown and linked to a held case."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No adapter read/reconciliation operation exists."
+            }
+          ],
+          "missing": [
+            "Check provider state with bounded evidence-linked queries."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No actual reconciliation transitions exist."
+            }
+          ],
+          "missing": [
+            "Confirm discovered message or prove non-send before retry eligibility."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No executed attempt can currently reach reconciliation exhaustion."
+            }
+          ],
+          "missing": [
+            "Route unresolved real attempt to owned E case with evidence and return point."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Pure gates do not treat elapsed time as proof."
+            }
+          ],
+          "missing": [
+            "Enforce rule in actual reconciliation/staff retry service."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F37-3",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfirmation.ts",
+              "note": "Typed confirmation document exists but only records not_executed."
+            }
+          ],
+          "missing": [
+            "Create confirmed publication receipt only from actual 8.6 provider proof."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Schema separates publication/evidence fields and leaves unknown values null."
+            }
+          ],
+          "missing": [
+            "Populate real message/attempt/target/provider-time/system-time/link/consent from verified evidence."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No real provider artifact is available."
+            }
+          ],
+          "missing": [
+            "Expose navigation to verified external publication from the case."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "Package gate consumes publication outcome but current result is not_executed."
+            }
+          ],
+          "missing": [
+            "Wire confirmed receipt to actual delivery activation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

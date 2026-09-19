@@ -16,6 +16,9 @@ import { freezeSetHash } from '../lib/research/steps/freeze'
 import { mergeQaVerdict, runAnalysisQa, validatorFindings } from '../lib/research/steps/qa'
 import { createFixtureRunner } from '../lib/runners'
 import { checkClientView } from '../lib/research/clientView'
+import { fieldMapperResult } from '../data/validators'
+import type { ResearchAgentRunner } from '../lib/research/pipeline'
+import { RESEARCH_FIELD_MAPPER_AGENT_ID, RESEARCH_QA_AGENT_ID } from '../lib/agentIds'
 
 const canned = path.join(__dirname, '..', '__fixtures__', 'flow', 'canned')
 const models = { extract: 'fixture', synthesis: 'fixture', qa: 'fixture' }
@@ -93,7 +96,7 @@ describe('3.6 — findings pipeline', () => {
     expect(byKey.priority_offer).toMatchObject({ status: 'hypothesis', decision_state: 'awaiting_client' })
     expect(byKey.priority_audience.evidence_ids).toEqual(['A01', 'F04'])
     expect(byKey.voice_preferences).toMatchObject({ provenance: 'inferred', decision_state: 'awaiting_client' })
-    expect(byKey.open_assumptions).toMatchObject({ readiness: 'blocked', proposed_value: null, priority: 'must' })
+    expect(byKey.open_assumptions).toMatchObject({ readiness: 'blocked', proposed_value: null, priority: 'must', decision_state: 'not_required' })
     expect(byKey.promise_constraints).toMatchObject({ status: 'fact', readiness: 'ready' })
     const codes = result.issues.map((i) => i.code)
     expect(codes).toEqual(expect.arrayContaining(['FUTURE_AS_FACT', 'UNKNOWN_ID', 'NO_CLIENT_ANSWER_YET', 'MISSING_FIELD_ROW']))
@@ -158,6 +161,31 @@ describe('3.7 — analysis QA', () => {
     expect(mergeQaVerdict(ready, [blockingBy('agent', null)]).verdict).toBe('exception')
     expect(mergeQaVerdict({ ...ready, verdict: 'exception' }, []).verdict).toBe('ready')
     expect(mergeQaVerdict(ready, [blockingBy('agent', '3.3'), blockingBy('staff', null)]).verdict).toBe('exception')
+  })
+
+  it('returns a persisted required-row omission to 3.6, then accepts the author repair without answering client questions', async () => {
+    const fixture = createFixtureRunner(canned)
+    const runner: ResearchAgentRunner = async (agentId, input, options) => {
+      if (agentId === RESEARCH_QA_AGENT_ID) return { result: { kind: 'research', data: ready }, usage: null }
+      const response = await fixture(agentId, input, options)
+      const repair = (input as { repair_findings?: { path: string }[] }).repair_findings
+      if (agentId === RESEARCH_FIELD_MAPPER_AGENT_ID && repair?.some((finding) => finding.path === 'WEW-USTALENIA.field_map[open_assumptions]')) {
+        const parsed = fieldMapperResult.parse(response.result)
+        parsed.data.field_map.push({ field_key: 'open_assumptions', proposed_value: 'Kierunek pozostaje propozycją do decyzji klienta.', evidence_ids: ['F01'], provenance: 'inferred', readiness: 'ready', decision_state: 'not_required', reason: 'Podsumowanie ograniczeń ustaleń.', status: 'hypothesis' })
+        return { ...response, result: parsed }
+      }
+      return response
+    }
+    const initial = await runFindingsPipeline({ order, outputLanguage: 'pl', zrodla, audyt, konkurencja, runAgent: runner, ledger: ledger(), models })
+    const first = await runAnalysisQa({ order, outputLanguage: 'pl', documents: { zrodla, audyt, konkurencja, ustalenia: initial.data }, findingsIssues: initial.issues, runAgent: runner, ledger: ledger(), models })
+    const repair = first.result.findings.filter((finding) => finding.severity === 'blocking')
+    expect(first.result.verdict).toBe('to_fix')
+    expect(repair).toEqual([expect.objectContaining({ code: 'missing_must_field', path: 'WEW-USTALENIA.field_map[open_assumptions]', owner: 'agent', fix_step: '3.6' })])
+    const repaired = await runFindingsPipeline({ order, outputLanguage: 'pl', zrodla, audyt, konkurencja, runAgent: runner, ledger: ledger(), models, repairFindings: repair })
+    const second = await runAnalysisQa({ order, outputLanguage: 'pl', documents: { zrodla, audyt, konkurencja, ustalenia: repaired.data }, findingsIssues: repaired.issues, runAgent: runner, ledger: ledger(), models })
+    expect(second.result.verdict).toBe('ready')
+    expect(repaired.data.field_map.find((row) => row.field_key === 'priority_offer')?.decision_state).toBe('awaiting_client')
+    expect(repaired.data.questions.some((question) => question.brief_field === 'priority_offer')).toBe(true)
   })
 
   it('finds by rule what a schema cannot: unresolved references, empty MUST fields, the fact/interpretation line', async () => {

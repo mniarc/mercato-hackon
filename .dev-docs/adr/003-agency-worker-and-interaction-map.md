@@ -62,7 +62,7 @@ fetch websites or read attachments.
 | Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card`, `competitor_channels`, `competitor_synthesizer` → competitor comparison. |
 | Findings and research QA — `agency_research` | F08-1, F08-2, F08-3 | Steps 3.6–3.8: `field_mapper`, `question_writer`, `readiness_assessor`, `research_qa` → findings, QA and code-owned frozen package. |
 | Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: section workers `brief_writer.offer_audience_direction`, `brief_writer.promise_voice`, `brief_writer.channel_success_assets`, then `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
-| Strategy/ToV and pair QA — `agency_research` | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: section workers `strategy_writer.choice_tension_uvp`, `strategy_writer.proof_messages`, `strategy_writer.pillars_channel_boundaries`, then `tov_writer`, `strategy_qa` → versioned proposals and pair QA; native client consent remains a separate handoff. |
+| Strategy and pair QA — `agency_research`; ToV — `agency_tov` only | F21-1, F21-2, F22-1, F23-1 | Steps 5.2–5.4: existing strategy section workers author strategy; the process binds the specialist's exact KLI-TOV version and assesses the pair. Research must not invoke `tov_writer` to create or repair ToV; native client consent remains separate. |
 | Content plan and QA — `agency_research` | F26-2, F27-1 | Steps 6.2–6.3: `plan_writer.topics`, `plan_writer.balance_recommendation`, `plan_qa` → versioned plan and QA; selection/post instruction are code-owned steps, not another agent. |
 | Post writing/editing — `agency_research` | F30-2, F31-1, F31-2 | Steps 7.2–7.3: `post_author`, `post_editor` → versioned draft and editorial QA; targeted research, customer changes and exceptions still need their real handoffs. |
 | Package checks — `agency_research` code | F38-1, F38-2 | `research/steps/package.ts` + `research/packaging.ts` assemble existing outputs, project verified takeaways and check completeness/closure; no generic agency QA worker or new customer package approval. |
@@ -74,12 +74,25 @@ fetch websites or read attachments.
 Teammate `agency_tov` remains outside this directory. Its source scout, batch
 analyst, profile synthesizer, and brand synthesizer remain unchanged; the agency
 process integrates through its public research/document service, not extracted
-or copied ToV internals. Corpus research alone does not complete F22-1: the
+or copied ToV internals. `agency_tov` is the sole ToV content producer, not an
+optional profile enrichment for a second writer. Strategy orchestrates/consumes
+its immutable version; review and downstream workers read that same content.
+Pair approval records may reference it but never rewrite it. Missing corpus or
+specialist output requires an actionable wait and native continuation; QA problems
+return to the specialist, not a fallback research writer. Historical research-owned
+ToV versions remain readable but do not authorize new competing production.
+The legacy whole-pipeline `agency_research run --through 5.4` (and later) is
+retired before any authoring/spend. Earlier research through 4.2 remains available;
+later production uses the accepted-case native specialist/approval continuation.
+The app's supported `modules.ts` AI override disables the historic
+`agency_research.tov_writer` ID for new general/delegated native runs too;
+definitions and stored history remain available for compatibility.
+Corpus research alone does not complete F22-1: the
 strategy process must bind the accepted brief, strategy proposal, ToV revision,
 and pair QA. The teammate `agency` portal remains the customer surface.
 
 Teammate `agency_research` owns source research, audit, competitor comparison,
-findings/QA, brief drafting/QA, strategy/ToV, planning and post production/QA.
+findings/QA, brief drafting/QA, strategy and pair QA, planning and post production/QA.
 Its publication documents and package checks are deterministic code, not agents.
 Agent names in its rows above carry the `agency_research.` prefix and are
 registered by that module's `ai-agents.ts` from `lib/agents/`. See the teammate's
@@ -119,12 +132,12 @@ Tasks own acceptance and current delivery state, not this ADR.
 
 | Domain / exact stories | Process boundary and delivery task |
 | --- | --- |
-| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/T25-paid-order-process-bootstrap.md). |
-| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/T25-paid-order-process-bootstrap.md). |
+| Sales: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2 | Sales explanation is judgment; offer display, purchase validation, terms, order and payment initiation/retry are deterministic. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |
+| Payment/handoff: F04-1, F04-2, F04-3, F05-1, F05-2 | Authenticate/match/deduplicate payment; notify and start one paid process, or raise an owned exception. [T25](../../.tasks/tasks-done/T25-paid-order-process-bootstrap.md). |
 | Evidence: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3 | Activate permitted tasks; sources → audit/market comparison → findings/QA → pinned package. [T26](../../.tasks/T26-source-grounded-analysis-package.md). |
-| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |
-| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/T27-brief-and-strategy-tov-review-chain.md). |
-| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/T28-plan-review-and-post-instruction.md). |
+| Brief: F09-1, F09-2, F09-3, F10-1, F10-2, F10-3, F11-1, F11-2, F12-1, F12-2, F12-3 | Draft/QA → customer discussion through G → targeted supplement if needed → exact-version consent. F10-3 executes saved G routing, never re-triages. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md), with T26 for supplementary evidence. |
+| Strategy: F20-1, F20-2, F21-1, F21-2, F22-1, F23-1, F24-1, F24-2, F25-1 | Accepted brief → strategy + teammate ToV → pair QA → current-pair consent gate; F25-1 applies saved G routing. [T27](../../.tasks/tasks-done/T27-brief-and-strategy-tov-review-chain.md). |
+| Planning: F26-1, F26-2, F27-1, F27-2, F27-3, F28-1, F29-1, F29-2 | Accepted dependencies → plan/QA → current plan plus one existing topic selection → deterministic post instruction. [T28](../../.tasks/tasks-done/T28-plan-review-and-post-instruction.md). |
 | Post: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2 | One draft/QA → targeted correction/research → exact text acceptance; publish consent is separately bound to version and target. [T29](../../.tasks/T29-post-production-and-version-review.md). |
 | Publication **proposal**: F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3 | Deterministic configuration, consent, preflight, atomic reservation/send-start, revocation handling, reconciliation, provider proof. No LLM publisher. [T31](../../.tasks/T31-proposed-publication-and-reconciliation.md). |
 | Delivery/closure **proposal**: F38-1, F38-2, F38-3, F38-4, F39-1 | Completeness/quality review → client-safe package → actual sharing/retry → gated closure linked to original payment. [T32](../../.tasks/T32-proposed-delivery-and-closure.md). |

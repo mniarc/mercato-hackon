@@ -1,10 +1,14 @@
 FROM node:24-alpine AS builder
 
 ARG NEXT_PUBLIC_DOCUMENTS_COLLAB_URL
+ARG OM_ENABLE_ENTERPRISE_MODULES=false
+ARG OM_ENABLE_ENTERPRISE_MODULES_AGENTS=false
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
-    NEXT_PUBLIC_DOCUMENTS_COLLAB_URL=${NEXT_PUBLIC_DOCUMENTS_COLLAB_URL}
+    NEXT_PUBLIC_DOCUMENTS_COLLAB_URL=${NEXT_PUBLIC_DOCUMENTS_COLLAB_URL} \
+    OM_ENABLE_ENTERPRISE_MODULES=${OM_ENABLE_ENTERPRISE_MODULES} \
+    OM_ENABLE_ENTERPRISE_MODULES_AGENTS=${OM_ENABLE_ENTERPRISE_MODULES_AGENTS}
 
 WORKDIR /app
 
@@ -297,6 +301,8 @@ CMD ["/bin/sh", "/app/docker/scripts/dev-entrypoint.sh"]
 FROM node:24-alpine AS runner
 
 ARG CONTAINER_PORT=3000
+ARG OM_ENABLE_ENTERPRISE_MODULES=false
+ARG OM_ENABLE_ENTERPRISE_MODULES_AGENTS=false
 ARG DOCUMENTS_COLLAB_PORT=4101
 # Chromium backs the Documents PDF export (puppeteer-core). Build with
 # --build-arg INSTALL_CHROMIUM=1 to include it; PDF export otherwise returns 503.
@@ -305,6 +311,8 @@ ARG INSTALL_CHROMIUM=0
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=${CONTAINER_PORT} \
+    OM_ENABLE_ENTERPRISE_MODULES=${OM_ENABLE_ENTERPRISE_MODULES} \
+    OM_ENABLE_ENTERPRISE_MODULES_AGENTS=${OM_ENABLE_ENTERPRISE_MODULES_AGENTS} \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /app
@@ -422,11 +430,11 @@ RUN chmod +x /app/docker/scripts/init-or-migrate.sh
 RUN chmod +x /app/docker/scripts/mcp-entrypoint.sh
 
 # Prepare storage directory for Railway volume mount
-RUN mkdir -p /app/apps/mercato/storage
+RUN mkdir -p /app/apps/mercato/storage /app/apps/mercato/.mercato
 
 # Create non-root user and grant passwordless sudo for chown only
 RUN adduser -D -u 1001 omuser \
- && chown -R omuser:omuser /app/apps/mercato/storage \
+ && chown -R omuser:omuser /app/apps/mercato/storage /app/apps/mercato/.mercato \
  && echo "omuser ALL=(root) NOPASSWD: /bin/chown" > /etc/sudoers.d/omuser \
  && chmod 0440 /etc/sudoers.d/omuser
 

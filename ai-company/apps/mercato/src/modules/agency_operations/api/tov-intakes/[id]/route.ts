@@ -1,0 +1,39 @@
+import { z } from 'zod'
+import { getAuthFromRequest } from '@open-mercato/shared/lib/auth/server'
+import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
+import { isCrudHttpError } from '@open-mercato/shared/lib/crud/errors'
+import type { OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
+import {
+  STAFF_TOV_INTAKE_SERVICE,
+  staffTovIntakeStatusSchema,
+  type StaffTovIntakeService,
+} from '../../../lib/tovIntake/contracts'
+
+const pathSchema = z.object({ id: z.uuid() })
+export const metadata = { GET: { requireAuth: true,
+  requireFeatures: ['agency_operations.cases.view', 'customers.companies.view', 'agency_tov.view'],
+} }
+
+export async function GET(req: Request, context: { params: Promise<{ id: string }> | { id: string } }): Promise<Response> {
+  const auth = await getAuthFromRequest(req)
+  if (!auth) return Response.json({ error: 'api.errors.unauthorized' }, { status: 401 })
+  if (!auth.tenantId || !auth.orgId) return Response.json({ error: 'api.errors.forbidden' }, { status: 403 })
+  const parsed = pathSchema.safeParse(await context.params)
+  if (!parsed.success) return Response.json({ error: 'api.errors.invalidRequest' }, { status: 400 })
+  try {
+    const result = await (await createRequestContainer()).resolve<StaffTovIntakeService>(STAFF_TOV_INTAKE_SERVICE).get({
+      tenantId: auth.tenantId, organizationId: auth.orgId, userId: auth.sub, workflowInstanceId: parsed.data.id,
+    })
+    return Response.json(result, { headers: { 'Cache-Control': 'private, no-store' } })
+  } catch (error) {
+    if (isCrudHttpError(error)) return Response.json(error.body, { status: error.status })
+    throw error
+  }
+}
+
+export const openApi: OpenApiRouteDoc = { tag: 'Agency Operations', pathParams: pathSchema, methods: { GET: {
+  summary: 'Read the saved native tone-of-voice intake status and exact result references',
+  responses: [{ status: 200, schema: staffTovIntakeStatusSchema }],
+  errors: [{ status: 400, description: 'Invalid workflow reference' }, { status: 401, description: 'Staff authentication required' },
+    { status: 403, description: 'Insufficient staff permissions' }, { status: 404, description: 'Intake not found in scope' }],
+} } }

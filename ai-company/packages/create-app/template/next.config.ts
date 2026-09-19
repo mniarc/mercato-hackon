@@ -4,6 +4,8 @@ import { telemetryServerExternalPackages } from '@open-mercato/telemetry/nextjs-
 
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const allowedDevOrigins = isDevelopment ? resolveAllowedDevOrigins() : []
+const nextDistDir = process.env.OM_NEXT_DIST_DIR || '.mercato/next'
+if (!/^\.mercato\/next(?:-[a-z0-9-]+)?$/.test(nextDistDir)) throw new Error('OM_NEXT_DIST_DIR must name a Next output directory under .mercato')
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -20,7 +22,7 @@ const contentSecurityPolicy = [
 ].join('; ')
 
 const nextConfig: NextConfig & { agentRules?: boolean } = {
-  distDir: '.mercato/next',
+  distDir: nextDistDir,
   // Mirror apps/mercato: scaffolded apps ship their own AGENTS.md/CLAUDE.md
   // from the template, so let Next 16.3+ leave them alone rather than
   // appending its managed agent-rules block on every `next dev`.

@@ -18,11 +18,13 @@ const requestSchema = z.object({
     content: z.union([z.string(), z.array(z.object({ type: z.string(), text: z.string().optional() }))]),
   })),
   text: z.object({ format: z.object({
-    type: z.literal('json_schema'), name: z.enum(['agency_operations_client_triage', 'agency_research_post_author', 'agency_research_post_editor']),
+    type: z.literal('json_schema'), name: z.string().min(1),
   }) }),
 })
 
-export async function startNativeTriageProvider(port = 5003) {
+export type NativeStructuredFixtureHook = (input: { formatName: string; userTexts: string[] }) => Promise<unknown | undefined>
+
+export async function startNativeTriageProvider(port = 5003, options: { resolveStructured?: NativeStructuredFixtureHook } = {}) {
   const calls: Array<{ status: number; disposition?: 'answer' | 'clarify' | 'approve' }> = []
   const postCalls: Array<{ agentId: string; status: number }> = []
   let expectedProduction: { caseId: string; planVersion: string; selectedTopicId: string; selectionSubmissionId: string } | undefined
@@ -57,6 +59,15 @@ export async function startNativeTriageProvider(port = 5003) {
           { type: 'output_text', text: JSON.stringify(result), annotations: [] },
         ] }], usage: { input_tokens: 1, output_tokens: 1, total_tokens: 2 },
       })
+      if (options.resolveStructured) {
+        const result = await options.resolveStructured({ formatName: parsed.data.text.format.name,
+          userTexts: userMessages.flatMap((message) => typeof message.content === 'string' ? [message.content]
+            : message.content.flatMap((part) => part.text ? [part.text] : [])) })
+        if (result !== undefined) { calls.push({ status: 200 }); sendResult(result); return }
+      }
+      if (!['agency_operations_client_triage', 'agency_research_post_author', 'agency_research_post_editor'].includes(parsed.data.text.format.name)) {
+        return fail(400, 'Structured result format is not registered for this fixture')
+      }
       if (parsed.data.text.format.name !== 'agency_operations_client_triage') {
         if (process.env.AGENCY_TEST_NATIVE_POST !== '1' || !expectedProduction) return fail(400, 'Native post fixture is not explicitly enabled and registered')
         const author = parsed.data.text.format.name === 'agency_research_post_author'

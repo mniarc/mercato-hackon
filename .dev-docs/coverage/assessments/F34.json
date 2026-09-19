@@ -1,0 +1,206 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F34-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "Document-only tasks 8.2/8.3/8.7 exist in teammate pipeline."
+            }
+          ],
+          "missing": [
+            "Native 8.1 activation from accepted 7.7 with configured task graph is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "Task runs preserve input versions and blockers."
+            }
+          ],
+          "missing": [
+            "Real publication performers, integration tasks and versioned limits are not activated."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Internal preparation is replay-safe for exact accepted post/source."
+            }
+          ],
+          "missing": [
+            "Publication execution identity and deduplication are not implemented."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "Configuration builder honestly reports missing destination/access."
+            }
+          ],
+          "missing": [
+            "Connected 8.1→8.2 native activation/access validation is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F34-2",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "Versioned config schema has platform/destination/connectionRef without secrets."
+            }
+          ],
+          "missing": [
+            "Actual supported setup UI/service for authoritative destination IDs is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Builder and preflight describe product/channel/capability blockers."
+            }
+          ],
+          "missing": [
+            "No real access verification, readiness or authorized connection check executes."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "Builder returns blockers and next-action text only."
+            }
+          ],
+          "missing": [
+            "Send native scoped customer question and consume its G response back into config."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "Adapter catalog descriptors do not imply a working send integration; no target substitution occurs."
+            }
+          ],
+          "missing": [
+            "Select/implement authorized demo provider; no completed LinkedIn integration is evidenced."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/publicationConfig.ts",
+              "note": "No actual integration check/retry occurs."
+            }
+          ],
+          "missing": [
+            "Persist technical access failures and exhausted-attempt E routing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed publication scope/provider and authorize external sends before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F41-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Customer account and case customer identity are checked under tenant/organization scope."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientMaterialIntakeService.ts",
+              "note": "The authenticated sender, tenant, organization, customer entity and selected case must match before bytes or a submission are stored."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 passed the authenticated signup-to-paid-case upload path and exact case-bound private source identity assertions."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Uncertain semantic intent can request clarification."
+            }
+          ],
+          "missing": [
+            "Ambiguous contact/order association is rejected or unavailable, not a dedicated association clarification flow."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/employeeQuestions/service.ts",
+              "note": "Original client replies are linked to the originating case/question."
+            }
+          ],
+          "missing": [
+            "No flow updates ambiguous contact/order binding from a clarification reply."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Native exception route handles saved producer faults, not unresolved contact authority disputes."
+            }
+          ],
+          "missing": [
+            "Authority-dispute evidence and E.1 handoff are not connected."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F41-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Exact invited pair freshness and native customer task authority are rechecked before accepting response."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Acceptance record stores person, server time, exact document version and original native submission source."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Stale pair/currentness conflicts cannot approve another version; portal reloads on409."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Mixed approval/change interpretation is not projected as unconditional acceptance."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Version-specific approval records remain on historical versions; currentness gates reject old acceptance for new content."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

@@ -15,9 +15,11 @@ const brief = { id: uuid(14), currentVersionId: uuid(15) }
 const legacy = { scope: 'note', text: 'Keep prior history' }
 let documents: Record<string, AgencyResearchDocument>
 let versions: Record<string, AgencyResearchDocumentVersion>
-const flush = jest.fn(), allowed = jest.fn()
+const flush = jest.fn(), allowed = jest.fn(), getDocumentVersion = jest.fn()
 const em = { fork: jest.fn(), transactional: jest.fn(), flush }
-const container = { resolve: (key: string) => key === 'em' ? em : { userHasAllFeatures: allowed } } as unknown as AppContainer
+const container = { resolve: (key: string) => key === 'em' ? em
+  : key === 'agencyTovResearchService' ? { getDocumentVersion }
+    : { userHasAllFeatures: allowed } } as unknown as AppContainer
 beforeEach(() => {
   jest.clearAllMocks()
   em.fork.mockReturnValue(em); em.transactional.mockImplementation(async (fn) => fn(em)); allowed.mockResolvedValue(true)
@@ -52,6 +54,27 @@ test('both explicitly selected documents are recorded atomically in one flush', 
   expect(receipt.records).toHaveLength(2)
   expect(versions.strategy.status).toBe('approved'); expect(versions.tov.status).toBe('approved')
   expect(flush).toHaveBeenCalledTimes(1)
+})
+
+test('specialist ToV consent is stored beside the strategy receipt without mutating a research ToV row', async () => {
+  const specialistReference = { owner: 'agency_tov' as const, kind: 'KLI-TOV' as const, researchRunId: uuid(70),
+    documentId: request.pair.tov.documentId, versionId: request.pair.tov.versionId, version: '1.0' }
+  jest.mocked(readEligiblePair).mockResolvedValue({ eligible: true, qaTaskRunId: uuid(16), pair: {
+    orderRef: request.orderRef, brief: { documentId: brief.id, versionId: brief.currentVersionId },
+    strategy: { documentId: documents.strategy.id, versionId: versions.strategy.id, version: '1.0' },
+    tov: { documentId: specialistReference.documentId, versionId: specialistReference.versionId, version: '1.0', specialistReference },
+  } } as never)
+  const legacyTovVersion = versions.tov
+  delete documents.tov
+  delete versions.tov
+  const receipt = await acceptStrategyPair(container, { context, request: { ...request, approvedDocuments: ['strategy', 'tov'] } })
+  expect(receipt.records).toEqual(expect.arrayContaining([
+    expect.objectContaining({ scope: 'strategy', documentVersionId: versions.strategy.id }),
+    expect.objectContaining({ scope: 'tov', documentVersionId: specialistReference.versionId, version: specialistReference.version }),
+  ]))
+  expect(versions.strategy.approvalRecords).toHaveLength(3)
+  expect(legacyTovVersion.approvalRecords).toEqual([legacy])
+  expect(legacyTovVersion.status).toBe('ready_for_review')
 })
 
 test('exact replay returns recorded source even after currentness changes, without reinterpreting selection', async () => {

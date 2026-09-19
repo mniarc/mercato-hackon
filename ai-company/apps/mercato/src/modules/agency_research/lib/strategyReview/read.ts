@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { specialistTovReferenceSchema, type ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
@@ -39,6 +40,7 @@ function projectQa(run: AgencyResearchTaskRun | undefined, strategyVersionId: st
 
 export async function readStrategyReview(
   em: EntityManager, scope: Scope, orderRef: string, strategyVersionId: string, tovVersionId: string,
+  readSpecialistTov?: ReadSpecialistTov,
 ): Promise<StrategyReviewProjection | null> {
   async function loadVersion(templateId: PairTemplate, versionId: string) {
     const document = await findOneWithDecryption(em, AgencyResearchDocument, {
@@ -54,7 +56,43 @@ export async function readStrategyReview(
   const [strategy, tov] = await Promise.all([
     loadVersion('WZR-STRATEGIA', strategyVersionId), loadVersion('WZR-TOV', tovVersionId),
   ])
-  if (!strategy || !tov) return null
+  if (!strategy) return null
+  if (!tov) {
+    if (!readSpecialistTov) return null
+    const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...scope, orderRef, stepId: '5.4' },
+      { orderBy: { createdAt: 'desc', id: 'desc' } }, scope)
+    const bindingSchema = z.object({ specialistTov: specialistTovReferenceSchema, briefVersionId: z.string(), strategyVersionId: z.string() })
+    const candidate = runs.map((run) => ({ run, binding: bindingSchema.safeParse(run.summary) })).find(({ binding }) =>
+      binding.success && binding.data.strategyVersionId === strategyVersionId && binding.data.specialistTov.versionId === tovVersionId)
+    if (!candidate?.binding.success) return null
+    const { specialistTov: reference, briefVersionId } = candidate.binding.data
+    const pin = referencesSchema.safeParse(candidate.run.inputVersions)
+    if (!pin.success || !pin.data.some((item) => item.document_id === `agency_tov:${reference.documentId}`
+      && item.version === reference.version && item.specialistTov?.versionId === reference.versionId)
+      || pinnedVersion(candidate.run.inputVersions, 'WZR-STRATEGIA', orderRef) !== versionLabel(strategy.version.versionNo)) return null
+    const specialist = await readSpecialistTov(scope, reference)
+    if (!specialist || specialist.documentId !== reference.documentId || specialist.version !== reference.version) return null
+    const briefDocument = await findOneWithDecryption(em, AgencyResearchDocument, {
+      ...scope, orderRef, templateId: 'WZR-BRIEF', deletedAt: null,
+    }, undefined, scope)
+    const briefVersion = briefDocument && await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+      ...scope, orderRef, id: briefVersionId, documentId: briefDocument.id, templateId: 'WZR-BRIEF',
+    }, undefined, scope)
+    const briefLabel = briefVersion ? versionLabel(briefVersion.versionNo) : null
+    const brief = briefDocument && briefVersion && pinnedVersion(candidate.run.inputVersions, 'WZR-BRIEF', orderRef) === briefLabel
+      && pinnedVersion(strategy.version.inputVersions, 'WZR-BRIEF', orderRef) === briefLabel
+      ? projectVersion(briefDocument, briefVersion) : null
+    const qa = projectQa(candidate.run, strategyVersionId)
+    return {
+      orderRef,
+      strategy: { ...projectVersion(strategy.document, strategy.version), templateId: 'WZR-STRATEGIA', clientViewMd: strategy.version.clientViewMd },
+      tov: { documentId: specialist.documentId, versionId: specialist.versionId, version: specialist.version,
+        templateId: 'WZR-TOV', isCurrent: specialist.isCurrent, simulationFlag: false, versionStatus: 'draft',
+        documentStatus: qa.state === 'assessed' && qa.verdict === 'ready_for_approval' ? 'ready_for_review' : 'draft',
+        clientViewMd: specialist.renderedMd, specialistReference: reference },
+      qa, brief, tovUsesStrategy: true,
+    }
+  }
   const strategyLabel = versionLabel(strategy.version.versionNo)
   const tovLabel = versionLabel(tov.version.versionNo)
   const runs = await findWithDecryption(em, AgencyResearchTaskRun, {

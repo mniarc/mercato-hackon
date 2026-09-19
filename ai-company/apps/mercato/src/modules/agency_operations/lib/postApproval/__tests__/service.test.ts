@@ -24,8 +24,8 @@ const interpretation: ClientTriageInterpretation = {
 }
 let submission: AgencyClientSubmission
 let task: Record<string, unknown>, run: Record<string, unknown>, invitation: Record<string, unknown>, agencyCase: Record<string, unknown>
-const acceptPost = jest.fn(), findById = jest.fn()
-const services: Record<string, unknown> = { em: {}, agencyResearchService: { acceptPost }, customerUserService: { findById } }
+const acceptPost = jest.fn(), findById = jest.fn(), recordPublicationConsent = jest.fn()
+const services: Record<string, unknown> = { em: {}, agencyResearchService: { acceptPost, recordPublicationConsent }, customerUserService: { findById } }
 const container = { resolve: (name: string) => services[name] } as unknown as AppContainer
 
 beforeEach(() => {
@@ -60,6 +60,25 @@ test('applies exact content approval under the native principal, without publica
     orderRef: caseId, documentId, versionId, customerUserId,
     source: { submissionId, eventId: submission.eventId, workflowInstanceId: workflowId, agentRunId: runId, invitationTaskId: taskId },
   } })
+  expect(recordPublicationConsent).not.toHaveBeenCalled()
+})
+
+test('only the exact saved native consent choice reaches the separate producer with decision time and invited target', async () => {
+  const destination = { configVersionId: uuid(30), platform: 'LinkedIn', accountId: 'account-1', channelId: null, displayName: 'Known account' }
+  const chosen = { ...response, publicationConsent: { configVersionId: destination.configVersionId, consent: true as const } }
+  submission.original.postReviewResponse = { ...chosen, taskId }
+  task.formData = { [POST_RESPONSE_CONTEXT_KEY]: chosen }
+  task.completedAt = new Date('2026-09-19T12:30:00.000Z')
+  const context = invitation.context as Record<string, { review: Record<string, unknown> }>
+  context[POST_REVIEW_CONTEXT_KEY].review.publicationTarget = destination
+  run.input = inputSchema.parse({ original: submission.original })
+  await createPostApproval(container).accept(submission, interpretation)
+  expect(recordPublicationConsent).toHaveBeenCalledWith({ context: { ...scope, userId: principalId }, request: expect.objectContaining({
+    orderRef: caseId, documentId, versionId, customerUserId, destination, consent: true, decidedAt: '2026-09-19T12:30:00.000Z',
+    source: { submissionId, eventId: submission.eventId, workflowInstanceId: workflowId, agentRunId: runId, invitationTaskId: taskId },
+  }) })
+  submission.original.postReviewResponse.publicationConsent!.configVersionId = uuid(31)
+  await expect(createPostApproval(container).load(submission, interpretation)).resolves.toBeNull()
 })
 
 test('conditional approval/change or a message never becomes content acceptance', async () => {

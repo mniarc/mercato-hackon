@@ -4,6 +4,17 @@ import { render, screen } from '@testing-library/react'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { AgencyCaseProcess } from '../AgencyCaseProcess'
 
+test('links a saved specialist wait to intake for the same case', async () => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], strategyExecution: {
+      status: 'not_ready', orderRef: 'case-id', reason: 'specialist_tov_pending', nextAction: 'provide_specialist_corpus',
+    } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByRole('link', { name: 'agencyOperations.tovIntake.title' }))
+    .toHaveAttribute('href', '/backend/agency-operations/tov-intakes?caseId=case-id')
+})
+
 jest.mock('next/link', () => ({
   __esModule: true,
   default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
@@ -32,6 +43,84 @@ const process = {
 
 beforeEach(() => jest.clearAllMocks())
 
+test('keeps a late-material impact hold visible without suggesting approved documents were replaced', async () => {
+  const materialRevision = { status: 'not_ready', orderRef: 'case-id', reason: 'impact_review_required' }
+  const materialRevisionHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'impact_review_required', nextAction: 'review_impact', revision: materialRevision }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: { ...process,
+    submissions: [{ ...process.submissions[0], materialRevision, materialRevisionHandoff }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.materialRevision.blocked')).toBeTruthy()
+  expect(screen.getByText('impact_review_required')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.materialRevision.nextAction.review_impact')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.materialRevision.noApprovalOrResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.materialRevision.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test('shows the saved initial post hold with its next step without inventing resume', async () => {
+  const postReviewHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'missing_post_authorization', nextAction: 'review_configuration',
+    execution: { status: 'not_configured', orderRef: 'case-id', reason: 'missing_post_authorization' } }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postReviewHandoff, tasks: [],
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'post_review_waiting', waitingFor: null } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.postReviewHandoff.blocked')).toBeTruthy()
+  expect(screen.getByText('missing_post_authorization')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postReviewHandoff.nextAction.review_configuration')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postReviewHandoff.noResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.postReviewHandoff.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(screen.queryByRole('button', { name: /retry|resume/i })).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  { status: 'blocked', orderRef: 'case-id', invitation: null, reason: 'missing_post_revision_authorization', nextAction: 'review_configuration' },
+  { status: 'invited', orderRef: 'case-id', versionId: 'post-v2', invitation: { workflowInstanceId: 'post-review-run', taskId: 'client-review', replayed: false } },
+])('shows saved post correction and $status handoff without a resume or approval action', async (postRevisionHandoff) => {
+  const postRevision = postRevisionHandoff.status === 'blocked'
+    ? { status: 'not_configured', orderRef: 'case-id', reason: 'missing_post_revision_authorization' }
+    : { status: 'completed', orderRef: 'case-id', readyForReview: true }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], postRevision, postRevisionHandoff,
+      original: { text: 'Shorten the opening.', postReviewResponse: { body: 'Shorten the opening.' } },
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'post_revision_waiting', waitingFor: null },
+    }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.postRevision.${postRevisionHandoff.status}`)).toBeTruthy()
+  expect(screen.getByText('Shorten the opening.')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.postRevision.noApprovalOrResume')).toBeTruthy()
+  if (postRevisionHandoff.status === 'blocked') {
+    expect(screen.getByText('missing_post_revision_authorization')).toBeTruthy()
+    expect(screen.getByText('agencyOperations.cases.process.postRevision.nextAction.review_configuration')).toBeTruthy()
+  }
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.postRevision.inspectWorkflow' }).getAttribute('href'))
+    .toBe(`/backend/instances/${postRevisionHandoff.status === 'invited' ? 'post-review-run' : 'native-run'}`)
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.openTask' }).getAttribute('href')).toBe('/backend/tasks/visible-task')
+  expect(screen.queryByRole('button', { name: /retry|resume|approve/i })).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  { status: 'blocked', invitation: null, reason: 'missing_brief_revision_authorization', revision: { status: 'not_configured' } },
+  { status: 'invited', versionId: 'brief-v2', invitation: { workflowInstanceId: 'brief-review-run', taskId: 'client-review', replayed: false }, questions: [] },
+])('shows saved brief revision $status and inspection without a resume action', async (briefRevisionHandoff) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], briefRevisionHandoff }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.briefRevision.${briefRevisionHandoff.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.briefRevision.noApprovalOrResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.briefRevision.inspectWorkflow' }).getAttribute('href'))
+    .toBe(`/backend/instances/${briefRevisionHandoff.status === 'invited' ? 'brief-review-run' : 'native-run'}`)
+  if (briefRevisionHandoff.status === 'blocked') expect(screen.getByText('missing_brief_revision_authorization')).toBeTruthy()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
 test('shows persisted native exception and links to the actual workflow and authorized task', async () => {
   jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: process } as never)
   render(<AgencyCaseProcess caseId="case-id" />)
@@ -48,6 +137,43 @@ test('does not turn a workflow permission refusal into an empty successful proce
   expect((await screen.findByRole('alert')).textContent).toBe('agencyOperations.cases.process.forbidden')
   expect(screen.queryByText('agencyOperations.cases.process.empty')).toBeNull()
   expect(screen.queryByRole('link')).toBeNull()
+})
+
+test('shows the saved planning hold and links to inspection without offering resume', async () => {
+  const planningReviewHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'execution_disabled', nextAction: 'review_configuration' }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], planningReviewHandoff, tasks: [],
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'planning_waiting', waitingFor: null } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.planningReviewHandoff.blocked')).toBeTruthy()
+  expect(screen.getByText('execution_disabled')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.planningReviewHandoff.nextAction.review_configuration')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.planningReviewHandoff.noResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.planningReviewHandoff.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(screen.getByText(JSON.stringify(planningReviewHandoff))).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /retry|resume/i })).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test('shows the saved strategy hold and inspection link without offering a retry', async () => {
+  const strategyReviewHandoff = { status: 'blocked', orderRef: 'case-id', invitation: null,
+    reason: 'in_progress_or_interrupted', activationTaskRunId: 'saved-activation', nextAction: 'reconcile_execution' }
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], strategyReviewHandoff, tasks: [],
+      workflow: { ...process.submissions[0].workflow, currentStepId: 'strategy_waiting', waitingFor: null } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText('agencyOperations.cases.process.strategyReviewHandoff.blocked')).toBeTruthy()
+  expect(screen.getByText('in_progress_or_interrupted')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.strategyReviewHandoff.nextAction.reconcile_execution')).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.strategyReviewHandoff.noResume')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.process.strategyReviewHandoff.inspectWorkflow' }).getAttribute('href')).toBe('/backend/instances/native-run')
+  expect(screen.getByText(JSON.stringify(strategyReviewHandoff))).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /retry|resume/i })).toBeNull()
+  expect(screen.queryByText('agencyOperations.cases.process.waiting.employee')).toBeNull()
+  expect(apiCall).toHaveBeenCalledTimes(1)
 })
 
 test('shows a saved incomplete analysis handoff with exact native agent references', async () => {

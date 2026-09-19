@@ -8,7 +8,17 @@ import type { DocumentReview } from '../data/document-review'
 import en from '../i18n/en.json'
 
 jest.mock('next/navigation', () => ({ useRouter: () => ({ push: jest.fn() }), usePathname: () => '/acme/portal/tasks/task-1', useSearchParams: () => new URLSearchParams() }))
-jest.mock('next/dynamic', () => () => function StandardTask() { return <p>Standard task viewer</p> })
+jest.mock('next/dynamic', () => {
+  return (loader: () => Promise<unknown>) => {
+    const source = loader.toString()
+    const label = source.includes('publication-consent') ? 'Publication consent viewer'
+      : source.includes('strategy-review') ? 'Strategy review viewer'
+        : source.includes('plan-review') ? 'Plan review viewer'
+          : source.includes('post-review') ? 'Post review viewer'
+            : 'Standard task viewer'
+    return function DynamicTask(props: { taskId?: string }) { return <p>{label}{props.taskId ? `:${props.taskId}` : ''}</p> }
+  }
+})
 jest.mock('@open-mercato/ui/backend/utils/apiCall', () => ({ apiCall: jest.fn() }))
 jest.mock('@open-mercato/ui/portal/hooks/usePortalAppEvent', () => ({ usePortalAppEvent: jest.fn() }))
 jest.mock('@open-mercato/ui/backend/injection/useGuardedMutation', () => ({
@@ -103,5 +113,13 @@ it('leaves ordinary native tasks with the standard viewer', async () => {
   jest.mocked(apiCall).mockResolvedValueOnce(response({ ...nativeDetail, formKey: null }))
   mount()
   await screen.findByText('Standard task viewer')
+  await waitFor(() => expect(apiCall).toHaveBeenCalledTimes(1))
+})
+
+it('dispatches the separate publication-consent task without loading a document-review projection', async () => {
+  jest.mocked(apiCall).mockResolvedValueOnce(response({ ...nativeDetail, formKey: 'agency.publication-consent' }))
+  mount()
+  await screen.findByText('Publication consent viewer:task-1')
+  expect(screen.queryByText('Standard task viewer')).toBeNull()
   await waitFor(() => expect(apiCall).toHaveBeenCalledTimes(1))
 })

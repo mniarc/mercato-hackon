@@ -26,8 +26,12 @@ Sources: F06-1, F06-2, F06-3, F07-1, F07-2, F07-3, F08-1, F08-2, F08-3, F11-1, F
   or claiming a definition alone can collect evidence.
 - Configure execution policy through an authorized staff-owned native definition;
   uploaded material is evidence, never budget/payment/approval authority.
-- Targeted F11 return remains blocked by the teammate service's missing resume
-  contract. Persisted partial runs must not trigger a whole-process replay.
+- Teammate step resumption now exists (`resumeFrom` in the public research run
+  contract; merged by `064e3068e`). Its availability alone does not prove a
+  targeted F11 evidence return to the exact requesting QA task. T78 implements
+  the bounded late-material/unapproved-brief path; its joined native proof remains
+  pending. Preserve pinned outputs and never restart the whole process to hide
+  an unconnected return.
 - The existing configured analysis intake/activity is the reuse point. T36 owns
   its missing portal caller; T37 owns employee inspection of persisted partial
-  research. Neither task recreates collection or completes the F11 resume contract.
+  research. Neither task recreates collection or proves the targeted F11 return.

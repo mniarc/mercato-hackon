@@ -12,12 +12,14 @@ import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'
 import { DocumentReview } from './DocumentReview'
+import { AgencyJourneyLinks } from './journey/AgencyJourneyLinks'
 import { buildReviewRequest, canAcceptDocument, canCommentDocument, readDocumentReview } from '../data/document-review'
 
 const StandardTaskPage = dynamic(() => import('@open-mercato/core/modules/workflows/frontend/[orgSlug]/portal/tasks/[id]/page'))
 const StrategyPairReview = dynamic(() => import('./strategy-review/StrategyPairReview').then((module) => module.StrategyPairReview))
 const PlanReview = dynamic(() => import('./plan-review/PlanReview').then((module) => module.PlanReview))
 const PostReview = dynamic(() => import('./post-review/PostReview').then((module) => module.PostReview))
+const PublicationConsent = dynamic(() => import('./publication-consent/PublicationConsent').then((module) => module.PublicationConsent))
 
 type Props = { params: { orgSlug: string; id: string } }
 type Detail = { ok: boolean; task?: { id: string; taskName: string; status: string; formSchema: unknown; updatedAt?: string }; canComplete?: boolean; formKey?: string | null }
@@ -130,12 +132,15 @@ function TaskLoader({ params }: Props) {
     canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
   if (detail.formKey === 'agency.post-review') return <PostReview taskId={params.id} orgSlug={params.orgSlug}
     canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
+  if (detail.formKey === 'agency.publication-consent') return <PublicationConsent taskId={params.id} orgSlug={params.orgSlug}
+    canComplete={detail.canComplete === true} taskStatus={detail.task.status} updatedAt={detail.task.updatedAt} />
   if (resolution.kind === 'other') return <StandardTaskPage params={params} />
   if (!review) return <div className="space-y-4"><ErrorMessage label={t('agency.review.invalid')} />{back}</div>
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader label={t('agency.review.pageTitle')} title={detail.task.taskName} description={t('agency.review.description')} action={back} />
+      <AgencyJourneyLinks orgSlug={params.orgSlug} caseId={review.caseId} />
       <PortalCard>
         <DocumentReview key={versionKey} review={review} canRespond={canRespond && ['PENDING', 'IN_PROGRESS'].includes(detail.task.status)} submitting={submitting || refreshing} submitted={submitted} error={error} onRespond={respond} />
       </PortalCard>

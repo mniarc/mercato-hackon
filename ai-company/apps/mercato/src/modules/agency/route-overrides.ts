@@ -1,6 +1,9 @@
 import type { PageRouteOverridesMap } from '@open-mercato/shared/modules/overrides'
 
 export const agencyPortalTaskRoutes: PageRouteOverridesMap = {
+  '/frontend/[orgSlug]/portal/dashboard': {
+    load: async () => (await import('./components/journey/AgencyDashboardPage.client')).default,
+  },
   '/frontend/[orgSlug]/portal/tasks': {
     load: async () => (await import('./components/AgencyTasksPage.client')).default,
   },

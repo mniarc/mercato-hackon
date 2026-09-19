@@ -34,28 +34,38 @@ not to re-check the same fact.
 
 ## Current delivery objective
 
-Deliver the connected agency slice through real teammate implementations: approved
-zero-charge demo purchase → persisted case; client answers → updated findings and
-QA-ready brief → explicit acceptance → strategy/ToV pair → plan invitation.
-Complete the normal-use holds and recoveries needed by this slice; preserve saved
-work, exact-version approvals and teammate Polish copy. Use T25, T27, T58, T59
-and T60 as the initial workstreams, not a promise that task counts equal completion.
+Close partial settled stories through real teammate implementations and their
+required normal-use alternatives; task counts are not product completion.
+P0: replace reachable production scaffolds with authoritative teammate implementations
+and connect their real process into the app before adding local fallback behavior.
+Preserve native workflow/auth/approval boundaries and test-only intelligence fixtures;
+neither is a substitute production agent to remove merely because it is an adapter.
+Independent workstreams: T27/T58 client answers → accepted brief → strategy/ToV
+→ plan invitation; T65 payment recovery; approved T66 exact-target consent,
+retaining `canSend:false`. T25 demo purchase and T59 copy extraction are delivered.
+Preserve saved work, exact-version approvals and teammate Polish copy.
 
-Parallel owners cover purchase, client-answer production, expected-outcome recovery
-and copy extraction where paths are independent. The coordinator owns shared
-contracts, runtime, integration and focused journey execution. Reassign completed
-agents to demonstrated missing dependencies, not speculative scaffolds or duplicate
-reviews. Record remaining story criteria separately from completed bounded tasks.
+Direct agents own disjoint implementation paths. The coordinator orchestrates
+owners, shared contracts and integration; delegate implementation and runtime work.
+One delegated runtime owner holds the lease for actual shared-state conflicts;
+serialize those operations only, while unrelated implementation continues.
+A separate capture-only owner saves screenshots under gitignored `App/.visuals/`.
+No visual review, HTML inspection or CSS changes until explicitly requested.
 
-Finish when the connected outcomes and their required alternative paths are proved
-on the persistent runtime and coherent verified changes are committed, or report
-the exact remaining external decisions after independent authorized work is exhausted.
-Fetch origin teammate branches every 45 minutes while this delivery run is active;
-integrate actual updates with ancestry and dirty work preserved. Unchanged refs
-require no rerun. No paid model calls, real payments/publication, automatic pushes
-or routine database resets. Local intelligence fixtures must not fabricate client decisions,
-approvals or successful producer results. The corresponding product goal is active;
-this process describes its work, not a separate background scheduler.
+Maintain the dedicated recovery exploration → task → implementation cycle below.
+Keep source implementation, native/fixture verification and live-model proof separate;
+paid calls are not required to complete an implemented feature. After each milestone,
+pick the next ready settled-story gap instead of stopping after one slice.
+Finish only when the authorized scope and required alternatives are delivered and
+proved, or report exact external decisions after useful authorized work is exhausted.
+
+Check known teammate branches every 45 minutes; integrate actual updates with
+ancestry and dirty work preserved. Unchanged refs require no rerun. The user now
+authorizes pushing coherent verified milestones and useful demo/manual-testing tools
+on main; leave unfinished work out. No paid model calls, real payments/publication
+or routine database resets.
+Intelligence fixtures must not fabricate client decisions, approvals or producer success.
+The renewed product goal is active; this loop is not a separate background scheduler.
 
 Keep each capability collocated inside `agency_operations`. Portal and backend
 UI stay in self-contained feature directories. Domain code does not import UI,

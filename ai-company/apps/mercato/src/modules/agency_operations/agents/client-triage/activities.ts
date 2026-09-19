@@ -10,6 +10,10 @@ import { createBriefApproval } from './briefApproval'
 import { createStrategyPairApproval } from '../../lib/strategyPairApproval/service'
 import { createPlanApproval } from '../../lib/planApproval/service'
 import { createPostApproval } from '../../lib/postApproval/service'
+import { createBriefRevisionBinding } from '../../lib/briefRevision/binding'
+import { createPostRevisionBinding } from '../../lib/postRevision/binding'
+import { createMaterialRevisionBinding } from '../../lib/materialRevision/binding'
+import { prepareMaterialContext } from '../../lib/materialRevision/source'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
@@ -24,6 +28,9 @@ export function createClientTriageActivities(container: AppContainer) {
   const strategyPairApproval = createStrategyPairApproval(container)
   const planApproval = createPlanApproval(container)
   const postApproval = createPostApproval(container)
+  const briefRevision = createBriefRevisionBinding(container)
+  const postRevision = createPostRevisionBinding(container)
+  const materialRevision = createMaterialRevisionBinding(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -38,7 +45,8 @@ export function createClientTriageActivities(container: AppContainer) {
     async prepare(_input: unknown, context: unknown) {
       if (!isClientTriageEnabled()) throw new Error('[internal] Native client triage is disabled')
       const { submission } = await original(context)
-      return inputSchema.parse({ original: submission.original })
+      const materialContext = await prepareMaterialContext(container, submission)
+      return inputSchema.parse({ original: submission.original, ...(materialContext ? { materialContext } : {}) })
     },
     async project(_input: unknown, context: unknown) {
       const { submission, workflowInstance } = await original(context)
@@ -52,6 +60,12 @@ export function createClientTriageActivities(container: AppContainer) {
       if (planDecision) allowedTargets.push('plan_topic_decision')
       const postDecision = await postApproval.load(submission, interpretation)
       if (postDecision) allowedTargets.push('post_content_decision')
+      const revision = await briefRevision.load(submission, interpretation)
+      if (revision) allowedTargets.push('brief_revision')
+      const postCorrection = await postRevision.load(submission, interpretation)
+      if (postCorrection) allowedTargets.push('post_revision')
+      const material = await materialRevision.load(submission, interpretation)
+      if (material) allowedTargets.push('material_revision')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
@@ -62,7 +76,8 @@ export function createClientTriageActivities(container: AppContainer) {
         kind: result.disposition.kind, source: 'native_agent', workerId: CLIENT_TRIAGE_AGENT_ID,
         rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
         targets: { caseId: submission.caseId, submissionId: submission.id,
-          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}) }, effectsApplied: false,
+          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId ?? pairApproval?.pair.strategy.versionId ?? planDecision?.versionId ?? postDecision?.versionId } : {}),
+          ...(result.disposition.kind === 'change' ? { documentVersionReference: revision?.briefVersionId ?? postCorrection?.postVersionId ?? material?.materialContext.brief?.versionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },

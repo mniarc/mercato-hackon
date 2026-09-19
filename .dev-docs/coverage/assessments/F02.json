@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F02-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/contracts.ts",
+              "note": "Buyer schema stores contact, brand/company, website, billing, one market/language under fixed product; positive form submission proved. "
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/contracts.ts",
+              "note": "Required website and mandatory billing/contact fields are server-validated; invalid-input runtime not separately demonstrated."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "Editable pre-submit form sends validated originalPurchase into immutable order metadata."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/contracts.ts",
+              "note": "purchaseGoal may be empty; schema does not require substantive optional goal."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/contracts.ts",
+              "note": "Request accepts versioned fixed demo product, not negotiated service scope."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the configured fixed offer was purchased; the failed payment remained blocked with no case, retry reused the exact order/payment with a new provider session, pending still had no case, and capture produced the single paid case. Native zero-charge test gateway only; no real payment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F02-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "Native order metadata retains termsVersion, offerVersion, originalPurchase and termsAcceptedAt."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/contracts.ts",
+              "note": "acceptedTerms is literal true; missing consent cannot pass purchase schema."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "T88 captures exact server-owned demo offer and EN/PL terms once in native Sales metadata; conversion and payment retry retain the purchased snapshot and version IDs."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Customer-scoped reads return stored purchaseHistory; legacy orders explicitly report unavailable historical text rather than today's terms."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/components/purchase/useDemoPurchase.ts",
+              "note": "Acknowledged order URL reloads through the existing ownership-checked GET; invalid or foreign links expose no receipt."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/components/purchase/DemoPurchaseStatus.tsx",
+              "note": "Existing portal displays saved offer, exact stored terms, versions and acceptance time, including explicit legacy unavailability."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/__tests__/purchaseSnapshot.test.ts",
+              "note": "T88 snapshot, service and portal suites passed: 3 suites/31 checks, including catalogue change, scoped read/retry, preserved Polish text and reload. Focused proof only; no new native-app or live-model run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/demoOffer.ts",
+              "note": "Purchase terms create no document acceptance; demo explicitly does not authorize paid agent work or publication."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "UI confirms purchase terms; it does not require acceptance of an empty document template."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,7 @@
 import { z } from 'zod'
+import { paidCaseProcessingSchema } from '../paidCaseAnalysis/status'
+import { paymentConfirmationStateSchema } from '../paymentConfirmation/contracts'
+import { purchaseHistorySchema } from './purchaseSnapshot'
 
 export const DEMO_PURCHASE_SERVICE = 'agencyDemoPurchaseService' as const
 
@@ -42,7 +45,14 @@ export const demoPurchaseReceiptSchema = z.object({
   caseId: z.uuid().nullable(),
   workflowInstanceId: z.uuid().nullable(),
   reason: z.string().optional(),
+  canRetryPayment: z.boolean().optional(),
+  canConfirmPayment: z.boolean().optional(),
+  purchaseHistory: purchaseHistorySchema.optional(),
+  processing: paidCaseProcessingSchema.optional(),
+  confirmation: paymentConfirmationStateSchema.optional(),
 })
+
+export const demoPaymentRetrySchema = z.object({ providerSessionId: z.string().trim().min(1).max(255) }).strict()
 
 export type PurchaseIdentity = z.infer<typeof purchaseIdentitySchema>
 export type DemoPurchaseRequest = z.infer<typeof demoPurchaseRequestSchema>
@@ -66,5 +76,6 @@ export type ActivatePaidPurchase = (input: ActivatePaidPurchaseInput) => Promise
 export type DemoPurchaseService = {
   start(identity: PurchaseIdentity, input: DemoPurchaseRequest): Promise<DemoPurchaseReceipt>
   confirm(identity: PurchaseIdentity, orderId: string): Promise<DemoPurchaseReceipt>
+  retryPayment(identity: PurchaseIdentity, orderId: string, input: z.infer<typeof demoPaymentRetrySchema>): Promise<DemoPurchaseReceipt>
   read(identity: PurchaseIdentity, orderId: string): Promise<DemoPurchaseReceipt>
 }

@@ -1,0 +1,534 @@
+{
+  "schemaVersion": 1,
+  "notes": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory.",
+  "agents": [
+    {
+      "id": "agency_research.page_extractor",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "integrationIds": [
+        "research-sources-to-audit"
+      ]
+    },
+    {
+      "id": "agency_research.proof_builder",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "integrationIds": [
+        "research-sources-to-audit"
+      ]
+    },
+    {
+      "id": "agency_research.content_seeder",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "integrationIds": [
+        "research-sources-to-audit"
+      ]
+    },
+    {
+      "id": "agency_research.people_finder",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "integrationIds": [
+        "research-people-to-sources"
+      ]
+    },
+    {
+      "id": "agency_research.channel_selector",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "integrationIds": [
+        "research-people-to-sources"
+      ]
+    },
+    {
+      "id": "agency_research.conflict_finder",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "integrationIds": [
+        "research-sources-to-audit"
+      ]
+    },
+    {
+      "id": "agency_research.coverage_assessor",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "integrationIds": [
+        "research-sources-to-audit"
+      ]
+    },
+    {
+      "id": "agency_research.audit_mapper",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/audit.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-audit-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.audit_voice",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/audit.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-audit-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.audit_gaps_assets",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/audit.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-audit-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.competitor_selector",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/competitors.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/competitors.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-competitors-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.competitor_card",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/competitors.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/competitors.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-competitors-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.competitor_channels",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/competitors.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/competitors.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-competitors-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.competitor_synthesizer",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/competitors.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/competitors.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "integrationIds": [
+        "research-competitors-to-findings"
+      ]
+    },
+    {
+      "id": "agency_research.field_mapper",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/findings.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "integrationIds": [
+        "research-findings-to-brief"
+      ]
+    },
+    {
+      "id": "agency_research.question_writer",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/findings.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "integrationIds": [
+        "research-findings-to-brief"
+      ]
+    },
+    {
+      "id": "agency_research.readiness_assessor",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/findings.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "integrationIds": [
+        "research-findings-to-brief"
+      ]
+    },
+    {
+      "id": "agency_research.research_qa",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/findings.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "integrationIds": [
+        "research-findings-to-brief"
+      ]
+    },
+    {
+      "id": "agency_research.brief_writer.offer_audience_direction",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/brief.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/briefReviewHandoff.ts",
+      "integrationIds": [
+        "research-brief-to-client-review"
+      ]
+    },
+    {
+      "id": "agency_research.brief_writer.promise_voice",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/brief.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/briefReviewHandoff.ts",
+      "integrationIds": [
+        "research-brief-to-client-review"
+      ]
+    },
+    {
+      "id": "agency_research.brief_writer.channel_success_assets",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/brief.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/briefReviewHandoff.ts",
+      "integrationIds": [
+        "research-brief-to-client-review"
+      ]
+    },
+    {
+      "id": "agency_research.brief_qa",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/brief.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/briefReviewHandoff.ts",
+      "integrationIds": [
+        "research-brief-to-client-review"
+      ]
+    },
+    {
+      "id": "agency_research.brief_answers",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/agent.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/reviewHandoff.ts",
+      "integrationIds": [
+        "brief-answer-to-revised-review"
+      ]
+    },
+    {
+      "id": "agency_research.strategy_writer.choice_tension_uvp",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-brief-to-strategy-pair-review"
+      ]
+    },
+    {
+      "id": "agency_research.strategy_writer.proof_messages",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-brief-to-strategy-pair-review"
+      ]
+    },
+    {
+      "id": "agency_research.strategy_writer.pillars_channel_boundaries",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-brief-to-strategy-pair-review"
+      ]
+    },
+    {
+      "id": "agency_research.tov_writer",
+      "processId": "retired.sole-tov-boundary",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules.ts",
+      "notes": "Source definition retained for teammate history, but the app override registers it as null. It is intentionally unreachable: agency_tov is the sole ToV producer and strategy consumes its exact saved version."
+    },
+    {
+      "id": "agency_research.strategy_qa",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/strategy.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-brief-to-strategy-pair-review"
+      ]
+    },
+    {
+      "id": "agency_research.plan_writer.topics",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/plan.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/planningExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-pair-to-plan-review"
+      ]
+    },
+    {
+      "id": "agency_research.plan_writer.balance_recommendation",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/plan.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/planningExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-pair-to-plan-review"
+      ]
+    },
+    {
+      "id": "agency_research.plan_qa",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/plan.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/planningExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-pair-to-plan-review"
+      ]
+    },
+    {
+      "id": "agency_research.post_author",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/post.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/post.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/postExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-plan-to-post-review"
+      ]
+    },
+    {
+      "id": "agency_research.post_editor",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/agents/post.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/post.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/postExecution/reviewHandoff.ts",
+      "integrationIds": [
+        "accepted-plan-to-post-review"
+      ]
+    },
+    {
+      "id": "agency_tov.batch_analyst",
+      "processId": "agency_operations.tov-research.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
+      "integrationIds": [
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
+      ],
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof."
+    },
+    {
+      "id": "agency_tov.profile_synthesizer",
+      "processId": "agency_operations.tov-research.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
+      "integrationIds": [
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
+      ],
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof."
+    },
+    {
+      "id": "agency_tov.brand_synthesizer",
+      "processId": "agency_operations.tov-research.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
+      "integrationIds": [
+        "material-to-tov-profile",
+        "specialist-tov-to-strategy"
+      ],
+      "notes": "Authorized staff intake starts the owned native ToV workflow from a paid case and the exact completed KLI-TOV version continues strategy; source wiring is not runtime proof."
+    },
+    {
+      "id": "agency_tov.source_scout",
+      "processId": "agency_tov.cli.discover",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/corpus/sources.ts",
+      "integrationIds": [
+        "scout-to-tov-targets"
+      ],
+      "notes": "Conditional CLI --discover only; not invoked by native workflow or canonical agency flow."
+    }
+  ],
+  "integrations": [
+    {
+      "id": "paid-capture-to-analysis",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts"
+    },
+    {
+      "id": "research-people-to-sources",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/people.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_research/lib/researchService.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts"
+    },
+    {
+      "id": "research-sources-to-audit",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts"
+    },
+    {
+      "id": "research-audit-to-findings",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts"
+    },
+    {
+      "id": "research-competitors-to-findings",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/competitors.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts"
+    },
+    {
+      "id": "research-findings-to-brief",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts"
+    },
+    {
+      "id": "research-brief-to-client-review",
+      "processId": "agency_operations.analysis.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/briefReviewHandoff.ts"
+    },
+    {
+      "id": "brief-answer-to-revised-review",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/briefRevision/reviewHandoff.ts"
+    },
+    {
+      "id": "accepted-brief-to-strategy-pair-review",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/strategy.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts"
+    },
+    {
+      "id": "accepted-pair-to-plan-review",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/plan.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/planningExecution/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/planningExecution/reviewHandoff.ts"
+    },
+    {
+      "id": "accepted-plan-to-post-review",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/post.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/postExecution/activity.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/postExecution/reviewHandoff.ts"
+    },
+    {
+      "id": "material-to-tov-profile",
+      "processId": "agency_operations.tov-research.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/researchService.ts",
+      "notes": "Authorized staff intake supplies a normalized, case-bound public-post corpus to the owned native pipeline. Source wiring is not runtime proof."
+    },
+    {
+      "id": "specialist-tov-to-strategy",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/specialistContinuation.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovIntake/service.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/activity.ts",
+      "notes": "Consumes the exact saved agency_tov KLI-TOV reference after the native wait/resume boundary; model completion alone does not prove this handoff."
+    },
+    {
+      "id": "scout-to-tov-targets",
+      "processId": "agency_tov.cli.discover",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
+      "notes": "CLI target selection exists. No canonical app trigger or handoff proven."
+    }
+  ]
+}

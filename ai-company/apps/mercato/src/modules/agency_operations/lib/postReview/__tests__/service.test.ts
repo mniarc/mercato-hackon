@@ -21,9 +21,10 @@ let instance: WorkflowInstance | null
 let task: UserTask
 let submission: AgencyClientSubmission | null
 const getPostAcceptance = jest.fn(), submit = jest.fn(), completeUserTask = jest.fn(), startWorkflow = jest.fn(), executeWorkflow = jest.fn()
+const getPublicationConsent = jest.fn()
 const em = { transactional: async (fn: (manager: unknown) => unknown) => fn(em) }
 const services: Record<string, unknown> = {
-  em, agencyResearchService: { getPostAcceptance }, agencyClientSubmissionService: { submit },
+  em, agencyResearchService: { getPostAcceptance, getPublicationConsent }, agencyClientSubmissionService: { submit },
   customerUserService: { findById: async () => ({ customerEntityId, isActive: true }) }, customerRbacService: { loadAcl: async () => ({ isPortalAdmin: false }) },
   taskHandler: { completeUserTask }, rbacService: { userHasAllFeatures: async () => true }, workflowExecutor: { startWorkflow, executeWorkflow },
   workflowDefinitionAuthoring: { findOwnedDefinition: async () => ({ enabled: true, metadata: { generatedBy: { module: 'agency_operations', ownerId: 'post_review' } } }) },
@@ -31,10 +32,11 @@ const services: Record<string, unknown> = {
 const container = { resolve: (key: string) => services[key] } as unknown as AppContainer
 beforeEach(() => {
   jest.clearAllMocks()
-  instance = Object.assign(new WorkflowInstance(), { id: workflowId, workflowId: WORKFLOW, ...scope, status: 'PAUSED', currentStepId: 'client_review', correlationKey: `agency-post:${caseId}:${postVersionId}`, context: { [INVITATION]: { caseId, customerEntityId, customerUserId, review } } })
+  instance = Object.assign(new WorkflowInstance(), { id: workflowId, workflowId: WORKFLOW, ...scope, status: 'PAUSED', currentStepId: 'client_review', correlationKey: `agency-post:${caseId}:${postVersionId}`, context: { [INVITATION]: { caseId, customerEntityId, customerUserId, review: structuredClone(review) } } })
   task = Object.assign(new UserTask(), { id: taskId, workflowInstanceId: workflowId, assignedTo: customerUserId, assigneeKind: 'customer', status: 'PENDING', ...scope })
   submission = null
   getPostAcceptance.mockResolvedValue(producer)
+  getPublicationConsent.mockResolvedValue({ target: null, state: 'missing', record: null })
   jest.mocked(renderPostReview).mockImplementation(async () => structuredClone(review) as never)
   jest.mocked(resolvePortalTaskPrincipal).mockResolvedValue({ ok: true, principal: {} } as never)
   jest.mocked(decidePortalTaskAccess).mockImplementation(() => ({ visible: true, actable: task.status === 'PENDING' } as never))
@@ -103,3 +105,26 @@ test('completed review exposes the saved content receipt and invitation replay n
   expect(startWorkflow).not.toHaveBeenCalled()
 })
 
+test('only an explicit choice for the invited current destination enters G and exposes a separate saved receipt', async () => {
+  const target = { configVersionId: uuid(20), platform: 'LinkedIn', accountId: 'account-1', channelId: null, displayName: 'Agency page' }
+  Object.assign((instance!.context[INVITATION] as { review: unknown }).review!, { publicationTarget: target })
+  getPublicationConsent.mockResolvedValue({ target, state: 'missing', record: null })
+  const input = postReviewRequestSchema.parse({ ...request, publicationConsent: { configVersionId: target.configVersionId, consent: true } })
+  const service = createPostReviewService(container)
+  await service.respond(auth, taskId, input)
+  expect(submit).toHaveBeenCalledWith(expect.anything(), caseId, expect.objectContaining({ postReviewResponse: { taskId, ...input }, text: expect.stringContaining('separately consents') }))
+  getPostAcceptance.mockResolvedValue({ ...producer, receipt: { at: '2026-09-19T12:30:00.000Z' } })
+  getPublicationConsent.mockResolvedValue({ target, state: 'valid', record: { at: '2026-09-19T12:31:00.000Z' } })
+  expect(await service.read(auth, taskId)).toMatchObject({ review: { publicationConsentReceipt: { consentedAt: '2026-09-19T12:31:00.000Z' } } })
+})
+
+test('missing or changed destination never accepts a publication choice', async () => {
+  const service = createPostReviewService(container)
+  const input = postReviewRequestSchema.parse({ ...request, publicationConsent: { configVersionId: uuid(20), consent: true } })
+  await expect(service.respond(auth, taskId, input)).rejects.toMatchObject({ status: 409 })
+  const target = { configVersionId: uuid(20), platform: 'LinkedIn', accountId: 'account-1', channelId: null, displayName: 'Agency page' }
+  Object.assign((instance!.context[INVITATION] as { review: unknown }).review!, { publicationTarget: target })
+  getPublicationConsent.mockResolvedValue({ target: { ...target, accountId: 'other-account' }, state: 'missing', record: null })
+  await expect(service.respond(auth, taskId, input)).rejects.toMatchObject({ status: 409 })
+  expect(completeUserTask).not.toHaveBeenCalled()
+})

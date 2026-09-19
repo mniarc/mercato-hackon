@@ -7,8 +7,9 @@ Sources: F40-1, F40-2, F41-1, F41-2, F42-1, F42-2, F43-1, F43-2, F44-1, F44-2, F
 
 ## Deliver
 
-- Extend existing immutable intake/context to prepurchase contact/product without
-  inventing an order; retain original content and retry-stable event identity.
+- T89 owns the independent prepurchase contact/product question path without an
+  invented order. Reuse its saved intake when connecting change-impact work;
+  do not block fixed-offer questions on this task's purchased-scope dependencies.
 - Reuse native typed triage. Only relevant change intents run scope assessment
   against pinned offer, then impact analysis against actual dependency versions.
 - Persist the decision/rationale once; trusted code authorizes the destination,

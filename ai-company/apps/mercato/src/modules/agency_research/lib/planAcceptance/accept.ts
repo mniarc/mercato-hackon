@@ -1,4 +1,5 @@
 import { isDeepStrictEqual } from 'node:util'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
@@ -10,7 +11,7 @@ import { readPlanReview } from './read'
 function conflict(): never { throw new CrudHttpError(409, { error: 'api.errors.conflict' }) }
 
 /** Server caller proves native task/customer binding and saved G disposition; public service owns RBAC. */
-export async function acceptPlan(manager: EntityManager, rawInput: unknown): Promise<PlanAcceptanceReceipt> {
+export async function acceptPlan(manager: EntityManager, rawInput: unknown, readSpecialistTov?: ReadSpecialistTov): Promise<PlanAcceptanceReceipt> {
   const { context, request } = acceptPlanInputSchema.parse(rawInput)
   const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
   return manager.transactional(async (em) => {
@@ -28,7 +29,10 @@ export async function acceptPlan(manager: EntityManager, rawInput: unknown): Pro
         || record.selectedTopicId !== request.selectedTopicId || !isDeepStrictEqual(record.source, source)) conflict()
       return { status: 'plan_accepted', orderRef: request.orderRef, record, replayed: true }
     }
-    const review = await readPlanReview(em, scope, { orderRef: request.orderRef, planVersionId: request.versionId })
+    const reviewInput = { orderRef: request.orderRef, planVersionId: request.versionId }
+    const review = readSpecialistTov
+      ? await readPlanReview(em, scope, reviewInput, readSpecialistTov)
+      : await readPlanReview(em, scope, reviewInput)
     if (review.status !== 'ready' || review.plan.documentId !== document.id || !review.topics.some((topic) => topic.topicId === request.selectedTopicId)) conflict()
     const record = planAcceptanceRecordSchema.parse({ person: request.customerUserId, at: new Date().toISOString(), scope: 'plan',
       version: review.plan.version, documentId: document.id, documentVersionId: version.id,

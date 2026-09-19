@@ -10,6 +10,7 @@ import { configurePlanReviewWorkflow } from './lib/planReview/configure'
 import { configurePostReviewWorkflow } from './lib/postReview/configure'
 import { configureDemoPurchase } from './lib/orderBootstrap/configure'
 import { configureDemoPurchaseWorkflow } from './lib/orderBootstrap/workflow'
+import { configureSalesQuestions } from './lib/salesQuestions/configure'
 
 const configureTov: ModuleCli = {
   command: 'configure-tov',
@@ -159,4 +160,23 @@ const resumeAnalysis: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis]
+const configureSales: ModuleCli = {
+  command: 'configure-sales-questions',
+  async run(argv) {
+    const usage = '[internal] Usage: agency_operations configure-sales-questions --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> --allow-execution true'
+    const options = new Map<string, string>()
+    for (let index = 0; index < argv.length; index += 2) {
+      if (!['--tenant', '--organization', '--user', '--allow-execution'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
+      options.set(argv[index].slice(2), argv[index + 1])
+    }
+    if (options.get('allow-execution') !== 'true') throw new Error(usage)
+    const container = await createRequestContainer()
+    try {
+      const result = await configureSalesQuestions(container, { tenantId: options.get('tenant'), organizationId: options.get('organization'),
+        userId: options.get('user'), allowExecution: true })
+      process.stdout.write(`${JSON.stringify(result)}\n`)
+    } finally { await container.dispose() }
+  },
+}
+
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis, configureSales]

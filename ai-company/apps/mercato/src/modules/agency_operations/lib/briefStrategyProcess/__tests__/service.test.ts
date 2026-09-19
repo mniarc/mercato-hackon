@@ -180,3 +180,90 @@ test('invitation cannot be created by an unprivileged caller', async () => {
   await expect(createBriefReviewService(container).invite({ ...scope, caseId, versionId, userId: uuid(40) })).rejects.toMatchObject({ status: 403 })
   expect(startWorkflow).not.toHaveBeenCalled()
 })
+
+test('saved unchanged material opens only its actual current brief questions, replayed by source', async () => {
+  const nativeId = uuid(60), followUpId = uuid(61)
+  const questions = [{ questionId: 'audience', question: 'Who is your audience?' }]
+  const result = { status: 'needs_client_data', orderRef: caseId, submissionId, previousBriefVersionId: versionId,
+    briefVersionId: null, sourcesVersionId: null as string | null, findingsVersionId: null,
+    qaTaskRunId: null, qaVerdict: null, analysisQaTaskRunId: null, freezeTaskRunId: null,
+    questions, taskRunIds: [uuid(62)], documentVersionIds: [], agentRunIds: [], spentPln: 0 }
+  const source = Object.assign(new AgencyClientSubmission(), { id: submissionId, ...scope, caseId, customerEntityId,
+    submittedByCustomerUserId: customerUserId, workflowInstanceId: nativeId, original: { materialAttachmentId: uuid(63) } })
+  const native = { id: nativeId, context: { execute_material_revision_result: { result } } }
+  let followUp: WorkflowInstance | null = null
+  jest.mocked(findOneWithDecryption).mockImplementation(async (_manager, entity, rawWhere) => {
+    const where = rawWhere as Record<string, unknown>
+    if (where.tenantId !== tenantId || where.organizationId !== organizationId) return null
+    if (entity === AgencyCase) return { id: caseId, customerEntityId, submittedByCustomerUserId: customerUserId } as never
+    if (entity === AgencyClientSubmission) return source as never
+    if (entity === WorkflowInstance) return (where.id === nativeId ? native : followUp) as never
+    if (entity === UserTask) return task as never
+    return null
+  })
+  getBriefReview.mockResolvedValue({ ...projection, questions: [{ question_id: 'audience', question: questions[0].question }],
+    qa: { ...projection.qa, verdict: 'needs_client_data' } })
+  jest.mocked(renderBriefReview).mockResolvedValue({ ...review, status: 'needs_review' })
+  startWorkflow.mockImplementation(async (_manager, options) => {
+    followUp = Object.assign(new WorkflowInstance(), { id: followUpId, ...options, context: options.initialContext })
+    return followUp
+  })
+  const service = createBriefReviewService(container)
+  const input = { ...scope, caseId, versionId, sourceSubmissionId: submissionId, userId: uuid(40) }
+  await expect(service.invite(input)).resolves.toMatchObject({ taskId, replayed: false })
+  await expect(service.invite(input)).resolves.toMatchObject({ taskId, replayed: true })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  result.sourcesVersionId = uuid(64)
+  await expect(service.invite(input)).rejects.toMatchObject({ status: 409 })
+  result.sourcesVersionId = null
+  result.questions = [{ questionId: 'invented', question: 'Unrelated question' }]
+  await expect(service.invite(input)).rejects.toMatchObject({ status: 409 })
+  result.questions = []
+  await expect(service.invite(input)).rejects.toMatchObject({ status: 409 })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+})
+
+test('saved unanswered revision creates one same-version follow-up and its real portal response returns to G', async () => {
+  const nativeId = uuid(50)
+  const followUpId = uuid(51)
+  const followUpTaskId = uuid(52)
+  const oldTaskId = taskId
+  const body = 'I do not know yet'
+  const original = { channel: 'portal', kind: 'message', documentId, versionId, externalEventId: 'first-answer', body }
+  const source = Object.assign(new AgencyClientSubmission(), { id: submissionId, ...scope, caseId, customerEntityId, submittedByCustomerUserId: customerUserId,
+    workflowInstanceId: nativeId, original: { eventId: briefResponseEventId(oldTaskId, original.externalEventId), text: body, reviewResponse: { taskId: oldTaskId, ...original } } })
+  const result = { status: 'needs_client_data', orderRef: caseId, submissionId, previousBriefVersionId: versionId,
+    briefVersionId: null, findingsVersionId: null, qaTaskRunId: null, qaVerdict: null, analysisQaTaskRunId: null, freezeTaskRunId: null,
+    answeredQuestionIds: [], unresolvedQuestionIds: ['audience'], questions: [{ questionId: 'audience', question: 'Who is your audience?' }], taskRunIds: [], documentVersionIds: [], agentRunIds: [], spentPln: 0 }
+  const native = { id: nativeId, ...scope, workflowId: 'agency_operations.client-submission.native.v1', context: { execute_brief_revision_result: { result } } }
+  let followUp: WorkflowInstance | null = null
+  jest.mocked(findOneWithDecryption).mockImplementation(async (_manager, entity, rawWhere) => {
+    const where = rawWhere as Record<string, unknown>
+    if (where.tenantId !== tenantId || where.organizationId !== organizationId) return null
+    if (entity === AgencyCase) return { id: caseId, customerEntityId, submittedByCustomerUserId: customerUserId } as never
+    if (entity === AgencyClientSubmission) return (where.id === submissionId ? source : submission) as never
+    if (entity === WorkflowInstance) return (where.id === nativeId ? native : followUp) as never
+    if (entity === UserTask) return (!where.status || where.status === task.status) ? task as never : null
+    return null
+  })
+  startWorkflow.mockImplementation(async (_manager, options) => {
+    followUp = Object.assign(new WorkflowInstance(), { id: followUpId, ...options, status: 'PAUSED', currentStepId: 'client_review', context: options.initialContext })
+    instance = followUp
+    task = Object.assign(new UserTask(), { id: followUpTaskId, workflowInstanceId: followUpId, assignedTo: customerUserId, assigneeKind: 'customer', status: 'PENDING', ...scope })
+    return followUp
+  })
+  const service = createBriefReviewService(container)
+  const input = { ...scope, caseId, versionId, sourceSubmissionId: submissionId, userId: uuid(40) }
+  await expect(service.invite(input)).resolves.toMatchObject({ taskId: followUpTaskId, replayed: false })
+  await expect(service.invite(input)).resolves.toMatchObject({ taskId: followUpTaskId, replayed: true })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  expect(startWorkflow.mock.calls[0][1]).toMatchObject({ correlationKey: `agency-brief:${caseId}:${versionId}:reply:${submissionId}`, initialContext: { briefReviewInvitation: { review } } })
+  const answer = { ...request, kind: 'message' as const, externalEventId: 'second-answer', body: 'Our audience is agency owners.' }
+  await expect(service.respond(auth, caseId, answer)).resolves.toMatchObject({ status: 'response_received', replayed: false })
+  await expect(service.respond(auth, caseId, answer)).resolves.toMatchObject({ status: 'response_received', replayed: true })
+  expect(submit).toHaveBeenCalledTimes(1)
+  expect(submit).toHaveBeenCalledWith({ ...scope, customerEntityId, customerUserId }, caseId, expect.objectContaining({ text: answer.body, reviewResponse: { ...answer, taskId: followUpTaskId } }))
+  result.previousBriefVersionId = uuid(90)
+  await expect(service.invite(input)).rejects.toMatchObject({ status: 409 })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+})

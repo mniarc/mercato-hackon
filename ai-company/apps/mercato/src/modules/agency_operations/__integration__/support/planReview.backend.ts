@@ -11,26 +11,19 @@ import { orderOf, brief, strategia, tov, zrodla } from '../../../agency_research
 import { orderDataSchema } from '../../../agency_research/data/schemas/zamowienie'
 import { konkurencjaDataSchema } from '../../../agency_research/data/schemas/konkurencja'
 import { planDataSchema } from '../../../agency_research/data/schemas/plan'
-import { postDataSchema } from '../../../agency_research/data/schemas/post'
 import { AgencyResearchDocumentVersion } from '../../../agency_research/data/entities'
 import type { InputVersion, TemplateId } from '../../../agency_research/data/schemas/envelope'
 import { briefAcceptanceRecordSchema } from '../../../agency_research/lib/briefAcceptance/contracts'
 import { strategyPairAcceptanceRecordSchema } from '../../../agency_research/lib/strategyPairAcceptance/contracts'
 import { documentIdFor } from '../../../agency_research/lib/research/envelope'
 import { createLedger } from '../../../agency_research/lib/research/ledger'
-import { contentHashOf } from '../../../agency_research/lib/research/publication'
 import { runPlanStep } from '../../../agency_research/lib/research/steps/plan'
 import { runPlanQaLoop } from '../../../agency_research/lib/research/steps/planQa'
-import { runPostStep } from '../../../agency_research/lib/research/steps/post'
-import { runPostQaLoop } from '../../../agency_research/lib/research/steps/postQa'
-import { readPostExecutionInputs } from '../../../agency_research/lib/postExecution/readiness'
-import type { StrategyProcessReference } from '../../../agency_research/lib/strategyReadiness/contracts'
 import type { StepContext, StrategyExecutionInput } from '../../../agency_research/lib/research/steps/context'
 import { createFixtureRunner } from '../../../agency_research/lib/runners'
 import { saveDocumentVersion, startTaskRun, finishTaskRun } from '../../../agency_research/lib/store'
 import { PLAN_REVIEW_SERVICE, PLAN_REVIEW_WORKFLOW_ID, type PlanReviewService } from '../../lib/planReview/contracts'
-import { POST_REVIEW_SERVICE, POST_REVIEW_WORKFLOW_ID, type PostReviewService } from '../../lib/postReview/contracts'
-import { createSelectedPostIntelligence } from './postIntelligence'
+import { POST_REVIEW_WORKFLOW_ID } from '../../lib/postReview/contracts'
 import { AgencyCase } from '../../data/entities'
 import { analysisExecutionPolicySchema } from '../../lib/analysisProcess/contracts'
 import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_FUNCTION_NAME } from '../../lib/analysisProcess/workflow'
@@ -157,44 +150,6 @@ export async function createPlanReviewFixture(input: {
   } catch (error) {
     await deletePlanReviewFixture(fixture)
     throw error
-  } finally { await container.dispose() }
-}
-
-/** Runs actual post producers/repair against the instruction compiled by the portal plan decision.
- * This is local intelligence proof, not execution of the paid native T49 runner.
- */
-export async function createPostReviewFixture(input: {
-  plan: PlanReviewFixture; instructionVersionId: string; selectionSubmissionId: string;
-  process: StrategyProcessReference; userId: string;
-}) {
-  const fixture = input.plan
-  const scope = { tenantId: fixture.tenantId, organizationId: fixture.organizationId }
-  const container = await createRequestContainer()
-  try {
-    const em = container.resolve<EntityManager>('em').fork()
-    const ready = await readPostExecutionInputs(em, scope, { orderRef: fixture.caseId,
-      instructionVersionId: input.instructionVersionId, selectionSubmissionId: input.selectionSubmissionId,
-      process: input.process, maxCostPln: 1 })
-    if (ready.status !== 'ready') throw new Error(`Post fixture instruction not ready: ${ready.reason}`)
-    const postOutputs: NonNullable<StepContext['postOutputs']> = { post: null }
-    const context: StepContext = {
-      em, scope, orderRef: fixture.caseId, order: ready.order, orderVersion: ready.orderInput,
-      runAgent: createSelectedPostIntelligence(), runner: 'fixture', models: { extract: 'fixture', synthesis: 'fixture', qa: 'fixture' },
-      ledger: createLedger({ prices: {} }), onEvent: () => {}, log: (message) => console.log(`[TC-AGENCY-001] ${message}`),
-      agentRunIds: [], taskRunIds: fixture.taskRunIds, documentVersionIds: fixture.versionIds,
-      repairFindings: [], attempt: 1, postInputs: { instruction: ready.instruction, tov: ready.tov }, postOutputs,
-      fetchPage: async () => { throw new Error('Post fixture cannot fetch new research') },
-    }
-    await runPostStep(context)
-    const qa = await runPostQaLoop(context, { postStep: runPostStep })
-    if (qa.verdict !== 'pass_for_draft' || !qa.postVersionId || !postOutputs.post) throw new Error('Real post repair loop did not produce a QA-ready version')
-    const post = await em.findOneOrFail(AgencyResearchDocumentVersion, { ...scope, orderRef: fixture.caseId, id: qa.postVersionId })
-    const invitation = await container.resolve<PostReviewService>(POST_REVIEW_SERVICE).invite({
-      ...scope, caseId: fixture.caseId, postVersionId: post.id, userId: input.userId,
-    })
-    const content = postDataSchema.parse(post.data)
-    return { ...invitation, documentId: post.documentId, versionId: post.id, version: postOutputs.post.version, qaTaskRunId: qa.taskRunId,
-      text: content.text, contentHash: contentHashOf(content) }
   } finally { await container.dispose() }
 }
 

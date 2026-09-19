@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F05-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Portal displays order/payment receipt and case link, but this is not a 2.2 customer notification."
+            }
+          ],
+          "missing": [
+            "Deliver explicit purchase/package/start confirmation through chosen channel."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "No purchase-confirmation sender implemented."
+            }
+          ],
+          "missing": [
+            "Use a confirmation message that does not request documents or later acceptance."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "No purchase-notification delivery record implemented."
+            }
+          ],
+          "missing": [
+            "Record actual delivery result and technical failure."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "No purchase-notification retry path implemented."
+            }
+          ],
+          "missing": [
+            "Retry delivery independently of purchase/fulfilment."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Case activation does not depend on reading a message."
+            }
+          ],
+          "missing": [
+            "Connect replies to purchase confirmation into G."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F05-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Verified native test capture creates scoped case with private original purchase attachment and product/customer binding."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
+              "note": "Verified capture is reloaded against the same paid case, customer, product and original private purchase attachment before native analysis can start."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Purchase attachment pins demo offer/terms and workflow version."
+            }
+          ],
+          "missing": [
+            "Pin production STD-PROCES/STD-LIMITY and create initial WEW-ZMIANY."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
+              "note": "The configured analysis workflow is created for the same paid case inside the short transaction and is dispatched only after commit; replay reuses that workflow."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 reached paid-case analysis and initial source processing before the later 3.4 fixture mismatch; no claim is made for the blocked remainder."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Verified demo capture creates case without notification read or routine staff approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/__tests__/bootstrap.test.ts",
+              "note": "Focused call-chain checks start from verified paid state without mail read, another client action or routine staff acceptance."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Purchase/case model has no client revision-round counter; technical execution limits belong to configured research policy."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/contracts.ts",
+              "note": "The handoff carries explicit technical execution policy and result limits; it introduces no client revision-round counter."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

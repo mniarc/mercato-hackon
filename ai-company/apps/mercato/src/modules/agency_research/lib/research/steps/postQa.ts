@@ -4,7 +4,8 @@ import { findingKinds, type QaFinding } from '../../../data/schemas/qa'
 import { postDataSchema, type PostData } from '../../../data/schemas/post'
 import { tovDataSchema, type TovData } from '../../../data/schemas/tov'
 import { zleceniePostuDataSchema, type ZleceniePostuData } from '../../../data/schemas/zleceniePostu'
-import { postEditorResult, type PostEditorInput, type PostEditorReview } from '../../../data/agents/post'
+import { postEditorResult, type PostEditorInput, type PostEditorReview, type PostEvidenceRequest, type PostEvidencePacket } from '../../../data/agents/post'
+import type { AgencyResearchTaskRun } from '../../../data/entities'
 import { mustKeysOf } from '../../../data/contracts'
 import { idPrefixes, limits } from '../../../data/templates'
 import { RESEARCH_POST_EDITOR_AGENT_ID } from '../../agents/ids.post'
@@ -92,7 +93,7 @@ const isFindingKind = (code: string): code is QaFinding['code'] => (findingKinds
 
 /** The editor's findings in the QA finding shape: blockers are blocking agent faults; the rest travel as major/minor notes. */
 export function editorFindingsAsQa(review: PostEditorReview): QaFinding[] {
-  return review.findings.map((item) => ({
+  const findings: QaFinding[] = review.findings.map((item) => ({
     code: isFindingKind(item.code) ? item.code : 'other',
     path: item.fragment ? `KLI-POST.text["${item.fragment.slice(0, 40)}"]` : 'KLI-POST.text',
     severity: item.severity === 'blocker' ? 'blocking' : item.severity,
@@ -101,6 +102,16 @@ export function editorFindingsAsQa(review: PostEditorReview): QaFinding[] {
     fix_step: '7.2',
     fix_hint: item.fix_hint,
   }))
+  if (review.evidence_request) findings.push({ code: 'unsourced_claim', path: 'KLI-POST.text', severity: 'blocking',
+    gap: review.evidence_request.claim, owner: 'research', fix_step: '3.2', fix_hint: review.evidence_request.question })
+  const assessment = review.evidence_assessment
+  if (assessment && assessment.outcome !== 'supported') findings.push({
+    code: assessment.outcome === 'foundation_conflict' ? 'contradiction' : 'unsourced_claim', path: 'KLI-POST.text',
+    severity: 'blocking', gap: assessment.explanation,
+    owner: assessment.outcome === 'post_change_required' ? 'agent' : 'research',
+    fix_step: assessment.outcome === 'post_change_required' ? '7.2' : null, fix_hint: assessment.explanation,
+  })
+  return findings
 }
 
 /** A style (deslop) finding is a proposal for the author, never a reason to send the post back on its own. */
@@ -114,6 +125,7 @@ const isStyleOnly = (finding: { code: string; severity: string }): boolean => fi
  * word choice would burn the STD-LIMITY repair attempts on nothing checkable.
  */
 export function mergePostQaVerdict(validator: QaFinding[], review: PostEditorReview): PostQaVerdict {
+  if (review.evidence_request || (review.evidence_assessment && review.evidence_assessment.outcome !== 'supported')) return 'needs_fix'
   if (review.result === 'reject') return 'reject'
   const blocking = [...validator, ...editorFindingsAsQa(review)].some((item) => item.severity === 'blocking')
   const substantive = review.findings.some((item) => !isStyleOnly(item))
@@ -179,6 +191,7 @@ export type PostQaOptions = {
   instruction: ZleceniePostuData
   tov: TovData
   validatorFindings?: QaFinding[]
+  supplementaryEvidence?: PostEvidencePacket
   runAgent: ResearchAgentRunner
   ledger: Ledger
   models: ModelSet
@@ -223,12 +236,14 @@ function editorInput(opts: PostQaOptions, validator: QaFinding[]): PostEditorInp
       characters: post.qa.metrics.character_count_with_spaces_and_newlines,
     },
     validator_findings: validator,
+    available_source_refs: [...new Set(instruction.evidence_payload.flatMap((card) => card.source_ids))],
+    ...(opts.supplementaryEvidence ? { supplementary_evidence: opts.supplementaryEvidence } : {}),
     criteria: CRITERIA,
   }
 }
 
 /** The editor's fragments must be in the text (else null) and its copy-check ids must be the ToV's. */
-export function gateEditorReview(review: PostEditorReview, post: PostData): { value: PostEditorReview; issues: never[]; kept: number; dropped: number } {
+export function gateEditorReview(review: PostEditorReview, post: PostData, sourceRefs?: string[], evidence?: PostEvidencePacket): { value: PostEditorReview; issues: never[]; kept: number; dropped: number } {
   const text = normalizeForMatch(post.text)
   const checkIds = post.qa.copy_checks.map((check) => check.id)
   const findings = review.findings.map((item) => (item.fragment && !text.includes(normalizeForMatch(item.fragment)) ? { ...item, fragment: null } : item))
@@ -236,7 +251,24 @@ export function gateEditorReview(review: PostEditorReview, post: PostData): { va
     const id = resolveId(check.id, checkIds)
     return id ? [{ ...check, id }] : []
   })
-  return { value: { ...review, findings, copy_checks: copyChecks }, issues: [], kept: findings.length + copyChecks.length, dropped: review.copy_checks.length - copyChecks.length }
+  let evidenceRequest = review.evidence_request
+  if (evidenceRequest && (!text.includes(normalizeForMatch(evidenceRequest.claim))
+    || evidenceRequest.sourceRefs.some((id) => !sourceRefs?.includes(id)))) {
+    evidenceRequest = null
+    findings.push({ code: 'unresolved_reference', severity: 'blocker', fragment: null,
+      issue: 'The evidence request does not identify an actual post claim and available source references.',
+      fix_hint: 'Correct the explicit evidence request; do not infer evidence or approve the post.' })
+  }
+  let assessment = review.evidence_assessment
+  if (evidence && (!assessment || (assessment.outcome === 'supported' && (!assessment.factIds.length
+    || assessment.factIds.some((id) => !evidence.facts.some((fact) => fact.factId === id)))))) {
+    assessment = { outcome: 'unresolved', explanation: 'The return did not assess the requested claim against existing grounded evidence.', factIds: [] }
+  }
+  return { value: { ...review, findings, copy_checks: copyChecks,
+    ...(evidenceRequest || (assessment && assessment.outcome !== 'supported') ? { result: 'needs_fix' as const } : {}),
+    ...(evidenceRequest !== undefined ? { evidence_request: evidenceRequest } : {}),
+    ...(assessment !== undefined ? { evidence_assessment: assessment } : {}) },
+    issues: [], kept: findings.length + copyChecks.length, dropped: review.copy_checks.length - copyChecks.length }
 }
 
 export async function runPostQa(opts: PostQaOptions): Promise<PostQaResult & { stats: { agentCalls: number; cachedSteps: number } }> {
@@ -259,7 +291,8 @@ export async function runPostQa(opts: PostQaOptions): Promise<PostQaResult & { s
     label: 'post_editor',
     input: editorInput(opts, validator),
     parse: (raw) => postEditorResult.parse(raw).data,
-    gate: (data) => gateEditorReview(data, opts.post),
+    gate: (data) => gateEditorReview(data, opts.post,
+      opts.instruction.evidence_payload.flatMap((card) => card.source_ids), opts.supplementaryEvidence),
   })
   const findings = [...validator, ...editorFindingsAsQa(review)]
   return { verdict: mergePostQaVerdict(validator, review), findings, review, summary: review.summary, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
@@ -272,6 +305,7 @@ export type PostQaLoopResult = {
   repairs: number
   postVersionId: string | null
   escalationVersionId?: string
+  evidenceRequest?: PostEvidenceRequest
 }
 
 /** The resolutions a Q-T exhaustion allows: rerun the author with staff guidance, accept a finding as a limit, or keep the block. */
@@ -293,7 +327,11 @@ const asIssue = (item: QaFinding): DocumentIssue => ({ code: item.code.toUpperCa
  * moves the reviewed version to `ready_for_review` — the client's approval (7.4)
  * and the publication consent are separate records the spine owns.
  */
-export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: StepContext) => Promise<StepOutcome> }): Promise<PostQaLoopResult> {
+export async function runPostQaLoop(ctx: StepContext, deps: {
+  postStep: (ctx: StepContext) => Promise<StepOutcome>
+  /** Only the scoped evidence producer supplies the original persisted QA and grounded return. */
+  evidenceReturn?: { task: AgencyResearchTaskRun; packet: PostEvidencePacket }
+}): Promise<PostQaLoopResult> {
   if (ctx.postInputs && !ctx.postOutputs) throw new Error('[internal] Pinned post QA requires its own post output')
   const maxRepairs = ctx.postQaRepairAttempts ?? limits.content.postRepairAttempts
   const load = async () => {
@@ -307,7 +345,8 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
   let repairs = 0
   for (;;) {
     const current = await load()
-    const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '7.3', attempt: repairs + 1, runner: ctx.runner, models: ctx.models, inputVersions: current.inputVersions })
+    const run = repairs === 0 && deps.evidenceReturn ? deps.evidenceReturn.task
+      : await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '7.3', attempt: repairs + 1, runner: ctx.runner, models: ctx.models, inputVersions: current.inputVersions })
     ctx.taskRunIds.push(run.id)
     let result: PostQaResult
     let savedId: string
@@ -324,6 +363,7 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
         models: ctx.models,
         cache: ctx.cache,
         onEvent: ctx.onEvent,
+        ...(deps.evidenceReturn && repairs === 0 ? { supplementaryEvidence: deps.evidenceReturn.packet } : {}),
       })
       const reviewed = applyEditorReview({ outputLanguage: ctx.order.outputLanguage, post, review: result.review, verdict: result.verdict })
       const simulation = simulationIssue(ctx.postInputs
@@ -342,7 +382,9 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
         renderedMd: renderPost({ outputLanguage: ctx.order.outputLanguage, brand: ctx.order.brand, data: reviewed, issues }),
         clientViewMd: view.markdown,
         taskRunId: run.id,
-        qaResult: { verdict: result.verdict, findings: result.findings, summary: result.summary, repairs },
+        qaResult: { verdict: result.verdict, findings: result.findings, summary: result.summary, repairs,
+          ...(result.review.evidence_request ? { evidenceRequest: result.review.evidence_request } : {}),
+          ...(deps.evidenceReturn ? { evidenceReturn: deps.evidenceReturn.packet, evidenceAssessment: result.review.evidence_assessment } : {}) },
         simulation: simulation !== null,
       })
       savedId = saved.version.id
@@ -360,15 +402,26 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
     await finishTaskRun(ctx.em, run, {
       status: result.verdict === 'pass_for_draft' ? 'done' : 'to_fix',
       outputVersionId: savedId,
-      qaResult: { verdict: result.verdict, findings: result.findings, summary: result.summary, repairs },
+      qaResult: { verdict: result.verdict, findings: result.findings, summary: result.summary, repairs,
+        ...(result.review.evidence_request ? { evidenceRequest: result.review.evidence_request } : {}),
+        ...(deps.evidenceReturn ? { evidenceReturn: deps.evidenceReturn.packet, evidenceAssessment: result.review.evidence_assessment } : {}) },
       agentRunIds: ctx.agentRunIds,
       cost: ctx.ledger.snapshot(),
     })
     ctx.log(`7.3 attempt ${repairs + 1}: ${result.verdict} (${result.findings.length} findings)`)
     if (result.verdict === 'pass_for_draft') return { verdict: result.verdict, findings: result.findings, taskRunId: run.id, repairs, postVersionId: savedId }
 
+    // Requesting evidence is not an author correction and consumes no 7.2 repair attempt.
+    if (result.review.evidence_request && !deps.evidenceReturn) return {
+      verdict: result.verdict, findings: result.findings, taskRunId: run.id, repairs,
+      postVersionId: savedId, evidenceRequest: result.review.evidence_request,
+    }
+    const unresolvedEvidence = Boolean(deps.evidenceReturn && (result.review.evidence_request
+      || result.review.evidence_assessment?.outcome === 'unresolved'
+      || result.review.evidence_assessment?.outcome === 'foundation_conflict'))
+
     const blocking = result.findings.filter((item) => item.severity === 'blocking' && item.owner === 'agent')
-    if (repairs < maxRepairs) {
+    if (!unresolvedEvidence && repairs < maxRepairs) {
       repairs += 1
       ctx.log(`7.3 → repair 7.2 (attempt ${repairs} of ${maxRepairs})`)
       await deps.postStep({ ...ctx, repairFindings: blocking.length ? blocking : result.findings, attempt: repairs + 1 })
@@ -383,11 +436,15 @@ export async function runPostQaLoop(ctx: StepContext, deps: { postStep: (ctx: St
         evidence: [
           { ref: run.id, fact: `7.3 task run, verdict ${result.verdict}, ${blocking.length} blocking findings` },
           { ref: savedId, fact: 'the reviewed KLI-POST version with the editor findings' },
+          ...(deps.evidenceReturn ? [{ ref: deps.evidenceReturn.packet.sourceTaskRunId,
+            fact: `Targeted evidence for ${deps.evidenceReturn.packet.request.claim}: ${result.review.evidence_assessment?.explanation ?? result.summary}` }] : []),
           ...blocking.slice(0, 10).map((item) => ({ ref: item.path, fact: `${item.code}: ${item.gap}` })),
         ],
         blockedSteps: ['7.4', '7.5', '7.6', '7.7', '8.1', '8.2', '8.3', '8.7', '9.1', '9.3'],
         decisionQuestion: 'Which finding should be accepted as an explicit limit, should the author rerun with guidance, or does the instruction need different evidence (return to 6.7)?',
-        allowedResolutions: postQaExhaustedResolutions(),
+        allowedResolutions: unresolvedEvidence
+          ? [{ code: 'keep_blocked', requiredEvidence: 'Resolve the exact missing evidence or approved-foundation contradiction through the existing employee/client question path.', permittedNextStep: 'none' }]
+          : postQaExhaustedResolutions(),
         resumeStep: '7.2',
       },
       current.inputVersions,

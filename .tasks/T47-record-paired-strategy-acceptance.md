@@ -1,6 +1,9 @@
 # T47 - Record exact strategy/ToV decisions and expose planning readiness
 
 State: active
+Remaining: T58 proves the connected all-pair approval path. Focused producer
+checks cover partial and linked decisions, but a partial response followed by
+the actual linked native follow-up decision is not yet proved end to end.
 Depends on: T27 paired original response; T41 native authorized acceptance pattern
 Sources: F24-2, F25-1, F20-2; F44-1 unchanged-version history
 Owns: `agency_research/lib/strategyPairAcceptance/**`, `agency_research/lib/planningReadiness/**`; coordinator owns public contracts/service and G wiring

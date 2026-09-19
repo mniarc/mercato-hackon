@@ -1,0 +1,120 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F52-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Confirmed test order activation links one customer/product/order/case and native workflow."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Case process and research ledger show persisted task/agent/input/output IDs and T64 lineage."
+            }
+          ],
+          "missing": [
+            "Complete department ownership and selective dependency state across every spec phase remain incomplete."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Client waits, real employee exceptions and strategy/planning blocked reasons are distinct."
+            }
+          ],
+          "missing": [
+            "Other unsupported business routes and post phase readiness need equally complete actionable state."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "G dispositions are source-bound to native case workflow."
+            }
+          ],
+          "missing": [
+            "Real E.3 producer-return history does not exist."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Employee view reads persisted scoped WorkflowInstance/UserTask/research records, not a shadow success model."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC6",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Native queued agent phases run without routine human approval once authorized."
+            }
+          ],
+          "missing": [
+            "Paid bootstrap currently waits at awaiting_execution; unsupported branches and disabled live activation prevent full autonomous fulfilment."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

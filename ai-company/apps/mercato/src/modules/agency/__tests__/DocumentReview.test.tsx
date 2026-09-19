@@ -27,9 +27,12 @@ function mount(overrides: Partial<React.ComponentProps<typeof DocumentReview>> =
 test('renders received HTML in a same-origin sandboxed iframe and accepts only after loading', async () => {
   const respond = mount()
   const frame = screen.getByTitle('Brief — wersja 2')
+  const srcDoc = frame.getAttribute('srcdoc') ?? ''
   expect(frame.getAttribute('sandbox')).toBe('allow-same-origin')
-  expect(frame.getAttribute('srcdoc')).toContain(review.html)
-  expect(frame.getAttribute('srcdoc')).toContain("default-src 'none'")
+  expect(srcDoc).toContain(`<body>${review.html}</body>`)
+  expect(srcDoc).toContain("default-src 'none'")
+  expect(srcDoc).toContain('<style id="agency-document-preview-style">')
+  expect(srcDoc).toContain('font-family:ui-sans-serif,system-ui')
   expect(screen.getByRole('button', { name: pl['agency.review.accept'] })).toBeDisabled()
   fireEvent.load(frame)
   fireEvent.click(screen.getByRole('button', { name: pl['agency.review.accept'] }))

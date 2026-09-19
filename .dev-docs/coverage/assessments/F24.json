@@ -1,0 +1,209 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F24-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Exact current QA-approved pair is rendered and stored in immutable native customer invitation."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Portal displayed both actual QA-ready producer documents at their exact versions. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Portal accepts explicit separate approvals or original free-text comments/questions/hold/direction requests; applied downstream routing is assessed under F25."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Native completed task stores original response then submits once to shared G."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. The original paired approval passed through native G. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Native workflow/task persists shown pair and waits; send is not acceptance."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. The pair was invited before, and separately from, the client's explicit approval. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyPairReview/service.ts",
+              "note": "Response contract separates channel and exact document pair; current implementation uses portal, not both channels."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    },
+    {
+      "id": "F24-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/accept.ts",
+              "note": "Typed separate document records persist actor, time, source and exact pair IDs."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/read.ts",
+              "note": "Current clean pair QA and still-valid accepted brief are prerequisites to acceptance."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Native pair acceptance followed G, real pair QA and the still-current accepted base brief. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/read.ts",
+              "note": "Cumulative partial records remain; planning waits until both documents accepted."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/accept.ts",
+              "note": "Currentness and trusted G binding reject stale/mixed approval."
+            }
+          ],
+          "missing": [
+            "Rejected changes need the missing actual correction/clarification return path, not just blocked acceptance."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/accept.ts",
+              "note": "Receipt applies only to exact strategy/ToV versions and confers no plan/post approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Pair consent left the later produced plan awaiting its own client choice. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

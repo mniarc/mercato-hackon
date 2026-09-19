@@ -23,6 +23,15 @@ test('projects only the server-authorized target and never applies effects', () 
   expect(clientTriageInterpretationSchema.safeParse({ ...interpretation, targets: { caseId: scope.caseId } }).success).toBe(false)
 })
 
+test('routes a verified post change only to its server-bound review path, never a competing brief revision', () => {
+  const change = { ...interpretation, recommendedDisposition: 'change', changeScope: 'post_content',
+    parts: [{ ...interpretation.parts[0], intent: 'change', recommendedDisposition: 'change' }] }
+  expect(projectClientTriageResult(scope, change, ['post_revision'])).toMatchObject({
+    disposition: { kind: 'change', targetStepId: 'post_revision' }, effectsApplied: false,
+  })
+  expect(projectClientTriageResult(scope, change, ['post_revision', 'brief_revision'])).toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized' })
+})
+
 test('keeps unauthorized approval and mixed parts unapplied', () => {
   const approvalPart = { ...interpretation.parts[0], intent: 'approval', recommendedDisposition: 'approve' }
   expect(projectClientTriageResult(scope, { ...interpretation, parts: [approvalPart], recommendedDisposition: 'approve' }, ['answered', 'client_reply'])).toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized', interpretation: { recommendedDisposition: 'approve' } })
@@ -50,4 +59,27 @@ test('uncertainty cannot become an answer, while a grounded clarification can us
 
 test('keeps original client input but strips deterministic routing hints', () => {
   expect(inputSchema.parse({ original: { eventId: 'event-1', text: 'What happens next?', scaffoldScenario: 'clarify' } })).toEqual({ original: { eventId: 'event-1', text: 'What happens next?' } })
+  expect(inputSchema.parse({ original: { eventId: 'event-1', text: 'What happens next?' }, materialContext: null })).toEqual({ original: { eventId: 'event-1', text: 'What happens next?' } })
+})
+
+test('routes material evidence only with a server-bound material target, never client approval or answer revision', () => {
+  const material: ClientTriageInterpretation = { ...interpretation, responseMessage: null, recommendedDisposition: 'change',
+    parts: [{ ...interpretation.parts[0], intent: 'material', recommendedDisposition: 'change' }],
+    materialDirective: { question: 'Which supplied facts support the offer?', briefField: 'priority_offer' } }
+  expect(projectClientTriageResult(scope, material, ['material_revision'])).toMatchObject({
+    disposition: { kind: 'change', targetStepId: 'material_revision' }, effectsApplied: false,
+  })
+  expect(projectClientTriageResult(scope, material, ['brief_revision']).disposition).toBeNull()
+  expect(projectClientTriageResult(scope, { ...material, recommendedDisposition: 'approve' }, ['brief_accepted']).disposition).toBeNull()
+})
+
+test('routes supplied brief answers only with a server-bound revision target, without granting approval', () => {
+  const change: ClientTriageInterpretation = { ...interpretation,
+    parts: [{ ...interpretation.parts[0], intent: 'change', recommendedDisposition: 'change' }],
+    recommendedDisposition: 'change', responseMessage: null }
+  expect(projectClientTriageResult(scope, change, ['answered', 'client_reply']))
+    .toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized' })
+  expect(projectClientTriageResult(scope, change, ['brief_revision']))
+    .toMatchObject({ disposition: { kind: 'change', targetStepId: 'brief_revision' }, effectsApplied: false })
+  expect(projectClientTriageResult(scope, { ...change, parts: [...change.parts, interpretation.parts[0]] }, ['brief_revision']).disposition).toBeNull()
 })

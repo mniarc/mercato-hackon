@@ -17,13 +17,12 @@ import {
 import { idPrefixes, limits } from '../../../data/templates'
 import { STRATEGY_SECTION_AGENT_IDS } from '../../agents/ids.strategy'
 import { finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
-import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion } from './strategyInputs'
+import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion, strategyAuthoringSimulationIssue } from './strategyInputs'
 import { GateError, type GateIssue } from '../gate'
 import { mintId, resolveId } from '../ids'
 import type { Ledger } from '../ledger'
 import { BudgetPausedError, createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
 import { renderStrategia, renderStrategiaClientView } from '../render/strategia'
-import { simulationIssue } from '../simulation'
 import type { StepContext, StepOutcome } from './context'
 
 /**
@@ -496,7 +495,7 @@ export async function runStrategyStep(ctx: StepContext): Promise<StepOutcome> {
       cache: ctx.cache,
       onEvent: ctx.onEvent,
     })
-    const simulation = simulationIssue(inputVersions)
+    const simulation = strategyAuthoringSimulationIssue(ctx, inputVersions)
     const issues = simulation ? [...result.issues, simulation] : result.issues
     const saved = await saveDocumentVersion(ctx.em, ctx.scope, {
       orderRef: ctx.orderRef,

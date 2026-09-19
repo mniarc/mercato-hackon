@@ -14,7 +14,7 @@ const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0
 const identity = { tenantId: uuid(1), organizationId: uuid(2), customerEntityId: uuid(3), customerUserId: uuid(4) }
 const policy = {
   through: '4.2' as const, maxCostPln: 10, strategyExecution: { maxCostPln: 6 },
-  productSelection: { sku: 'START-KOMUNIKACJI-PL-01', offer_version: 'v1', price_net: 2500, currency: 'PLN', result_limits: { topics: 12 } },
+  productSelection: { sku: demoOffer.sku, offer_version: demoOffer.offerVersion, price_net: demoOffer.amount, currency: demoOffer.currency, result_limits: { topics: 12 } },
 }
 const purchase = { requestId: uuid(8), offerVersion: demoOffer.offerVersion, termsVersion: demoOffer.termsVersion, acceptedTerms: true as const,
   buyer: { brandDisplayName: 'Open Mercato', brandWebsiteUrl: 'https://openmercato.com/', market: 'Polska', language: 'en',
@@ -45,7 +45,11 @@ beforeEach(() => {
     const row = entity === AgencyCase ? agencyCase : workflow
     return row && Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value) ? row as never : null
   })
-  createScoped.mockImplementation(async (args: CreateScopedAttachmentInput) => { await args.persistLink!(em as never, uuid(11)); return { id: uuid(11) } })
+  createScoped.mockImplementation(async (args: CreateScopedAttachmentInput) => {
+    const id = args.persistLink ? uuid(11) : uuid(13)
+    await args.persistLink?.(em as never, id)
+    return { id }
+  })
   startWorkflow.mockImplementation(async (_em, options) => {
     workflow = Object.assign(new WorkflowInstance(), { ...options, id: uuid(12), context: options.initialContext, status: 'RUNNING', currentStepId: 'start', deletedAt: null })
     return workflow
@@ -80,6 +84,9 @@ test('a verified purchase creates the analysis case, starts analysis.v1 and hand
   expect(agencyCase).toMatchObject({ id: input.caseId, agentWorkerId: AGENCY_ANALYSIS_WORKER_ID, materialAttachmentId: uuid(11), workflowInstanceId: uuid(12) })
   const material = JSON.parse((createScoped.mock.calls[0][0] as CreateScopedAttachmentInput).buffer.toString('utf8'))
   expect(material.order.product_selection).toEqual(policy.productSelection)
+  const receipt = JSON.parse((createScoped.mock.calls[1][0] as CreateScopedAttachmentInput).buffer.toString('utf8'))
+  expect(receipt).toMatchObject({ identity, caseId: input.caseId, orderId: input.orderId, paymentId: input.paymentId, originalPurchase: purchase, termsAcceptedAt: input.termsAcceptedAt })
+  expect(workflow!.context.purchase).toMatchObject({ receiptAttachmentId: uuid(13), receiptHash: expect.any(String) })
   expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({
     workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: 1, correlationKey: `agency-case:${input.caseId}`,
     initialContext: expect.objectContaining({ caseId: input.caseId, agentWorkerId: AGENCY_ANALYSIS_WORKER_ID, purchase: expect.objectContaining({ orderId: input.orderId, paymentId: input.paymentId, demoOnly: true }) }),

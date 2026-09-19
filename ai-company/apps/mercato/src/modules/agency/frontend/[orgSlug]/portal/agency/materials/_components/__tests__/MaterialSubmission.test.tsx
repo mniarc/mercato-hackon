@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 import { renderToString } from 'react-dom/server'
-import { act, fireEvent, screen, waitFor } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { renderWithProviders } from '@open-mercato/shared/lib/testing/renderWithProviders'
 import { I18nProvider } from '@open-mercato/shared/lib/i18n/context'
 import { readApiResultOrThrow } from '@open-mercato/ui/backend/utils/apiCall'
@@ -12,7 +12,7 @@ import translations from '../../../../../../../i18n/en.json'
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ push: jest.fn() }),
   usePathname: () => '/acme/portal/agency/materials',
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams('caseId=00000000-0000-4000-8000-000000000005'),
 }))
 jest.mock('remark-gfm', () => ({ __esModule: true, default: {} }))
 jest.mock('@open-mercato/ui/backend/injection/InjectionSpot', () => ({
@@ -36,72 +36,48 @@ if (!Element.prototype.releasePointerCapture) Element.prototype.releasePointerCa
 if (!Element.prototype.scrollIntoView) Element.prototype.scrollIntoView = () => undefined
 if (typeof Response === 'undefined') Object.defineProperty(globalThis, 'Response', { value: class Response {}, configurable: true })
 
-beforeEach(() => jest.mocked(readApiResultOrThrow).mockReset())
+const caseId = '00000000-0000-4000-8000-000000000005'
+const ownedCase = { caseId, title: 'Purchased case' }
+beforeEach(() => {
+  Object.defineProperty(globalThis.crypto, 'randomUUID', { configurable: true, value: () => '00000000-0000-4000-8000-000000000099' })
+  jest.mocked(readApiResultOrThrow).mockReset()
+  jest.mocked(readApiResultOrThrow).mockImplementation(async (url) => {
+    if (String(url).includes('/cases?')) return { items: [ownedCase] } as never
+    return { caseId, attachmentId: 'attachment', submissionId: 'submission', replayed: false, state: 'saved_waiting_for_triage' } as never
+  })
+})
 
-async function fillAnalysisSubmission() {
-  const material = new File(['{"order":{},"pages":[]}'], 'analysis.json', { type: 'application/json' })
-  fireEvent.change(screen.getByRole('textbox', { name: 'Title' }), { target: { value: 'Client analysis' } })
-  fireEvent.change(screen.getByLabelText('Material file'), { target: { files: [material] } })
-  fireEvent.keyDown(screen.getByRole('combobox'), { key: 'ArrowDown' })
-  fireEvent.click(await screen.findByRole('option', { name: translations['agency.materials.process.analysis'] }))
-  return material
-}
-
-it('does not expose editable server-rendered inputs before hydration', () => {
-  const html = renderToString(
-    <I18nProvider locale="en" dict={translations}><MaterialSubmission orgSlug="acme" /></I18nProvider>,
-  )
+it('does not expose editable server-rendered inputs before owned cases have loaded', () => {
+  const html = renderToString(<I18nProvider locale="en" dict={translations}><MaterialSubmission orgSlug="acme" /></I18nProvider>)
   expect(html).toContain('data-material-form-ready="0"')
-  expect(html).not.toContain('aria-label="Title"')
   expect(html).not.toContain('type="file"')
 })
 
-it('retains title when a file is selected and submits both through the real CrudForm', async () => {
-  jest.mocked(readApiResultOrThrow).mockResolvedValue({ caseId: 'created-case', status: 'COMPLETED' })
+it('uploads raw material to the selected existing case without internal process JSON or a new-case title', async () => {
   renderWithProviders(<MaterialSubmission orgSlug="acme" />, { dict: translations })
-  const title = screen.getByRole('textbox', { name: 'Title' })
-  const material = new File(['source material'], 'material.txt', { type: 'text/plain' })
-  fireEvent.change(title, { target: { value: 'Client request' } })
-  await act(async () => { await Promise.resolve() })
-  expect(title).toHaveValue('Client request')
-  fireEvent.change(screen.getByLabelText('Material file'), { target: { files: [material] } })
-  await act(async () => { await Promise.resolve() })
-  expect(title).toHaveValue('Client request')
-  fireEvent.click(screen.getByRole('button', { name: 'Submit material' }))
-  await waitFor(() => expect(readApiResultOrThrow).toHaveBeenCalledTimes(1))
-  const request = jest.mocked(readApiResultOrThrow).mock.calls[0][1]
-  const body = request?.body as FormData
-  expect(body.get('title')).toBe('Client request')
+  const material = new File(['raw client material'], 'client.txt', { type: 'text/plain' })
+  const file = await screen.findByLabelText('Material file')
+  fireEvent.change(file, { target: { files: [material] } })
+  const message = screen.getByRole('textbox', { name: translations['agency.materials.supplement.message'] })
+  expect(screen.getByLabelText(translations['agency.materials.supplement.message'])).toBe(message)
+  fireEvent.change(message, { target: { value: '  Original words  ' } })
+  fireEvent.click(within(message.closest('form')!).getByRole('button', { name: 'Submit material' }))
+  await waitFor(() => expect(readApiResultOrThrow).toHaveBeenCalledWith('/api/agency/portal/materials', expect.anything()))
+  const call = jest.mocked(readApiResultOrThrow).mock.calls.find(([url]) => url === '/api/agency/portal/materials')!
+  const body = call[1]?.body as FormData
+  expect(body.get('caseId')).toBe(caseId)
+  expect(body.get('text')).toBe('  Original words  ')
   expect(body.get('file')).toBe(material)
+  expect(body.get('eventId')).toBeTruthy()
+  expect(body.has('process')).toBe(false)
+  expect(body.has('title')).toBe(false)
+  expect(await screen.findByText(translations['agency.materials.supplement.saved_waiting_for_triage'])).toBeVisible()
+  expect(screen.getByRole('link', { name: translations['agency.cases.open'] })).toHaveAttribute('href', `/acme/portal/agency/cases/${caseId}`)
 })
 
-it('submits configured analysis without client execution settings and links to the returned case', async () => {
-  jest.mocked(readApiResultOrThrow).mockResolvedValue({ caseId: 'analysis-case', status: 'WAITING_FOR_ACTIVITIES' })
+it('does not offer a no-op intake fallback when owned cases cannot load', async () => {
+  jest.mocked(readApiResultOrThrow).mockRejectedValue(new Error('Unavailable'))
   renderWithProviders(<MaterialSubmission orgSlug="acme" />, { dict: translations })
-  const material = await fillAnalysisSubmission()
-  expect(screen.getByText(translations['agency.materials.analysisHint'])).toBeVisible()
-  expect(screen.queryByRole('textbox', { name: 'Brand' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: 'Submit material' }))
-  await waitFor(() => expect(readApiResultOrThrow).toHaveBeenCalledTimes(1))
-  const [url, request] = jest.mocked(readApiResultOrThrow).mock.calls[0]
-  const body = request?.body as FormData
-  expect(url).toBe('/api/agency/portal/materials')
-  expect(request?.method).toBe('POST')
-  expect(body.get('title')).toBe('Client analysis')
-  expect(body.get('file')).toBe(material)
-  expect(JSON.parse(body.get('process') as string)).toEqual({ kind: 'analysis' })
-  expect(await screen.findByTestId('agency-material-case-id')).toHaveTextContent('analysis-case')
-  expect(screen.getByRole('link', { name: translations['agency.cases.open'] })).toHaveAttribute('href', '/acme/portal/agency/cases/analysis-case')
-})
-
-it('shows the existing server configuration error and retains the analysis form for correction', async () => {
-  const message = 'Agency analysis execution is not enabled'
-  jest.mocked(readApiResultOrThrow).mockRejectedValue(new Error(message))
-  renderWithProviders(<MaterialSubmission orgSlug="acme" />, { dict: translations })
-  await fillAnalysisSubmission()
-  fireEvent.click(screen.getByRole('button', { name: 'Submit material' }))
-  expect((await screen.findAllByText(message)).length).toBeGreaterThan(0)
-  expect(screen.getByRole('textbox', { name: 'Title' })).toHaveValue('Client analysis')
-  expect(screen.queryByTestId('agency-material-case-id')).not.toBeInTheDocument()
-  expect(readApiResultOrThrow).toHaveBeenCalledTimes(1)
+  expect(await screen.findByRole('alert')).toHaveTextContent(translations['agency.materials.supplement.loadFailed'])
+  expect(screen.queryByRole('button', { name: 'Submit material' })).not.toBeInTheDocument()
 })

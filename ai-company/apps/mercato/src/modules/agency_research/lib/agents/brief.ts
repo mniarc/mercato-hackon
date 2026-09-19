@@ -30,6 +30,8 @@ const BRIEF_RULES = [
   '`buyer_map`) never appear inside prose,',
   'they belong only in the id fields. `people` are the people who speak for the brand; their',
   'own posts and talks are the `sample_ids` and `fact_ids` listed under each of them.',
+  'When `previous_brief` is present, preserve its unaffected content; change only what the',
+  'current findings, client answers or repair findings and their real dependencies require.',
   DESLOP_PROSE_RULES,
 ].join(' ')
 

@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F60-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/contracts.ts",
+              "note": "Trusted explicit analysis policy and approved demo offer/terms are available."
+            }
+          ],
+          "missing": [
+            "Not all STD-PROCES/STD-LIMITY/WZR versions have agency-approved immutable configuration."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24: approved process, template and task-limit versions beyond the demo purchase."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "Demo purchase preserves offer/terms snapshot and workflow definition reference; phase claims save inputs/limits."
+            }
+          ],
+          "missing": [
+            "Workflow definition rows/global prompt/model/template configuration can still change outside immutable per-run snapshots."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Native phase readiness checks exact accepted foundations and required existing input documents."
+            }
+          ],
+          "missing": [
+            "No complete WZR availability/reference check for every role configuration."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+              "note": "Missing/inconsistent process authorization and inputs produce explicit blocked reason, not invented defaults."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/contracts.ts",
+              "note": "Initial phase execution requires explicit positive budgets/product topic count; disabled/missing policy blocks. Demo-only commercial values are separately approved, not inferred."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

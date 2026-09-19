@@ -1,15 +1,50 @@
 import { EntityManager } from '@mikro-orm/postgresql'
+import { LockMode } from '@mikro-orm/core'
 import { hash, compare } from 'bcryptjs'
 import { CustomerUser } from '@open-mercato/core/modules/customer_accounts/data/entities'
 import { hashForLookup, lookupHashCandidates } from '@open-mercato/shared/lib/encryption/aes'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
+import { isOwnedCompanyEntity } from '@open-mercato/core/modules/customer_accounts/lib/customerEntityOwnership'
+import { emitCustomerAccountsEvent } from '@open-mercato/core/modules/customer_accounts/events'
+import { createLogger } from '@open-mercato/shared/lib/logger'
 
 const BCRYPT_COST = 10
 const MAX_FAILED_ATTEMPTS = 5
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000 // 15 minutes
+const logger = createLogger('customer_accounts').child({ component: 'customer-user-service' })
 
 export class CustomerUserService {
   constructor(private em: EntityManager) {}
+
+  async ensureCompanyLink(
+    input: { userId: string; tenantId: string; organizationId: string; actorUserId: string },
+    resolveNewCompany: (user: CustomerUser) => Promise<string>,
+  ): Promise<{ customerEntityId: string; replayed: boolean }> {
+    const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
+    const result = await this.em.fork().transactional(async (em) => {
+      const user = await findOneWithDecryption(em, CustomerUser, {
+        id: input.userId, ...scope, isActive: true, deletedAt: null,
+      }, { lockMode: LockMode.PESSIMISTIC_WRITE }, scope)
+      if (!user?.emailVerifiedAt) throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      const customerEntityId = user.customerEntityId ?? await resolveNewCompany(user)
+      if (!await isOwnedCompanyEntity(em, customerEntityId, scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      if (user.customerEntityId) return { customerEntityId, replayed: true, email: user.email }
+      await em.nativeUpdate(CustomerUser, { id: user.id, ...scope, customerEntityId: null, deletedAt: null }, {
+        customerEntityId, updatedAt: new Date(),
+      })
+      return { customerEntityId, replayed: false, email: user.email }
+    })
+    if (!result.replayed) {
+      void emitCustomerAccountsEvent('customer_accounts.user.updated', {
+        id: input.userId, recipientUserId: input.userId, email: result.email,
+        ...scope, updatedBy: input.actorUserId,
+      }).catch((error) => logger.error('Customer company-link event failed', { err: error }))
+    }
+    return { customerEntityId: result.customerEntityId, replayed: result.replayed }
+  }
 
   async createUser(
     email: string,

@@ -1,0 +1,192 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F50-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Producer return point is displayed only; no authorized resume action is connected."
+            }
+          ],
+          "missing": [
+            "No resolution-to-STD-PROCES allowed-return validation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/claim.ts",
+              "note": "Initial-entry readiness is not an employee-resolution continuation contract."
+            }
+          ],
+          "missing": [
+            "No resolution-triggered recheck of version/consent/evidence/holds."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/claim.ts",
+              "note": "Initial phase claims safely replay saved results; they do not execute a new resolution-bound recovery."
+            }
+          ],
+          "missing": [
+            "No once-only recovery claim keyed to a persisted employee decision."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Workflow supports continued hold only; no actual resumed producer execution."
+            }
+          ],
+          "missing": [
+            "No implemented scoped recovery to prove no whole-order restart or repeated send."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Native hold decision history exists, but no actual return event exists."
+            }
+          ],
+          "missing": [
+            "No linked decision, prerequisite-check outcome and executed return record."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "T24/T45: approve the specific producer return step, additional guided-attempt allowance and remaining-versus-new budget accounting; no implicit retry authority."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "F50-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/strategyExecution/reviewHandoff.ts",
+              "note": "Initial/replayed unready phases remain explicitly blocked; no unsafe resume occurs."
+            }
+          ],
+          "missing": [
+            "Revalidation after an obstacle-resolving employee decision awaits a real resume contract."
+          ],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "T61/T62 expose exact blocked reason and inspection action; native exception evidence is visible."
+            }
+          ],
+          "missing": [
+            "Post-resolution gate result is unavailable while controlled resume is absent."
+          ],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/employeeQuestions/service.ts",
+              "note": "Customer answer enters native G and does not itself close an employee exception."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/researchException/workflow.ts",
+              "note": "Native keep_blocked action has no publication/delivery side effect."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import type { SpecialistTovReference } from '@/modules/agency_tov/lib/documentVersion/contracts'
+
 export type StrategyReviewVersion = {
   documentId: string
   versionId: string
@@ -6,6 +8,7 @@ export type StrategyReviewVersion = {
   documentStatus: string
   versionStatus: string
   simulationFlag: boolean
+  specialistReference?: SpecialistTovReference
 }
 
 export type StrategyReviewQa =

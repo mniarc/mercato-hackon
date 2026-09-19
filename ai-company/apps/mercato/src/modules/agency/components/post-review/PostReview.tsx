@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { AgencyJourneyLinks } from '../journey/AgencyJourneyLinks'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { CrudForm, type CrudField } from '@open-mercato/ui/backend/CrudForm'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
@@ -21,7 +22,7 @@ import {
 type Props = { taskId: string; orgSlug: string; canComplete: boolean; taskStatus: string; updatedAt?: string }
 const key = 'agency.postReview'
 const readOnlyResponse = async () => false
-const initialValues = { kind: 'approval', approveContent: false, body: '' }
+const initialValues = { kind: 'approval', approveContent: false, consentToPublication: false, body: '' }
 
 export function PostReview(props: Props) {
   return <PostReviewLoader key={`${props.orgSlug}:${props.taskId}`} {...props} />
@@ -71,14 +72,21 @@ function PostReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
   const submitted = Boolean(postKey && submittedPost === postKey)
   const available = Boolean(projection?.canRespond && canComplete && ['PENDING', 'IN_PROGRESS'].includes(taskStatus)
     && canRespondToPost(projection.review) && !submitted && !loading && !failure)
+  const publicationTarget = projection?.review.publicationTarget
   const fields = React.useMemo<CrudField[]>(() => [
     { id: 'kind', type: 'select', label: t(`${key}.responseKind`), required: true,
       description: t(`${key}.approvalHint`),
       options: [{ value: 'approval', label: t(`${key}.approval`) }, { value: 'message', label: t(`${key}.message`) }] },
     { id: 'approveContent', type: 'checkbox', label: t(`${key}.approveContent`), visibleWhen: { field: 'kind', equals: 'approval' } },
+    ...(publicationTarget ? [{
+      id: 'consentToPublication', type: 'checkbox' as const,
+      label: t(`${key}.publicationConsent`, { target: [publicationTarget.displayName, publicationTarget.platform,
+        publicationTarget.accountId, publicationTarget.channelId].filter(Boolean).join(' · ') }),
+      description: t(`${key}.publicationConsentHint`), visibleWhen: { field: 'kind', equals: 'approval' },
+    }] : []),
     { id: 'body', type: 'textarea', label: t(`${key}.message`), description: t(`${key}.messageHint`), required: true,
       rows: 4, maxLength: 20000, visibleWhen: { field: 'kind', equals: 'message' } },
-  ], [t])
+  ], [t, publicationTarget])
 
   async function respond(values: Record<string, unknown>) {
     if (!projection || !available || inFlight.current) throw createCrudFormError(t('agency.review.readOnly'))
@@ -113,11 +121,15 @@ function PostReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <PortalPageHeader title={t(`${key}.title`)} description={t(`${key}.description`)} action={back} />
+      <AgencyJourneyLinks orgSlug={orgSlug} caseId={projection.review.caseId} />
       <PortalCard>
         <DocumentReview review={projection.review.post} canRespond={false} submitting={false}
           submitted={null} error={null} onRespond={readOnlyResponse} />
       </PortalCard>
       <Alert status="information"><AlertDescription>{t(`${key}.contentOnly`)}</AlertDescription></Alert>
+      {projection.review.publicationConsentReceipt ? <Alert status="information"><AlertDescription>
+        {t(`${key}.publicationConsentSaved`, { time: projection.review.publicationConsentReceipt.consentedAt })}
+      </AlertDescription></Alert> : null}
       <PortalCard>
         {submitted ? <Alert status="success"><AlertDescription>{t(`${key}.received`)}</AlertDescription></Alert>
           : available ? <CrudForm key={postKey} formId={`agency-post-review-${taskId}`} embedded disableInitialFocus
@@ -127,7 +139,5 @@ function PostReviewLoader({ taskId, orgSlug, canComplete, taskStatus, updatedAt 
     </div>
   )
 }
-
-
 
 

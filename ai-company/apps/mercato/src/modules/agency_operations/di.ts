@@ -19,6 +19,10 @@ import { CLIENT_TRIAGE_FUNCTION_NAME, deterministicClientTriage } from './lib/cl
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
+import { STAFF_TOV_COMPLETION_HANDLER, STAFF_TOV_INTAKE_SERVICE } from './lib/tovIntake/contracts'
+import { createQueueSpecialistCheckActivity, createSpecialistContinuationHandler } from './lib/strategyExecution/specialistContinuation'
+import { STRATEGY_SPECIALIST_WAIT_FUNCTION } from './lib/strategyExecution/contracts'
+import { createStaffTovIntakeService } from './lib/tovIntake/service'
 import { createClientTriageActivities } from './agents/client-triage/activities'
 import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION, ACCEPT_POST_FUNCTION } from './agents/client-triage/workflow'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
@@ -50,6 +54,8 @@ import { createPostInstructionHandoff } from './lib/planApproval/handoff'
 import { createPostExecutionActivity } from './lib/postExecution/activity'
 import { POST_EXECUTION_FUNCTION } from './lib/postExecution/contracts'
 import { createPostReviewService } from './lib/postReview/service'
+import { createPublicationConsentRequestService } from './lib/publicationConsentRequest/service'
+import { PUBLICATION_CONSENT_REQUEST_SERVICE, PUBLICATION_CONSENT_FUNCTION } from './lib/publicationConsentRequest/contracts'
 import { POST_REVIEW_SERVICE, POST_RESPONSE_FUNCTION } from './lib/postReview/contracts'
 import { createPostReviewHandoff } from './lib/postExecution/reviewHandoff'
 import { POST_REVIEW_HANDOFF_FUNCTION } from './lib/postApproval/contracts'
@@ -57,12 +63,47 @@ import { createPublicationPreparationHandoff } from './lib/publicationPreparatio
 import { PUBLICATION_PREPARATION_FUNCTION } from './lib/publicationPreparation/contracts'
 import { DEMO_PURCHASE_SERVICE } from './lib/orderBootstrap/contracts'
 import { createDemoPurchaseService } from './lib/orderBootstrap/service'
+import { BRIEF_REVISION_FUNCTION, BRIEF_REVISION_REVIEW_FUNCTION, BRIEF_REVISION_EXCEPTION_FUNCTION } from './lib/briefRevision/contracts'
+import { createBriefRevisionActivity } from './lib/briefRevision/activity'
+import { createBriefRevisionReviewHandoff } from './lib/briefRevision/reviewHandoff'
+import { createBriefRevisionResearchExceptionHandoff } from './lib/briefRevision/exceptionHandoff'
+import { POST_REVISION_FUNCTION, POST_REVISION_REVIEW_FUNCTION, POST_REVISION_EXCEPTION_FUNCTION } from './lib/postRevision/contracts'
+import { createPostRevisionActivity } from './lib/postRevision/activity'
+import { createPostRevisionReviewHandoff } from './lib/postRevision/reviewHandoff'
+import { createPostRevisionResearchExceptionHandoff } from './lib/postRevision/exceptionHandoff'
+import { AGENCY_PUBLICATION_DESTINATION_SERVICE } from './lib/publicationDestination/contracts'
+import { createPublicationDestinationService } from './lib/publicationDestination/service'
+import { MATERIAL_REVISION_FUNCTION, MATERIAL_REVISION_REVIEW_FUNCTION, MATERIAL_REVISION_EXCEPTION_FUNCTION } from './lib/materialRevision/contracts'
+import { createMaterialRevisionActivity } from './lib/materialRevision/activity'
+import { createMaterialRevisionReviewHandoff } from './lib/materialRevision/reviewHandoff'
+import { createMaterialRevisionResearchExceptionHandoff } from './lib/materialRevision/exceptionHandoff'
+import { SALES_QUESTIONS_SERVICE, PREPARE_SALES_QUESTION, PREPARE_SALES_ANSWER, RECORD_SALES_ANSWER } from './lib/salesQuestions/contracts'
+import { createSalesQuestionsService } from './lib/salesQuestions/service'
+import { createSalesQuestionActivities } from './lib/salesQuestions/activities'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [SALES_QUESTIONS_SERVICE]: asFunction(() => createSalesQuestionsService(container)).scoped(),
+    [`workflowFunction:${PREPARE_SALES_QUESTION}`]: asFunction(() => createSalesQuestionActivities(container).prepareQuestion).scoped(),
+    [`workflowFunction:${PREPARE_SALES_ANSWER}`]: asFunction(() => createSalesQuestionActivities(container).prepareAnswer).scoped(),
+    [`workflowFunction:${RECORD_SALES_ANSWER}`]: asFunction(() => createSalesQuestionActivities(container).recordAnswer).scoped(),
+    [PUBLICATION_CONSENT_REQUEST_SERVICE]: asFunction(() => createPublicationConsentRequestService(container)).scoped(),
+    [`workflowFunction:${PUBLICATION_CONSENT_FUNCTION}`]: asFunction(
+      () => container.resolve<ReturnType<typeof createPublicationConsentRequestService>>(PUBLICATION_CONSENT_REQUEST_SERVICE).receiveResponse,
+    ).scoped(),
+    [AGENCY_PUBLICATION_DESTINATION_SERVICE]: asFunction(() => createPublicationDestinationService(container)).scoped(),
+    [`workflowFunction:${MATERIAL_REVISION_FUNCTION}`]: asFunction(() => createMaterialRevisionActivity(container)).scoped(),
+    [`workflowFunction:${MATERIAL_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createMaterialRevisionReviewHandoff(container)).scoped(),
+    [`workflowFunction:${MATERIAL_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createMaterialRevisionResearchExceptionHandoff(container)).scoped(),
+    [`workflowFunction:${BRIEF_REVISION_FUNCTION}`]: asFunction(() => createBriefRevisionActivity(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_FUNCTION}`]: asFunction(() => createPostRevisionActivity(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createPostRevisionReviewHandoff(container)).scoped(),
+    [`workflowFunction:${POST_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createPostRevisionResearchExceptionHandoff(container)).scoped(),
+    [`workflowFunction:${BRIEF_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createBriefRevisionReviewHandoff(container)).scoped(),
+    [`workflowFunction:${BRIEF_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createBriefRevisionResearchExceptionHandoff(container)).scoped(),
     [DEMO_PURCHASE_SERVICE]: asFunction(() => createDemoPurchaseService(container)).scoped(),
     [`workflowFunction:${PUBLICATION_PREPARATION_FUNCTION}`]: asFunction(() => createPublicationPreparationHandoff(container)).scoped(),
     [POST_REVIEW_SERVICE]: asFunction(() => createPostReviewService(container)).scoped(),
@@ -87,6 +128,8 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [`workflowFunction:${STRATEGY_REVIEW_HANDOFF_FUNCTION}`]: asFunction(() => createStrategyReviewHandoff(container)).scoped(),
     [`workflowFunction:${STRATEGY_EXECUTION_FUNCTION}`]: asFunction(() => createStrategyExecutionActivity(container)).scoped(),
+    [STAFF_TOV_COMPLETION_HANDLER]: asFunction(() => createSpecialistContinuationHandler(container)).scoped(),
+    [`workflowFunction:${STRATEGY_SPECIALIST_WAIT_FUNCTION}`]: asFunction(() => createQueueSpecialistCheckActivity(container)).scoped(),
     [`workflowFunction:${STRATEGY_READINESS_HANDOFF_FUNCTION}`]: asFunction(() => createStrategyReadinessHandoff(container)).scoped(),
     [EMPLOYEE_QUESTION_SERVICE]: asFunction(() => createEmployeeQuestionService(container)).scoped(),
     [`workflowFunction:${EMPLOYEE_QUESTION_RESPONSE_FUNCTION}`]: asFunction(
@@ -112,6 +155,9 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [CLIENT_MATERIAL_INTAKE_SERVICE]: asFunction(
       () => createClientMaterialIntakeService(container),
+    ).scoped(),
+    [STAFF_TOV_INTAKE_SERVICE]: asFunction(
+      () => createStaffTovIntakeService(container),
     ).scoped(),
     [CLIENT_CASE_QUERY_SERVICE]: asFunction(
       () => createClientCaseQueryService(container),

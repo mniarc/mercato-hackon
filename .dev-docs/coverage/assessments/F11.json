@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F11-1",
+      "note": "T26 explicitly records missing teammate targeted resume contract. T27 answer revision is not new-evidence4.5.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/binding.ts",
+              "note": "The saved native G directive binds the exact submission, event, customer, workflow, question and target brief field."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/__tests__/binding.test.ts",
+              "note": "Focused checks reject a directive whose persisted material input differs from the original saved source."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/source.ts",
+              "note": "The native private attachment is resolved with original submission provenance and the current unapproved brief version."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "The revision loads the existing source register, findings, audit, competitors, order and pinned brief inputs before any targeted change."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/activity.ts",
+              "note": "Only the saved directed field is authorized under a separate explicit material-revision cost cap."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "The 4.5 runner disables unrelated crawling and executes the existing grounded extractor and field mapper only for the requested field."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "The same order receives append-only WZR-ZRODLA and targeted WZR-USTALENIA versions with the new evidence IDs."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/__tests__/append.test.ts",
+              "note": "Focused checks retain prior IDs, sources, proof cards, unrelated fields and client decisions while appending private evidence."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/append.ts",
+              "note": "Unavailable extraction creates an explicit access attempt without an invented fact."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/materialRevision/clarification.ts",
+              "note": "Insufficient evidence reopens the exact current brief questions through a source-bound G review invitation."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F11-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "Changed material findings pass through the existing analysis QA before freeze or brief refresh."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/__tests__/run.test.ts",
+              "note": "Focused negative-QA coverage proves freeze and brief producers are not invoked when analysis QA blocks."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "After ready QA, 3.8 freezes the refreshed exact version set and invokes the existing brief producer for the same order."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/claim.ts",
+              "note": "The current WZR-BRIEF parent is claimed in place and its prior version remains preserved; the revision never creates another case."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "The refreshed brief is another version on the same order/document flow."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/claim.ts",
+              "note": "Saved submission identity and request hash deduplicate in-progress and completed 4.5 execution; a changed replay is rejected."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/__tests__/claim.test.ts",
+              "note": "Focused checks claim a submission once and do not start another task on replay."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "Non-ready analysis QA returns analysis_blocked and preserves its escalation instead of freezing or handing an unchecked package to the brief."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/__tests__/run.test.ts",
+              "note": "Focused checks prove the negative-QA path skips freeze and brief production."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

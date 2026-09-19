@@ -1,8 +1,11 @@
 import { z } from 'zod'
 import { strategyReadinessRequestSchema, type StrategyReadinessReason } from '../strategyReadiness/contracts'
+import { specialistTovReferenceSchema } from '@/modules/agency_tov/lib/documentVersion/contracts'
 
 export const strategyExecutionRequestSchema = strategyReadinessRequestSchema.extend({
   maxCostPln: z.number().positive(),
+  /** Trusted case-linked specialist output, never a client-selected foreign version. */
+  specialistTov: specialistTovReferenceSchema.optional(),
 })
 export type StrategyExecutionRequest = z.infer<typeof strategyExecutionRequestSchema>
 
@@ -18,11 +21,12 @@ export const strategyExecutionOutcomeSchema = z.object({
   qaTaskRunId: z.string().nullable(),
   qaVerdict: z.enum(['ready_for_approval', 'needs_agent_fix']).nullable(),
   escalationVersionId: z.string().optional(),
+  specialistTov: specialistTovReferenceSchema.optional(),
 })
 export type StrategyExecutionOutcome = z.infer<typeof strategyExecutionOutcomeSchema>
 
 export type StrategyExecutionResult =
-  | { status: 'not_ready'; orderRef: string; reason: StrategyReadinessReason | 'pinned_input_missing' | 'order_version_missing'; templateId?: string }
+  | { status: 'not_ready'; orderRef: string; reason: StrategyReadinessReason | 'pinned_input_missing' | 'order_version_missing' | 'specialist_tov_required' | 'specialist_tov_unavailable'; templateId?: string }
   | {
       status: 'execution_incomplete'
       orderRef: string

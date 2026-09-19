@@ -1,51 +1,80 @@
+/** @jest-environment node */
+import type { AppContainer } from '@open-mercato/shared/lib/di/container'
+import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { WorkflowDefinition, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
+import { AgencyCase } from '../../../data/entities'
 import { restartAnalysisCase } from '../restart'
+import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 
-jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn() }))
-jest.mock('../configure', () => ({ assertAnalysisProcessConfigured: jest.fn(async () => ({ version: 3 })) }))
+jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
+const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
+const input = { tenantId: uuid(1), organizationId: uuid(2), userId: uuid(3), caseId: uuid(4) }
+const purchase = { orderId: uuid(8), paymentId: uuid(9), receiptAttachmentId: uuid(10) }
+const policy = { through: '3.8' as const, maxCostPln: 2,
+  productSelection: { sku: 'configured', offer_version: 'v1', price_net: 100, currency: 'PLN', result_limits: { topics: 7 } } }
+let previous: WorkflowInstance, agencyCase: AgencyCase, active: boolean, transactionOpen: boolean
+const startWorkflow = jest.fn(), executeWorkflow = jest.fn()
+const em = { flush: jest.fn(), transactional: async (fn: (tx: unknown) => Promise<unknown>) => {
+  transactionOpen = true
+  try { return await fn(em) } finally { transactionOpen = false }
+} }
+const services = { em, workflowExecutor: { startWorkflow, executeWorkflow }, rbacService: { userHasAllFeatures: async () => true } }
+const container = { resolve: (name: keyof typeof services) => services[name] } as unknown as AppContainer
+const enabled = process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED
 
-const { findOneWithDecryption } = jest.requireMock('@open-mercato/shared/lib/encryption/find') as { findOneWithDecryption: jest.Mock }
-
-const ids = { tenantId: '00000000-0000-4000-8000-000000000001', organizationId: '00000000-0000-4000-8000-000000000002', userId: '00000000-0000-4000-8000-000000000003', caseId: '00000000-0000-4000-8000-000000000004' }
-const agencyCase = { id: ids.caseId, agentWorkerId: 'agency_operations.agent-worker.analysis.v1', workflowInstanceId: 'wf-1', customerEntityId: 'c', submittedByCustomerUserId: 'u', title: 'FLOW', materialFileName: null, materialMimeType: null, materialFileSize: null, updatedAt: new Date(0) }
-
-function harness(instance: { status: string; currentStepId: string | null }) {
-  const previous = { id: 'wf-1', status: instance.status, currentStepId: instance.currentStepId, correlationKey: 'agency-case:x' }
-  const tasks = [{ id: 't-1', status: 'PENDING', updatedAt: new Date(0) }]
-  const em = { find: jest.fn(async () => tasks), flush: jest.fn(async () => undefined), refresh: jest.fn(async (entity: { status: string }) => { entity.status = 'CANCELLED' }) }
-  const executor = {
-    updateWorkflowContext: jest.fn(async () => undefined),
-    completeWorkflow: jest.fn(async () => undefined),
-    startWorkflow: jest.fn(async () => ({ id: 'wf-2' })),
-    executeWorkflow: jest.fn(async () => ({ status: 'WAITING_FOR_ACTIVITIES', currentStep: 'research' })),
-  }
-  const container = { resolve: (key: string) => ({ em, workflowExecutor: executor, rbacService: { userHasAllFeatures: async () => true } })[key] }
-  findOneWithDecryption.mockReset()
-  findOneWithDecryption.mockResolvedValueOnce({ ...agencyCase }).mockResolvedValueOnce(previous)
-  return { em, executor, tasks, container }
-}
-
-describe('restartAnalysisCase on a paused instance', () => {
-  it('paused on an exception task: writes the resume override into the live instance, nothing is cancelled', async () => {
-    const { executor, container } = harness({ status: 'PAUSED', currentStepId: 'research_exception' })
-    const result = await restartAnalysisCase(container as never, { ...ids, resumeFrom: '4.2' })
-    expect(result).toMatchObject({ workflowInstanceId: 'wf-1', status: 'PAUSED', currentStep: 'research_exception' })
-    expect(executor.updateWorkflowContext).toHaveBeenCalledWith(expect.anything(), 'wf-1', expect.objectContaining({ restart: expect.objectContaining({ resumeFrom: '4.2' }) }))
-    expect(executor.completeWorkflow).not.toHaveBeenCalled()
-    expect(executor.startWorkflow).not.toHaveBeenCalled()
+beforeEach(() => {
+  jest.clearAllMocks(); active = false; transactionOpen = false
+  process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED = 'true'
+  agencyCase = Object.assign(new AgencyCase(), { id: input.caseId, agentWorkerId: AGENCY_ANALYSIS_WORKER_ID, workflowInstanceId: uuid(5) })
+  previous = Object.assign(new WorkflowInstance(), { id: uuid(5), workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
+    definitionId: uuid(6), version: 7, status: 'FAILED', context: { purchase, paidPurchaseOrigin: { materialHash: 'original' } } })
+  jest.mocked(findWithDecryption).mockResolvedValue([{ workflowInstanceId: uuid(20) }] as never)
+  jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity) => {
+    if (entity === AgencyCase) return agencyCase as never
+    if (entity === WorkflowInstance) return previous as never
+    if (entity === AgentRun) return (active ? { id: uuid(21) } : null) as never
+    if (entity === WorkflowDefinition) return { version: 7, enabled: true, definition: createAgencyAnalysisWorkflowDefinition(policy), metadata: { generatedBy: { module: 'agency_operations', ownerId: 'analysis' } } } as never
+    return null
   })
-
-  it('paused on a client review: cancels the review task and the instance, starts a fresh one from the step', async () => {
-    const { executor, tasks, container } = harness({ status: 'PAUSED', currentStepId: 'waiting' })
-    const result = await restartAnalysisCase(container as never, { ...ids, resumeFrom: '4.2' })
-    expect(executor.completeWorkflow).toHaveBeenCalledWith(expect.anything(), container, 'wf-1', 'CANCELLED')
-    expect(tasks[0].status).toBe('CANCELLED')
-    expect(executor.startWorkflow).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ correlationKey: `agency-case:${ids.caseId}:restart-1`, initialContext: expect.objectContaining({ restart: expect.objectContaining({ previousWorkflowInstanceId: 'wf-1', resumeFrom: '4.2' }) }) }))
-    expect(result).toMatchObject({ previousWorkflowInstanceId: 'wf-1', workflowInstanceId: 'wf-2', currentStep: 'research' })
+  startWorkflow.mockResolvedValue({ id: uuid(11) })
+  executeWorkflow.mockImplementation(async () => {
+    expect(transactionOpen).toBe(false)
+    return { status: 'WAITING_FOR_ACTIVITIES', currentStep: 'research' }
   })
+})
+afterAll(() => { if (enabled === undefined) delete process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED; else process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED = enabled })
 
-  it('paused on a client review without a step: refused, nothing runs twice', async () => {
-    const { executor, container } = harness({ status: 'PAUSED', currentStepId: 'waiting' })
-    await expect(restartAnalysisCase(container as never, ids)).rejects.toMatchObject({ status: 409 })
-    expect(executor.completeWorkflow).not.toHaveBeenCalled()
-  })
+test('explicit recovery keeps the original process version and both purchase layouts, dispatching after commit', async () => {
+  await expect(restartAnalysisCase(container, input)).resolves.toMatchObject({ previousWorkflowInstanceId: uuid(5), workflowInstanceId: uuid(11) })
+  expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({ version: 7,
+    initialContext: expect.objectContaining({ purchase, paidPurchaseOrigin: { materialHash: 'original' },
+      restart: expect.objectContaining({ previousWorkflowInstanceId: uuid(5), by: input.userId }) }) }))
+  expect(agencyCase.workflowInstanceId).toBe(uuid(11))
+})
+
+test('a terminal workflow is not proof that its provider or a parallel client-response worker is dead', async () => {
+  active = true
+  await expect(restartAnalysisCase(container, input)).rejects.toMatchObject({ status: 409 })
+  expect(findOneWithDecryption).toHaveBeenCalledWith(em, AgentRun, expect.objectContaining({
+    workflowInstanceId: { $in: [uuid(5), uuid(20)] }, status: 'running',
+  }), undefined, expect.anything())
+  expect(startWorkflow).not.toHaveBeenCalled(); expect(executeWorkflow).not.toHaveBeenCalled()
+  active = false; previous.status = 'RUNNING'
+  await expect(restartAnalysisCase(container, input)).rejects.toMatchObject({ status: 409 })
+  expect(startWorkflow).not.toHaveBeenCalled()
+})
+
+test('explicit --from is saved only within the original intake policy; paused employee holds are not a resume action', async () => {
+  await restartAnalysisCase(container, { ...input, resumeFrom: '3.5' })
+  expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({ initialContext: expect.objectContaining({
+    restart: expect.objectContaining({ resumeFrom: '3.5', attempt: 1, previousWorkflowInstanceId: uuid(5) }),
+  }) }))
+  startWorkflow.mockClear()
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '4.2' })).rejects.toMatchObject({ status: 409 })
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '7.3' })).rejects.toThrow()
+  previous.status = 'PAUSED'
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '3.2' })).rejects.toMatchObject({ status: 409,
+    body: expect.objectContaining({ error: expect.stringContaining('keep_blocked') }) })
+  expect(startWorkflow).not.toHaveBeenCalled()
 })

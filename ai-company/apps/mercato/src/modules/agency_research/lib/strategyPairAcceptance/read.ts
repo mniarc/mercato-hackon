@@ -1,4 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyResearchDocumentVersion } from '../../data/entities'
 import { readStrategyReview } from '../strategyReview/read'
@@ -8,11 +9,13 @@ import { pairDocumentKinds, strategyPairAcceptanceRequestSchema, strategyPairAcc
   type PairAcceptanceReason, type PairDocumentKind, type StrategyPairAcceptanceRecord, type StrategyPairAcceptanceState } from './contracts'
 
 type Scope = { tenantId: string; organizationId: string }
-export async function readEligiblePair(em: EntityManager, scope: Scope, input: { orderRef: string; strategyVersionId: string; tovVersionId: string }): Promise<
+export async function readEligiblePair(em: EntityManager, scope: Scope, input: { orderRef: string; strategyVersionId: string; tovVersionId: string }, readSpecialistTov?: ReadSpecialistTov): Promise<
   { eligible: true; pair: StrategyReviewProjection & { brief: NonNullable<StrategyReviewProjection['brief']> }; qaTaskRunId: string }
   | { eligible: false; reason: PairAcceptanceReason }
 > {
-  const pair = await readStrategyReview(em, scope, input.orderRef, input.strategyVersionId, input.tovVersionId)
+  const pair = readSpecialistTov
+    ? await readStrategyReview(em, scope, input.orderRef, input.strategyVersionId, input.tovVersionId, readSpecialistTov)
+    : await readStrategyReview(em, scope, input.orderRef, input.strategyVersionId, input.tovVersionId)
   if (!pair) return { eligible: false, reason: 'pair_not_found' }
   if (!pair.strategy.isCurrent || !pair.tov.isCurrent) return { eligible: false, reason: 'pair_not_current' }
   // Native pair QA marks the parents ready; versions remain draft until consent.
@@ -48,20 +51,24 @@ export function matchingPairAcceptance(rawRecords: unknown, kind: PairDocumentKi
   return null
 }
 
-export async function readStrategyPairAcceptance(em: EntityManager, scope: Scope, rawInput: unknown): Promise<StrategyPairAcceptanceState> {
+export async function readStrategyPairAcceptance(em: EntityManager, scope: Scope, rawInput: unknown, readSpecialistTov?: ReadSpecialistTov): Promise<StrategyPairAcceptanceState> {
   const input = strategyPairAcceptanceRequestSchema.parse(rawInput)
-  const checked = await readEligiblePair(em, scope, input)
+  const checked = readSpecialistTov ? await readEligiblePair(em, scope, input, readSpecialistTov) : await readEligiblePair(em, scope, input)
   if (!checked.eligible) return { status: 'not_ready', orderRef: input.orderRef, reason: checked.reason }
   const { pair } = checked
   const acceptances: { strategy: StrategyPairAcceptanceRecord | null; tov: StrategyPairAcceptanceRecord | null } = { strategy: null, tov: null }
+  let strategyVersion: AgencyResearchDocumentVersion | null = null
   for (const kind of pairDocumentKinds) {
     const document = pair[kind]
-    const version = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
-      ...scope, orderRef: input.orderRef, id: document.versionId, documentId: document.documentId, templateId: document.templateId,
-    }, undefined, scope)
+    const version: AgencyResearchDocumentVersion | null = kind === 'tov' && document.specialistReference
+      ? strategyVersion
+      : await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+        ...scope, orderRef: input.orderRef, id: document.versionId, documentId: document.documentId, templateId: document.templateId,
+      }, undefined, scope)
     if (!version) return { status: 'not_ready', orderRef: input.orderRef, reason: 'pair_not_found' }
+    if (kind === 'strategy') strategyVersion = version
     const saved = matchingPairAcceptance(version.approvalRecords, kind, pair)
-    if (document.documentStatus === 'approved' && document.versionStatus === 'approved') {
+    if (document.specialistReference ? Boolean(saved) : document.documentStatus === 'approved' && document.versionStatus === 'approved') {
       if (!saved) return { status: 'not_ready', orderRef: input.orderRef, reason: 'approval_record_missing' }
       acceptances[kind] = saved
     }

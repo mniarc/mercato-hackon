@@ -55,12 +55,15 @@ export const clientSubmissionItemSchema = z.object({
   original: clientSubmissionRequestSchema,
   workflow: z.object({ status: z.string(), currentStep: z.string() }).nullable(),
   disposition: clientSubmissionDispositionSchema.nullable(),
+  processing: z.object({ state: z.enum(['waiting_configuration', 'pending_dispatch', 'processing', 'processed']) }).optional(),
 })
 
 export type ClientSubmissionRequest = z.input<typeof clientSubmissionRequestSchema>
 export type ClientSubmissionItem = z.infer<typeof clientSubmissionItemSchema>
 export type ClientSubmissionDisposition = z.infer<typeof clientSubmissionDispositionSchema>
 export type ClientSubmissionService = {
-  submit(identity: ClientCaseIdentity, caseId: string, input: ClientSubmissionRequest): Promise<{ item: ClientSubmissionItem; replayed: boolean }>
+  // Trusted server options, never part of the public request schema. Native is
+  // the default; deterministicTestFixture additionally requires NODE_ENV=test.
+  submit(identity: ClientCaseIdentity, caseId: string, input: ClientSubmissionRequest, options?: { requireNative?: true; startPending?: true; deterministicTestFixture?: true }): Promise<{ item: ClientSubmissionItem; replayed: boolean }>
   list(identity: ClientCaseIdentity, caseId: string): Promise<{ items: ClientSubmissionItem[] }>
 }

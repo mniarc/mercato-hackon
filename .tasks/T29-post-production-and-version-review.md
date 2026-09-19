@@ -1,6 +1,6 @@
 # T29 - Produce and review one exact text-post version
 
-State: active
+State: active (partial)
 Depends on: T28, T22; T26 for supplementary research
 Owns: active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.
 Sources: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2
@@ -34,6 +34,21 @@ Sources: F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2
 
 - One draft travels through QA and exact-version review; focused checks prove the
   research return and separation of text approval from publish authorization.
+
+## Remaining
+
+- Author/editor repair, native employee escalation and genuine client answers into G
+  are connected: [post QA](../ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/postQa.ts),
+  [native handoff](../ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts),
+  [client answers](../ai-company/apps/mercato/src/modules/agency_operations/lib/employeeQuestions/service.ts).
+- [F31-1 AC2](../.specs/user-stories/07-produkcja-postu/F31-1.md) and
+  [F31-2 AC1–2](../.specs/user-stories/07-produkcja-postu/F31-2.md) still need a public producer
+  contract for a missing-claim request bound to the exact post/QA task and an evidence-only
+  return to that same QA task without changing approved foundations. Current QA routes
+  findings to 7.2; `return_to_instruction` describes an escalation option, not an executable return.
+  The [public service](../ai-company/apps/mercato/src/modules/agency_research/lib/contracts/agencyResearch.ts)
+  has no such continuation; general `run` replays the chain and `runPostRevision` handles
+  client-requested revision, so neither substitutes for it. This gap does not block all T29 work.
 
 ## Constraints
 

@@ -13,7 +13,7 @@ import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacS
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
-import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
+import { AGENCY_RESEARCH_SERVICE, briefRevisionOutcomeSchema, materialRevisionOutcomeSchema, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { CLIENT_SUBMISSION_SERVICE, type ClientSubmissionService } from '../contracts/clientSubmission'
 import {
@@ -21,11 +21,13 @@ import {
   briefReviewInvitationSchema, briefReviewRequestSchema, type BriefReviewService, type BriefReviewRequest,
 } from './contracts'
 import { briefReviewStatus, renderBriefReview } from './review'
+import { BRIEF_REVISION_RESULT_KEY } from '../briefRevision/contracts'
+import { MATERIAL_REVISION_RESULT_KEY } from '../materialRevision/contracts'
 
 type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
 type Scope = { tenantId: string; organizationId: string }
 type ContactService = { findById(id: string, tenantId: string, organizationId: string): Promise<{ isActive?: boolean; customerEntityId?: string | null } | null> }
-const inviteSchema = z.object({ caseId: z.uuid(), versionId: z.uuid(), tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid() })
+const inviteSchema = z.object({ caseId: z.uuid(), versionId: z.uuid(), tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), sourceSubmissionId: z.uuid().optional() })
 const executionContextSchema = z.object({ workflowInstance: z.object({ id: z.uuid(), workflowId: z.literal(BRIEF_REVIEW_WORKFLOW_ID), tenantId: z.uuid(), organizationId: z.uuid() }) })
 
 function notFound(): never { throw new CrudHttpError(404, { error: 'api.errors.notFound' }) }
@@ -140,10 +142,38 @@ export function createBriefReviewService(container: AppContainer): BriefReviewSe
         const agencyCase = await findOneWithDecryption(tx, AgencyCase, { id: input.caseId, ...scope, deletedAt: null }, { lockMode: LockMode.PESSIMISTIC_WRITE }, scope)
         if (!agencyCase) notFound()
         await contact(agencyCase.submittedByCustomerUserId, agencyCase.customerEntityId, scope)
+        let materialQuestions: Array<{ questionId: string; question: string }> | undefined
+        if (input.sourceSubmissionId) {
+          const source = await findOneWithDecryption(tx, AgencyClientSubmission, {
+            ...scope, id: input.sourceSubmissionId, caseId: agencyCase.id, customerEntityId: agencyCase.customerEntityId,
+            submittedByCustomerUserId: agencyCase.submittedByCustomerUserId, deletedAt: null,
+          }, undefined, scope)
+          const sourceWorkflow = source?.workflowInstanceId ? await findOneWithDecryption(tx, WorkflowInstance, {
+            ...scope, id: source.workflowInstanceId, workflowId: 'agency_operations.client-submission.native.v1', deletedAt: null,
+          }, undefined, scope) : null
+          const outcome = z.object({ result: briefRevisionOutcomeSchema }).safeParse(sourceWorkflow?.context[BRIEF_REVISION_RESULT_KEY])
+          const original = record(record(source?.original).reviewResponse)
+          const briefFollowUp = source && outcome.success && outcome.data.result.status === 'needs_client_data'
+            && outcome.data.result.orderRef === agencyCase.id && outcome.data.result.submissionId === source.id
+            && outcome.data.result.previousBriefVersionId === input.versionId && outcome.data.result.briefVersionId === null
+            && original.kind === 'message' && original.versionId === input.versionId
+          if (!briefFollowUp) {
+            const material = z.object({ result: materialRevisionOutcomeSchema }).safeParse(sourceWorkflow?.context[MATERIAL_REVISION_RESULT_KEY])
+            if (!source || !material.success || material.data.result.status !== 'needs_client_data'
+              || material.data.result.orderRef !== agencyCase.id || material.data.result.submissionId !== source.id
+              || material.data.result.previousBriefVersionId !== input.versionId || material.data.result.briefVersionId !== null
+              || material.data.result.sourcesVersionId !== null || material.data.result.findingsVersionId !== null
+              || material.data.result.documentVersionIds.length || material.data.result.escalationVersionId
+              || !material.data.result.questions.length || !z.uuid().safeParse(source.original.materialAttachmentId).success) conflict()
+            materialQuestions = material.data.result.questions
+          }
+        }
         const projection = await research.getBriefReview(scope, agencyCase.id, input.versionId)
         const review = projection ? await renderBriefReview(projection, agencyCase.id) : null
         if (!review) conflict()
-        const correlationKey = `agency-brief:${agencyCase.id}:${input.versionId}`
+        if (materialQuestions && (review.status !== 'needs_review' || !isDeepStrictEqual(materialQuestions,
+          projection?.questions.map((question) => ({ questionId: question.question_id, question: question.question }))))) conflict()
+        const correlationKey = `agency-brief:${agencyCase.id}:${input.versionId}${input.sourceSubmissionId ? `:reply:${input.sourceSubmissionId}` : ''}`
         const existing = await findOneWithDecryption(tx, WorkflowInstance, { workflowId: BRIEF_REVIEW_WORKFLOW_ID, correlationKey, ...scope, deletedAt: null }, undefined, scope)
         if (existing) return { workflowInstanceId: existing.id, replayed: true }
         const authoring = container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring')
@@ -167,11 +197,17 @@ export function createBriefReviewService(container: AppContainer): BriefReviewSe
       z.uuid().parse(caseId)
       const input = briefReviewRequestSchema.parse(rawInput)
       const scope = { tenantId: auth.tenantId, organizationId: auth.orgId }
-      const instance = await findOneWithDecryption(em, WorkflowInstance, {
-        workflowId: BRIEF_REVIEW_WORKFLOW_ID, correlationKey: `agency-brief:${caseId}:${input.versionId}`, ...scope, deletedAt: null,
+      const replayTask = await findOneWithDecryption(em, UserTask, {
+        ...scope, assigneeKind: 'customer', assignedTo: auth.sub, completedBy: auth.sub, status: 'COMPLETED',
+        formData: { [BRIEF_RESPONSE_CONTEXT_KEY]: { externalEventId: input.externalEventId, documentId: input.documentId, versionId: input.versionId } },
       }, undefined, scope)
+      const correlationKey = `agency-brief:${caseId}:${input.versionId}`
+      const instance = await findOneWithDecryption(em, WorkflowInstance, {
+        workflowId: BRIEF_REVIEW_WORKFLOW_ID, ...scope, deletedAt: null,
+        ...(replayTask ? { id: replayTask.workflowInstanceId } : { $or: [{ correlationKey }, { correlationKey: { $like: `${correlationKey}:reply:%` } }] }),
+      }, { orderBy: { createdAt: 'DESC' } }, scope)
       if (!instance) notFound()
-      const task = await findOneWithDecryption(em, UserTask, { workflowInstanceId: instance.id, assignedTo: auth.sub, assigneeKind: 'customer', ...scope }, undefined, scope)
+      const task = replayTask ?? await findOneWithDecryption(em, UserTask, { workflowInstanceId: instance.id, assignedTo: auth.sub, assigneeKind: 'customer', ...scope }, undefined, scope)
       if (!task) notFound()
       const loaded = await accessible(auth, task.id)
       if (loaded.agencyCase.id !== caseId || input.documentId !== loaded.invitation.review.documentId || input.versionId !== loaded.invitation.review.versionId) notFound()

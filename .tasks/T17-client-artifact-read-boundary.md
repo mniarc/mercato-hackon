@@ -1,6 +1,6 @@
 # T17 - Expose case-linked research document versions
 
-State: active
+State: legacy ToV read boundary implemented; not the current portal review path
 Depends on: T12's implemented service/bridge, T14 (paid live proof is not a prerequisite)
 Owns: `agency_operations/lib/clientArtifactService.ts`,
 `lib/contracts/clientArtifact.ts`, focused tests and
@@ -13,9 +13,13 @@ internal evidence, provider traces and execution context. Copy no document entit
 
 Implementation, shared wiring and seven focused checks are complete. The real
 headed journey verifies empty reads before production and 404 for unlinked versions.
-Remaining: positive persisted ToV version read through the live API alongside
-T12's artifact-producing proof; do not call the empty read full ToV acceptance.
+Legacy-only remaining proof: positive persisted ToV version read through this API
+alongside T12's artifact-producing proof; empty reads are not ToV acceptance.
 
 This JSON is not HTML, an approval invitation or a claim about the current case
-version. Teammate portal spec section 10 describes a separate review handoff;
-[T22](T22-version-bound-client-review.md) owns its missing invitation/write boundary.
+version. It reads genuine `agency_tov` outputs for that workflow, not an overlapping
+production scaffold. Current teammate portal reviews instead use
+`StrategyPairReview` -> `/api/agency/strategy-reviews/{taskId}` ->
+`strategyPairReview/service.ts` -> research `getStrategyReview` and exact pair
+acceptance. No production UI calls this artifact endpoint. Preserve compatibility;
+do not route research Markdown through the legacy ToV JSON contract.

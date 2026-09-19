@@ -3,6 +3,14 @@ import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 export const CLIENT_TRIAGE_ENABLED_ENV = 'OM_AGENCY_TRIAGE_ENABLED'
 export const CLIENT_TRIAGE_MODE_ENV = 'OM_AGENCY_TRIAGE_MODE'
 
+/** Expected setup failure, distinct from a storage/provider/runtime fault. */
+export class ClientTriageConfigurationError extends Error {
+  constructor(mode: string, field: string) {
+    super(`[internal] Native client triage ${mode} configuration is not ready; check ${field}.`)
+    this.name = 'ClientTriageConfigurationError'
+  }
+}
+
 export type ClientTriageConfiguration =
   | { mode: 'disabled' | 'fixture' }
   | { mode: 'live'; provider: 'openrouter'; model: string; runTimeoutMs: number; providerRetryMax: number; providerRetryBaseMs: number }
@@ -24,11 +32,16 @@ export function resolveClientTriageConfiguration(environment: Record<string, str
   const read = (key: string) => environment[key]?.trim() ?? ''
   const mode = read(CLIENT_TRIAGE_MODE_ENV) || (parseBooleanWithDefault(environment[CLIENT_TRIAGE_ENABLED_ENV], false) ? 'fixture' : 'disabled')
   const invalid = (key: string): never => {
-    throw new Error(`[internal] Native client triage ${mode} configuration is not ready; check ${key}.`)
+    throw new ClientTriageConfigurationError(mode, key)
   }
   if (mode === 'disabled') return { mode }
   if (mode === 'fixture') {
-    const mismatch = Object.entries(CLIENT_TRIAGE_FIXTURE_ENVIRONMENT).find(([key, value]) => environment[key] !== value)
+    const expected = read('AGENCY_MANUAL_PROFILE') === 'fixture' ? {
+      ...CLIENT_TRIAGE_FIXTURE_ENVIRONMENT,
+      OPENROUTER_BASE_URL: 'http://127.0.0.1:5005/v1',
+      AGENCY_OPERATIONS_AI_BASE_URL: 'http://127.0.0.1:5005/v1',
+    } : CLIENT_TRIAGE_FIXTURE_ENVIRONMENT
+    const mismatch = Object.entries(expected).find(([key, value]) => environment[key] !== value)
     if (mismatch) invalid(mismatch[0])
     return { mode }
   }

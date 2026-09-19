@@ -1,20 +1,24 @@
 import { z } from 'zod'
+import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
-import { UserTask, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { WorkflowInstance, WorkflowDefinition } from '@open-mercato/core/modules/workflows/data/entities'
+import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
-import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
-import { AgencyCase } from '../../data/entities'
-import { assertAnalysisProcessConfigured } from './configure'
-import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
+import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
+import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
+import { assertAnalysisExecutionEnabled } from './activity'
+import { analysisIntakeSteps, analysisExecutionPolicySchema } from './contracts'
+import { AGENCY_ANALYSIS_FUNCTION_NAME, AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
 
-type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext' | 'completeWorkflow'>
+type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow'>
 
 const inputSchema = z.object({
   tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(),
-  /** Override the automatic resume point (a chain group: 3.2, 3.5, 3.8, 4.2 …), e.g. to rebuild an earlier document. */
-  resumeFrom: z.enum(['3.2', '3.5', '3.8', '4.2', '5.4', '6.7', '7.3', '8.7', '9.3']).optional(),
+  /** Explicit intake recovery point, still bounded by the original process policy. */
+  resumeFrom: z.enum(analysisIntakeSteps).optional(),
 }).strict()
 const TERMINAL = new Set(['FAILED', 'CANCELLED', 'COMPLETED'])
 
@@ -23,56 +27,67 @@ const TERMINAL = new Set(['FAILED', 'CANCELLED', 'COMPLETED'])
  * the research finishing (a runtime restart mid-step, a crashed activity): the
  * case gets a fresh `analysis.v1` instance bound to it and executed. The research
  * activity itself decides where to continue — stored documents stand, orphaned
- * task runs are marked, spend resumes under the current policy cap. A case
+ * task runs are marked, spend resumes under the original pinned policy cap. A case
  * whose workflow is still alive is refused: nothing runs twice.
  */
 export async function restartAnalysisCase(container: AppContainer, rawInput: unknown): Promise<{ caseId: string; previousWorkflowInstanceId: string | null; workflowInstanceId: string; status: string; currentStep: string }> {
   const input = inputSchema.parse(rawInput)
+  assertAnalysisExecutionEnabled()
   const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
   if (!await container.resolve<Pick<RbacService, 'userHasAllFeatures'>>('rbacService').userHasAllFeatures(input.userId, ['agency_research.manage', 'workflows.manage'], scope)) {
     throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
   }
-  const definition = await assertAnalysisProcessConfigured(container, scope)
   const em = container.resolve<EntityManager>('em')
-  const agencyCase = await findOneWithDecryption(em, AgencyCase, { ...scope, id: input.caseId, deletedAt: null }, undefined, scope)
-  if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
-  if (agencyCase.agentWorkerId !== AGENCY_ANALYSIS_WORKER_ID) throw new CrudHttpError(409, { error: 'Only an analysis case can be restarted' })
-  const previous = agencyCase.workflowInstanceId
-    ? await findOneWithDecryption(em, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, deletedAt: null }, undefined, scope)
-    : null
   const executor = container.resolve<Executor>('workflowExecutor')
-  if (previous && previous.status === 'PAUSED' && input.resumeFrom && previous.currentStepId === 'research_exception') {
-    // Paused on an open exception task: the human decision stays with the employee. The override is written
-    // into the live instance so that resolving the task re-enters research from the requested step.
-    await executor.updateWorkflowContext(em, previous.id, { restart: { attempt: 0, previousWorkflowInstanceId: null, by: input.userId, at: new Date().toISOString(), resumeFrom: input.resumeFrom } })
-    return { caseId: agencyCase.id, previousWorkflowInstanceId: null, workflowInstanceId: previous.id, status: previous.status, currentStep: previous.currentStepId }
-  }
-  if (previous && previous.status === 'PAUSED' && input.resumeFrom) {
-    // Paused on a client review: the employee rebuilds a document before the client reads it. The open
-    // review task and this instance are cancelled (nothing was accepted), a fresh instance re-enters
-    // research from the requested step and pauses again on a new review task.
-    await executor.completeWorkflow(em, container, previous.id, 'CANCELLED')
-    const openTasks = await em.find(UserTask, { workflowInstanceId: previous.id, status: 'PENDING' })
-    for (const task of openTasks) { task.status = 'CANCELLED'; task.updatedAt = new Date() }
-    await em.flush()
-    await em.refresh(previous)
-  }
-  if (previous && !TERMINAL.has(previous.status)) throw new CrudHttpError(409, { error: `The case workflow is still ${previous.status}; nothing to restart` })
-  const attempt = (previous?.correlationKey?.match(/:restart-(\d+)$/)?.[1] ? Number(previous.correlationKey.match(/:restart-(\d+)$/)![1]) : 0) + 1
-  const workflow = await executor.startWorkflow(em, {
-    ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: definition.version, correlationKey: `agency-case:${agencyCase.id}:restart-${attempt}`,
-    initialContext: {
-      caseId: agencyCase.id, tenantId: scope.tenantId, organizationId: scope.organizationId,
-      customerEntityId: agencyCase.customerEntityId, submittedByCustomerUserId: agencyCase.submittedByCustomerUserId,
-      title: agencyCase.title, agentWorkerId: agencyCase.agentWorkerId,
-      materialFileName: agencyCase.materialFileName, materialMimeType: agencyCase.materialMimeType, materialFileSize: agencyCase.materialFileSize,
-      restart: { attempt, previousWorkflowInstanceId: previous?.id ?? null, by: input.userId, at: new Date().toISOString(), ...(input.resumeFrom ? { resumeFrom: input.resumeFrom } : {}) },
-    },
-    metadata: { entityType: 'agency_operations:agency_case', entityId: agencyCase.id, labels: { agentWorkerId: agencyCase.agentWorkerId } },
+  const prepared = await em.transactional(async (tx) => {
+    const agencyCase = await findOneWithDecryption(tx, AgencyCase, { ...scope, id: input.caseId, deletedAt: null }, { lockMode: LockMode.PESSIMISTIC_WRITE }, scope)
+    if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
+    if (agencyCase.agentWorkerId !== AGENCY_ANALYSIS_WORKER_ID) throw new CrudHttpError(409, { error: 'Only an analysis case can be restarted' })
+    const previous = agencyCase.workflowInstanceId
+      ? await findOneWithDecryption(tx, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, deletedAt: null }, undefined, scope)
+      : null
+    if (previous?.status === 'PAUSED' && input.resumeFrom) {
+      throw new CrudHttpError(409, { error: 'A paused employee exception cannot be resumed by --from. Recording keep_blocked remains a hold; an explicit authorized recovery action is required.' })
+    }
+    if (!previous || !TERMINAL.has(previous.status)) throw new CrudHttpError(409, { error: 'A terminal analysis workflow is required before restart.' })
+    // A persisted running provider invocation is not proof the process died.
+    // Refuse unresolved activity, including a parallel client-response worker.
+    const submissions = await findWithDecryption(tx, AgencyClientSubmission, { ...scope, caseId: agencyCase.id, deletedAt: null }, { fields: ['workflowInstanceId'] }, scope)
+    const workflowIds = [previous.id, ...submissions.flatMap((submission) => submission.workflowInstanceId ? [submission.workflowInstanceId] : [])]
+    const active = await findOneWithDecryption(tx, AgentRun, { ...scope, workflowInstanceId: { $in: workflowIds }, status: 'running', deletedAt: null }, undefined, scope)
+    if (active) throw new CrudHttpError(409, { error: 'A provider invocation is still recorded as running; reconcile it before restarting analysis.' })
+    const definition = await findOneWithDecryption(tx, WorkflowDefinition, { ...scope, id: previous.definitionId,
+      workflowId: previous.workflowId, version: previous.version, deletedAt: null }, undefined, scope)
+    if (!definition?.enabled || definition.metadata?.generatedBy?.module !== 'agency_operations' || definition.metadata.generatedBy.ownerId !== 'analysis') {
+      throw new CrudHttpError(409, { error: 'The original pinned analysis definition is unavailable.' })
+    }
+    if (input.resumeFrom) {
+      const activities = definition.definition.transitions.flatMap((transition) => transition.activities ?? [])
+        .filter((activity) => activity.activityType === 'EXECUTE_FUNCTION' && activity.config.functionName === AGENCY_ANALYSIS_FUNCTION_NAME)
+      const policy = activities.length === 1 ? analysisExecutionPolicySchema.safeParse(activities[0].config.args?.policy) : null
+      if (!policy?.success || analysisIntakeSteps.indexOf(input.resumeFrom) > analysisIntakeSteps.indexOf(policy.data.through)) {
+        throw new CrudHttpError(409, { error: 'The requested resume point is outside the original pinned analysis policy.' })
+      }
+    }
+    const attempt = (previous.correlationKey?.match(/:restart-(\d+)$/)?.[1] ? Number(previous.correlationKey.match(/:restart-(\d+)$/)![1]) : 0) + 1
+    const workflow = await executor.startWorkflow(tx, {
+      ...scope, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: definition.version, correlationKey: `agency-case:${agencyCase.id}:restart-${attempt}`,
+      initialContext: {
+        caseId: agencyCase.id, tenantId: scope.tenantId, organizationId: scope.organizationId,
+        customerEntityId: agencyCase.customerEntityId, submittedByCustomerUserId: agencyCase.submittedByCustomerUserId,
+        title: agencyCase.title, agentWorkerId: agencyCase.agentWorkerId,
+        materialFileName: agencyCase.materialFileName, materialMimeType: agencyCase.materialMimeType, materialFileSize: agencyCase.materialFileSize,
+        ...(previous.context[PAID_CASE_ANALYSIS_CONTEXT] ? { [PAID_CASE_ANALYSIS_CONTEXT]: previous.context[PAID_CASE_ANALYSIS_CONTEXT] } : {}),
+        ...(previous.context.purchase ? { purchase: previous.context.purchase } : {}),
+        restart: { attempt, previousWorkflowInstanceId: previous.id, by: input.userId, at: new Date().toISOString(), ...(input.resumeFrom ? { resumeFrom: input.resumeFrom } : {}) },
+      },
+      metadata: { entityType: 'agency_operations:agency_case', entityId: agencyCase.id, labels: { agentWorkerId: agencyCase.agentWorkerId } },
+    })
+    agencyCase.workflowInstanceId = workflow.id
+    agencyCase.updatedAt = new Date()
+    await tx.flush()
+    return { caseId: agencyCase.id, previousWorkflowInstanceId: previous.id, workflowInstanceId: workflow.id }
   })
-  agencyCase.workflowInstanceId = workflow.id
-  agencyCase.updatedAt = new Date()
-  await em.flush()
-  const execution = z.object({ status: z.string(), currentStep: z.string() }).parse(await executor.executeWorkflow(em, container, workflow.id))
-  return { caseId: agencyCase.id, previousWorkflowInstanceId: previous?.id ?? null, workflowInstanceId: workflow.id, ...execution }
+  const execution = z.object({ status: z.string(), currentStep: z.string() }).parse(await executor.executeWorkflow(em, container, prepared.workflowInstanceId))
+  return { ...prepared, ...execution }
 }

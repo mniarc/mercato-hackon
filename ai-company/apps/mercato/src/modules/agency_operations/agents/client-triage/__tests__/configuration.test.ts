@@ -65,6 +65,15 @@ test('accepts the explicit fully constrained localhost intelligence fixture', ()
   expect(isClientTriageEnabled(fixture)).toBe(true)
 })
 
+test('manual fixture uses its separate pinned loopback port without changing automated fixtures', () => {
+  const manual = { ...fixture, AGENCY_MANUAL_PROFILE: 'fixture',
+    OPENROUTER_BASE_URL: 'http://127.0.0.1:5005/v1', AGENCY_OPERATIONS_AI_BASE_URL: 'http://127.0.0.1:5005/v1' }
+  expect(isClientTriageEnabled(manual)).toBe(true)
+  expect(() => isClientTriageEnabled({ ...manual, AGENCY_OPERATIONS_AI_BASE_URL: 'https://openrouter.ai/api/v1' }))
+    .toThrow('check AGENCY_OPERATIONS_AI_BASE_URL.')
+  expect(() => isClientTriageEnabled({ ...manual, AGENCY_MANUAL_PROFILE: undefined })).toThrow('check OPENROUTER_BASE_URL.')
+})
+
 test('rejects missing or changed fixture settings, including the higher-priority module endpoint', () => {
   for (const key of Object.keys(CLIENT_TRIAGE_FIXTURE_ENVIRONMENT)) {
     for (const value of [undefined, 'unexpected']) {

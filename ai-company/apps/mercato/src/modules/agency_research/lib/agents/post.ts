@@ -58,6 +58,16 @@ const EDITOR_RULES = [
   '`reject` when the text cannot be repaired within the instruction (e.g. the angle needs',
   'evidence that does not exist). `checked` lists what you verified and how. Your review is',
   'never the client\'s approval.',
+  'If one existing post claim lacks evidence that may be present in the supplied',
+  '`available_source_refs`, return `evidence_request` with its VERBATIM `claim`, a precise',
+  '`question`, `targetStep: "3.2"`, only those `sourceRefs`, and `returnStep: "7.3"`.',
+  'Do not guess URLs or request a whole research restart. Missing evidence is never a pass.',
+  'When `supplementary_evidence` is supplied, assess that exact request using its grounded',
+  'facts and quotes; return `evidence_assessment` with cited `factIds` and an explanation.',
+  'Use `supported` only if unchanged text is justified without changing approved foundations;',
+  '`post_change_required` requires concrete author findings, `foundation_conflict` identifies',
+  'the precise conflict with the approved instruction, and `unresolved` keeps the block.',
+  'Supplementary facts do not amend the instruction, authorize new claims, or record approval.',
 ].join(' ')
 
 export const postAgents: AiAgentDefinition[] = [

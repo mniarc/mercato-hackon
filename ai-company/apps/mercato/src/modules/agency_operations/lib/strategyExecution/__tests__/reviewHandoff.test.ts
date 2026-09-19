@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { createStrategyReviewHandoff } from '../reviewHandoff'
-import { STRATEGY_EXECUTION_RESULT_KEY } from '../contracts'
+import { STRATEGY_EXECUTION_RESULT_KEY, strategyReviewHandoffResultSchema } from '../contracts'
 
 const findOne = jest.fn()
 const invite = jest.fn()
@@ -17,16 +17,32 @@ const context = (change: Record<string, unknown> = {}) => ({ userId: id(8), work
 } })
 const container = { resolve: (key: string) => key === 'em' ? {} : { invite } } as unknown as AppContainer
 
-beforeEach(() => { jest.clearAllMocks(); findOne.mockResolvedValue({ caseId }); invite.mockResolvedValue({ taskId: id(10), replayed: false }) })
+beforeEach(() => { jest.clearAllMocks(); findOne.mockResolvedValue({ caseId }); invite.mockResolvedValue({ workflowInstanceId: id(12), taskId: id(10), replayed: false }) })
 
 it('invites exactly the saved passing pair for the originating submission case', async () => {
-  await expect(createStrategyReviewHandoff(container)({}, context())).resolves.toMatchObject({ invitation: { taskId: id(10) } })
+  const handoff = await createStrategyReviewHandoff(container)({}, context())
+  expect(handoff).toMatchObject({ status: 'invited', orderRef: caseId, invitation: { taskId: id(10) } })
+  expect(strategyReviewHandoffResultSchema.safeParse(handoff).success).toBe(true)
   expect(findOne).toHaveBeenCalledWith(expect.anything(), expect.anything(), { ...scope, workflowInstanceId: id(9), caseId, deletedAt: null }, undefined, scope)
   expect(invite).toHaveBeenCalledWith({ ...scope, userId: id(8), caseId, strategyVersionId: id(5), tovVersionId: id(6) })
 })
 
 it.each([{ status: 'paused_budget' }, { qaVerdict: 'needs_agent_fix' }, { tovVersionId: null }, { escalationVersionId: id(11) }])('does not invite incomplete or failed QA: %p', async (change) => {
-  await expect(createStrategyReviewHandoff(container)({}, context(change))).resolves.toMatchObject({ invitation: null })
+  await expect(createStrategyReviewHandoff(container)({}, context(change))).resolves.toMatchObject({ status: 'blocked', invitation: null })
+  expect(invite).not.toHaveBeenCalled()
+})
+
+it.each([
+  { change: { status: 'not_configured', reason: 'execution_disabled' }, nextAction: 'review_configuration' },
+  { change: { status: 'not_ready', reason: 'brief_not_current', templateId: 'WZR-BRIEF' }, nextAction: 'review_dependencies' },
+  { change: { status: 'execution_incomplete', reason: 'in_progress_or_interrupted', activationTaskRunId: id(13) }, nextAction: 'reconcile_execution' },
+])('retains blocked reason and inspection action without inviting: $nextAction', async ({ change, nextAction }) => {
+  const handoff = await createStrategyReviewHandoff(container)({}, context(change))
+  expect(handoff).toMatchObject({ status: 'blocked', orderRef: caseId, invitation: null, reason: change.reason, nextAction,
+    ...('activationTaskRunId' in change ? { activationTaskRunId: change.activationTaskRunId } : {}),
+    ...('templateId' in change ? { templateId: change.templateId } : {}),
+  })
+  expect(strategyReviewHandoffResultSchema.safeParse(handoff).success).toBe(true)
   expect(invite).not.toHaveBeenCalled()
 })
 

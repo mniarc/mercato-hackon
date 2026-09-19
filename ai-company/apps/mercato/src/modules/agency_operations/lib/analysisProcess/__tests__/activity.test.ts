@@ -1,6 +1,8 @@
 /** @jest-environment node */
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { workflowStepSchema, workflowTransitionSchema } from '@open-mercato/core/modules/workflows/data/validators'
+import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 
 const findOne = jest.fn()
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: (...args: unknown[]) => findOne(...args) }))
@@ -8,6 +10,8 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryp
 import { createAnalysisWorkflowActivity, parseAnalysisMaterial } from '../activity'
 import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_RESULT_KEY, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 import type { AnalysisExecutionPolicy } from '../contracts'
+import { loadCaseMaterialSources } from '../materialSources'
+jest.mock('../materialSources', () => ({ loadCaseMaterialSources: jest.fn() }))
 
 const tenantId = '00000000-0000-4000-8000-000000000001'
 const organizationId = '00000000-0000-4000-8000-000000000002'
@@ -45,6 +49,7 @@ beforeEach(() => {
   readScoped.mockResolvedValue({ buffer: Buffer.from(JSON.stringify(material)) })
   status.mockResolvedValue({ taskRuns: [], documents: [], sources: 0, totalPln: 0 })
   run.mockResolvedValue(result)
+  jest.mocked(loadCaseMaterialSources).mockResolvedValue([])
 })
 afterAll(() => {
   if (originalEnabled === undefined) delete process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED
@@ -58,9 +63,10 @@ it('uses the exact case/private material and native identity, ignoring upload sp
   expect(status).toHaveBeenCalledWith({ tenantId, organizationId }, caseId)
   expect(run).toHaveBeenCalledWith({
     context: { tenantId, organizationId, userId, workflowInstanceId: workflowId, stepId: 'research', invocationId: stepInstanceId },
-    request: { order: material.order, pages: material.pages, orderRef: caseId, through: '3.8', maxCostPln: 2 },
+    request: { order: material.order, pages: material.pages, materialSources: [], orderRef: caseId, through: '3.8', maxCostPln: 2 },
   })
   expect(output).toEqual({ ...result, caseId, requestedThrough: '3.8', state: 'completed' })
+  expect(loadCaseMaterialSources).toHaveBeenCalledWith(container, { tenantId, organizationId }, caseId, userId)
 })
 
 it('accepts the native transition activity context without inventing an invocation ID', async () => {
@@ -75,6 +81,7 @@ it('does not run for a foreign case or workflow', async () => {
   await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toThrow()
   expect(readScoped).not.toHaveBeenCalled()
   expect(run).not.toHaveBeenCalled()
+  expect(loadCaseMaterialSources).not.toHaveBeenCalled()
 })
 
 it('rejects customer-chosen product limits instead of authorizing them', async () => {
@@ -96,6 +103,45 @@ it('replays an already saved native result without invoking the research pipelin
 it('refuses a whole-analysis rerun when service persistence outlived the native result', async () => {
   status.mockResolvedValue({ taskRuns: [{ id: 'existing-task', status: 'done' }] })
   await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toThrow()
+  expect(run).not.toHaveBeenCalled()
+})
+
+it('ordinary redelivery neither resumes a running producer nor re-spends a saved budget hold', async () => {
+  status.mockResolvedValue({ taskRuns: [{ id: 'existing-task', stepId: '3.2', status: 'running' }] })
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toMatchObject({ status: 409 })
+  const execution = context()
+  const saved = { ...result, completedThrough: null, caseId, requestedThrough: '3.8', state: 'waiting' }
+  execution.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] = { result: saved }
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: workflowId, by: userId, attempt: 1 }
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)).resolves.toEqual(saved)
+  expect(run).not.toHaveBeenCalled()
+})
+
+it('fixture analysis never resolves the paid social scraper even with a buyer profile', async () => {
+  const previousFixture = process.env.AGENCY_TEST_NATIVE_TRIAGE
+  process.env.AGENCY_TEST_NATIVE_TRIAGE = '1'
+  readScoped.mockResolvedValue({ buffer: Buffer.from(JSON.stringify({ ...material, order: { ...material.order, official_social: { url: 'https://www.linkedin.com/company/example/' } } })) })
+  try {
+    await createAnalysisWorkflowActivity(container)({ caseId, policy }, context())
+    expect(run.mock.calls[0][0].request).not.toHaveProperty('socialPosts')
+  } finally {
+    if (previousFixture === undefined) delete process.env.AGENCY_TEST_NATIVE_TRIAGE
+    else process.env.AGENCY_TEST_NATIVE_TRIAGE = previousFixture
+  }
+})
+
+it('uses an explicit terminal-recovery override inside the pinned intake range, not as queue retry authority', async () => {
+  const execution = context()
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: stepInstanceId, by: userId, attempt: 1, resumeFrom: '3.5' }
+  findOne.mockImplementation(async (_em, entity) => entity === AgentRun ? null : entity === WorkflowInstance
+    ? { metadata: { entityType: 'agency_operations:agency_case', entityId: caseId } }
+    : { id: caseId, materialAttachmentId: 'attachment-1' })
+  status.mockResolvedValue({ taskRuns: [{ stepId: '3.2', status: 'done' }] })
+  await createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)
+  expect(run.mock.calls[0][0].request.resumeFrom).toBe('3.5')
+  run.mockClear()
+  execution.workflowInstance.context.restart = { previousWorkflowInstanceId: stepInstanceId, by: userId, attempt: 1, resumeFrom: '4.2' }
+  await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, execution)).rejects.toMatchObject({ status: 409 })
   expect(run).not.toHaveBeenCalled()
 })
 
@@ -140,6 +186,7 @@ it('pins staff policy in the native activity and keeps incomplete work away from
   ] })
   expect(definition.steps.find((step) => step.stepId === 'waiting')!.stepType).toBe('WAIT_FOR_SIGNAL')
   expect(definition.transitions.some((transition) => transition.fromStepId === 'waiting')).toBe(false)
+  expect(definition.transitions.find((transition) => transition.transitionId === 'research_exception_keep_blocked')?.toStepId).toBe('waiting')
 })
 
 it('hands off saved brief outcomes through the native function before routing the research result', () => {

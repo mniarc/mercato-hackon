@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F25-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Saved G drives acceptance, but change target currently only brief_revision."
+            }
+          ],
+          "missing": [
+            "Persist and execute full strategy-specific impact directives."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+              "note": "Approval branch reaches pair decision; generic clarification is available."
+            }
+          ],
+          "missing": [
+            "Connect strategy/language/brief returns 5.2/5.3/4.4 and follow-up 5.5 for real scoped edits."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/processProjection/query.ts",
+              "note": "Employee process displays saved rationale, versions and held outcomes."
+            }
+          ],
+          "missing": [
+            "Full client-change affected/unchanged dependency map is not produced."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "No executable in-scope strategy direction-change route."
+            }
+          ],
+          "missing": [
+            "Implement authorized in-package direction changes and explicit refusal of extra outputs."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyPairAcceptance/read.ts",
+              "note": "Historical acceptance records survive and stale foundation gate blocks continuation."
+            }
+          ],
+          "missing": [
+            "No full invalidation/review propagation after applying a client direction change."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ],
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals."
+    }
+  ]
+}

@@ -10,6 +10,9 @@ import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_RESULT_KEY } from '../../a
 import { STRATEGY_EXECUTION_RESULT_KEY } from '../../strategyExecution/contracts'
 import { PLANNING_EXECUTION_RESULT_KEY } from '../../planningExecution/contracts'
 import { POST_EXECUTION_RESULT_KEY, POST_EXECUTION_FUNCTION } from '../../postExecution/contracts'
+import { BRIEF_REVISION_RESULT_KEY } from '../../briefRevision/contracts'
+import { POST_REVISION_RESULT_KEY } from '../../postRevision/contracts'
+import { MATERIAL_REVISION_RESULT_KEY } from '../../materialRevision/contracts'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('@open-mercato/core/modules/workflows/lib/task-visibility-request', () => ({
@@ -38,6 +41,90 @@ function workflow(step: string, context: Record<string, unknown> = {}, status = 
 }
 
 beforeEach(() => jest.clearAllMocks())
+
+test('projects material holds only for the exact saved attachment and submission', () => {
+  const materialSubmission = Object.assign(new AgencyClientSubmission(), submission, {
+    original: { ...submission.original, materialAttachmentId: tenantId },
+  })
+  const revision = { status: 'not_ready', orderRef: caseId, reason: 'impact_review_required' }
+  const handoff = { status: 'blocked', orderRef: caseId, invitation: null, reason: revision.reason, nextAction: 'review_impact', revision }
+  const materialContext = { material: { attachmentId: tenantId, submissionId, fileName: 'evidence.txt', text: 'Evidence', submittedAt: '2026-09-19T10:00:00.000Z' },
+    brief: { versionId: organizationId, clientViewMd: 'Approved brief' }, state: 'impact_review_required' }
+  const saved = workflow('material_revision_waiting', { nativeClientTriageInput: { result: { materialContext } },
+    [MATERIAL_REVISION_RESULT_KEY]: { result: revision }, agencyMaterialRevisionInvitation: { result: handoff } })
+  expect(projectSubmissionProcess(materialSubmission, saved, []).materialRevisionHandoff).toEqual(handoff)
+  materialContext.material.attachmentId = customerEntityId
+  expect(projectSubmissionProcess(materialSubmission, saved, []).materialRevisionHandoff).toBeNull()
+})
+
+test('projects a saved initial post hold only with its case-scoped production outcome', () => {
+  const execution = { status: 'not_configured', orderRef: caseId, reason: 'missing_post_authorization' }
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: execution.reason, nextAction: 'review_configuration', execution }
+  const saved = workflow('post_review_waiting', { [POST_EXECUTION_RESULT_KEY]: { result: execution }, agencyPostInvitation: { result: blocked } })
+  const projected = projectSubmissionProcess(submission, saved, [])
+  expect(projected.postReviewHandoff).toEqual(blocked)
+  expect(projected.workflow?.waitingFor).toBeNull()
+  expect(projected.tasks).toEqual([])
+  saved.context = { [POST_EXECUTION_RESULT_KEY]: { result: { ...execution, orderRef: customerEntityId } }, agencyPostInvitation: { result: blocked } }
+  expect(projectSubmissionProcess(submission, saved, []).postReviewHandoff).toBeNull()
+  saved.context = { agencyPostInvitation: { result: { ...blocked, execution: null, reason: 'missing_post_execution', nextAction: 'reconcile_execution' } } }
+  expect(projectSubmissionProcess(submission, saved, []).postReviewHandoff).toMatchObject({ status: 'blocked', reason: 'missing_post_execution' })
+})
+
+const postCorrection = Object.assign(new AgencyClientSubmission(), submission, {
+  original: { ...submission.original, text: 'Shorten the opening.', postReviewResponse: {
+    channel: 'portal', kind: 'message', taskId: customerEntityId, externalEventId: 'post-change',
+    post: { documentId: tenantId, versionId: organizationId }, body: 'Shorten the opening.',
+  } },
+})
+
+test('retains the exact post correction configuration hold without inventing an employee task', () => {
+  const revision = { status: 'not_configured', orderRef: caseId, reason: 'missing_post_revision_authorization' }
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: revision.reason, nextAction: 'review_configuration', revision }
+  const saved = workflow('post_revision_waiting', { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: blocked } })
+  const projected = projectSubmissionProcess(postCorrection, saved, [])
+  expect(projected.postRevision).toEqual(revision)
+  expect(projected.postRevisionHandoff).toEqual(blocked)
+  expect(projected.original.postReviewResponse?.body).toBe('Shorten the opening.')
+  expect(projected.workflow?.waitingFor).toBeNull()
+  expect(projected.tasks).toEqual([])
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: { ...revision, orderRef: customerEntityId } }, agencyPostRevisionInvitation: { result: blocked } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevision).toBeNull()
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: { ...blocked, revision: { ...revision, reason: 'execution_disabled' } } } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+})
+
+test('projects a post revision invitation only for the matching correction and new reviewable version', () => {
+  const revision = { status: 'completed', orderRef: caseId, submissionId, previousPostVersionId: organizationId,
+    instructionVersionId: tenantId, postVersionId: customerEntityId, qaTaskRunId: instanceId,
+    qaVerdict: 'pass_for_draft', readyForReview: true, taskRunIds: [instanceId], documentVersionIds: [customerEntityId], agentRunIds: [], spentPln: 0.1 }
+  const invited = { status: 'invited', orderRef: caseId, versionId: customerEntityId,
+    invitation: { workflowInstanceId: instanceId, taskId: tenantId, replayed: false } }
+  const saved = workflow('post_revision_decision', { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: invited } })
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toEqual(invited)
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: { ...revision, previousPostVersionId: tenantId } }, agencyPostRevisionInvitation: { result: invited } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+  saved.context = { [POST_REVISION_RESULT_KEY]: { result: revision }, agencyPostRevisionInvitation: { result: { ...invited, versionId: tenantId } } }
+  expect(projectSubmissionProcess(postCorrection, saved, []).postRevisionHandoff).toBeNull()
+})
+
+test('projects actual brief revision invitation or hold only with its scoped saved revision', () => {
+  const revision = { status: 'not_configured', orderRef: caseId, reason: 'missing_brief_revision_authorization' }
+  const blocked = { status: 'blocked', invitation: null, reason: revision.reason, revision }
+  const saved = workflow('brief_revision_held', { [BRIEF_REVISION_RESULT_KEY]: { result: revision }, agencyBriefRevisionInvitation: { result: blocked } })
+  expect(projectSubmissionProcess(submission, saved, []).briefRevisionHandoff).toEqual(blocked)
+  saved.context = { [BRIEF_REVISION_RESULT_KEY]: { result: { ...revision, orderRef: customerEntityId } }, agencyBriefRevisionInvitation: { result: blocked } }
+  expect(projectSubmissionProcess(submission, saved, []).briefRevisionHandoff).toBeNull()
+  const completed = { status: 'completed', orderRef: caseId, submissionId, previousBriefVersionId: tenantId, briefVersionId: organizationId,
+    findingsVersionId: null, qaTaskRunId: instanceId, qaVerdict: 'ready_for_approval', analysisQaTaskRunId: null, freezeTaskRunId: null,
+    answeredQuestionIds: [], unresolvedQuestionIds: [], questions: [], taskRunIds: [instanceId], documentVersionIds: [organizationId], agentRunIds: [], spentPln: 1 }
+  const invited = { status: 'invited', versionId: organizationId, invitation: { workflowInstanceId: instanceId, taskId: customerEntityId, replayed: false }, questions: [] }
+  saved.context = { [BRIEF_REVISION_RESULT_KEY]: { result: completed }, agencyBriefRevisionInvitation: { result: invited } }
+  expect(projectSubmissionProcess(submission, saved, []).briefRevisionHandoff).toEqual(invited)
+  saved.context = { [BRIEF_REVISION_RESULT_KEY]: { result: { ...completed, submissionId: customerEntityId } }, agencyBriefRevisionInvitation: { result: invited } }
+  expect(projectSubmissionProcess(submission, saved, []).briefRevisionHandoff).toBeNull()
+})
 
 test('does not query submission or native records for a case outside employee scope', async () => {
   jest.mocked(findOneWithDecryption).mockResolvedValue(null)
@@ -97,6 +184,34 @@ test('missing workflow and malformed saved result never imply a successful agent
   const result = projectSubmissionProcess(submission, workflow('triage', { clientTriageResult: { result: { kind: 'answer' } } }), [])
   expect(result.disposition).toBeNull()
   expect(result.interpretation).toBeNull()
+})
+
+test('retains a case-owned blocked planning handoff without inventing an employee task', () => {
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: 'execution_disabled', nextAction: 'review_configuration' }
+  const saved = workflow('planning_waiting', { agencyPlanInvitation: { result: blocked } })
+  const result = projectSubmissionProcess(submission, saved, [])
+  expect(result.planningReviewHandoff).toEqual(blocked)
+  expect(result.workflow?.waitingFor).toBeNull()
+  expect(result.tasks).toEqual([])
+  saved.context = { agencyPlanInvitation: { result: { ...blocked, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).planningReviewHandoff).toBeNull()
+  saved.context = { agencyPlanInvitation: { result: blocked } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).planningReviewHandoff).toBeNull()
+})
+
+test('projects the exact case-owned blocked strategy handoff without assigning a routine hold to an employee', () => {
+  const blocked = { status: 'blocked', orderRef: caseId, invitation: null, reason: 'brief_not_current', nextAction: 'review_dependencies', templateId: 'WZR-BRIEF' }
+  const saved = workflow('strategy_waiting', { agencyStrategyPairInvitation: { result: blocked } })
+  const result = projectSubmissionProcess(submission, saved, [])
+  expect(result.strategyReviewHandoff).toEqual(blocked)
+  expect(result.workflow).toMatchObject({ status: 'PAUSED', currentStepId: 'strategy_waiting', waitingFor: null })
+  expect(result.tasks).toEqual([])
+  saved.context = { agencyStrategyPairInvitation: { result: { ...blocked, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyReviewHandoff).toBeNull()
+  saved.context = { agencyStrategyPairInvitation: { result: blocked } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).strategyReviewHandoff).toBeNull()
 })
 
 test('saved dispositions addressed to another case do not become this submission result', () => {

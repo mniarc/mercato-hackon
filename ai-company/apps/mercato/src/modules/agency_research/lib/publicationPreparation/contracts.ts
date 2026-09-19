@@ -9,7 +9,7 @@ export type PreparePublicationInput = z.infer<typeof preparePublicationInputSche
 export const publicationPreparationPreparedSchema = z.object({
   status: z.literal('prepared'), orderRef: z.string().min(1), postVersionId: z.uuid(), acceptanceSubmissionId: z.uuid(),
   taskRunId: z.uuid(), instructionVersionId: z.uuid(), configVersionId: z.uuid(), contentHash: z.string().min(1),
-  contentApproval: z.literal('valid'), publicationConsent: z.literal('missing'), canSend: z.literal(false),
+  contentApproval: z.literal('valid'), publicationConsent: z.enum(['missing', 'valid', 'stale', 'revoked']), canSend: z.literal(false),
   missingGates: z.array(z.string()), replayed: z.boolean(),
 })
 export const publicationPreparationResultSchema = z.discriminatedUnion('status', [

@@ -2,6 +2,8 @@ import { z } from 'zod'
 import { isDeepStrictEqual } from 'node:util'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
+import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
@@ -9,8 +11,11 @@ import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase } from '../../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from '../contracts'
-import { analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
+import { analysisIntakeSteps, analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
+import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
+import { mapPaidPurchaseMaterial } from '../paidCaseAnalysis/material'
+import { loadCaseMaterialSources } from './materialSources'
 import { createLogger } from '@open-mercato/shared/lib/logger'
 
 const logger = createLogger('agency_operations').child({ component: 'analysis' })
@@ -29,6 +34,9 @@ type CorpusScraper = {
  * missing scraper leaves the research to the website alone — never a stop.
  */
 async function liveSocialCorpus(container: AppContainer, order: { official_social?: { url?: string | null; url_or_null?: string | null } }, caseId: string) {
+  // Native fixture runs supply their source corpus at the research boundary.
+  // Never spend on Apify just because a developer has its token configured.
+  if (process.env.AGENCY_TEST_NATIVE_TRIAGE === '1') return undefined
   const url = order.official_social?.url ?? order.official_social?.url_or_null ?? null
   if (!url || !container.hasRegistration('agencyTovCorpusScraper')) return undefined
   const scraper = container.resolve<CorpusScraper>('agencyTovCorpusScraper')
@@ -61,15 +69,16 @@ export function resumePoint(taskRuns: Array<{ stepId: string; status: string }>)
   const last = ordered[ordered.length - 1]
   const paused = [...ordered].reverse().find((run) => run.status === 'paused_budget')
   // A repair loop in flight (a 3.7 verdict exists) resumes at the QA group, whatever step the repair was on.
-  const inRepair = ordered.some((run) => run.stepId === '3.7')
+  const inRepair = last.stepId.startsWith('3.')
+    && [...ordered].reverse().find((run) => run.stepId === '3.7')?.status === 'to_fix'
   if (last.status === 'exception' && paused) return GROUP_OF[paused.stepId] ?? null
   if (last.status === 'paused_budget') return GROUP_OF[last.stepId] ?? null
   if (last.status === 'exception') {
     const before = ordered.filter((run) => run.stepId !== 'E.1').pop()
     return before ? (GROUP_OF[before.stepId] ?? null) : null
   }
-  // `running` here means orphaned: the process that ran it is gone (the activity would not be re-entered otherwise).
-  // `failed` is a crashed step. Both continue from their group; the resumed run marks the stale rows.
+  // This identifies a candidate group, not liveness or permission to retry.
+  // The caller separately requires an explicit restart of a terminal native workflow.
   if (last.status === 'running' || last.status === 'failed') return inRepair ? '3.8' : (GROUP_OF[last.stepId] ?? null)
   return null
 }
@@ -112,8 +121,11 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     }, undefined, scope)
     if (!agencyCase) throw new CrudHttpError(404, { error: 'api.errors.notFound' })
     const saved = z.object({ result: analysisProcessResultSchema }).safeParse(context.workflowInstance.context[AGENCY_ANALYSIS_RESULT_KEY] ?? context.workflowInstance.context.agencyAnalysisResult)
-    // A completed result replays; a waiting one (budget pause, exception) is what a re-entered research step resumes.
-    if (saved.success && saved.data.result.caseId === agencyCase.id && saved.data.result.requestedThrough === input.policy.through && saved.data.result.state === 'completed') return saved.data.result
+    const restart = z.object({ previousWorkflowInstanceId: z.uuid(), by: z.uuid(), attempt: z.number().int().positive(), resumeFrom: z.enum(analysisIntakeSteps).optional() })
+      .safeParse(context.workflowInstance.context.restart)
+    // A queue redelivery is not a new paid attempt. Only the explicit staff
+    // restart operation may continue a persisted waiting/interrupted result.
+    if (saved.success && saved.data.result.caseId === agencyCase.id && saved.data.result.requestedThrough === input.policy.through) return saved.data.result
     if (['COMPLETED', 'FAILED', 'CANCELLED', 'COMPENSATING'].includes(context.workflowInstance.status)) {
       throw new Error('[internal] Analysis cannot restart a terminal workflow')
     }
@@ -124,26 +136,43 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
       expectedAssignment: { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: agencyCase.id },
       expectedPartitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE, requirePrivatePartition: true,
     })
-    const parsed = parseAnalysisMaterial(material.buffer)
+    const purchaseOrigin = context.workflowInstance.context[PAID_CASE_ANALYSIS_CONTEXT]
+    const parsed = purchaseOrigin === undefined ? parseAnalysisMaterial(material.buffer)
+      : mapPaidPurchaseMaterial(material.buffer, purchaseOrigin, { caseId: agencyCase.id, ...scope,
+        customerEntityId: agencyCase.customerEntityId, customerUserId: agencyCase.submittedByCustomerUserId }, input.policy)
     if (!isDeepStrictEqual(parsed.order.product_selection, input.policy.productSelection)) {
       throw new CrudHttpError(409, { error: 'Material product selection differs from the configured agency analysis policy' })
     }
     const service = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
-    // The public service cannot yet resume/deduplicate an invocation. If a crash
-    // left persisted research without the native activity result, stop instead
-    // of charging for a second whole analysis or inventing a partial replay.
+    // Reuse the producer's phase continuation, preserving scoped material inputs.
     const previous = await service.status(scope, agencyCase.id)
-    const override = z.object({ restart: z.object({ resumeFrom: z.enum(RESUMABLE_STEPS) }) }).safeParse(context.workflowInstance.context)
-    const resumeFrom = override.success ? override.data.restart.resumeFrom : resumePoint(previous.taskRuns)
-    if (previous.taskRuns.length && !resumeFrom) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    const resumeFrom = restart.success && restart.data.resumeFrom ? restart.data.resumeFrom : resumePoint(previous.taskRuns)
+    if (resumeFrom && analysisIntakeSteps.indexOf(resumeFrom as typeof analysisIntakeSteps[number]) > analysisIntakeSteps.indexOf(input.policy.through)) {
+      throw new CrudHttpError(409, { error: 'The requested resume point is outside the original pinned analysis policy.' })
+    }
+    if (previous.taskRuns.length && (!restart.success || !resumeFrom)) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    if (restart.success) {
+      const attempted = await findOneWithDecryption(container.resolve<EntityManager>('em'), AgentRun, {
+        ...scope, workflowInstanceId: context.workflowInstance.id, deletedAt: null,
+      }, undefined, scope)
+      if (attempted) throw new CrudHttpError(409, { error: 'This recovery workflow already invoked research; reconcile it before authorizing another recovery.' })
+      const prior = await findOneWithDecryption(container.resolve<EntityManager>('em'), WorkflowInstance, {
+        ...scope, id: restart.data.previousWorkflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
+        status: { $in: ['FAILED', 'CANCELLED', 'COMPLETED'] }, deletedAt: null,
+      }, undefined, scope)
+      if (!prior || prior.metadata?.entityType !== 'agency_operations:agency_case' || prior.metadata.entityId !== agencyCase.id) {
+        throw new CrudHttpError(409, { error: 'Research continuation requires the existing terminal case workflow.' })
+      }
+    }
     if (resumeFrom) logger.info('Resuming research after a pause', { caseId: agencyCase.id, resumeFrom, cap: input.policy.maxCostPln })
+    const materialSources = await loadCaseMaterialSources(container, scope, agencyCase.id, context.userId)
     const socialPosts = parsed.socialPosts?.length ? parsed.socialPosts : await liveSocialCorpus(container, parsed.order, agencyCase.id)
     const result = await service.run({
       context: {
         ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
         ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
       },
-      request: { ...parsed, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln, ...(resumeFrom ? { resumeFrom } : {}) },
+      request: { ...parsed, materialSources, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln, ...(resumeFrom ? { resumeFrom } : {}) },
     })
     const completed = result.completedThrough === input.policy.through
       && (input.policy.through === '3.2' || input.policy.through === '3.5' || result.qaVerdict === 'ready')

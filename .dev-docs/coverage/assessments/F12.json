@@ -1,0 +1,295 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F12-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Acceptance requires exact positive brief QA and typed source of original G-directed decision."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Only the original client approval of the newly QA-ready brief opened acceptance. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/briefApproval.ts",
+              "note": "Scoped G adapter binds customer/task/original response and rejects conflicting/stale target."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the initial exact brief was needs_client_data with genuine questions and acceptance disabled; the authenticated client answered in the native UI, a different version became ready_for_approval, and that exact version was explicitly accepted without another checkout. Local intelligence fixture, not live-model proof."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Accept service updates only exact current version plus document to approved."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. That exact revised brief was genuinely accepted and consumed by strategy. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Typed receipt records person/time/version/source and supports historical read."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Approval concerns actual brief; separate strategy readiness follows without signing empty templates."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Client accepted the displayed brief only; strategy continued without another blank-template consent. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F12-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Current-version guard rejects old approval; historical idempotent receipt cannot approve a different version."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Only explicit original approval plus saved G disposition can call acceptance; attachment/receipt alone does not."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/briefApproval.ts",
+              "note": "Mixed change+approval cannot satisfy coherent approval binding."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Inactive/foreign contacts fail closed before acceptance."
+            }
+          ],
+          "missing": [
+            "Escalate actual authority dispute to assigned E.1 instead of only authorization error."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "New version has separate approval records; historical accepted version stays readable."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F12-3",
+      "note": "Connected T58 pending. The revision findings-version status incompatibility was identified during this survey and corrected in producer source; no connected readiness pass is claimed.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Readiness pins typed acceptance, accepted brief, latest successful freeze/QA and process reference."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Strategy consumed the accepted revised brief and refreshed actual QA/freeze foundation. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Checks exact current brief and all frozen analysis current pointers before5.1."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Current accepted brief passed the native strategy-readiness handoff. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Missing acceptance, stale inputs, failed/mismatched QA or simulation cannot be ready."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Readiness result records exact versions and native handoff retains references."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/backend/agency-operations/cases/[id]/_components/researchLineage/ResearchLineage.tsx",
+              "note": "T64 commit 52595d8b0 adds exact input-version/history navigation and recorded decisions to employee research ledger; 9 focused checks and app typecheck passed. Together with persisted strategy handoff/readiness references, the exact handoff version set is inspectable; no connected native UI pass claimed."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyReadiness/resolve.ts",
+              "note": "Readiness is read-only; native following step separately starts strategy under configured policy."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19. Readiness handed off to the separate strategy producer without another customer action. Local intelligence/source fixtures, not live-model proof; alternative paths are not covered by this run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

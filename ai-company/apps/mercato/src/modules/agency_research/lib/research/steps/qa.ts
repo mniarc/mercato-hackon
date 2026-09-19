@@ -1,6 +1,6 @@
 import { mustKeysOf } from '../../../data/contracts'
 import type { AudytData } from '../../../data/schemas/audyt'
-import type { InputVersion, TemplateId } from '../../../data/schemas/envelope'
+import type { DocumentIssue, InputVersion, TemplateId } from '../../../data/schemas/envelope'
 import type { KonkurencjaData } from '../../../data/schemas/konkurencja'
 import { qaResultSchema, type QaFinding, type QaResult } from '../../../data/schemas/qa'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
@@ -13,7 +13,7 @@ import { currentInputVersion, finishTaskRun, startTaskRun } from '../../store'
 import { openEscalation, qaExhaustedResolutions } from '../escalate'
 import { unresolvedCitations } from '../gate'
 import { BudgetPausedError, createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type Ledger, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
-import { clientDecidedFields, knownIdsOf } from './findings'
+import { clientDecidedFields, knownIdsOf, seededFieldRows } from './findings'
 import type { StepContext, StepOutcome } from './context'
 
 /**
@@ -62,8 +62,14 @@ export function declaredIds(value: unknown, out = new Set<string>()): Set<string
 }
 
 /** What a rule can decide without a model: references, required fields, limits, the fact/interpretation line. */
-export function validatorFindings(documents: AnalysisDocuments): QaFinding[] {
+export function validatorFindings(documents: AnalysisDocuments, findingsIssues: readonly DocumentIssue[] = []): QaFinding[] {
   const findings: QaFinding[] = []
+  for (const row of seededFieldRows().filter((field) => field.priority === 'must')) {
+    const path = `field_map[${row.field_key}]`
+    if (findingsIssues.some((issue) => issue.code === 'MISSING_FIELD_ROW' && issue.path === path)) {
+      findings.push(finding('missing_must_field', `WEW-USTALENIA.${path}`, 'blocking', 'the field mapper omitted a required row', 'agent', '3.6', 'map this required row from the pinned evidence; record genuine client decisions with an actionable question, never invent an answer'))
+    }
+  }
   const known = knownIdsOf(documents.zrodla, documents.audyt, documents.konkurencja)
   for (const doc of Object.values(documents)) if (doc) for (const id of declaredIds(doc)) known.add(id)
   for (const key of Object.keys(documents) as (keyof AnalysisDocuments)[]) {
@@ -234,6 +240,7 @@ export type AnalysisQaOptions = {
   order: OrderFacts
   outputLanguage: OutputLanguage
   documents: AnalysisDocuments
+  findingsIssues?: readonly DocumentIssue[]
   runAgent: ResearchAgentRunner
   ledger: Ledger
   models: ModelSet
@@ -273,7 +280,7 @@ export async function runAnalysisQa(opts: AnalysisQaOptions): Promise<{ result: 
     timeouts: { extract: DEFAULT_EXTRACT_TIMEOUT_MS, synthesis: DEFAULT_SYNTHESIS_TIMEOUT_MS, qa: DEFAULT_EXTRACT_TIMEOUT_MS },
     stats,
   })
-  const validator = validatorFindings(opts.documents)
+  const validator = validatorFindings(opts.documents, opts.findingsIssues)
   const judged = await step<QaResult>({
     step: '3.7',
     agentId: RESEARCH_QA_AGENT_ID,
@@ -303,7 +310,7 @@ export type QaLoopOutcome = {
   escalationVersionId?: string
 }
 
-async function loadAnalysis(ctx: StepContext): Promise<{ documents: AnalysisDocuments; inputVersions: InputVersion[] }> {
+async function loadAnalysis(ctx: StepContext): Promise<{ documents: AnalysisDocuments; inputVersions: InputVersion[]; findingsIssues: readonly DocumentIssue[] }> {
   const { em, scope, orderRef } = ctx
   const zrodla = await currentInputVersion(em, scope, orderRef, 'WZR-ZRODLA')
   const audyt = await currentInputVersion(em, scope, orderRef, 'WZR-AUDYT')
@@ -313,6 +320,7 @@ async function loadAnalysis(ctx: StepContext): Promise<{ documents: AnalysisDocu
   const pinned = [zrodla, audyt, konkurencja, ustalenia].filter((v): v is NonNullable<typeof v> => v !== null)
   return {
     documents: { zrodla: zrodla.data as ZrodlaData, audyt: audyt.data as AudytData, konkurencja: (konkurencja?.data as KonkurencjaData | undefined) ?? null, ustalenia: ustalenia.data as UstaleniaData },
+    findingsIssues: ustalenia.issues ?? [],
     inputVersions: [ctx.orderVersion, ...pinned.map((v) => ({ document_id: v.document_id, version: v.version, status: v.status }))],
   }
 }
@@ -327,12 +335,12 @@ export async function runQaLoop(ctx: StepContext, opts: { authorSteps: AuthorSte
   const maxRepairs = limits.generation.qaRepairAttemptsPerRun
   let repairs = 0
   for (;;) {
-    const { documents, inputVersions } = await loadAnalysis(ctx)
+    const { documents, inputVersions, findingsIssues } = await loadAnalysis(ctx)
     const run = await startTaskRun(em, scope, { orderRef, brand: ctx.order.brand, stepId: '3.7', attempt: repairs + 1, runner: ctx.runner, models: ctx.models, inputVersions })
     ctx.taskRunIds.push(run.id)
     let result: QaResult
     try {
-      result = (await runAnalysisQa({ order: ctx.order, outputLanguage: ctx.order.outputLanguage, documents, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, onEvent: ctx.onEvent })).result
+      result = (await runAnalysisQa({ order: ctx.order, outputLanguage: ctx.order.outputLanguage, documents, findingsIssues, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, onEvent: ctx.onEvent })).result
     } catch (error) {
       const paused = error instanceof BudgetPausedError
       await finishTaskRun(em, run, { status: paused ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })

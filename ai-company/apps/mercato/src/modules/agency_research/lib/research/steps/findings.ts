@@ -144,7 +144,7 @@ export function gateFieldMap(rows: RawFieldMap, knownIds: Set<string>, seeded: F
     if (!row) {
       issues.push(issueOf('MISSING_FIELD_ROW', path, 'not mapped by the agent; recorded as blocked'))
       dropped += 1
-      return { field_key: seed.field_key, proposed_value: null, evidence_ids: [], provenance: 'inferred' as const, readiness: 'blocked' as const, decision_state: seed.priority === 'must' ? ('awaiting_client' as const) : ('not_required' as const), priority: seed.priority, reason: 'Pole nie zostało zmapowane; brak propozycji.', status: 'unknown' as const }
+      return { field_key: seed.field_key, proposed_value: null, evidence_ids: [], provenance: 'inferred' as const, readiness: 'blocked' as const, decision_state: clientDecidedFields.includes(seed.field_key) ? ('awaiting_client' as const) : ('not_required' as const), priority: seed.priority, reason: 'Pole nie zostało zmapowane; brak propozycji.', status: 'unknown' as const }
     }
     const evidence_ids = row.evidence_ids.map((id) => resolveId(id, knownIds)).filter((id): id is string => id !== null)
     if (evidence_ids.length < row.evidence_ids.length) issues.push(issueOf('UNKNOWN_ID', path, 'dropped evidence ids that do not exist'))

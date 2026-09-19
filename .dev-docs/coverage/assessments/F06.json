@@ -1,0 +1,289 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F06-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+              "note": "Native analysis executes from staff-owned published policy and matched productSelection."
+            }
+          ],
+          "missing": [
+            "Connect confirmed paid bootstrap 2.3 to configured analysis activation; today intake is separate."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+              "note": "Native workflow/agent/task runs and employee ledger expose state and versions."
+            }
+          ],
+          "missing": [
+            "Confirm department ownership and dependency presentation for each active research subtask, not only workflow/agent identity."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+              "note": "Uploaded product selection must exactly match immutable configured policy; through/cost limits are staff-owned."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+              "note": "Native async activity passes scoped order and URL to real runResearch; T58 authored, connected run not yet proved."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
+              "note": "Source unavailability remains explicit in real collector."
+            }
+          ],
+          "missing": [
+            "Route necessary inaccessible/misidentified source clarification through G to client instead of generic waiting."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F06-2",
+      "note": "Existing teammate producers/fixtures inspected; no claim of native initial-analysis or live-crawl proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Collector handles company website and supplied official social URL/corpus within configured source limits."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/store.ts",
+              "note": "Collected source stores URL, retrieval time, origin, read scope and access; stored text underpins citations."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/materialSources.ts",
+              "note": "Case-bound native attachments retain attachment/submission references, file name, upload time and extracted text under private owner/assignment/partition checks."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/__tests__/materialSources.test.ts",
+              "note": "Focused checks record attachment reference, retrieval/read scope, client origin, access state and client_private visibility for extracted text."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
+              "note": "Source pipeline persists WZR-ZRODLA with order and exact input versions."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Native TC002 persisted and asserted the case-bound private source in initial research before the later 3.4 fixture mismatch."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Evidence register feeds audit and competitor selection via existing source/audit pipeline."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Official social source comes from explicit order data; collector does not substitute guessed third-party profile."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F06-3",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Unavailable fetch keeps access limitation and null content rather than fabricated page text."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/__tests__/materialSources.test.ts",
+              "note": "Missing native extraction is retained as unavailable with null text and zero bytes; raw bytes or metadata are not presented as fetched content."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Collector marks access limitations but no scoped G clarification route for uncertain website/profile ownership found."
+            }
+          ],
+          "missing": [
+            "Ask client through G and bind clarification to original source task."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/gate.ts",
+              "note": "Native prompts treat external text as data; quote gate rejects instruction-looking evidence."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/fetch.ts",
+              "note": "Source provenance/proof permissions remain distinct from fact truth and document approval."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/__tests__/append.test.ts",
+              "note": "Focused checks append private evidence while preserving prior client decisions; accepting a file does not turn its claims into client approval."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
+              "note": "Source/audit/findings schemas and gates retain unknowns, hypotheses and evidence limitations."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -52,6 +52,22 @@ beforeEach(() => {
     versionNo: 1, status: 'approved', simulationFlag: false, data: { source: document.templateId },
   }))
   versions[0].data = planData
+  versions[3].data = {
+    voice_principles: [],
+    style_axes: [],
+    wording: {
+      preferred_in_context: [],
+      replacements: [],
+      replacement_boundary: 'Keep replacements within the approved context.',
+      cliches: [],
+      expert_terms: 'Use only terms the intended reader can understand.',
+      sentence_pattern: 'Use concise sentences.',
+    },
+    evidence_language: [],
+    before_after: [],
+    context_rules: [],
+    copy_checks: [],
+  }
   versions[0].inputVersions = templates.slice(1).map((templateId) => ({ document_id: documentIdFor(templateId, orderRef), version: '1.0', status: 'approved' }))
   versions[6].data = {
     product_selection: { sku: 'configured', offer_version: 'v1', price_net: 1, currency: 'PLN', result_limits: { topics: 2 } },

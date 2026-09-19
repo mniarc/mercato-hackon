@@ -1,0 +1,5 @@
+bin/*.sh text eol=lf
+bin/*.ps1 text eol=crlf
+bin/*.mjs text eol=lf
+bin-dev/*.sh text eol=lf
+bin-dev/*.ps1 text eol=crlf

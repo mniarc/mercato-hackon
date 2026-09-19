@@ -1,0 +1,193 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F01-1",
+      "note": "Demo sales UI is not authorization for a real commercial sale.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/frontend/[orgSlug]/portal/agency/page.tsx",
+              "note": "Portal offer enumerates the fixed package and one brand/market/language boundary."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/demoOffer.ts",
+              "note": "Versioned demo amount is server-owned and native catalog-backed; real commercial offer remains unapproved."
+            }
+          ],
+          "missing": [
+            "Replace explicitly simulated offer with approved saleable catalogue version."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          },
+          "externalDecision": [
+            "Approve real catalogue version and net price before real sales."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/frontend/[orgSlug]/portal/agency/page.tsx",
+              "note": "Translated offer renders unlimited in-scope revisions and excludes extra scope."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/frontend/[orgSlug]/portal/agency/page.tsx",
+              "note": "Order request pins offer version; source workflow starts only after verified test capture. Watching or selecting offer has no analysis call."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency/frontend/[orgSlug]/portal/agency/page.tsx",
+              "note": "Portal links to purchase form; sales-advisor exists as a proposal scaffold."
+            }
+          ],
+          "missing": [
+            "Connect pre-purchase question to G, catalogue-bound response and contact/product history."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F01-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/sales-advisor/definition.ts",
+              "note": "Registered propose-only sales advisor describes catalogue-grounded answers."
+            }
+          ],
+          "missing": [
+            "Wire saved G-classified sales questions to this agent and deliver its response."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/sales-advisor/definition.ts",
+              "note": "No connected pre-purchase sales-question storage/delivery path found."
+            }
+          ],
+          "missing": [
+            "Persist question/answer at contact and product without requiring purchase."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/sales-advisor/prompt.ts",
+              "note": "Sales prompt explicitly forbids negotiated price or scope."
+            }
+          ],
+          "missing": [
+            "Apply catalogue-bound response in the real sales conversation."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/sales-advisor/definition.ts",
+              "note": "Sales prompt forbids audit/free-analysis activation."
+            }
+          ],
+          "missing": [
+            "Connect sales route while retaining the non-execution boundary."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/sales-advisor/definition.ts",
+              "note": "Proposal scaffold does not provide a follow-up sales conversation."
+            }
+          ],
+          "missing": [
+            "Allow follow-up, purchase or exit without inferred purchase."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

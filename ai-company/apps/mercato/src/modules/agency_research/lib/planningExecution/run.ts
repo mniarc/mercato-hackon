@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { ReadSpecialistTov, SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { getTelemetryRuntime } from '@open-mercato/shared/lib/telemetry/runtime'
 import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../../data/entities'
@@ -16,9 +17,12 @@ import type { RunStrategyExecutionOptions } from '../strategyExecution/run'
 import { readPlanningReadiness } from '../planningReadiness/read'
 import { planningExecutionRequestSchema, type PlanningExecutionRequest, type PlanningExecutionResult, type PlanningExecutionOutcome } from './contracts'
 import { claimPlanningExecution, savedPlanningExecution } from './claim'
+import { specialistTovInput } from '../research/steps/tovInput'
 
-export type RunPlanningExecutionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PlanningExecutionRequest }
-const pin = ({ document_id, version, status }: InputVersion): InputVersion => ({ document_id, version, status })
+export type RunPlanningExecutionOptions = Omit<RunStrategyExecutionOptions, 'request'> & { request: PlanningExecutionRequest; readSpecialistTov?: ReadSpecialistTov }
+const pin = ({ document_id, version, status, specialistTov }: InputVersion): InputVersion => ({
+  document_id, version, status, ...(specialistTov ? { specialistTov } : {}),
+})
 
 /** Only 6.1–6.3. Customer choice/acceptance and production are separate continuations. */
 export async function runPlanningExecution(opts: RunPlanningExecutionOptions): Promise<PlanningExecutionResult> {
@@ -28,17 +32,26 @@ export async function runPlanningExecution(opts: RunPlanningExecutionOptions): P
   const saved = await savedPlanningExecution(em, scope, request)
   if (saved) return saved
   const { maxCostPln: _budget, ...readinessRequest } = request
-  const readiness = await readPlanningReadiness(em, scope, readinessRequest)
+  const readiness = opts.readSpecialistTov
+    ? await readPlanningReadiness(em, scope, readinessRequest, opts.readSpecialistTov)
+    : await readPlanningReadiness(em, scope, readinessRequest)
   if (readiness.status === 'not_ready') return readiness
   const where = { ...scope, orderRef }
   const accepted = readiness.accepted
   const strategyRow = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
     ...where, id: request.strategyVersionId, documentId: accepted.pair.strategy.documentId, templateId: 'WZR-STRATEGIA',
   }, undefined, scope)
-  const tovRow = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
+  const specialistReference = accepted.pair.tov.specialistReference
+  const specialistTov: SpecialistTovDocument | null = specialistReference && opts.readSpecialistTov
+    ? await opts.readSpecialistTov(scope, specialistReference)
+    : null
+  const tovRow = specialistReference ? null : await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
     ...where, id: request.tovVersionId, documentId: accepted.pair.tov.documentId, templateId: 'WZR-TOV',
   }, undefined, scope)
-  if (!strategyRow || !tovRow) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing' }
+  if (!strategyRow || (specialistReference
+    ? !specialistTov || !specialistTov.isCurrent || specialistTov.documentId !== specialistReference.documentId
+      || specialistTov.versionId !== specialistReference.versionId || specialistTov.version !== specialistReference.version
+    : !tovRow)) return { status: 'not_ready', orderRef, reason: 'pinned_input_missing' }
   const inputs = z.array(inputVersionSchema).safeParse(strategyRow.inputVersions)
   if (!inputs.success) return { status: 'not_ready', orderRef, reason: 'pinned_input_invalid' }
   const snapshot = (row: AgencyResearchDocumentVersion): StrategyExecutionInput => ({
@@ -67,12 +80,13 @@ export async function runPlanningExecution(opts: RunPlanningExecutionOptions): P
   if (topicCount === undefined || topicCount <= 0) return { status: 'not_ready', orderRef, reason: 'topic_count_missing' }
   const order = orderFactsOf(parsedOrder.data)
   const strategy = snapshot(strategyRow)
-  const tov = snapshot(tovRow)
+  const tov = specialistTov ? specialistTovInput(specialistTov) : snapshot(tovRow!)
   const planningInputs = { strategy, tov, brief, zrodla, konkurencja }
   const planningOutputs: NonNullable<StepContext['planningOutputs']> = { plan: null }
   const planningQaRepairAttempts = limits.generation.qaRepairAttemptsPerRun
   const summary = {
     process: request.process, strategyVersionId: request.strategyVersionId, tovVersionId: request.tovVersionId,
+    ...(specialistReference ? { specialistTov: specialistReference } : {}),
     briefVersionId: brief.versionId, pairQaTaskRunId: accepted.qaTaskRunId,
     acceptanceSubmissionIds: [accepted.acceptances.strategy!.source.submissionId, accepted.acceptances.tov!.source.submissionId],
     limits: { maxCostPln: request.maxCostPln, qaRepairAttemptsPerRun: planningQaRepairAttempts, topics: topicCount },
@@ -96,6 +110,7 @@ export async function runPlanningExecution(opts: RunPlanningExecutionOptions): P
     return outcome
   }
   const ctx: StepContext = {
+    ...(specialistTov ? { specialistTov } : {}),
     em, scope, orderRef, order, orderVersion: pin(orderInput), runAgent: opts.runAgent, runner: opts.runner,
     models: opts.models, ledger, cache: opts.cache, onEvent, log: opts.log ?? (() => {}), agentRunIds, taskRunIds, documentVersionIds,
     fetchPage: async () => { throw new Error('[internal] planning execution cannot fetch research sources') },

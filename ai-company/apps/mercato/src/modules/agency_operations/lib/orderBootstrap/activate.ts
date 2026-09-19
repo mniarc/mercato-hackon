@@ -35,7 +35,11 @@ export function createActivatePaidPurchase(container: AppContainer): ActivatePai
     // With a published analysis policy and execution enabled, the paid case IS the analysis case:
     // its material is the research order built from the purchase form, its workflow is analysis.v1.
     const launch = await readAnalysisLaunch(container, scope)
-    if (launch) return activateAnalysis({ container, em, scope, launch, input })
+    const product = launch?.policy.productSelection
+    if (launch && product?.sku === demoOffer.sku && product.offer_version === demoOffer.offerVersion
+      && product.price_net === demoOffer.amount && product.currency === demoOffer.currency) {
+      return activateAnalysis({ container, em, scope, launch, input })
+    }
     const definition = await authoring.findOwnedDefinition(em, { ...scope, workflowId: DEMO_PURCHASE_WORKFLOW_ID })
     if (!definition?.enabled || definition.metadata?.generatedBy?.module !== 'agency_operations' || definition.metadata.generatedBy.ownerId !== 'demo_purchase') conflict()
     const buffer = Buffer.from(JSON.stringify({ demoOnly: true, identity, caseId, orderId, paymentId, originalPurchase, demoOffer, termsAcceptedAt }), 'utf8')
@@ -146,6 +150,17 @@ async function activateAnalysis({ container, em, scope, launch, input }: Analysi
   if (workflow) {
     if (workflow.metadata?.entityType !== 'agency_operations:agency_case' || workflow.metadata.entityId !== caseId) conflict()
   } else {
+    // Preserve the literal paid receipt independently of the research-order
+    // input. Supplementary client files keep their own native submission links.
+    const receiptBuffer = Buffer.from(JSON.stringify({ demoOnly: true, identity, caseId, orderId, paymentId,
+      originalPurchase, demoOffer, termsAcceptedAt }), 'utf8')
+    const receiptHash = createHash('sha256').update(receiptBuffer).digest('hex')
+    const receipt = await container.resolve<AttachmentService>('attachmentService').createScoped({
+      ...scope, entityId: AGENCY_CASE_ATTACHMENT_ENTITY_ID, recordId: caseId,
+      partitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE, fileName: `demo-purchase-${receiptHash}.json`,
+      declaredMimeType: mimeType, buffer: receiptBuffer,
+      assignments: [{ type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: caseId }],
+    })
     workflow = await executor.startWorkflow(em, {
       ...scope, workflowId: launch.workflowId, version: launch.version, correlationKey,
       initialContext: {
@@ -153,7 +168,7 @@ async function activateAnalysis({ container, em, scope, launch, input }: Analysi
         customerEntityId: identity.customerEntityId, submittedByCustomerUserId: identity.customerUserId,
         title: agencyCase.title, agentWorkerId: AGENCY_ANALYSIS_WORKER_ID,
         materialFileName: fileName, materialMimeType: mimeType, materialFileSize: buffer.length,
-        purchase: { orderId, paymentId, demoOnly: true, materialHash },
+        purchase: { orderId, paymentId, demoOnly: true, materialHash, receiptAttachmentId: receipt.id, receiptHash },
       },
       metadata: { entityType: 'agency_operations:agency_case', entityId: caseId, labels: { agentWorkerId: AGENCY_ANALYSIS_WORKER_ID } },
     })

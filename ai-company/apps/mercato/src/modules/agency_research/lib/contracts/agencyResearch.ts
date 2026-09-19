@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { MaterialRevisionRequest, MaterialRevisionResult } from '../materialRevision/contracts'
 import { orderDataSchema } from '../../data/schemas/zamowienie'
 import type { AcceptBriefInput, BriefAcceptanceReceipt, BriefAcceptanceProjection } from '../briefAcceptance/contracts'
 import type { ResearchExceptionProjection } from '../exceptionReview/read'
@@ -12,8 +13,13 @@ import type { PlanningExecutionRequest, PlanningExecutionResult } from '../plann
 import type { PlanReviewRequest, PlanReview, PlanAcceptance, AcceptPlanInput, PlanAcceptanceReceipt } from '../planAcceptance/contracts'
 import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
 import type { PostExecutionRequest, PostExecutionResult } from '../postExecution/contracts'
+import type { PostRevisionRequest, PostRevisionResult } from '../postRevision/contracts'
+import type { RunPostEvidenceRequest, PostEvidenceResult } from '../postEvidence/contracts'
 import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAcceptanceReceipt } from '../postAcceptance/contracts'
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
+import type { BriefRevisionRequest, BriefRevisionResult } from '../briefRevision/contracts'
+import type { PublicationConsent, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
+import type { ConfigurePublicationDestinationInput, PublicationDestinationResult } from '../publicationDestination/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -37,6 +43,16 @@ export type ResearchStep = (typeof researchSteps)[number]
 /** Client-facing documents the portal may render through `getClientView`. */
 export const clientViewTemplates = ['WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-TOV', 'WZR-PLAN', 'WZR-POST', 'WZR-PAKIET'] as const
 export type ClientViewTemplate = (typeof clientViewTemplates)[number]
+
+/** Server-resolved case attachments, never caller assertions of file access or approval. */
+export const researchMaterialSourceSchema = z.object({
+  attachmentId: z.string().uuid(),
+  submissionId: z.string().uuid(),
+  fileName: z.string().min(1),
+  text: z.string().nullable(),
+  submittedAt: z.string().datetime(),
+}).strict()
+export type ResearchMaterialSource = z.infer<typeof researchMaterialSourceSchema>
 
 export const researchRunRequestSchema = z.object({
   /** The order (or case) the documents belong to; text, tenant-scoped. */
@@ -62,6 +78,8 @@ export const researchRunRequestSchema = z.object({
     .optional(),
   /** Explicit page list instead of discovery. */
   pages: z.array(z.string().min(1)).optional(),
+  /** Trusted native attachment extraction; null text is an unavailable source. */
+  materialSources: z.array(researchMaterialSourceSchema).optional(),
   /** People who speak for the brand, as the client named them (3.2a follows them across the web). */
   people: z.array(z.object({ name: z.string().min(1), role: z.string().nullable().optional(), knownUrls: z.array(z.string().min(1)).max(10).optional() })).optional(),
   /** Per-run spend cap in PLN; the module default applies when omitted. */
@@ -144,11 +162,16 @@ export type BriefReviewProjection = {
 
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
+  runBriefRevision(input: { context: ResearchExecutionContext; request: BriefRevisionRequest }): Promise<BriefRevisionResult>
+  runMaterialRevision(input: { context: ResearchExecutionContext; request: MaterialRevisionRequest }): Promise<MaterialRevisionResult>
   /** Execute strategy/ToV only from an accepted brief and frozen inputs, with an explicit staff-authorized budget. */
   runStrategy(input: { context: ResearchExecutionContext; request: StrategyExecutionRequest }): Promise<StrategyExecutionResult>
   runPlanning(input: { context: ResearchExecutionContext; request: PlanningExecutionRequest }): Promise<PlanningExecutionResult>
   runPostExecution(input: { context: ResearchExecutionContext; request: PostExecutionRequest }): Promise<PostExecutionResult>
+  runPostRevision(input: { context: ResearchExecutionContext; request: PostRevisionRequest }): Promise<PostRevisionResult>
+  runPostEvidence(input: { context: ResearchExecutionContext; request: RunPostEvidenceRequest }): Promise<PostEvidenceResult>
   preparePublication(input: PreparePublicationInput): Promise<PublicationPreparationResult>
+  configurePublicationDestination(input: ConfigurePublicationDestinationInput): Promise<PublicationDestinationResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */
@@ -165,6 +188,8 @@ export interface AgencyResearchService {
   acceptPlan(input: AcceptPlanInput): Promise<PlanAcceptanceReceipt>
   getPostAcceptance(scope: { tenantId: string; organizationId: string }, input: PostAcceptanceRequest): Promise<PostAcceptance>
   acceptPost(input: AcceptPostInput): Promise<PostAcceptanceReceipt>
+  getPublicationConsent(scope: { tenantId: string; organizationId: string }, input: PostAcceptanceRequest): Promise<PublicationConsent>
+  recordPublicationConsent(input: RecordPublicationConsentInput): Promise<PublicationConsentResult>
   /** Deterministic compiler only; does not invoke a copywriter or authorize publication. */
   runPostInstruction(input: { context: ResearchExecutionContext; request: PostInstructionExecutionRequest }): Promise<PostInstructionExecutionResult>
   getStrategyPairAcceptance(scope: { tenantId: string; organizationId: string }, input: StrategyPairAcceptanceRequest): Promise<StrategyPairAcceptanceState>

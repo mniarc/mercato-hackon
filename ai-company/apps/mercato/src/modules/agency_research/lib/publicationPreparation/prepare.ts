@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { isDeepStrictEqual } from 'node:util'
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
@@ -10,6 +11,7 @@ import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { konfigPublikacjiDataSchema } from '../../data/schemas/konfigPublikacji'
 import { zleceniePostuDataSchema } from '../../data/schemas/zleceniePostu'
 import { readPostAcceptance } from '../postAcceptance/read'
+import { readPublicationConsent, publicationConsentCheckOf } from '../publicationConsent/read'
 import { documentIdFor, versionLabel } from '../research/envelope'
 import { buildPublicationConfig, buildPublicationOrder } from '../research/publication'
 import { renderKonfigPublikacji } from '../research/render/konfigPublikacji'
@@ -32,18 +34,6 @@ export async function preparePublication(manager: EntityManager, rawInput: unkno
     const receipt = accepted.receipt
     if (!receipt || accepted.post.documentStatus !== 'approved' || accepted.post.versionStatus !== 'approved') return notReady('acceptance_missing')
     if (receipt.source.submissionId !== acceptanceSubmissionId) return notReady('acceptance_superseded')
-    const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...where, stepId: '7.7' }, { orderBy: { createdAt: 'asc', id: 'asc' } }, scope)
-    const previous = runs.find((run) => {
-      const summary = run.summary as Record<string, unknown> | null
-      return summary?.postVersionId === postVersionId && summary?.acceptanceSubmissionId === acceptanceSubmissionId
-    })
-    if (previous) {
-      const saved = publicationPreparationPreparedSchema.safeParse((previous.summary as Record<string, unknown>).preparationResult)
-      if (previous.status === 'done' && saved.success && saved.data.orderRef === orderRef && saved.data.taskRunId === previous.id
-        && saved.data.postVersionId === postVersionId && saved.data.acceptanceSubmissionId === acceptanceSubmissionId
-        && saved.data.instructionVersionId === previous.outputVersionId) return { ...saved.data, replayed: true }
-      return notReady('saved_preparation_incomplete')
-    }
     const postRow = await findOneWithDecryption(em, AgencyResearchDocumentVersion, {
       ...where, id: postVersionId, documentId: accepted.post.documentId, templateId: 'WZR-POST',
     }, undefined, scope)
@@ -75,6 +65,21 @@ export async function preparePublication(manager: EntityManager, rawInput: unkno
     const existingConfig = configRow ? konfigPublikacjiDataSchema.safeParse(configRow.data) : null
     if (existingConfig && !existingConfig.success) return notReady('pinned_input_invalid')
     const builtConfig = existingConfig?.success ? { data: existingConfig.data, blockers: existingConfig.data.readiness.blockers } : buildPublicationConfig({ order }, lang)
+    let consent = await readPublicationConsent(em, scope, { orderRef, postVersionId })
+    const preparationInputs = { configVersionId: configRow?.id ?? null, publicationConsent: consent }
+    const runs = await findWithDecryption(em, AgencyResearchTaskRun, { ...where, stepId: '7.7' }, { orderBy: { createdAt: 'asc', id: 'asc' } }, scope)
+    const previous = runs.find((run) => {
+      const summary = run.summary as Record<string, unknown> | null
+      return summary?.postVersionId === postVersionId && summary?.acceptanceSubmissionId === acceptanceSubmissionId
+        && isDeepStrictEqual(summary.preparationInputs, preparationInputs)
+    })
+    if (previous) {
+      const saved = publicationPreparationPreparedSchema.safeParse((previous.summary as Record<string, unknown>).preparationResult)
+      if (previous.status === 'done' && saved.success && saved.data.orderRef === orderRef && saved.data.taskRunId === previous.id
+        && saved.data.postVersionId === postVersionId && saved.data.acceptanceSubmissionId === acceptanceSubmissionId
+        && saved.data.configVersionId === configRow?.id && saved.data.instructionVersionId === previous.outputVersionId) return { ...saved.data, replayed: true }
+      return notReady('saved_preparation_incomplete')
+    }
     const run = await startTaskRun(em, scope, { orderRef, brand: order.brand, stepId: '7.7', attempt: 1, runner: 'system', models: {}, inputVersions })
     if (!configRow) {
       const configIssues: DocumentIssue[] = builtConfig.blockers.map((blocker) => ({ code: 'PUBLICATION_CONFIG_MISSING', severity: 'blocking_publication', detail: blocker, path: 'readiness.blockers' }))
@@ -84,13 +89,19 @@ export async function preparePublication(manager: EntityManager, rawInput: unkno
         renderedMd: renderKonfigPublikacji({ outputLanguage: lang, brand: order.brand, data: builtConfig.data, issues: configIssues }), taskRunId: run.id,
       })
       configRow = savedConfig.version
+      // The newly persisted config is part of replay identity, including its
+      // real target (if any). Never cache the pre-configuration consent read.
+      consent = await readPublicationConsent(em, scope, { orderRef, postVersionId })
     }
+    preparationInputs.configVersionId = configRow.id
+    preparationInputs.publicationConsent = consent
     const configPin = pin(configRow)
     const { person, at, scope: approvalScope, version } = receipt
     const built = buildPublicationOrder({ orderRef, post: post.data,
       postVersion: { documentId: documentIdFor('WZR-POST', orderRef), version: accepted.post.version, status: 'approved', isCurrent: true,
         approvalRecords: [{ person, at, scope: approvalScope, version }] },
       config: builtConfig.data, configVersion: configPin, adapter: adapterFor(builtConfig.data.platform.platform),
+      publicationConsent: publicationConsentCheckOf(consent),
       ctaPublicationReadiness: instruction.data.delivery_constraints.cta_publication_readiness,
     }, lang)
     const issues: DocumentIssue[] = built.data.preflight.check_results.filter((check) => check.result !== 'pass')
@@ -106,7 +117,7 @@ export async function preparePublication(manager: EntityManager, rawInput: unkno
       canSend: false, missingGates: built.data.preflight.check_results.filter((check) => check.result !== 'pass').map((check) => check.gate), replayed: false,
     })
     await finishTaskRun(em, run, { status: 'done', outputVersionId: saved.version.id,
-      summary: { postVersionId, acceptanceSubmissionId, acceptance: receipt, preparationResult: result },
+      summary: { postVersionId, acceptanceSubmissionId, acceptance: receipt, preparationInputs, preparationResult: result },
     })
     return result
   })

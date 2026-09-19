@@ -30,21 +30,58 @@ test('continues after saved readiness through one asynchronous native activity w
   })
 })
 
-test('routes exhausted planning to the existing employee task before considering client review', () => {
-  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === 'planning_execution'))
-    .toMatchObject({ toStepId: 'planning_exception_checked', activities: [{ config: { functionName: 'agency_operations.handoffPlanningResearchException' } }] })
-  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'planning_exception_checked'))
+test('parks missing specialist ToV and resumes only the same strategy branch after its native signal', () => {
+  expect(nativeClientSubmissionDefinition.steps.find(step => step.stepId === 'strategy_specialist_waiting')).toMatchObject({
+    stepType: 'WAIT_FOR_SIGNAL', signalConfig: { signalName: 'agency.strategy-specialist.ready' },
+  })
+  expect(nativeClientSubmissionDefinition.transitions.find(transition => transition.transitionId === 'wait_specialist_tov')).toMatchObject({
+    fromStepId: 'strategy_execution', toStepId: 'strategy_specialist_waiting', priority: 100,
+    condition: { field: `${STRATEGY_EXECUTION_RESULT_KEY}.result.reason`, value: 'specialist_tov_pending' },
+  })
+  expect(nativeClientSubmissionDefinition.transitions.find(transition => transition.transitionId === 'resume_strategy_with_specialist')).toMatchObject({
+    fromStepId: 'strategy_specialist_waiting', toStepId: 'strategy_execution',
+    activities: [{ async: true, retryPolicy: { maxAttempts: 1 }, config: { functionName: STRATEGY_EXECUTION_FUNCTION } }],
+  })
+})
+
+test.each([
+  ['planning_execution', 'planning_exception_checked', 'agency_operations.handoffPlanningResearchException', 'plan_review'],
+  ['post_production', 'post_exception_checked', 'agency_operations.handoffPostResearchException', 'post_review'],
+  ['material_revision', 'material_revision_exception_checked', 'agency_operations.handoffMaterialRevisionException', 'material_revision_review'],
+])('routes exhausted %s to the existing employee task before considering client review', (executionStep, checkedStep, handoffFunction, reviewStep) => {
+  expect(nativeClientSubmissionDefinition.transitions.find((transition) => transition.fromStepId === executionStep))
+    .toMatchObject({ toStepId: checkedStep, activities: [{ config: { functionName: handoffFunction } }] })
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === checkedStep))
     .toMatchObject([
       { toStepId: 'research_exception', condition: { value: 'employee_exception' } },
-      { toStepId: 'plan_review', condition: { value: 'none' } },
+      { toStepId: reviewStep, condition: { value: 'none' } },
     ])
+})
+
+test.each([
+  ['strategy_review', 'agencyStrategyPairInvitation', 'strategy_invited', 'strategy_waiting'],
+  ['plan_review', 'agencyPlanInvitation', 'plan_invited', 'planning_waiting'],
+  ['post_review', 'agencyPostInvitation', 'post_review_invited', 'post_review_waiting'],
+  ['post_revision_review', 'agencyPostRevisionInvitation', 'post_revision_invited', 'post_revision_waiting'],
+  ['material_revision_review', 'agencyMaterialRevisionInvitation', 'material_revision_invited', 'material_revision_waiting'],
+])('keeps blocked %s waiting without automatic replay or a false completed review', (reviewStep, resultKey, invitedStep, waitingStep) => {
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === reviewStep)?.stepType).toBe('AUTOMATED')
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === reviewStep))
+    .toEqual([
+      expect.objectContaining({ toStepId: invitedStep, condition: { field: `${resultKey}.result.status`, operator: '=', value: 'invited' } }),
+      expect.objectContaining({ toStepId: waitingStep, condition: { field: `${resultKey}.result.status`, operator: '=', value: 'blocked' } }),
+    ])
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === waitingStep)?.stepType).toBe('WAIT_FOR_SIGNAL')
+  expect(nativeClientSubmissionDefinition.steps.find((step) => step.stepId === invitedStep)?.stepType).toBe('END')
+  expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === waitingStep)).toEqual([])
 })
 
 test('passes the stored original through native input mapping and projects the saved research result on a transition', () => {
   const triage = nativeClientSubmissionDefinition.steps.find((step) => step.stepId === 'triage')
   expect(triage?.activities).toEqual([expect.objectContaining({ activityType: 'INVOKE_AGENT', config: {
     agentId: CLIENT_TRIAGE_AGENT_ID,
-    input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}` },
+    input: { original: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.original}}`,
+      materialContext: `{{context.${CLIENT_TRIAGE_INPUT_KEY}.result.materialContext | default(null)}}` },
     onResult: { alwaysAsk: true }, outputMapping: { [CLIENT_TRIAGE_INTERPRETATION_KEY]: 'data' },
   } })])
   expect(nativeClientSubmissionDefinition.transitions).toEqual(expect.arrayContaining([
@@ -59,9 +96,9 @@ test('passes the stored original through native input mapping and projects the s
 
 test('routes supported outcomes and records acceptance before completing its approval destination', () => {
   expect(nativeClientSubmissionDefinition.transitions.filter((transition) => transition.fromStepId === 'routed'))
-    .toEqual(['answered', 'client_reply', 'brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
+    .toEqual(['answered', 'client_reply', 'brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision', 'unapplied'].map((target) => expect.objectContaining({
       toStepId: target,
-      condition: ['brief_accepted', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
+      condition: ['brief_accepted', 'material_revision', 'brief_revision', 'post_revision', 'strategy_pair_decision', 'plan_topic_decision', 'post_content_decision'].includes(target)
         ? { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.triage.disposition.targetStepId`, operator: '=', value: target }
         : { field: `${CLIENT_TRIAGE_RESULT_KEY}.result.kind`, operator: '=', value: target === 'answered' ? 'answer' : target === 'client_reply' ? 'clarify' : 'unapplied' },
     })))

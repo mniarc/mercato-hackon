@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F39-1",
+      "note": "Proposed process 8–9, outside settled delivery denominator. Existing document builders are not execution/delivery proof.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/closure.ts",
+              "note": "Deterministic gate checks payment/completeness/publication/delivery/blockers."
+            }
+          ],
+          "missing": [
+            "No actual case-close mutation executes this gate."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC2",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/closure.ts",
+              "note": "Step explicitly only records verdict; case.close belongs to unimplemented spine."
+            }
+          ],
+          "missing": [
+            "Persist fulfilled order/case with delivery date, final versions/proofs and original native payment link."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/closure.ts",
+              "note": "Pure gate creates no extra charge or fabricated invoice."
+            }
+          ],
+          "missing": [
+            "Real close operation absent; preserve these constraints when implemented."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/packaging.ts",
+              "note": "No final delivery notification is sent."
+            }
+          ],
+          "missing": [
+            "Notify existing client after verified completion without new purchase/approval."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Generic G accepts submissions, but no post-delivery agency-error/new-need semantics are applied."
+            }
+          ],
+          "missing": [
+            "Implement scoped aftercare distinction and owned correction route."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": [
+            "Approve proposed delivery/closure scope and choose the real sharing channel before activation."
+          ]
+        }
+      ]
+    }
+  ]
+}

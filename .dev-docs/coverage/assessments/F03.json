@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F03-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "Native quote/order/item creation binds active customer and fixed catalogue product; retry retains same order."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "Order/payment metadata bind catalogue version, amount, currency and native payment ID."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "New order receipt remains pending_payment until verified provider capture."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/nativeSales.ts",
+              "note": "Native Sales owns order/payment records and portal displays payment state."
+            },
+            {
+              "path": "ai-company/packages/core/src/modules/sales/backend/sales/documents/[id]/page.tsx",
+              "note": "Native order route reuses this detail page: CustomerInlineEditor, SalesDocumentItemsSection product/prices, and SalesDocumentPaymentsSection order-scoped payment API status. Source inspected; staff order-card runtime not run."
+            },
+            {
+              "path": "ai-company/packages/core/src/modules/sales/components/documents/PaymentsSection.tsx",
+              "note": "Loads /api/sales/payments for the order and renders persisted statusLabel/status and amount, not browser-derived payment success."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/payment.ts",
+              "note": "Browser navigation cannot write captured status; explicit demo confirmation uses signed mock gateway processor."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 headed native zero-charge mock_processing purchase proof passed; commit 0893b2fe5. Not live payment or research fulfilment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F03-2",
+      "note": "T65 is bounded to the zero-charge mock_processing demo; no live payment or new-signup proof (T69).",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/payment.ts",
+              "note": "Failed-session retry creates only a native gateway attempt for the existing order/payment; product and pinned catalogue metadata are not rewritten."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "Headed TC003 passed 2026-09-19, commit eb2eef065: real failed webhook and portal retry retain order ID, 2,500 PLN and payment ID. Product/catalogue-version persistence is source-grounded, not separately asserted in this journey."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: the configured fixed offer was purchased; the failed payment remained blocked with no case, retry reused the exact order/payment with a new provider session, pending still had no case, and capture produced the single paid case. Native zero-charge test gateway only; no real payment."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "Headed TC003 passed 2026-09-19, commit eb2eef065: native failed attempt -> real portal retry -> replacement capture; final persistence proves one original order/payment, two retained failed/captured attempts and exactly one waiting case. Fixture cleanup passed."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC3",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Receipt status is derived from the persisted native provider transaction."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "Headed TC003 passed 2026-09-19: portal shows blocked/retryable after verified failure, pending after retry, and paid only after native capture; final DB check retains both actual outcomes."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "passed",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          }
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/service.ts",
+              "note": "Activation remains conditional on verified captured status and exact money/order binding."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-003-demo-purchase.spec.ts",
+              "note": "TC003 proves failed and replacement-pending receipts have no case/workflow before capture. Client cancellation is not exercised, so full native criterion verification remains not_run."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "not_run",
+            "liveModel": "not_run"
+          }
+        }
+      ]
+    }
+  ]
+}

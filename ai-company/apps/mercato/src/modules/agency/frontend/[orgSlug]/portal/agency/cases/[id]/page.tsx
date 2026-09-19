@@ -7,6 +7,7 @@ import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageH
 import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
 import { CaseStatus } from '../../materials/_components/CaseStatus'
 import { CaseConversation } from '../_components/CaseConversation'
+import { ClientCaseTasks } from '../_components/ClientCaseTasks'
 
 export default function AgencyCasePage({ params }: { params: { orgSlug: string; id: string } }) {
   const t = useT()
@@ -23,10 +24,14 @@ export default function AgencyCasePage({ params }: { params: { orgSlug: string; 
           <CaseStatus caseId={params.id} showMaterial />
           <p className="text-sm text-muted-foreground">{t('agency.cases.reviewTasksHint')}</p>
           <Button type="button" asChild variant="outline">
+            <Link href={`/${params.orgSlug}/portal/agency/materials?caseId=${encodeURIComponent(params.id)}`}>{t('agency.materials.link')}</Link>
+          </Button>
+          <Button type="button" asChild variant="outline">
             <Link href={`/${params.orgSlug}/portal/tasks`}>{t('agency.cases.openTasks')}</Link>
           </Button>
         </div>
       </PortalCard>
+      <ClientCaseTasks key={`tasks:${params.id}`} caseId={params.id} orgSlug={params.orgSlug} />
       <CaseConversation key={params.id} caseId={params.id} />
     </div>
   )

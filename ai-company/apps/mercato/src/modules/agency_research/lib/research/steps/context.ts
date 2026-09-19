@@ -1,4 +1,6 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { SpecialistTovDocument } from '@/modules/agency_tov/lib/documentVersion/contracts'
+import type { ResearchMaterialSource } from '../../contracts/agencyResearch'
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { KnownPerson, ScrapeProfilePosts } from './people'
@@ -37,6 +39,8 @@ export type PostExecutionOutputs = { post: StrategyExecutionInput | null }
  * with the fixture runner; the step is what the service and the CLI call.
  */
 export type StepContext = {
+  /** Authoritative specialist content for this exact pair; never a research-owned ToV draft. */
+  specialistTov?: SpecialistTovDocument
   em: EntityManager
   scope: ResearchScope
   orderRef: string
@@ -58,6 +62,7 @@ export type StepContext = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  materialSources?: ResearchMaterialSource[]
   /** 3.2a — people the client named; the finder adds those the pages name. */
   knownPeople?: KnownPerson[]
   /** 3.2a — reads a person's own posts (Apify through the ToV lane's seam); absent = their channels are only listed. */

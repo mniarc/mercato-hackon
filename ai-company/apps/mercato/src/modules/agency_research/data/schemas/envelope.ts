@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { specialistTovReferenceSchema } from '@/modules/agency_tov/lib/documentVersion/contracts'
 
 /**
  * COMMON-ENVELOPE (Rafał's template package v1.1): the metadata every document
@@ -61,6 +62,8 @@ export const inputVersionSchema = z.object({
   document_id: z.string().min(1),
   version: z.string().min(1),
   status: z.string().optional(),
+  /** Optional immutable external-owner reference; no duplicated ToV content. */
+  specialistTov: specialistTovReferenceSchema.optional(),
 })
 export type InputVersion = z.infer<typeof inputVersionSchema>
 
@@ -81,7 +84,7 @@ export const approvalRecordSchema = z.object({
   documentVersionId: z.uuid().optional(),
   // Persist the typed acceptance provenance without making data schemas depend on services.
   source: z.object({
-    kind: z.literal('agency_brief_acceptance'),
+    kind: z.enum(['agency_brief_acceptance', 'agency_post_acceptance', 'agency_publication_consent']),
     submissionId: z.uuid(),
     eventId: z.string().min(1).max(200),
     workflowInstanceId: z.uuid(),

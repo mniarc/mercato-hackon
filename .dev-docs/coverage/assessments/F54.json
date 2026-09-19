@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F54-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/orderBootstrap/activate.ts",
+              "note": "App-owned native workflows invoke teammate agentRuntime-backed workers and persist real task/document results; intelligence fixtures do not replace persistence."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "Agency owns triage, exact version reviews and native employee handoff with teammate research services."
+            }
+          ],
+          "missing": [
+            "Real publisher implementation is missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "Scoped native purchase and employee/post paths have actual app proofs; focused checks cover newer seams."
+            }
+          ],
+          "missing": [
+            "Complete connected research-to-delivery runtime path has not been demonstrated."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "Deterministic intake baseline is separate, but genuine native agent execution depends on Enterprise."
+            }
+          ],
+          "missing": [
+            "No functionally equivalent non-Enterprise agent execution path; baseline scaffold is not equivalent."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": ".tasks/T33-operational-process-view-and-demo.md",
+              "note": "Task/ownership guidance explicitly identifies agency features and teammates versus Open Mercato infrastructure."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F33-1",
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+              "note": "Content approval routes to receipt and internal publication preparation."
+            }
+          ],
+          "missing": [
+            "Missing text/plan/strategy/brief revision and follow-up routes."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "One G interpretation and source binding drive implemented acceptance paths."
+            }
+          ],
+          "missing": [
+            "Persist/apply publication-dependent holds and impacted-version routing for changes."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/projectResult.ts",
+              "note": "No complete change impact application beyond invited brief answers."
+            }
+          ],
+          "missing": [
+            "Apply in-package changes and request reapproval only for affected materials."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/postExecution/run.ts",
+              "note": "No per-client-round billing or extra output is produced by the initial producer."
+            }
+          ],
+          "missing": [
+            "Client revision loop itself is absent; replaying initial activation is not a new scoped revision."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/publication.ts",
+              "note": "No sending reservation/attempt lifecycle exists."
+            }
+          ],
+          "missing": [
+            "Connect G hold/change to pre-send invalidation and post-start reconciliation; actual sending awaits proposed publication scope."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F33-2",
+      "note": "Source assessment, not a runtime pass. Connected T58 is authored/unrun; teammate downstream CLI used simulated inputs/selection, not genuine portal approvals.",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Prepared internal instruction pins typed accepted post, immutable text/hash, channel and known destination/consent gaps."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Missing target/consent remains explicit but internal 7.7 preparation still saves."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/__integration__/TC-AGENCY-002-brief-to-plan.spec.ts",
+              "note": "Headed TC002 passed 2026-09-19 at ef3b5390d: publication preparation was saved for the exact accepted post despite missing publication consent and retained canSend:false. No send, actual publication, Discord, or consent was exercised or inferred."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "passed",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Preparation never sends and exposes sendAllowed=false."
+            }
+          ],
+          "missing": [
+            "No activated real 8.1 publication handling yet; proposed external process remains unapproved."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/publicationPreparation/prepare.ts",
+              "note": "Existing template builder saves internal instruction with no separate approval gate."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "unknown"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

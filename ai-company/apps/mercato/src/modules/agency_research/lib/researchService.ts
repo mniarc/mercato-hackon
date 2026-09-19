@@ -1,12 +1,19 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import { AGENCY_TOV_RESEARCH_SERVICE, type AgencyTovResearchService } from '@/modules/agency_tov/lib/researchService'
+import type { ReadSpecialistTov } from '@/modules/agency_tov/lib/documentVersion/contracts'
+import { runMaterialRevision } from './materialRevision/run'
+import { materialRevisionRequestSchema } from './materialRevision/contracts'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { orderDataSchema, orderFactsOf, type OrderData } from '../data/schemas/zamowienie'
 import { limits } from '../data/templates'
 import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type AgencyResearchService, type ResearchExecutionContext, type ResearchRunRequest, type ResearchRunResult, type ResearchStep } from './contracts'
-import { collectSources, type FetchPage, type SocialPost } from './research/fetch'
+import { collectSources, type CollectedSource, type FetchPage, type SocialPost } from './research/fetch'
+import { canonicalUrl, sourceId, sampleId } from './research/ids'
+import type { ResearchMaterialSource } from './contracts/agencyResearch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
+import { configuredFixtureSources } from './research/fixtureSources'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
 import { fileCache, orderCacheDir } from './research/fileCache'
 import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner, type StepFn } from './research/pipeline'
@@ -32,13 +39,21 @@ import { readPostReview } from './postReview/read'
 import { resolveStrategyReadiness } from './strategyReadiness'
 import { readStrategyReview } from './strategyReview/read'
 import { runStrategyExecution, strategyExecutionRequestSchema } from './strategyExecution'
+import { runBriefRevision, briefRevisionRequestSchema } from './briefRevision'
 import { runPlanningExecution, planningExecutionRequestSchema } from './planningExecution'
 import { runPostExecution, postExecutionRequestSchema } from './postExecution'
+import { runPostRevision, postRevisionRequestSchema } from './postRevision'
+import { runPostEvidence, runPostEvidenceRequestSchema } from './postEvidence'
 import { acceptPost } from './postAcceptance/accept'
 import { readPostAcceptance } from './postAcceptance/read'
 import { acceptPostInputSchema } from './postAcceptance/contracts'
 import { preparePublication } from './publicationPreparation'
 import { preparePublicationInputSchema } from './publicationPreparation/contracts'
+import { readPublicationConsent } from './publicationConsent/read'
+import { recordPublicationConsent } from './publicationConsent/record'
+import { recordPublicationConsentInputSchema } from './publicationConsent/contracts'
+import { configurePublicationDestination } from './publicationDestination/configure'
+import { configurePublicationDestinationInputSchema } from './publicationDestination/contracts'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -49,9 +64,6 @@ import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
-import { runStrategyStep } from './research/steps/strategy'
-import { runTovStep } from './research/steps/tov'
-import { runStrategyQaLoop } from './research/steps/strategyQa'
 import { runPlanStep } from './research/steps/plan'
 import { runPlanQaLoop } from './research/steps/planQa'
 import { runSelectionStep } from './research/steps/selection'
@@ -81,6 +93,7 @@ export type RunResearchOptions = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  materialSources?: ResearchMaterialSource[]
   /** 3.2a — people the client named on the order (name, role, known profile URLs). */
   knownPeople?: KnownPerson[]
   /** 3.2a — profile-post scraper; the service wires the ToV lane's Apify seam when APIFY_TOKEN is set. */
@@ -122,28 +135,72 @@ const groupOutput: Record<ResearchStep, TemplateId> = {
   '6.7': 'WZR-ZLECENIE-POSTU', '7.3': 'WZR-POST', '8.7': 'WZR-POTWIERDZENIE-PUBLIKACJI', '9.3': 'WZR-PAKIET',
 }
 
+/** Only the resumed groups (including their bounded author repairs), never another phase's workers. */
+export function resumedResearchTaskSteps(from: ResearchStep, through: ResearchStep): string[] {
+  const groups: Record<ResearchStep, string[]> = {
+    '3.2': ['3.1', '3.2'], '3.5': ['3.3', '3.4', '3.5'],
+    '3.8': ['3.2', '3.3', '3.4', '3.5', '3.6', '3.7', '3.8'],
+    '4.2': ['4.1', '4.2'], '5.4': ['5.1', '5.2', '5.3', '5.4'],
+    '6.7': ['6.1', '6.2', '6.3', '6.5', '6.7'], '7.3': ['7.1', '7.2', '7.3'],
+    '8.7': ['8.2', '8.3', '8.7'], '9.3': ['9.1', '9.3'],
+  }
+  return [...new Set(stepOrder.filter((step) => reaches(step, from) && reaches(through, step)).flatMap((step) => groups[step]))]
+}
+
 /**
  * The competitor half of a stored register — what 3.4 appended: facts of a
  * non-client entity, the sources only they cite, and the language samples of
- * those sources — merged behind a freshly built client half. Ids do not
- * collide: client facts are F…, competitor facts C…; sources and samples are
- * matched by id so a rebuilt client source never duplicates.
+ * those sources — merged behind a freshly built client half. Collection keeps
+ * source identities stable; colliding new client sample IDs are remapped while
+ * the competitor references used by existing comparisons remain unchanged.
  */
 export function carryCompetitorEntries(fresh: ZrodlaData, previous: ZrodlaData): ZrodlaData {
   const clientEntity = fresh.facts[0]?.entity ?? null
   const competitorFacts = previous.facts.filter((fact) => fact.fact_id.startsWith('C') && fact.entity !== clientEntity && !fresh.facts.some((row) => row.fact_id === fact.fact_id))
   if (!competitorFacts.length) return fresh
   const competitorSourceIds = new Set(competitorFacts.flatMap((fact) => [...fact.source_ids, fact.locator.source_id]))
+  for (const source of previous.sources.filter((source) => competitorSourceIds.has(source.source_id))) {
+    const collision = fresh.sources.find((row) => row.source_id === source.source_id)
+    if (collision && (canonicalUrl(collision.url_or_file) !== canonicalUrl(source.url_or_file)
+      || collision.source_visibility !== source.source_visibility || collision.origin !== source.origin)) {
+      throw new Error(`[internal] Source identity collision while retaining competitor evidence: ${source.source_id}`)
+    }
+  }
   const freshSourceIds = new Set(fresh.sources.map((source) => source.source_id))
   const sources = previous.sources.filter((source) => competitorSourceIds.has(source.source_id) && !freshSourceIds.has(source.source_id))
-  const freshSampleIds = new Set(fresh.language_samples.map((sample) => sample.sample_id))
-  const samples = previous.language_samples.filter((sample) => competitorSourceIds.has(sample.source_id) && !freshSampleIds.has(sample.sample_id))
+  const samples = previous.language_samples.filter((sample) => competitorSourceIds.has(sample.source_id))
+  const sampleRenames = new Map<string, string>()
+  let nextSample = Math.max(0, ...[...previous.language_samples, ...fresh.language_samples].map((row) => Number(/^L(\d+)$/.exec(row.sample_id)?.[1] ?? 0)))
+  const clientSamples = fresh.language_samples.map((sample) => {
+    const collision = samples.find((row) => row.sample_id === sample.sample_id)
+    if (!collision || (collision.source_id === sample.source_id && collision.excerpt_or_paraphrase === sample.excerpt_or_paraphrase)) return sample
+    const id = sampleId(nextSample++)
+    sampleRenames.set(sample.sample_id, id)
+    return { ...sample, sample_id: id }
+  })
+  const freshSampleIds = new Set(clientSamples.map((sample) => sample.sample_id))
   return {
     ...fresh,
     sources: [...fresh.sources, ...sources],
     facts: [...fresh.facts, ...competitorFacts],
-    language_samples: [...fresh.language_samples, ...samples],
+    language_samples: [...clientSamples, ...samples.filter((sample) => !freshSampleIds.has(sample.sample_id))],
+    coverage: fresh.coverage.map((row) => row.item_type === 'requirement_coverage'
+      ? { ...row, evidence_ids: row.evidence_ids.map((id) => sampleRenames.get(id) ?? id) } : row),
   }
+}
+
+/** A repaired collection retains existing source identities before extraction and native source persistence. */
+export function retainCollectedSourceIds(collected: CollectedSource[], previous: ZrodlaData): CollectedSource[] {
+  const used = new Set<string>()
+  let nextSource = Math.max(0, ...previous.sources.map((row) => Number(/^S-(\d+)$/.exec(row.source_id)?.[1] ?? 0)))
+  return collected.map((source) => {
+    const stored = previous.sources.find((row) => !used.has(row.source_id)
+      && canonicalUrl(row.url_or_file) === canonicalUrl(source.url) && row.origin === source.origin
+      && row.publisher === source.publisher && row.source_visibility === (source.source_visibility ?? 'public'))
+    const id = stored?.source_id ?? sourceId(nextSource++)
+    used.add(id)
+    return { ...source, source_id: id }
+  })
 }
 
 /** The step runner 3.2a uses for its two agents: the same budget, cache, gates and retries as every other call. */
@@ -170,7 +227,7 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   })
   ctx.taskRunIds.push(run.id)
   try {
-    const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, log: ctx.log })
+    const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, materialSources: ctx.materialSources, log: ctx.log })
     // 3.2a — the people who speak for the brand and what they say elsewhere; skipped when an explicit page list replaces discovery.
     const people = ctx.pages?.length
       ? null
@@ -179,7 +236,18 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
           scrapeProfilePosts: ctx.scrapeProfilePosts, step: peopleStepRunner(ctx), log: ctx.log,
         })
     if (people) ctx.log(`3.2a people: ${people.people.length} followed, ${people.stats.searches} searches, ${people.stats.scraped_posts} posts, ${people.stats.fetched_pages} pages`)
-    const sources = people ? [...collected, ...people.sources] : collected
+    const fetched = people ? [...collected, ...people.sources] : collected
+    const sources = previous ? retainCollectedSourceIds(fetched, previous.data as ZrodlaData) : fetched
+    if (previous && people) {
+      const ids = new Map(fetched.map((source, index) => [source.source_id, sources[index].source_id]))
+      const retainedId = (id: string) => ids.get(id) ?? id
+      people.people = people.people.map((person) => ({
+        ...person,
+        evidence_source_id: person.evidence_source_id ? retainedId(person.evidence_source_id) : null,
+        own_channels: person.own_channels.map((channel) => ({ ...channel, source_ids: channel.source_ids.map(retainedId) })),
+        mentions: person.mentions.map((mention) => ({ ...mention, source_id: mention.source_id ? retainedId(mention.source_id) : null })),
+      }))
+    }
     await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, sources)
     const result = await runSourcesStep({ order: ctx.order, sources, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
     if (people) {
@@ -219,6 +287,9 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
  * task run has recorded it. Agents remain read-only throughout.
  */
 export async function runResearch(opts: RunResearchOptions): Promise<RunResearchOutcome> {
+  if (reaches(opts.through, '5.4')) {
+    throw new Error('[internal] Research whole-pipeline execution ends at 4.2. Use the accepted-case native strategy and agency_tov specialist continuation for later phases; the competing ToV writer is retired.')
+  }
   const { em, scope, orderRef } = opts
   const order = orderDataSchema.parse(opts.order)
   const facts = orderFactsOf(order)
@@ -268,6 +339,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     searchWeb: opts.searchWeb,
     socialPosts: opts.socialPosts,
     pages: opts.pages,
+    materialSources: opts.materialSources,
     knownPeople: opts.knownPeople,
     scrapeProfilePosts: opts.scrapeProfilePosts,
     repairFindings: [],
@@ -311,21 +383,14 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         await runBriefStep(c)
         const qa = await runBriefQaLoop(c, { briefStep: runBriefStep })
         briefQaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
         return { taskRunId: qa.taskRunId, versionId: qa.briefVersionId, status: qa.verdict === 'needs_agent_fix' ? 'to_fix' : 'done' }
       },
     },
     {
-      // 5.2 strategy → 5.3 ToV → 5.4 Q-S on the pair (repairs ≤ 2, then E.1). Approval 5.5 belongs to the spine;
-      // every consumer below runs in simulation until the client has approved.
+      // Historical phase identity retained; new work goes through the accepted-case specialist path.
       step: '5.4',
-      run: async (c) => {
-        await runStrategyStep(c)
-        await runTovStep(c)
-        const qa = await runStrategyQaLoop(c, { strategyStep: runStrategyStep, tovStep: runTovStep })
-        strategyQaVerdict = qa.verdict
-        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
-        return { taskRunId: qa.taskRunId, versionId: qa.strategyVersionId, status: qa.verdict === 'ready_for_approval' ? 'done' : 'to_fix' }
-      },
+      run: async () => { throw new Error('[internal] Strategy requires the accepted-case native specialist continuation') },
     },
     {
       // 6.2 plan → 6.3 Q-P → 6.5 selection (client's topic or the recommendation, simulated) → 6.7 post instruction (code only).
@@ -377,8 +442,10 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
   let completedThrough: ResearchStep | null = null
   let currentStep: ResearchStep = '3.2'
   if (opts.resumeFrom) {
-    // Rows still `running` belong to a process that no longer exists; the ledger and the case view must not show them as live.
-    const orphaned = await em.find(AgencyResearchTaskRun, { ...scope, orderRef, status: 'running' })
+    // The authorized caller establishes recovery; do not sweep unrelated phase workers.
+    const orphaned = await em.find(AgencyResearchTaskRun, {
+      ...scope, orderRef, status: 'running', stepId: { $in: resumedResearchTaskSteps(opts.resumeFrom, opts.through) },
+    })
     for (const run of orphaned) {
       run.status = 'failed'
       run.error = `[internal] superseded by a resumed run from ${opts.resumeFrom} at ${new Date().toISOString()}`
@@ -392,6 +459,14 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
       if (opts.resumeFrom && !reaches(step, opts.resumeFrom)) {
         // Resumed run: this group already produced its current versions; the next group reads them from the store.
         versionsByStep[step] = (await currentInputVersion(em, scope, orderRef, groupOutput[step]))?.versionId ?? null
+        if (step === '3.8') {
+          // Carry the saved gate into the resumed native result; skipping the
+          // analysis is not a new QA pass, nor should it erase the real one.
+          const qa = await em.findOne(AgencyResearchTaskRun, { ...scope, orderRef, stepId: '3.7' }, { orderBy: { createdAt: 'desc' } })
+          const verdict = (qa?.qaResult as { verdict?: unknown } | null)?.verdict
+          if (qa?.status === 'done' && verdict === 'ready') qaVerdict = 'ready'
+          else if (verdict === 'to_fix' || verdict === 'exception') qaVerdict = verdict
+        }
         completedThrough = step
         log(`resume: skipping ${step}, current versions stand`)
         continue
@@ -438,6 +513,8 @@ export function profileScraperFrom(container: Container): ScrapeProfilePosts | u
 }
 
 export function createAgencyResearchService(container: Container): AgencyResearchService {
+  const readSpecialistTov: ReadSpecialistTov = (scope, reference) =>
+    (container.resolve(AGENCY_TOV_RESEARCH_SERVICE) as AgencyTovResearchService).getDocumentVersion(scope, reference)
   return {
     async run({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] research requires an explicit tenant, organization and execution user')
@@ -448,6 +525,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new Error('[internal] research execution is not authorized')
       }
       const apiKey = process.env.FIRECRAWL_API_KEY ?? ''
+      const fixtureSources = configuredFixtureSources(parsed.order)
       const em = (container.resolve('em') as EntityManager).fork()
       const agentRunIds: string[] = []
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
@@ -459,12 +537,13 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         runAgent,
         runner: 'orchestrator',
         models: defaultModels(),
-        fetchPage: createFirecrawlFetcher({ apiKey }),
-        searchWeb: apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
-        socialPosts: parsed.socialPosts,
-        pages: parsed.pages,
+        fetchPage: fixtureSources?.fetchPage ?? createFirecrawlFetcher({ apiKey }),
+        searchWeb: fixtureSources ? fixtureSources.searchWeb : apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
+        socialPosts: fixtureSources?.socialPosts ?? parsed.socialPosts,
+        pages: fixtureSources?.pages ?? parsed.pages,
+        materialSources: parsed.materialSources,
         knownPeople: (parsed.people ?? []).map((person) => ({ name: person.name, role: person.role ?? null, provided_by: 'client' as const, knownUrls: person.knownUrls ?? [] })),
-        scrapeProfilePosts: profileScraperFrom(container),
+        scrapeProfilePosts: fixtureSources ? undefined : profileScraperFrom(container),
         through: parsed.through,
         selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,
@@ -474,6 +553,34 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       })
       const { versionsByStep: _versionsByStep, ...result } = outcome
       return result
+    },
+    async runMaterialRevision({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] material revision requires an explicit tenant, organization and execution user')
+      const parsed = materialRevisionRequestSchema.parse(request)
+      if (context.workflowInstanceId !== parsed.source.workflowInstanceId) throw new Error('[internal] material revision source must belong to the executing workflow')
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) throw new Error('[internal] material revision execution is not authorized')
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runMaterialRevision({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds })
+    },
+    async runBriefRevision({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] brief revision requires an explicit tenant, organization and execution user')
+      const parsed = briefRevisionRequestSchema.parse(request)
+      if (context.workflowInstanceId !== parsed.source.workflowInstanceId) throw new Error('[internal] brief revision source must belong to the executing workflow')
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] brief revision execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runBriefRevision({
+        em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+      })
     },
     async runStrategy({ context, request }) {
       if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] strategy execution requires an explicit tenant, organization and execution user')
@@ -493,6 +600,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         runner: 'orchestrator',
         models: defaultModels(),
         agentRunIds,
+        readSpecialistTov,
       })
     },
     async runPlanning({ context, request }) {
@@ -507,7 +615,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPlanningExecution({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
       })
     },
     async runPostExecution({ context, request }) {
@@ -522,8 +630,38 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
       return runPostExecution({
         em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
-        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
       })
+    },
+    async runPostRevision({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] post revision requires an explicit tenant, organization and execution user')
+      const parsed = postRevisionRequestSchema.parse(request)
+      if (context.workflowInstanceId !== parsed.source.workflowInstanceId) throw new Error('[internal] post revision source must belong to the executing workflow')
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] post revision execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runPostRevision({
+        em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov,
+      })
+    },
+    async runPostEvidence({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] post evidence requires explicit scope and execution user')
+      const parsed = runPostEvidenceRequestSchema.parse(request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] post evidence execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId,
+        workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runPostEvidence({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed,
+        runAgent, runner: 'orchestrator', models: defaultModels(), agentRunIds, readSpecialistTov })
     },
     async getClientView(scope, orderRef, templateId) {
       const em = (container.resolve('em') as EntityManager).fork()
@@ -544,7 +682,8 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       return readBriefReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
     },
     async getStrategyReview(scope, orderRef, strategyVersionId, tovVersionId) {
-      return readStrategyReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, strategyVersionId, tovVersionId)
+      return readStrategyReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, strategyVersionId, tovVersionId,
+        readSpecialistTov)
     },
     async getPostReview(scope, orderRef, versionId) {
       return readPostReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
@@ -556,16 +695,16 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       return acceptStrategyPair(container as AppContainer, input)
     },
     async getStrategyPairAcceptance(scope, input) {
-      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanningReadiness(scope, input) {
-      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanReview(scope, input) {
-      return readPlanReview((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanReview((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async getPlanAcceptance(scope, input) {
-      return readPlanAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+      return readPlanAcceptance((container.resolve('em') as EntityManager).fork(), scope, input, readSpecialistTov)
     },
     async acceptPlan(rawInput) {
       const input = acceptPlanInputSchema.parse(rawInput)
@@ -574,10 +713,20 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
-      return acceptPlan((container.resolve('em') as EntityManager).fork(), input)
+      return acceptPlan((container.resolve('em') as EntityManager).fork(), input, readSpecialistTov)
     },
     async getPostAcceptance(scope, input) {
       return readPostAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPublicationConsent(scope, input) {
+      return readPublicationConsent((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async recordPublicationConsent(rawInput) {
+      const input = recordPublicationConsentInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      return recordPublicationConsent((container.resolve('em') as EntityManager).fork(), input)
     },
     async preparePublication(rawInput) {
       const input = preparePublicationInputSchema.parse(rawInput)
@@ -587,6 +736,15 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
       return preparePublication((container.resolve('em') as EntityManager).fork(), input)
+    },
+    async configurePublicationDestination(rawInput) {
+      const input = configurePublicationDestinationInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      return configurePublicationDestination((container.resolve('em') as EntityManager).fork(), input)
     },
     async acceptPost(rawInput) {
       const input = acceptPostInputSchema.parse(rawInput)
@@ -605,7 +763,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       if (!await rbac.userHasAllFeatures(context.userId, ['agency_research.manage'], scope)) {
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
-      return runPostInstructionExecution({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed })
+      return runPostInstructionExecution({ em: (container.resolve('em') as EntityManager).fork(), scope, request: parsed, readSpecialistTov })
     },
     async getBriefAcceptance(scope, orderRef, versionId) {
       return readBriefAcceptance((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)

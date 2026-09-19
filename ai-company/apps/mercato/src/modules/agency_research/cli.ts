@@ -12,7 +12,8 @@ import { createDirectRunner } from './lib/directRunner'
 import { defaultModels, profileScraperFrom, runResearch } from './lib/researchService'
 import type { KnownPerson } from './lib/research/steps/people'
 import type { FetchPage, SocialPost } from './lib/research/fetch'
-import { createFirecrawlFetcher, createFirecrawlSearch, type SearchHit, type SearchWeb } from './lib/research/firecrawl'
+import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './lib/research/firecrawl'
+import { fileFetcher, fileSearch } from './lib/research/fixtureSources'
 import { formatLedger } from './lib/research/ledger'
 import type { ResearchAgentRunner } from './lib/research/pipeline'
 import { createFixtureRunner, createOrchestratorRunner } from './lib/runners'
@@ -93,22 +94,6 @@ async function resolveUser(db: Db, scope: ResearchScope, args: Record<string, st
   const id = Array.isArray(rows) && rows[0] ? String(rows[0].id) : ''
   if (!id) throw new Error('[internal] no user found in tenant — pass --user')
   return id
-}
-
-/** A file-backed fetcher for demos without network: `<dir>/manifest.json` maps url → {file, access, title}. */
-function fileFetcher(dir: string): FetchPage {
-  const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8')) as Record<string, { file?: string; access: string; title?: string; error?: string }>
-  return async (url) => {
-    const entry = manifest[url] ?? manifest[url.replace(/\/$/, '')]
-    if (!entry || entry.access === 'unavailable' || !entry.file) return { url, finalUrl: url, status: 'unavailable', title: null, markdown: null, error: entry?.error ?? 'not in fixture manifest' }
-    return { url, finalUrl: url, status: 'ok', title: entry.title ?? null, markdown: fs.readFileSync(path.join(dir, entry.file), 'utf8'), error: null }
-  }
-}
-
-/** Fixture search: `<file>` maps a query (or `*`) to hits. */
-function fileSearch(file: string): SearchWeb {
-  const table = JSON.parse(fs.readFileSync(file, 'utf8')) as Record<string, SearchHit[]>
-  return async (query) => table[query] ?? table['*'] ?? []
 }
 
 function loadSocialCorpus(file: string): SocialPost[] {

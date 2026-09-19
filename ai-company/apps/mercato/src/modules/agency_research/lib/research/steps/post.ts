@@ -2,7 +2,6 @@ import type { DocumentIssue, InputVersion } from '../../../data/schemas/envelope
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
 import { postDataSchema, type PostData } from '../../../data/schemas/post'
-import { tovDataSchema, type TovData } from '../../../data/schemas/tov'
 import { zleceniePostuDataSchema, type ZleceniePostuData } from '../../../data/schemas/zleceniePostu'
 import { postAuthorResult, type PostAuthorInput, type PostDraft } from '../../../data/agents/post'
 import { idPrefixes, limits } from '../../../data/templates'
@@ -16,6 +15,7 @@ import { renderPost, renderPostClientView } from '../render/post'
 import { simulationIssue } from '../simulation'
 import { countClientWords, normalizeForMatch, wordSetSimilarity } from '../util'
 import type { StepContext, StepOutcome } from './context'
+import { isSpecialistTov, parseDownstreamTov, tovCopyChecks, type DownstreamTov } from './tovInput'
 
 /**
  * Step 7.2 — KLI-POST. The author is asked once with the instruction and the ToV
@@ -31,7 +31,7 @@ export type PostPipelineOptions = {
   order: OrderFacts
   outputLanguage: 'pl' | 'en'
   instruction: ZleceniePostuData
-  tov: TovData
+  tov: DownstreamTov
   previousPost?: PostData | null
   repairFindings?: QaFinding[]
   /** True when a consumed client-facing input is not approved (`simulation_flag`). */
@@ -232,7 +232,7 @@ export function assemblePost(args: {
   outputLanguage: 'pl' | 'en'
   draft: PostDraft
   instruction: ZleceniePostuData
-  tov: TovData
+  tov: DownstreamTov
   simulated: boolean
   versionLabel: string
   repairFindings: QaFinding[]
@@ -257,9 +257,10 @@ export function assemblePost(args: {
   }
 
   // The self-check answers are matched to the ToV questions by id, then by position; unanswered checks stay visible as such.
-  const checkIds = tov.copy_checks.map((_, index) => mintId(idPrefixes.copyCheck, index, '-'))
+  const questions = tovCopyChecks(tov)
+  const checkIds = questions.map((_, index) => mintId(idPrefixes.copyCheck, index, '-'))
   const answered = new Map(draft.self_check.copy_checks.map((check) => [resolveId(check.id, checkIds) ?? check.id, check]))
-  const copyChecks: PostData['qa']['copy_checks'] = tov.copy_checks.map((question, index) => {
+  const copyChecks: PostData['qa']['copy_checks'] = questions.map((question, index) => {
     const id = checkIds[index]
     const answer = answered.get(id) ?? draft.self_check.copy_checks[index]
     return { id, question, result: answer?.result ?? 'not_applicable', evidence: answer?.evidence ?? '—' }
@@ -353,7 +354,7 @@ export function authorInput(opts: PostPipelineOptions): PostAuthorInput {
     voice_extract: instruction.voice_extract,
     delivery_constraints: instruction.delivery_constraints,
     completion: instruction.completion,
-    tov: {
+    tov: isSpecialistTov(tov) ? tov : {
       voice_principles: tov.voice_principles,
       style_axes: tov.style_axes,
       wording: tov.wording,
@@ -411,7 +412,10 @@ export async function runPostStep(ctx: StepContext): Promise<StepOutcome> {
   if (!instruction || !tov) throw new Error('[internal] 7.2 needs current WEW-ZLECENIE-POSTU and KLI-TOV versions — run the process through 6.7 first')
   const currentPost = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-POST')
   const previous = ctx.postInputs ? ctx.postOutputs!.post : currentPost
-  const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
+  const pin = (v: InputVersion & { versionId: string }): InputVersion => ({
+    document_id: v.document_id, version: v.version, status: v.status,
+    ...(v.specialistTov ? { specialistTov: v.specialistTov } : {}),
+  })
   const foundationVersions: InputVersion[] = [ctx.orderVersion, pin(instruction), pin(tov)]
   const inputVersions = [...foundationVersions, ...(previous ? [pin(previous)] : [])]
   const simulation = simulationIssue(ctx.postInputs ? foundationVersions : inputVersions)
@@ -422,7 +426,7 @@ export async function runPostStep(ctx: StepContext): Promise<StepOutcome> {
       order: ctx.order,
       outputLanguage: ctx.order.outputLanguage,
       instruction: zleceniePostuDataSchema.parse(instruction.data),
-      tov: tovDataSchema.parse(tov.data),
+      tov: parseDownstreamTov(tov),
       previousPost: previous ? postDataSchema.parse(previous.data) : null,
       repairFindings: ctx.repairFindings,
       simulated: simulation !== null,

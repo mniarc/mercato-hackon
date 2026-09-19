@@ -1,0 +1,199 @@
+{
+  "version": 1,
+  "stories": [
+    {
+      "id": "F44-1",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "Read-only input lineage is available; it grants no mutation or return authority."
+            }
+          ],
+          "missing": [
+            "No persisted impact plan naming changed fields, exact affected versions, unaffected work and permitted return."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
+              "note": "Bound brief answers produce revised findings and a new brief."
+            }
+          ],
+          "missing": [
+            "No general audience-change invalidation across existing strategy/ToV/plan/post."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/strategyExecution/run.ts",
+              "note": "Phase entry readiness rejects stale accepted foundations."
+            }
+          ],
+          "missing": [
+            "No full impact-driven invalidation or pending publication hold."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefAcceptance/accept.ts",
+              "note": "Version-specific acceptance history is retained and not inherited by new versions."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
+              "note": "The connected brief response continues a bounded phase without restarting the order."
+            }
+          ],
+          "missing": [
+            "General G.4 return routing across departments remains absent."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    },
+    {
+      "id": "F44-2",
+      "criteria": [
+        {
+          "id": "AC1",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Original attachment reference and immutable submission identity are persisted."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC2",
+          "implementation": "partial",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/contract.ts",
+              "note": "Material intent can be represented in triage."
+            }
+          ],
+          "missing": [
+            "No connected material relevance then scope/impact decision."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC3",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "No no-impact supplemental evidence intake service is connected."
+            }
+          ],
+          "missing": [
+            "Cannot append new source evidence while explicitly preserving all approved content unchanged."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC4",
+          "implementation": "missing",
+          "evidence": [
+            {
+              "path": ".tasks/T30-shared-scope-impact-and-routing.md",
+              "note": "T64 exposes dependencies read-only; no mutation authority is inferred."
+            }
+          ],
+          "missing": [
+            "Material-driven affected-version review flags and selective execution holds are missing."
+          ],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        },
+        {
+          "id": "AC5",
+          "implementation": "implemented",
+          "evidence": [
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_operations/lib/clientSubmissionService.ts",
+              "note": "Attachment intake creates a submission, not factual verification or document acceptance."
+            }
+          ],
+          "missing": [],
+          "verification": {
+            "focused": "unknown",
+            "nativeApp": "unknown",
+            "liveModel": "not_run"
+          },
+          "externalDecision": []
+        }
+      ]
+    }
+  ]
+}

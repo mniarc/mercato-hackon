@@ -1,7 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "concurrency": "32",
-  "globalEnv": ["NODE_ENV"],
+  "globalEnv": ["NODE_ENV", "OM_ENABLE_ENTERPRISE_MODULES", "OM_ENABLE_ENTERPRISE_MODULES_AGENTS"],
   "globalDependencies": ["scripts/build-package.mjs", "scripts/watch.mjs", "scripts/lib/add-js-extension.mjs"],
   "tasks": {
     "build": {
@@ -67,6 +67,7 @@
     },
     "db:migrate": {
       "cache": false,
+      "passThroughEnv": ["DB_SSL", "NODE_EXTRA_CA_CERTS"],
       "outputs": []
     },
     "db:greenfield": {
@@ -79,6 +80,7 @@
     },
     "initialize": {
       "cache": false,
+      "passThroughEnv": ["DB_SSL", "NODE_EXTRA_CA_CERTS"],
       "outputs": []
     },
     "seed:defaults": {
