@@ -217,7 +217,8 @@ function compactForQa(documents: AnalysisDocuments): Record<string, unknown> {
   return {
     'WEW-ZRODLA': { ...documents.zrodla, facts: documents.zrodla.facts.map(({ locator: _locator, paraphrase: _paraphrase, ...fact }) => fact), sources: documents.zrodla.sources.map((s) => ({ source_id: s.source_id, access: s.access, kind: s.kind })) },
     'WEW-AUDYT': documents.audyt,
-    'WEW-KONKURENCJA': documents.konkurencja,
+    // Timestamps are not evidence, and they would make every rerun a new QA call with a new verdict.
+    'WEW-KONKURENCJA': documents.konkurencja ? { ...documents.konkurencja, channels: documents.konkurencja.channels.map(({ retrieved_at: _retrievedAt, ...channel }) => channel) } : null,
     'WEW-USTALENIA': documents.ustalenia,
   }
 }
