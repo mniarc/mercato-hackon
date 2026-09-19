@@ -1,4 +1,4 @@
-import { readdir, readFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -419,11 +419,132 @@ export function formatDetails(selection) {
   return lines.join('\n')
 }
 
+const htmlEscape = (value) => String(value ?? '')
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#39;')
+
+const stateLabel = (state) => ({
+  implemented: 'Implemented', partial: 'Partial', missing: 'Missing', unassessed: 'Unassessed',
+}[state] ?? state)
+
+function repositoryHref(source, appRoot, outputPath) {
+  if (typeof source !== 'string' || !source || /^[a-z][a-z\d+.-]*:/i.test(source) || path.isAbsolute(source)) return null
+  const target = path.resolve(appRoot, source.replaceAll('/', path.sep))
+  const root = path.resolve(appRoot)
+  if (target !== root && !target.startsWith(`${root}${path.sep}`)) return null
+  const relative = normalizedPath(path.relative(path.dirname(outputPath), target))
+  return relative.split('/').map((segment) => encodeURIComponent(segment)).join('/') || '.'
+}
+
+function fileLink(source, label, appRoot, outputPath) {
+  const href = repositoryHref(source, appRoot, outputPath)
+  const content = htmlEscape(label ?? source)
+  return href ? `<a href="${htmlEscape(href)}">${content}</a>` : content
+}
+
+function coverageBar(coverage, noun) {
+  const counts = coverage[noun]
+  const total = noun === 'criteria' ? counts.total : Object.values(counts).reduce((sum, count) => sum + count, 0)
+  const segments = implementationStates.map((state) => {
+    const count = counts[state]
+    const width = total ? count / total * 100 : 0
+    return `<span class="bar-${state}" style="width:${width}%" title="${stateLabel(state)}: ${count}"></span>`
+  }).join('')
+  return `<div class="bar" role="img" aria-label="${htmlEscape(noun)}: ${implementationStates.map((state) => `${stateLabel(state)} ${counts[state]}`).join(', ')}">${segments}</div>
+    <div class="counts">${implementationStates.map((state) => `<span><i class="dot bar-${state}"></i>${stateLabel(state)} <strong data-count="${counts[state]}">${counts[state]}</strong></span>`).join('')}</div>`
+}
+
+function criterionHtml(criterion, appRoot, outputPath) {
+  const proof = verificationKinds.map((kind) => {
+    const label = { focused: 'Focused', nativeApp: 'Native app / fixture', liveModel: 'Live model' }[kind]
+    return `<span class="proof proof-${criterion.verification[kind]}">${label}: ${criterion.verification[kind]}</span>`
+  }).join('')
+  const evidence = criterion.evidence.map((item) => `<li>${fileLink(item.path, item.path, appRoot, outputPath)}<span>${htmlEscape(item.note)}</span></li>`).join('')
+  return `<li class="criterion">
+    <div class="criterion-title"><strong>${htmlEscape(criterion.id)}</strong><span class="badge state-${criterion.implementation}">${stateLabel(criterion.implementation)}</span>${proof}</div>
+    <p>${htmlEscape(criterion.text)}</p>
+    ${evidence ? `<div class="evidence"><b>Evidence</b><ul>${evidence}</ul></div>` : ''}
+    ${criterion.missing.length ? `<div class="callout missing"><b>Missing</b><ul>${criterion.missing.map((item) => `<li>${htmlEscape(item)}</li>`).join('')}</ul></div>` : ''}
+    ${criterion.externalDecision.length ? `<div class="callout decision"><b>External decision</b><ul>${criterion.externalDecision.map((item) => `<li>${htmlEscape(item)}</li>`).join('')}</ul></div>` : ''}
+    ${criterion.assessmentSource ? `<small>Assessment: ${fileLink(criterion.assessmentSource, criterion.assessmentSource, appRoot, outputPath)}</small>` : ''}
+  </li>`
+}
+
+function storyHtml(story, appRoot, outputPath) {
+  const searchable = [story.id, story.title, story.userStory, story.featureTitle, story.domain, story.scope,
+    ...story.taskEvidence.flatMap((task) => [task.id, task.title, task.stateLabel]),
+    ...story.criteria.flatMap((criterion) => [criterion.id, criterion.text, ...criterion.missing, ...criterion.externalDecision, ...criterion.evidence.flatMap((item) => [item.path, item.note])]),
+  ].filter(Boolean).join(' ').toLowerCase()
+  const tasks = story.taskEvidence.map((task) => `<li>${fileLink(task.source, task.id, appRoot, outputPath)} <span class="muted">${htmlEscape(task.stateLabel)}; ${htmlEscape(task.title)}</span></li>`).join('')
+  const passedProof = verificationKinds.filter((kind) => story.criteria.some((criterion) => criterion.verification[kind] === 'passed')).join(' ')
+  const hasDecision = story.criteria.some((criterion) => criterion.externalDecision.length)
+  const hasMissing = story.criteria.some((criterion) => criterion.missing.length)
+  return `<details class="story" data-story data-scope="${story.scope}" data-state="${story.implementation}" data-proof="${passedProof}" data-decision="${hasDecision}" data-missing="${hasMissing}" data-search="${htmlEscape(searchable)}">
+    <summary><span class="story-id">${htmlEscape(story.id)}</span><span class="story-title">${htmlEscape(story.title)}</span><span class="badge scope-${story.scope}">${story.scope}</span><span class="badge state-${story.implementation}">${stateLabel(story.implementation)}</span></summary>
+    <div class="story-body">
+      ${story.userStory ? `<p class="user-story">${htmlEscape(story.userStory)}</p>` : ''}
+      <p class="links">Spec: ${fileLink(story.source, story.source, appRoot, outputPath)}</p>
+      <section><h4>Acceptance criteria <span>${story.criteria.length}</span></h4><ol class="criteria">${story.criteria.map((criterion) => criterionHtml(criterion, appRoot, outputPath)).join('')}</ol></section>
+      <section><h4>Linked tasks <span>${story.taskEvidence.length}</span></h4>${tasks ? `<ul class="tasks">${tasks}</ul>` : '<p class="muted">No linked tasks.</p>'}</section>
+    </div>
+  </details>`
+}
+
+function featureHtml(feature, appRoot, outputPath) {
+  const title = feature.titles.join(' / ')
+  return `<details class="feature" data-feature open>
+    <summary><span><strong>${htmlEscape(feature.id)}</strong>${title ? ` ${htmlEscape(title)}` : ''}</span><span class="muted">${feature.children.length} stories</span></summary>
+    <div class="feature-body">${coverageBar(feature.coverage, 'stories')}${feature.children.map((story) => storyHtml(story, appRoot, outputPath)).join('')}</div>
+  </details>`
+}
+
+function scopeCard(name, summary) {
+  const heading = name === 'settled' ? 'Settled scope' : 'Proposed scope'
+  const note = name === 'settled' ? 'Agreed product scope.' : 'Reported separately; proposals are not automatically missing work.'
+  return `<article class="scope-card"><h3>${heading}</h3><p>${note}</p><div class="big-number">${summary.stories} <small>stories</small></div>${coverageBar(summary.coverage, 'stories')}</article>`
+}
+
+export function renderHtmlReport(report, { appRoot = defaultAppRoot, outputPath = path.join(appRoot, '.dev-docs', 'coverage', 'report.html') } = {}) {
+  const total = report.totals
+  const domains = report.hierarchy.map((domain) => `<section class="domain" data-domain>
+    <header><div><p class="eyebrow">Domain</p><h2>${htmlEscape(domain.categories.join(' / ') || domain.domain)}</h2><p class="muted">${htmlEscape(domain.domain)} · ${domain.features.length} features · ${domain.stories} stories</p></div><div class="domain-bar">${coverageBar(domain.coverage, 'stories')}</div></header>
+    ${domain.features.map((feature) => featureHtml(feature, appRoot, outputPath)).join('')}
+  </section>`).join('')
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agency specification coverage</title>
+<style>
+:root{color-scheme:light;--ink:#17202a;--muted:#62707f;--line:#dfe5e8;--paper:#fff;--wash:#f4f7f6;--accent:#0c6b58;--implemented:#2c8a66;--partial:#d89b25;--missing:#cf554e;--unassessed:#aab3ba}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}a{color:#075f8c;text-underline-offset:2px}main{width:min(1180px,calc(100% - 32px));margin:auto;padding:36px 0 72px}.masthead{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end}.eyebrow{margin:0 0 5px;color:var(--accent);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}h1{font-size:clamp(30px,5vw,52px);line-height:1.05;margin:0;max-width:760px}h2,h3,h4,p{margin-top:0}.lede{color:var(--muted);max-width:800px;font-size:16px}.notice{margin:24px 0;padding:16px 18px;border-left:4px solid var(--accent);background:#e8f2ef}.summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:18px 0}.scope-card,.dimensions,.domain,.toolbar{background:var(--paper);border:1px solid var(--line);border-radius:10px}.scope-card{padding:20px}.scope-card h3{margin-bottom:2px}.scope-card p{color:var(--muted)}.big-number{font-size:30px;font-weight:750;margin:10px 0}.big-number small{font-size:13px;color:var(--muted)}.dimensions{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;padding:18px 20px}.dimensions h3{margin-bottom:8px}.proof-counts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.proof-counts span{padding:7px 9px;background:var(--wash);border-radius:6px}.bar{display:flex;height:9px;border-radius:10px;overflow:hidden;background:#eef1f2}.bar span{min-width:0}.bar-implemented{background:var(--implemented)}.bar-partial{background:var(--partial)}.bar-missing{background:var(--missing)}.bar-unassessed{background:var(--unassessed)}.counts{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:7px;color:var(--muted);font-size:12px}.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px}.toolbar{position:sticky;top:8px;z-index:2;display:grid;grid-template-columns:2fr repeat(3,1fr) auto;gap:10px;padding:12px;margin:24px 0;box-shadow:0 5px 18px #26323812}.toolbar label{font-size:11px;font-weight:750;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}.toolbar input,.toolbar select{display:block;width:100%;margin-top:3px;border:1px solid #bac5ca;border-radius:6px;background:#fff;padding:8px;color:var(--ink)}#visible-count{align-self:end;padding:8px 2px;color:var(--muted);white-space:nowrap}.domain{margin:18px 0;padding:20px}.domain>header{display:grid;grid-template-columns:1fr minmax(270px,40%);gap:24px}.domain h2{margin-bottom:2px}.feature{border-top:1px solid var(--line);padding:12px 0}.feature>summary,.story>summary{cursor:pointer;list-style:none}.feature>summary::-webkit-details-marker,.story>summary::-webkit-details-marker{display:none}.feature>summary{display:flex;justify-content:space-between;font-size:16px}.feature-body{padding:10px 0 2px}.feature-body>.counts{margin-bottom:12px}.story{margin:8px 0;border:1px solid var(--line);border-radius:8px;background:#fff}.story>summary{display:flex;align-items:center;gap:8px;padding:11px}.story>summary:before{content:'›';font-size:20px;color:var(--muted);transition:transform .15s}.story[open]>summary:before{transform:rotate(90deg)}.story-title{flex:1}.story-id{font-weight:800}.story-body{padding:4px 18px 18px;border-top:1px solid var(--line)}.user-story{margin:14px 0;font-size:15px}.badge,.proof{display:inline-block;border-radius:99px;padding:2px 7px;font-size:11px;white-space:nowrap}.scope-settled{background:#e5f1ef;color:#155d50}.scope-proposal{background:#eee8fa;color:#624298}.state-implemented{background:#ddefe7;color:#176145}.state-partial{background:#fff0cf;color:#805606}.state-missing{background:#fde2df;color:#8a302c}.state-unassessed{background:#edf0f2;color:#59636a}.criteria{padding-left:20px}.criterion{padding:12px 0;border-top:1px solid #edf0f1}.criterion-title{display:flex;flex-wrap:wrap;align-items:center;gap:6px}.criterion p{margin:6px 0}.proof{background:#eef2f4;color:#59636a}.proof-passed{background:#ddefe7;color:#176145}.proof-not_run{background:#f3eee3;color:#725d34}.evidence ul,.callout ul,.tasks{margin:5px 0;padding-left:20px}.evidence li span{display:block;color:var(--muted)}.callout{margin:8px 0;padding:9px 11px;border-radius:6px}.callout.missing{background:#fff3dd}.callout.decision{background:#eee8fa}.links,.muted,small{color:var(--muted)}.empty{padding:28px;text-align:center;color:var(--muted)}[hidden]{display:none!important}@media(max-width:760px){main{width:min(100% - 20px,1180px);padding-top:20px}.masthead,.domain>header,.summary,.dimensions,.toolbar{grid-template-columns:1fr}.toolbar{position:static}.domain{padding:14px}.domain-bar{margin-bottom:8px}.story>summary{align-items:flex-start;flex-wrap:wrap}.story-title{flex-basis:70%}}
+</style></head><body><main>
+<header class="masthead"><div><p class="eyebrow">Current checkout · documentation-derived</p><h1>Agency specification coverage</h1></div><div><strong>${total.stories}</strong> canonical stories<br><span class="muted">${total.coverage.criteria.total} acceptance criteria</span></div></header>
+<p class="lede">A navigable view of canonical specifications, source implementation assessments, recorded proof, task links, missing criteria and external decisions.</p>
+<aside class="notice"><strong>How to read this:</strong> implementation, focused checks, native app / fixture proof and live-model proof are separate dimensions. A linked or done task is not story completeness. A partial story is not a product or effort percentage. Unassessed means no valid assessment was found, not that functionality is absent.</aside>
+<section class="summary">${scopeCard('settled', report.scopes.settled)}${scopeCard('proposal', report.scopes.proposal)}</section>
+<section class="dimensions"><div><h3>Source implementation · acceptance criteria</h3>${coverageBar(total.coverage, 'criteria')}</div><div><h3>Recorded criterion proof</h3><div class="proof-counts"><span>Focused passed <strong>${total.coverage.verification.focused.passed}</strong></span><span>Native app / fixture passed <strong>${total.coverage.verification.nativeApp.passed}</strong></span><span>Live model passed <strong>${total.coverage.verification.liveModel.passed}</strong></span><span>External decisions <strong>${total.coverage.criteriaWithExternalDecisions}</strong></span></div><small>Proof counts can overlap and do not replace source implementation assessment.</small></div></section>
+<div class="toolbar" role="search"><label>Search<input id="search" type="search" placeholder="Story, criterion, task, evidence…"></label><label>Scope<select id="scope"><option value="">All</option><option value="settled">Settled</option><option value="proposal">Proposed</option></select></label><label>Implementation<select id="state"><option value="">All</option>${implementationStates.map((state) => `<option value="${state}">${stateLabel(state)}</option>`).join('')}</select></label><label>Evidence / gaps<select id="proof"><option value="">All</option><option value="focused">Focused passed</option><option value="nativeApp">Native app / fixture passed</option><option value="liveModel">Live model passed</option><option value="missing">Has missing criteria</option><option value="decision">Needs external decision</option></select></label><div id="visible-count" aria-live="polite"></div></div>
+<div id="domains">${domains}</div><p id="empty" class="empty" hidden>No stories match these filters.</p>
+<script>(()=>{const q=id=>document.getElementById(id),stories=[...document.querySelectorAll('[data-story]')],features=[...document.querySelectorAll('[data-feature]')],domains=[...document.querySelectorAll('[data-domain]')];function apply(){const text=q('search').value.trim().toLowerCase(),scope=q('scope').value,state=q('state').value,proof=q('proof').value;let visible=0;for(const story of stories){const proofMatch=!proof||(proof==='decision'?story.dataset.decision==='true':proof==='missing'?story.dataset.missing==='true':story.dataset.proof.split(' ').includes(proof));const show=(!text||story.dataset.search.includes(text))&&(!scope||story.dataset.scope===scope)&&(!state||story.dataset.state===state)&&proofMatch;story.hidden=!show;if(show)visible++}for(const feature of features)feature.hidden=![...feature.querySelectorAll('[data-story]')].some(story=>!story.hidden);for(const domain of domains)domain.hidden=![...domain.querySelectorAll('[data-story]')].some(story=>!story.hidden);q('visible-count').textContent='Showing '+visible+' of '+stories.length+' stories';q('empty').hidden=visible!==0}for(const id of ['search','scope','state','proof'])q(id).addEventListener('input',apply);apply()})()</script>
+</main></body></html>`
+}
+
+export async function writeHtmlReport(report, outputPath, appRoot = defaultAppRoot) {
+  const resolved = path.resolve(outputPath)
+  await mkdir(path.dirname(resolved), { recursive: true })
+  await writeFile(resolved, renderHtmlReport(report, { appRoot, outputPath: resolved }), 'utf8')
+  return resolved
+}
+
 export function parseOptions(args) {
-  const options = { json: false, details: false, help: false }
+  const options = { json: false, details: false, help: false, html: null }
   for (let index = 0; index < args.length; index++) {
     const arg = args[index]
     if (['--json', '--details', '--help'].includes(arg)) options[arg.slice(2)] = true
+    else if (arg === '--html') {
+      options.html = args[index + 1] && !args[index + 1].startsWith('--') ? args[++index] : true
+    }
     else if (arg === '--feature' || arg === '--story') {
       const value = args[++index]
       const pattern = arg === '--feature' ? /^F\d{2}$/ : /^F\d{2}-\d+$/
@@ -432,6 +553,7 @@ export function parseOptions(args) {
     } else throw new Error(`Unknown option ${arg}. Use --help.`)
   }
   if (options.feature && options.story) throw new Error('Choose --feature or --story, not both.')
+  if (options.html && (options.json || options.details || options.feature || options.story)) throw new Error('Use --html on its own.')
   return options
 }
 
@@ -440,11 +562,16 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     const options = parseOptions(process.argv.slice(2))
     if (options.help) {
       console.log('Coverage: .dev-docs/coverage/*.json, version 1. Each stories[] entry has id and criteria[] with numbered AC IDs, implementation (implemented/partial/missing/unassessed), evidence [{path: App-relative, note}], missing[], externalDecision[], and verification {focused,nativeApp,liveModel}: passed/not_run/unknown. AC text comes from the canonical spec, not the input files. All criteria must be implemented for a story-level implemented assessment; paid model proof is independent. Missing or invalid records stay unassessed. Recorded evidence is not executed by this tool.\n')
+      console.log('HTML: --html [output-path] writes one self-contained offline report. The default output is .dev-docs/coverage/report.html; a custom relative path resolves from the current directory. All other modes write no files.\n')
       console.log('Usage: node <path>/agency-spec-progress.mjs [--json] [--details | --feature Fnn | --story Fnn-n]\nReads the App repository relative to this script, independent of cwd; writes no files.\nDefault: domain overview. Details: source category → feature → story, linked task states and acceptance evidence.\nDone task evidence is not story completion. Task links use Sources or an explicitly labeled title fallback.\nOptional done-task metadata: Verified stories: F42-1\nVerification evidence: [check or run evidence](relative-path-or-URL) or a commit hash.\nUse exact story IDs for verification; family anchors are mapping only. Ranges are reported, never expanded.')
+      console.log('\nException: --html writes the report file described above.')
     } else {
       const report = await loadReport()
       const focused = options.feature || options.story
-      if (options.json) console.log(JSON.stringify(focused ? selectHierarchy(report, options) : report, null, 2))
+      if (options.html) {
+        const outputPath = options.html === true ? path.join(defaultAppRoot, '.dev-docs', 'coverage', 'report.html') : path.resolve(options.html)
+        console.log(`Wrote ${await writeHtmlReport(report, outputPath)}`)
+      } else if (options.json) console.log(JSON.stringify(focused ? selectHierarchy(report, options) : report, null, 2))
       else console.log(focused || options.details ? formatDetails(selectHierarchy(report, options)) : formatReport(report))
     }
   } catch (error) {

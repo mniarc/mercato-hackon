@@ -4,3 +4,6 @@
 
 # Local browser captures for visual inspection
 /.visuals/
+
+# Generated standalone specification coverage report
+/.dev-docs/coverage/report.html

@@ -3,7 +3,7 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 import { readdir } from 'node:fs/promises'
 import path from 'node:path'
-import { buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot } from '../agency-spec-progress.mjs'
+import { buildReport, extractReferences, formatReport, formatDetails, selectHierarchy, parseOptions, loadReport, defaultAppRoot, renderHtmlReport } from '../agency-spec-progress.mjs'
 
 const story = (id, domain = 'domain') => ({ path: `.specs/user-stories/${domain}/${id}.md`, text: `# ${id}` })
 const task = (id, text) => ({ path: `.tasks/${id}-task.md`, text })
@@ -155,7 +155,10 @@ test('filters keep exact feature boundaries, reject unknown IDs and conflicting 
   const report = buildReport({ storyFiles: [story('F01-1'), story('F10-1')], taskFiles: [], adrFiles: [] })
   assert.equal(selectHierarchy(report, { feature: 'F01' }).stories, 1)
   assert.throws(() => selectHierarchy(report, { feature: 'F99' }), /No canonical story/)
-  assert.deepEqual(parseOptions(['--json', '--feature', 'F01']), { json: true, details: false, help: false, feature: 'F01' })
+  assert.deepEqual(parseOptions(['--json', '--feature', 'F01']), { json: true, details: false, help: false, html: null, feature: 'F01' })
+  assert.equal(parseOptions(['--html']).html, true)
+  assert.equal(parseOptions(['--html', 'custom.html']).html, 'custom.html')
+  assert.throws(() => parseOptions(['--html', '--json']), /on its own/)
   assert.throws(() => parseOptions(['--story', 'F01']), /needs Fnn-n/)
   assert.throws(() => parseOptions(['--feature', 'F01', '--story', 'F01-1']), /not both/)
 })
@@ -212,4 +215,29 @@ test('invalid, duplicate or absent AC evidence cannot become implementation clai
   for (const kind of ['duplicate-coverage-criterion', 'invalid-coverage-assessment', 'invalid-coverage-criterion', 'invalid-coverage-story', 'invalid-coverage-json']) {
     assert.ok(report.diagnostics.some((item) => item.kind === kind), kind)
   }
+})
+
+test('HTML report escapes repository content and never embeds raw report data in script', () => {
+  const hostile = '</script><img src=x onerror="alert(1)"> & content'
+  const report = buildReport({
+    storyFiles: [{ ...criteriaStory('F20-1'), text: `# ${hostile}\n\n### User story\n\n${hostile}\n\n### Kryteria akceptacji\n\n1. ${hostile}` }],
+    taskFiles: [], adrFiles: [], coverageFiles: [],
+  })
+  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/report.html' })
+  assert.doesNotMatch(html, /<img src=x/)
+  assert.doesNotMatch(html, /<\/script><img/)
+  assert.match(html, /&lt;\/script&gt;&lt;img src=x onerror=&quot;alert\(1\)&quot;&gt; &amp; content/)
+})
+
+test('HTML summary keeps settled and proposed source counts separate from proof and task counts', () => {
+  const report = buildReport({
+    storyFiles: [criteriaStory('F20-1'), criteriaStory('F34-1')],
+    taskFiles: [task('T01', 'State: done\nSources: F20-1, F34-1')], adrFiles: [],
+    coverageFiles: [coverage([{ id: 'F20-1', criteria: [assessed('AC1'), assessed('AC2', 'partial')] }])],
+  })
+  const html = renderHtmlReport(report, { appRoot: '/repo', outputPath: '/repo/.dev-docs/coverage/report.html' })
+  assert.match(html, /Settled scope[\s\S]*?1 <small>stories<\/small>[\s\S]*?Implemented <strong data-count="0">0<\/strong>[\s\S]*?Partial <strong data-count="1">1<\/strong>/)
+  assert.match(html, /Proposed scope[\s\S]*?not automatically missing work[\s\S]*?1 <small>stories<\/small>[\s\S]*?Unassessed <strong data-count="1">1<\/strong>/)
+  assert.match(html, /linked or done task is not story completeness/i)
+  assert.doesNotMatch(html, /product completion percentage/i)
 })
