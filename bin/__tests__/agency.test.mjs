@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import path from 'node:path'
 import test from 'node:test'
 
@@ -72,10 +73,44 @@ test('live execution requires an explicit model and provider key', () => {
   assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'fixture' }), /Fixture triage/)
   assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live' }), /OM_AI_MODEL/)
   assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, AGENCY_ANALYSIS_EXECUTION_ENABLED: 'true' }), /OM_AI_MODEL/)
-  assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live', OM_AI_MODEL: 'model' }), /OPENROUTER_API_KEY/)
+  assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, AGENCY_TOV_EXECUTION_ENABLED: 'true' }), /OM_AI_MODEL/)
+  assert.throws(() => validateRuntimeEnvironment({ ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live', OM_AI_MODEL: 'openrouter/model' }), /OPENROUTER_API_KEY/)
   assert.doesNotThrow(() => validateRuntimeEnvironment({
-    ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live', OM_AI_MODEL: 'model', OPENROUTER_API_KEY: 'private-key',
+    ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live', OM_AI_MODEL: 'openrouter/model', OPENROUTER_API_KEY: 'private-key',
+    OM_AGENT_RUN_TIMEOUT_MS: '60000', OM_AGENT_PROVIDER_RETRY_MAX: '1', OM_AGENT_PROVIDER_RETRY_BASE_MS: '1000',
   }))
+})
+
+test('live triage requires every native bound before an app start', () => {
+  const live = { ...runtimeEnv, OM_AGENCY_TRIAGE_MODE: 'live', OM_AI_MODEL: 'openrouter/model',
+    OPENROUTER_API_KEY: 'private-key', OM_AGENT_RUN_TIMEOUT_MS: '60000',
+    OM_AGENT_PROVIDER_RETRY_MAX: '1', OM_AGENT_PROVIDER_RETRY_BASE_MS: '1000' }
+  for (const key of ['OM_AGENT_RUN_TIMEOUT_MS', 'OM_AGENT_PROVIDER_RETRY_MAX', 'OM_AGENT_PROVIDER_RETRY_BASE_MS']) {
+    for (const value of ['', '0', '-1', '1.5']) {
+      assert.throws(() => planAgencyCommand(['up', '--env-file', envFile], {
+        root, runtimeEnv: { ...live, [key]: value },
+      }), new RegExp(key))
+    }
+  }
+})
+
+test('native mail remains off until an operator configures delivery, key and sender', () => {
+  assert.doesNotThrow(() => validateRuntimeEnvironment({ ...runtimeEnv, OM_DISABLE_EMAIL_DELIVERY: 'true' }))
+  const mail = { ...runtimeEnv, OM_DISABLE_EMAIL_DELIVERY: 'false', SYSTEM_EMAIL_PROVIDER: 'resend' }
+  assert.throws(() => validateRuntimeEnvironment(mail), /RESEND_API_KEY/)
+  assert.throws(() => validateRuntimeEnvironment({ ...mail, RESEND_API_KEY: 'private-key' }), /NOTIFICATIONS_EMAIL_FROM/)
+  assert.doesNotThrow(() => validateRuntimeEnvironment({ ...mail, RESEND_API_KEY: 'private-key', NOTIFICATIONS_EMAIL_FROM: 'agency@example.com' }))
+})
+
+test('Compose explicitly forwards opt-ins and native mail without forwarding arbitrary env files', () => {
+  const compose = fs.readFileSync(new URL('../../ai-company/docker/agency/compose.yml', import.meta.url), 'utf8')
+  for (const [key, fallback] of Object.entries({ OM_AGENCY_TRIAGE_ENABLED: 'false', OM_AGENCY_TRIAGE_MODE: 'disabled',
+    AGENCY_ANALYSIS_EXECUTION_ENABLED: 'false', AGENCY_TOV_EXECUTION_ENABLED: 'false',
+    OM_AGENT_RUN_TIMEOUT_MS: '60000', OM_AGENT_PROVIDER_RETRY_MAX: '1', OM_AGENT_PROVIDER_RETRY_BASE_MS: '1000',
+    OM_DISABLE_EMAIL_DELIVERY: 'true', SYSTEM_EMAIL_PROVIDER: 'resend', RESEND_API_KEY: '', NOTIFICATIONS_EMAIL_FROM: '',
+  })) assert.ok(compose.includes(`${key}: \${${key}:-${fallback}}`), key)
+  assert.ok(!/^\s*env_file:/m.test(compose))
+  assert.ok(compose.includes('OM_AGENCY_DEMO_PURCHASE_ENABLED: "false"'))
 })
 
 test('ordinary lifecycle plans never imply initialization, migration or destructive cleanup', () => {

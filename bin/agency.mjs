@@ -84,12 +84,28 @@ export function validateRuntimeEnvironment(values, { initialization = false } = 
   for (const key of ['JWT_SECRET', 'AUTH_SECRET', 'TENANT_DATA_ENCRYPTION_FALLBACK_KEY']) {
     if (values[key].length < 32) throw new Error(`${key} must contain at least 32 characters`)
   }
-  const enabled = (value) => ['1', 'true', 'yes', 'on'].includes(String(value).toLowerCase())
+  const enabled = (value) => ['1', 'true', 'yes', 'on'].includes(String(value).trim().toLowerCase())
   if (values.OM_AGENCY_TRIAGE_MODE === 'fixture') throw new Error('Fixture triage is not a production deployment mode')
-  if (values.OM_AGENCY_TRIAGE_MODE === 'live' || enabled(values.AGENCY_ANALYSIS_EXECUTION_ENABLED)) {
-    if (!values.OM_AI_MODEL?.trim()) throw new Error('Live agent execution requires the explicitly configured OM_AI_MODEL')
-    if ((values.OM_AI_PROVIDER ?? 'openrouter') === 'openrouter' && !values.OPENROUTER_API_KEY?.trim()) {
+  if (!['disabled', 'live'].includes(values.OM_AGENCY_TRIAGE_MODE || 'disabled')) throw new Error('OM_AGENCY_TRIAGE_MODE must be disabled or live')
+  if (values.OM_AGENCY_TRIAGE_MODE === 'live' || enabled(values.AGENCY_ANALYSIS_EXECUTION_ENABLED) || enabled(values.AGENCY_TOV_EXECUTION_ENABLED)) {
+    if (!/^openrouter\/.+/.test(values.OM_AI_MODEL?.trim() ?? '')) throw new Error('Live execution requires OM_AI_MODEL=openrouter/<model-id>')
+    if ((values.OM_AI_PROVIDER || 'openrouter') !== 'openrouter') throw new Error('This deployment profile supports OM_AI_PROVIDER=openrouter')
+    if (!values.OPENROUTER_API_KEY?.trim()) {
       throw new Error('Live OpenRouter execution requires OPENROUTER_API_KEY')
+    }
+  }
+  if (values.OM_AGENCY_TRIAGE_MODE === 'live') {
+    for (const key of ['OM_AGENT_RUN_TIMEOUT_MS', 'OM_AGENT_PROVIDER_RETRY_MAX', 'OM_AGENT_PROVIDER_RETRY_BASE_MS']) {
+      if (!/^\d+$/.test(values[key] ?? '') || !Number.isSafeInteger(Number(values[key])) || Number(values[key]) <= 0) {
+        throw new Error(`Live triage requires an explicit positive integer: ${key}`)
+      }
+    }
+  }
+  if (!enabled(values.OM_DISABLE_EMAIL_DELIVERY || 'true')) {
+    if ((values.SYSTEM_EMAIL_PROVIDER || 'resend') !== 'resend') throw new Error('This deployment mail profile supports SYSTEM_EMAIL_PROVIDER=resend')
+    if (!values.RESEND_API_KEY?.trim()) throw new Error('Enabled mail delivery requires RESEND_API_KEY')
+    if (!['NOTIFICATIONS_EMAIL_FROM', 'EMAIL_FROM', 'ADMIN_EMAIL'].some((key) => values[key]?.trim())) {
+      throw new Error('Enabled mail delivery requires NOTIFICATIONS_EMAIL_FROM (or EMAIL_FROM / ADMIN_EMAIL)')
     }
   }
   if (initialization) {
@@ -120,6 +136,7 @@ export function planAgencyCommand(argv, { root = teamRoot, runtimeEnv = {} } = {
     return [step('version', '--format', '{{.Server.Os}}'), step('compose', 'version'), compose('config', '--quiet'), verify(runtimeEnv.AGENCY_IMAGE)]
   }
   if (command === 'config-check') return [compose('config', '--quiet')]
+  if (command === 'up' || command === 'deploy') validateRuntimeEnvironment(runtimeEnv)
   if (command === 'init') {
     validateRuntimeEnvironment(runtimeEnv, { initialization: true })
     return [compose('run', '--rm', '--no-deps', '--pull', 'never', 'app', 'yarn', 'mercato', 'init', '--no-examples',

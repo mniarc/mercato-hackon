@@ -79,6 +79,34 @@ origin and independent random secrets. Retain the encryption key with database b
 Native account verification also needs the real system email provider configured through
 Open Mercato before opening self-service registration; this package does not invent mail credentials.
 
+Compose's `--env-file` supplies substitutions, not unrestricted container variables.
+The template explicitly forwards the supported central agent and mail settings.
+For native Resend email set `SYSTEM_EMAIL_PROVIDER=resend`, private `RESEND_API_KEY`
+and a verified `NOTIFICATIONS_EMAIL_FROM`, then `OM_DISABLE_EMAIL_DELIVERY=false`.
+Set these before first `init` so native setup seeds the scoped system-email channel.
+For an existing scope configure the Resend integration/system-email channel through
+the staff UI; changed environment does not replace saved channel credentials.
+Mail defaults off. Preflight checks configuration only; it sends no verification email.
+
+For separately approved paid execution, use `OM_AI_PROVIDER=openrouter`,
+`OM_AI_MODEL=openrouter/<exact-model-id>` and the private `OPENROUTER_API_KEY`.
+Set `OM_AGENCY_TRIAGE_MODE=live` for client interpretation, and enable
+`AGENCY_ANALYSIS_EXECUTION_ENABLED` / `AGENCY_TOV_EXECUTION_ENABLED` only for the
+required lanes. MODE overrides the legacy `OM_AGENCY_TRIAGE_ENABLED` flag; the
+legacy flag never selects live execution. Live triage requires explicit positive
+`OM_AGENT_RUN_TIMEOUT_MS`, `OM_AGENT_PROVIDER_RETRY_MAX` and
+`OM_AGENT_PROVIDER_RETRY_BASE_MS` (template: 60000 / 1 / 1000).
+Those bounds do not enforce a monetary ceiling or cancel in-flight provider work.
+Native scoped workflow grants, published definitions and per-phase approved policy
+budgets remain required: see [agent configuration](agent-runs.md). Redeploy the app
+after env changes so its workers receive the same settings. All lanes default off;
+demo purchases, test fixtures and publication remain disabled by this profile.
+
+Select an image containing the integration you intend to run. Configuration can
+enable existing code, not add newer source changes to a frozen image. In particular,
+packaging updated Compose/templates alongside an older image is not proof that the
+latest specialist intake/strategy bridge is present or that live execution passed.
+
 Run from `App/` on the server:
 
 ```sh
