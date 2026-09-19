@@ -31,6 +31,11 @@ import { createPlanReviewFixture, createPostReviewFixture, deletePlanReviewFixtu
 import { publicationPreparationPreparedSchema } from '../../agency_research/lib/publicationPreparation/contracts'
 import { postExecutionOutcomeSchema } from '../../agency_research/lib/postExecution/contracts'
 import { POST_EXECUTION_RESULT_KEY } from '../lib/postExecution/contracts'
+import { demoPurchaseReceiptSchema, type DemoPurchaseReceipt } from '../lib/orderBootstrap/contracts'
+import { demoOffer } from '../lib/orderBootstrap/demoOffer'
+import { supplementaryMaterialResultSchema } from '../lib/contracts/clientMaterialIntake'
+import { assertNoMatchingPurchaseAnalysis, configurePurchaseJourney } from './support/purchaseJourney/setup'
+import { deletePurchaseJourneyRecords, type PurchaseFixtureScope } from './support/purchaseJourney/records'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -41,6 +46,10 @@ export const integrationMeta = {
     'customer_accounts',
     'customers',
     'workflows',
+    'catalog',
+    'sales',
+    'payment_gateways',
+    'example',
   ],
 }
 
@@ -56,12 +65,6 @@ const EMPLOYEE_FEATURES = [
   'workflows.tasks.claim',
   'workflows.tasks.complete',
 ]
-
-type PortalMaterialSubmission = {
-  caseId: string
-  workflowInstanceId: string
-  status: 'COMPLETED'
-}
 
 type CreatedResources = {
   caseId: string | null
@@ -240,7 +243,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     await cleanup?.()
   })
 
-  test('trusted intake becomes a completed employee-visible case with retrievable material', async ({
+  test('a paid case accepts supplementary material and preserves client and employee handoffs', async ({
     page,
     request,
   }, testInfo) => {
@@ -257,7 +260,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     const provisioningToken = await getAuthToken(request, 'superadmin')
     const { userId: provisioningUserId } = getTokenScope(provisioningToken)
     const suffix = randomUUID().replaceAll('-', '').slice(0, 12)
-    const title = `Agency proof ${suffix}`
+    const brand = `Agency proof ${suffix}`
+    const title = `${demoOffer.name}: ${brand}`
     const fileName = `client-material-${suffix}.txt`
     const mimeType = 'text/plain'
     const sentinel = Buffer.from(`agency-operations-sentinel:${suffix}`, 'utf8')
@@ -279,6 +283,8 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     let postInstruction: { instructionVersionId: string; selectionSubmissionId: string } | undefined
     let planSubmissionId: string | undefined
     let publicationPreparation: ReturnType<typeof publicationPreparationPreparedSchema.parse> | undefined
+    let purchaseScope: PurchaseFixtureScope | undefined
+    let purchase: DemoPurchaseReceipt | undefined
     let resources: CreatedResources = {
       caseId: null,
       attachmentId: null,
@@ -294,8 +300,15 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         }
         if (planReview) await deletePlanReviewFixture(planReview)
         if (briefReview) await deleteBriefReviewFixture(briefReview)
-        await deleteAttachmentIfExists(request, adminToken, resources.attachmentId)
+        if (resources.caseId) {
+          const attachments = await withClient(async (client) => (await client.query<{ id: string }>(
+            `SELECT id FROM attachments WHERE tenant_id=$1 AND organization_id=$2
+             AND entity_id='agency_operations:agency_case' AND record_id=$3`,
+            [tenantId, organizationId, resources.caseId])).rows)
+          for (const attachment of attachments) await deleteAttachmentIfExists(request, adminToken, attachment.id)
+        }
         await deleteCreatedDatabaseRows(resources, tenantId, organizationId)
+        if (purchaseScope) await deletePurchaseJourneyRecords(request, adminToken, purchaseScope)
         if (customerUserId && customerRoleId) {
           const response = await apiRequest(request, 'PUT', `/api/customer_accounts/admin/users/${customerUserId}`, {
             token: provisioningToken,
@@ -373,6 +386,9 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           roleIds: [customerRoleId],
         })
         customerUserId = customerUser.id
+        purchaseScope = { tenantId, organizationId, customerEntityId: createdCustomerEntityId, customerUserId }
+        await configurePurchaseJourney({ tenantId, organizationId, userId: provisioningUserId })
+        await assertNoMatchingPurchaseAnalysis({ tenantId, organizationId })
         employeeRoleId = await createRoleFixture(request, adminToken, {
           name: `Agency proof employee ${suffix}`,
           tenantId,
@@ -415,6 +431,23 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
             sameSite: 'Lax',
           },
         ])
+        // Payment UI and retry are TC003's proof. This journey needs only a real paid case.
+        const created = await page.request.post(new URL('/api/agency/portal/purchases', BASE_URL).toString(), { data: {
+          requestId: randomUUID(), offerVersion: demoOffer.offerVersion, termsVersion: demoOffer.termsVersion, acceptedTerms: true,
+          buyer: { brandDisplayName: brand, brandWebsiteUrl: 'https://example.test', market: 'Polska', language: 'polski',
+            contactName: 'Agency proof customer', contactEmail: intakeIdentity.customer.email, billingBuyerType: 'company',
+            billingLegalName: brand, billingCountry: 'PL', billingAddress: 'Demo address, Warsaw', billingTaxId: 'DEMO-NOT-A-REAL-INVOICE',
+            officialSocialUrl: '', purchaseGoal: 'Demonstrate supplementary materials and employee handoffs.' },
+        } })
+        expect(created.status(), await created.text()).toBe(201)
+        const pending = demoPurchaseReceiptSchema.parse(await created.json())
+        const confirmed = await page.request.post(new URL(`/api/agency/portal/purchases/${pending.orderId}/confirm`, BASE_URL).toString(), { data: {} })
+        expect(confirmed.ok(), await confirmed.text()).toBeTruthy()
+        purchase = demoPurchaseReceiptSchema.parse(await confirmed.json())
+        expect(purchase).toMatchObject({ status: 'paid', caseId: expect.any(String), workflowInstanceId: expect.any(String),
+          processing: { state: 'waiting_configuration' } })
+        resources = await readCaseResourcesByTitle(title, tenantId, organizationId)
+        expect(resources.caseId).toBe(purchase.caseId)
         const portalPath = `/${intakeIdentity.orgSlug}/portal/agency`
         await page.goto(new URL(portalPath, BASE_URL).toString(), {
           waitUntil: 'domcontentloaded',
@@ -424,13 +457,14 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await page.getByRole('link', { name: 'Send materials', exact: true }).click()
         await expect(page.locator('[data-material-form-ready="1"]')).toBeVisible()
         await capture('material-form')
-        await page.getByLabel('Title', { exact: true }).fill(title)
+        await page.locator('[data-material-form-ready="1"]').getByRole('combobox').click()
+        await page.getByRole('option', { name: title, exact: true }).click()
+        await page.getByLabel('Message about this material (optional)', { exact: true }).fill('Please help me clarify the next step.')
         await page.getByLabel('Material file', { exact: true }).setInputFiles({
           name: fileName,
           mimeType,
           buffer: sentinel,
         })
-        await expect(page.getByLabel('Title', { exact: true })).toHaveValue(title)
         await capture('material-form-filled')
         const submissionResponsePromise = page.waitForResponse((response) => {
           const url = new URL(response.url())
@@ -442,35 +476,15 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         expect(submissionResponse.status(), 'Portal material submission should return 201').toBe(
           201,
         )
-        const result = (await submissionResponse.json()) as PortalMaterialSubmission
+        const result = supplementaryMaterialResultSchema.parse(await submissionResponse.json())
         expect(result).toMatchObject({
-          caseId: expect.any(String),
-          workflowInstanceId: expect.any(String),
-          status: 'COMPLETED',
+          caseId: purchase.caseId, replayed: false,
+          state: provider ? 'submitted_to_native_triage' : 'saved_waiting_for_triage',
         })
+        expect(result.attachmentId).not.toBe(resources.attachmentId)
         await expect(page.getByTestId('agency-material-case-id')).toContainText(result.caseId)
         await capture('material-submitted')
-        resources = {
-          caseId: result.caseId,
-          attachmentId: null,
-          workflowInstanceId: result.workflowInstanceId,
-        }
         return result
-      })
-
-      await runDemoPhase('Complete workflow', 'Workflow complete', async () => {
-        const completedInstance = await pollWorkflowInstance(
-          request,
-          adminToken,
-          intakeResult.workflowInstanceId,
-          (instance) => instance.status === 'COMPLETED' && instance.currentStepId === 'end',
-          { timeoutMs: 30_000 },
-        )
-        expect(completedInstance).toMatchObject({
-          id: intakeResult.workflowInstanceId,
-          status: 'COMPLETED',
-          currentStepId: 'end',
-        })
       })
 
       await runDemoPhase('Revisit client case', 'Client case revisited', async () => {
@@ -481,27 +495,37 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await expect(page).toHaveURL(new RegExp(`/portal/agency/cases/${intakeResult.caseId}$`))
         await page.reload({ waitUntil: 'domcontentloaded' })
         await expect(page.getByText(title, { exact: true })).toBeVisible()
-        await expect(page.getByRole('status').filter({ hasText: 'The requested process is complete' })).toBeVisible()
+        await expect(page.getByRole('status').filter({ hasText: 'The requested process is complete' })).toHaveCount(0)
         await capture('client-case')
       })
 
       await runDemoPhase('Route and reply to client submission', 'Clarification resumed once', async () => {
         const endpoint = new URL(`/api/agency/portal/cases/${intakeResult.caseId}/submissions`, BASE_URL).toString()
-        await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Please help me clarify the next step.')
-        const submissionResponse = page.waitForResponse((response) => response.url() === endpoint && response.request().method() === 'POST')
-        await page.getByRole('button', { name: 'Send message', exact: true }).click()
-        const response = await submissionResponse
-        const original = response.request().postDataJSON() as { eventId: string; text: string }
-        expect(response.status(), 'Client submission should be persisted').toBe(201)
-        const result = await response.json() as { replayed: boolean; item: { submissionId: string; original: unknown; workflow: unknown; disposition: unknown } }
+        type SavedSubmission = { submissionId: string; original: { eventId: string; text: string; materialAttachmentId?: string }; workflow: unknown; disposition: unknown }
+        let result: { replayed: boolean; item: SavedSubmission }
         if (provider) {
+          const saved = await page.request.get(endpoint)
+          expect(saved.ok()).toBeTruthy()
+          const body = await saved.json() as { items: SavedSubmission[] }
+          const item = body.items.find((candidate) => candidate.submissionId === intakeResult.submissionId)
+          expect(item?.original).toMatchObject({ text: 'Please help me clarify the next step.', materialAttachmentId: intakeResult.attachmentId })
+          if (!item) throw new Error('[internal] Uploaded material submission is missing')
+          result = { replayed: intakeResult.replayed, item }
           await drainIntegrationQueue('workflow-invoke-agent')
           await expect.poll(async () => {
             const saved = await page.request.get(endpoint)
             const body = await saved.json() as { items: Array<{ submissionId: string; workflow: unknown; disposition: unknown }> }
             return body.items.find((item) => item.submissionId === result.item.submissionId)
           }, { timeout: 30_000 }).toMatchObject({ workflow: { status: 'PAUSED', currentStep: 'client_reply' }, disposition: { kind: 'clarify', source: 'native_agent' } })
+        } else {
+          await page.getByRole('textbox', { name: 'Message', exact: true }).fill('Please help me clarify the next step.')
+          const submissionResponse = page.waitForResponse((response) => response.url() === endpoint && response.request().method() === 'POST')
+          await page.getByRole('button', { name: 'Send message', exact: true }).click()
+          const response = await submissionResponse
+          expect(response.status(), 'Client submission should be persisted').toBe(201)
+          result = await response.json() as { replayed: boolean; item: SavedSubmission }
         }
+        const original = result.item.original
         expect(result).toMatchObject({ replayed: false, item: {
           original,
           ...(provider ? {} : {
@@ -531,10 +555,9 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         expect(await savedReplies.json()).toMatchObject({ items: [{ original: reply, outcome: 'clarification_received' }] })
         const submissions = await page.request.get(endpoint)
         expect(submissions.ok()).toBeTruthy()
-        expect(await submissions.json()).toMatchObject({ items: [{
-          submissionId: result.item.submissionId,
-          workflow: { status: 'COMPLETED', currentStep: 'reply_received' },
-        }] })
+        const completed = await submissions.json() as { items: SavedSubmission[] }
+        expect(completed.items.find((item) => item.submissionId === result.item.submissionId))
+          .toMatchObject({ workflow: { status: 'COMPLETED', currentStep: 'reply_received' } })
         await page.reload({ waitUntil: 'domcontentloaded' })
         await expect(page.getByTestId(`agency-client-reply-${accepted.item.replyId}`)).toContainText(reply.text)
         await capture('client-clarification-sent')
@@ -820,7 +843,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await capture('employee-case')
       })
 
-      await runDemoPhase('Retrieve material', 'Material retrieved', async () => {
+      await runDemoPhase('Retrieve original purchase receipt', 'Original receipt preserved', async () => {
         const materialLink = page.getByRole('link', { name: 'Open material', exact: true })
         const downloadPromise = page.waitForEvent('download')
         await materialLink.click()
@@ -831,7 +854,10 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         for await (const chunk of materialStream) {
           materialChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
         }
-        expect(Buffer.concat(materialChunks)).toEqual(sentinel)
+        expect(JSON.parse(Buffer.concat(materialChunks).toString('utf8'))).toMatchObject({
+          demoOnly: true, caseId: intakeResult.caseId, orderId: purchase!.orderId, paymentId: purchase!.paymentId,
+          originalPurchase: { buyer: { brandDisplayName: brand } },
+        })
         await capture('material-retrieved')
       })
 

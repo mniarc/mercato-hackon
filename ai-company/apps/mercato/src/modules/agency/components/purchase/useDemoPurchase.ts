@@ -6,9 +6,9 @@ import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { useGuardedMutation } from '@open-mercato/ui/backend/injection/useGuardedMutation'
 import { CustomerOnboardingError, ensureCustomerOnboarding } from '../customer-onboarding/ensureCustomerOnboarding'
+import { demoPurchaseReceiptSchema as receiptSchema } from '@/modules/agency_operations/lib/orderBootstrap/contracts'
 
 const offerSchema = z.object({ enabled: z.boolean(), demoOnly: z.literal(true), sku: z.string(), name: z.string(), amount: z.number(), currency: z.string(), offerVersion: z.string(), termsVersion: z.string(), terms: z.object({ en: z.string(), pl: z.string() }), provider: z.string() })
-const receiptSchema = z.object({ orderId: z.uuid(), paymentId: z.uuid(), providerSessionId: z.string().nullable(), status: z.enum(['pending_payment', 'paid', 'blocked']), caseId: z.uuid().nullable(), workflowInstanceId: z.uuid().nullable(), reason: z.string().optional(), canRetryPayment: z.boolean().optional() })
 export type DemoOffer = z.infer<typeof offerSchema>
 export type DemoPurchaseReceipt = z.infer<typeof receiptSchema>
 export type PurchaseBuyer = {

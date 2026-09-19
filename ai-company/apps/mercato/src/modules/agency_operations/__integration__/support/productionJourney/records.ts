@@ -38,12 +38,37 @@ export async function assertLoopbackOverrides(scope: Pick<JourneyScope, 'tenantI
   })
 }
 
+export async function readUploadedResearchMaterial(scope: JourneyScope, caseId: string, attachmentId: string) {
+  return withClient(async (client) => {
+    const params = [scope.tenantId, scope.organizationId, scope.customerEntityId, caseId, attachmentId]
+    const attachment = await client.query<{ id: string; material_attachment_id: string; file_name: string }>(
+      `SELECT a.id,a.file_name,c.material_attachment_id FROM attachments a JOIN agency_cases c
+       ON c.id::text=a.record_id AND c.tenant_id=a.tenant_id AND c.organization_id=a.organization_id
+       WHERE c.tenant_id=$1 AND c.organization_id=$2 AND c.customer_entity_id=$3 AND c.id=$4
+       AND a.id=$5 AND a.entity_id='agency_operations:agency_case'`, params)
+    const source = await client.query<{ content_md: string; access: string; source_visibility: string }>(
+      `SELECT s.content_md,s.access,item->>'source_visibility' AS source_visibility
+       FROM agency_research_sources s JOIN agency_research_document_versions v
+       ON v.order_ref=s.order_ref AND v.tenant_id=s.tenant_id AND v.organization_id=s.organization_id
+       CROSS JOIN LATERAL jsonb_array_elements(v.data->'sources') item
+       WHERE s.tenant_id=$1 AND s.organization_id=$2 AND s.order_ref=$3
+       AND s.url=$4 AND v.template_id='WZR-ZRODLA' AND item->>'url_or_file'=s.url
+       ORDER BY v.version_no DESC LIMIT 1`,
+      [scope.tenantId, scope.organizationId, caseId, `attachment://${attachmentId}`])
+    return { attachment: attachment.rows[0] ?? null, source: source.rows[0] ?? null }
+  })
+}
+
 export async function deleteProductionJourneyRecords(request: APIRequestContext, token: string, scope: JourneyScope) {
   const cases = await withClient(async (client) => (await client.query<{ id: string; material_attachment_id: string; workflow_instance_id: string }>(
     'SELECT id,material_attachment_id,workflow_instance_id FROM agency_cases WHERE tenant_id=$1 AND organization_id=$2 AND customer_entity_id=$3',
     [scope.tenantId, scope.organizationId, scope.customerEntityId])).rows)
   for (const item of cases) {
-    await deleteAttachmentIfExists(request, token, item.material_attachment_id)
+    const attachments = await withClient(async (client) => (await client.query<{ id: string }>(
+      `SELECT id FROM attachments WHERE tenant_id=$1 AND organization_id=$2
+       AND entity_id='agency_operations:agency_case' AND record_id=$3`,
+      [scope.tenantId, scope.organizationId, item.id])).rows)
+    for (const attachment of attachments) await deleteAttachmentIfExists(request, token, attachment.id)
     await withClient(async (client) => {
       const workflows = await client.query<{ id: string }>(`SELECT id FROM workflow_instances WHERE tenant_id=$1 AND organization_id=$2
         AND (id=$3 OR (metadata->>'entityType'='agency_operations:agency_case' AND metadata->>'entityId'=$4) OR id IN

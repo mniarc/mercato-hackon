@@ -32,6 +32,17 @@ export const clientMaterialIntakeInputSchema = z.object({
 
 export type ClientMaterialIntakeInput = z.infer<typeof clientMaterialIntakeInputSchema>
 
+export const supplementaryMaterialInputSchema = z.object({
+  identity: clientMaterialIntakeInputSchema.shape.identity,
+  caseId: z.uuid(), eventId: z.string().min(1).max(200),
+  text: z.string().max(20000).optional(), file: clientMaterialIntakeInputSchema.shape.file,
+}).strict()
+export const supplementaryMaterialResultSchema = z.object({
+  caseId: z.uuid(), attachmentId: z.uuid(), submissionId: z.uuid(), replayed: z.boolean(),
+  state: z.enum(['submitted_to_native_triage', 'saved_waiting_for_triage', 'saved_dispatch_failed']),
+})
+export type SupplementaryMaterialResult = z.infer<typeof supplementaryMaterialResultSchema>
+
 export type ClientMaterialIntakeResult = {
   caseId: string
   workflowInstanceId: string
@@ -40,4 +51,5 @@ export type ClientMaterialIntakeResult = {
 
 export type ClientMaterialIntakeService = {
   submitMaterial: (input: ClientMaterialIntakeInput) => Promise<ClientMaterialIntakeResult>
+  submitSupplement: (input: z.infer<typeof supplementaryMaterialInputSchema>) => Promise<SupplementaryMaterialResult>
 }

@@ -11,6 +11,9 @@ import { AgencyCase } from '../../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from '../contracts'
 import { analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
+import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
+import { mapPaidPurchaseMaterial } from '../paidCaseAnalysis/material'
+import { loadCaseMaterialSources } from './materialSources'
 
 export function assertAnalysisExecutionEnabled(): void {
   if (!parseBooleanWithDefault(process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED, false)) {
@@ -61,7 +64,10 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
       expectedAssignment: { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: agencyCase.id },
       expectedPartitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE, requirePrivatePartition: true,
     })
-    const parsed = parseAnalysisMaterial(material.buffer)
+    const purchaseOrigin = context.workflowInstance.context[PAID_CASE_ANALYSIS_CONTEXT]
+    const parsed = purchaseOrigin === undefined ? parseAnalysisMaterial(material.buffer)
+      : mapPaidPurchaseMaterial(material.buffer, purchaseOrigin, { caseId: agencyCase.id, ...scope,
+        customerEntityId: agencyCase.customerEntityId, customerUserId: agencyCase.submittedByCustomerUserId }, input.policy)
     if (!isDeepStrictEqual(parsed.order.product_selection, input.policy.productSelection)) {
       throw new CrudHttpError(409, { error: 'Material product selection differs from the configured agency analysis policy' })
     }
@@ -71,12 +77,13 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     // of charging for a second whole analysis or inventing a partial replay.
     const previous = await service.status(scope, agencyCase.id)
     if (previous.taskRuns.length) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    const materialSources = await loadCaseMaterialSources(container, scope, agencyCase.id, context.userId)
     const result = await service.run({
       context: {
         ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
         ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
       },
-      request: { ...parsed, orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln },
+      request: { ...parsed, materialSources, orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln },
     })
     const completed = result.completedThrough === input.policy.through
       && (input.policy.through === '3.2' || input.policy.through === '3.5' || result.qaVerdict === 'ready')

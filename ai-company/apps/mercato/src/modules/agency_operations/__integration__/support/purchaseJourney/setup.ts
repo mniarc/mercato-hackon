@@ -11,6 +11,10 @@ export async function configurePurchaseJourney(input: Parameters<Backend['config
   await (await loadBackend()).configurePurchaseJourney(input)
 }
 
+export async function assertNoMatchingPurchaseAnalysis(scope: Parameters<Backend['assertNoMatchingPurchaseAnalysis']>[0]): Promise<void> {
+  await (await loadBackend()).assertNoMatchingPurchaseAnalysis(scope)
+}
+
 async function loadBackend(): Promise<Backend> {
   backend ??= (async () => {
     const appRoot = path.resolve(process.env.OM_TEST_APP_ROOT ?? path.resolve(process.cwd(), 'apps/mercato'))

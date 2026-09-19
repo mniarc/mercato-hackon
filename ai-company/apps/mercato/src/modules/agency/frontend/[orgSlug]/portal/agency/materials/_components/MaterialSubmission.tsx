@@ -2,115 +2,82 @@
 
 import * as React from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { CrudForm, type CrudField } from '@open-mercato/ui/backend/CrudForm'
 import { readApiResultOrThrow } from '@open-mercato/ui/backend/utils/apiCall'
 import { createCrudFormError } from '@open-mercato/ui/backend/utils/serverErrors'
 import { Input } from '@open-mercato/ui/primitives/input'
-import { Button } from '@open-mercato/ui/primitives/button'
+import { Label } from '@open-mercato/ui/primitives/label'
+import { Textarea } from '@open-mercato/ui/primitives/textarea'
 import { PortalPageHeader } from '@open-mercato/ui/portal/components/PortalPageHeader'
 import { PortalCard } from '@open-mercato/ui/portal/components/PortalCard'
-import type { ClientMaterialIntakeResult } from '@/modules/agency_operations/lib/contracts'
-import { CaseStatus } from './CaseStatus'
-
-const initialValues = { processKind: 'intake', outputLanguage: 'en' }
+import type { ClientCaseItem, ClientCaseListResult, SupplementaryMaterialResult } from '@/modules/agency_operations/lib/contracts'
 
 export default function MaterialSubmission({ orgSlug }: { orgSlug: string }) {
   const t = useT()
+  const requestedCaseId = useSearchParams()?.get('caseId') ?? ''
+  const [cases, setCases] = React.useState<ClientCaseItem[]>([])
   const [ready, setReady] = React.useState(false)
-  const [submitted, setSubmitted] = React.useState<ClientMaterialIntakeResult | null>(null)
-  React.useEffect(() => { setReady(true) }, [])
+  const [loadFailed, setLoadFailed] = React.useState(false)
+  const [submitted, setSubmitted] = React.useState<SupplementaryMaterialResult | null>(null)
+  const eventId = React.useRef<string | null>(null)
+  React.useEffect(() => {
+    let active = true
+    async function load() {
+      try {
+        const result = await readApiResultOrThrow<ClientCaseListResult>('/api/agency/portal/cases?pageSize=100')
+        let items = result.items
+        if (requestedCaseId && !items.some((item) => item.caseId === requestedCaseId)) {
+          const item = await readApiResultOrThrow<ClientCaseItem>(`/api/agency/portal/cases/${encodeURIComponent(requestedCaseId)}`)
+          items = [item, ...items]
+        }
+        if (active) setCases(items)
+      } catch { if (active) setLoadFailed(true) }
+      finally { if (active) setReady(true) }
+    }
+    void load()
+    return () => { active = false }
+  }, [requestedCaseId])
   const fields = React.useMemo<CrudField[]>(() => [
-    {
-      id: 'title', type: 'custom', label: t('agency.materials.caseTitle'), required: true,
-      component: ({ id, value, setValue, disabled }) => (
-        <Input id={id} value={typeof value === 'string' ? value : ''} disabled={disabled}
-          aria-label={t('agency.materials.caseTitle')} maxLength={200} required
+    { id: 'caseId', type: 'select', label: t('agency.materials.supplement.case'), required: true,
+      options: cases.map((item) => ({ value: item.caseId, label: item.title })) },
+    { id: 'text', type: 'custom', label: '',
+      component: ({ id, value, setValue, disabled, autoFocus }) => <div className="space-y-2">
+        <Label htmlFor={id}>{t('agency.materials.supplement.message')}</Label>
+        <Textarea id={id} value={typeof value === 'string' ? value : ''} disabled={disabled} autoFocus={autoFocus}
           onChange={(event) => setValue(event.target.value)} />
-      ),
-    },
-    {
-      id: 'processKind', type: 'select', label: t('agency.materials.process'), required: true,
-      options: [
-        { value: 'intake', label: t('agency.materials.process.intake') },
-        { value: 'tone_of_voice', label: t('agency.materials.process.tov') },
-        { value: 'analysis', label: t('agency.materials.process.analysis') },
-      ],
-      description: t('agency.materials.processHint'),
-    },
-    {
-      id: 'brand', type: 'custom', label: t('agency.materials.brand'), required: true,
-      visibleWhen: { field: 'processKind', equals: 'tone_of_voice' },
-      component: ({ id, value, setValue, disabled }) => (
-        <Input id={id} value={typeof value === 'string' ? value : ''} disabled={disabled}
-          aria-label={t('agency.materials.brand')} maxLength={200} required
-          onChange={(event) => setValue(event.target.value)} />
-      ),
-    },
-    {
-      id: 'outputLanguage', type: 'select', label: t('agency.materials.outputLanguage'), required: true,
-      visibleWhen: { field: 'processKind', equals: 'tone_of_voice' },
-      options: [
-        { value: 'en', label: t('agency.materials.language.en') },
-        { value: 'pl', label: t('agency.materials.language.pl') },
-      ],
-      description: t('agency.materials.corpusHint'),
-    },
-    {
-      id: 'file', type: 'custom', label: t('agency.materials.file'), required: true,
-      component: ({ id, setValue, disabled, values }) => (
-        <>
-          <Input id={id} type="file" disabled={disabled} aria-label={t('agency.materials.file')}
-            aria-describedby={values?.processKind === 'analysis' ? `${id}-analysis-hint` : undefined}
-            onChange={(event) => setValue(event.target.files?.[0] ?? null)} />
-          {values?.processKind === 'analysis' ? (
-            <p id={`${id}-analysis-hint`} className="text-sm text-muted-foreground">{t('agency.materials.analysisHint')}</p>
-          ) : null}
-        </>
-      ),
-    },
-  ], [t])
-
+      </div> },
+    { id: 'file', type: 'custom', label: t('agency.materials.file'), required: true,
+      component: ({ id, setValue, disabled }) => <Input id={id} type="file" disabled={disabled}
+        aria-label={t('agency.materials.file')} onChange={(event) => setValue(event.target.files?.[0] ?? null)} /> },
+  ], [cases, t])
   async function submit(values: Record<string, unknown>) {
-    if (typeof values.title !== 'string' || !values.title.trim() || !(values.file instanceof File)) {
-      throw createCrudFormError(t('agency.materials.invalid'))
+    if (typeof values.caseId !== 'string' || !cases.some((item) => item.caseId === values.caseId) || !(values.file instanceof File)) {
+      throw createCrudFormError(t('agency.materials.supplement.invalid'))
     }
+    eventId.current ??= crypto.randomUUID()
     const body = new FormData()
-    body.set('title', values.title)
+    body.set('caseId', values.caseId)
+    body.set('eventId', eventId.current)
+    if (typeof values.text === 'string') body.set('text', values.text)
     body.set('file', values.file)
-    if (values.processKind === 'tone_of_voice') {
-      if (typeof values.brand !== 'string' || !values.brand.trim()
-        || (values.outputLanguage !== 'en' && values.outputLanguage !== 'pl')) {
-        throw createCrudFormError(t('agency.materials.invalidProcess'))
-      }
-      body.set('process', JSON.stringify({
-        kind: 'tone_of_voice', brand: values.brand, outputLanguage: values.outputLanguage,
-      }))
-    } else if (values.processKind === 'analysis') {
-      body.set('process', JSON.stringify({ kind: 'analysis' }))
-    }
-    const result = await readApiResultOrThrow<ClientMaterialIntakeResult>('/api/agency/portal/materials', {
-      method: 'POST', body,
-    })
-    setSubmitted(result)
+    setSubmitted(await readApiResultOrThrow<SupplementaryMaterialResult>('/api/agency/portal/materials', { method: 'POST', body }))
   }
-
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6" data-material-form-ready={ready ? '1' : '0'}>
-      <PortalPageHeader title={t('agency.materials.title')} description={t('agency.materials.description')} />
+      <PortalPageHeader title={t('agency.materials.title')} description={t('agency.materials.supplement.description')} />
       <PortalCard>
-        {submitted ? (
-          <div className="space-y-3">
-            <p>{t('agency.materials.caseId')}: <span data-testid="agency-material-case-id">{submitted.caseId}</span></p>
-            <CaseStatus caseId={submitted.caseId} />
-            <Button type="button" asChild variant="outline">
-              <Link href={`/${orgSlug}/portal/agency/cases/${encodeURIComponent(submitted.caseId)}`}>{t('agency.cases.open')}</Link>
-            </Button>
-          </div>
-        ) : (
-          <CrudForm fields={fields} initialValues={initialValues} onSubmit={submit} submitLabel={t('agency.materials.submit')}
-            cancelHref={`/${orgSlug}/portal/agency`} embedded formId="agency-material-submission" isLoading={!ready} />
-        )}
+        {submitted ? <div className="space-y-3" role="status">
+          <p>{t(`agency.materials.supplement.${submitted.state}`)}</p>
+          <span data-testid="agency-material-case-id">{submitted.caseId}</span>
+          <Link className="block underline" href={`/${orgSlug}/portal/agency/cases/${submitted.caseId}`}>{t('agency.cases.open')}</Link>
+        </div> : !ready ? <p>{t('agency.materials.supplement.loading')}</p>
+          : loadFailed ? <p role="alert">{t('agency.materials.supplement.loadFailed')}</p>
+          : !cases.length ? <div className="space-y-3"><p>{t('agency.materials.supplement.noCases')}</p>
+            <Link className="underline" href={`/${orgSlug}/portal/agency/cases`}>{t('agency.materials.supplement.openCases')}</Link></div>
+          : <CrudForm fields={fields} initialValues={{ caseId: cases.some((item) => item.caseId === requestedCaseId) ? requestedCaseId : '', text: '' }}
+            onSubmit={submit} submitLabel={t('agency.materials.submit')} />}
       </PortalCard>
     </div>
   )

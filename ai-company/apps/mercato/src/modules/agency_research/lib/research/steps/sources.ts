@@ -79,6 +79,14 @@ function factBankInput(order: OrderFacts, lang: OutputLanguage, sources: Source[
   }
 }
 
+/** Mixed evidence retains the most restrictive visibility; approval/usage is separate. */
+export function proofSourceVisibility(sourceIds: string[], sources: Pick<Source, 'source_id' | 'source_visibility'>[]): Source['source_visibility'] {
+  const visibility = sourceIds.map((id) => sources.find((source) => source.source_id === id)?.source_visibility ?? 'unknown')
+  if (visibility.includes('client_private')) return 'client_private'
+  if (!visibility.length || visibility.includes('unknown')) return 'unknown'
+  return 'public'
+}
+
 export async function runSourcesStep(opts: Step32Options): Promise<Step32Result> {
   const onEvent = opts.onEvent ?? (() => {})
   const lang = opts.order.outputLanguage
@@ -110,7 +118,7 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
     access: s.access,
     read_scope: s.read_scope,
     limitation: s.limitation,
-    source_visibility: s.access === 'unavailable' ? 'unknown' : 'public',
+    source_visibility: s.source_visibility ?? (s.access === 'unavailable' ? 'unknown' : 'public'),
     duplicate_of: (groups.canonicalOf.get(s.source_id) ?? s.source_id) === s.source_id ? null : (groups.canonicalOf.get(s.source_id) ?? null),
     origin: s.origin,
   }))
@@ -235,7 +243,7 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
     fact_ids: card.fact_ids,
     source_ids: [...new Set(card.fact_ids.flatMap((id) => facts.find((f) => f.fact_id === id)?.source_ids ?? []))],
     limitations: card.limitations,
-    source_visibility: 'public',
+    source_visibility: proofSourceVisibility(card.fact_ids.flatMap((id) => facts.find((fact) => fact.fact_id === id)?.source_ids ?? []), sources),
     allowed_use: 'internal_only',
     use_basis_ref: null,
     client_name_permission: 'unknown',

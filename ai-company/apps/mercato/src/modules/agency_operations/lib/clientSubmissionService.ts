@@ -1,5 +1,6 @@
 import { LockMode } from '@mikro-orm/core'
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { AttachmentService } from '@open-mercato/core/modules/attachments'
 import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
@@ -7,7 +8,7 @@ import { findOneWithDecryption, findWithDecryption } from '@open-mercato/shared/
 import { z } from 'zod'
 import { AgencyCase, AgencyClientSubmission } from '../data/entities'
 import type { ClientCaseIdentity } from './contracts/clientCaseQuery'
-import { clientMaterialIntakeInputSchema } from './contracts/clientMaterialIntake'
+import { clientMaterialIntakeInputSchema, AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from './contracts/clientMaterialIntake'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema, type ClientSubmissionItem, type ClientSubmissionService } from './contracts/clientSubmission'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from './clientSubmissionWorkflow'
 import { isClientTriageEnabled } from '../agents/client-triage/configuration'
@@ -53,7 +54,7 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
   }
 
   return {
-    async submit(identity, caseId, rawInput) {
+    async submit(identity, caseId, rawInput, options) {
       const scope = await authorize(identity, caseId)
       const input = clientSubmissionRequestSchema.parse(rawInput)
       const native = isClientTriageEnabled()
@@ -66,19 +67,26 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
         const existing = await findOneWithDecryption(tx, AgencyClientSubmission, {
           ...scope, caseId, channel: 'portal', eventId: input.eventId,
         }, undefined, scope)
-        if (existing) {
+        if (existing && (!options?.startPending || existing.workflowInstanceId || !native)) {
           // Replaying the key always returns its immutable original; it never reclassifies.
           return { submission: existing, replayed: true }
         }
-        if (input.materialAttachmentId && input.materialAttachmentId !== agencyCase.materialAttachmentId) {
-          throw new CrudHttpError(404, { error: 'api.errors.notFound' })
+        if (!existing && input.materialAttachmentId && input.materialAttachmentId !== agencyCase.materialAttachmentId) {
+          await container.resolve<AttachmentService>('attachmentService').readScoped({
+            attachmentId: input.materialAttachmentId,
+            auth: { sub: identity.customerUserId, tenantId: scope.tenantId, orgId: scope.organizationId },
+            expectedOwner: { entityId: AGENCY_CASE_ATTACHMENT_ENTITY_ID, recordId: caseId },
+            expectedAssignment: { type: AGENCY_CASE_ATTACHMENT_ENTITY_ID, id: caseId },
+            expectedPartitionCode: AGENCY_CASE_ATTACHMENT_PARTITION_CODE, requirePrivatePartition: true,
+          })
         }
-        const submission = tx.create(AgencyClientSubmission, {
+        const submission = existing ?? tx.create(AgencyClientSubmission, {
           ...scope, caseId, submittedByCustomerUserId: identity.customerUserId,
           channel: 'portal', eventId: input.eventId, original: input,
         })
         tx.persist(submission)
         await tx.flush()
+        if (options?.requireNative && !native) return { submission, replayed: Boolean(existing) }
         const executor = container.resolve<Executor>('workflowExecutor')
         if (native && !container.hasRegistration('agentWorkflowBridge')) {
           throw new Error('[internal] Native client triage requires agent_orchestrator')
@@ -89,7 +97,7 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
           metadata: { entityType: 'agency_operations:agency_client_submission', entityId: submission.id },
           // Never impersonate the customer contact as a staff execution user.
           // Native execution uses the explicitly configured workflow's own principal.
-          initialContext: { ...scope, caseId, submissionId: submission.id, scaffoldScenario: input.scaffoldScenario },
+          initialContext: { ...scope, caseId, submissionId: submission.id, scaffoldScenario: submission.original.scaffoldScenario },
         })
         submission.workflowInstanceId = workflow.id
         await tx.flush()

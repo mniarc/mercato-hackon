@@ -15,6 +15,7 @@ import { readDemoPurchaseConfiguration } from './configure'
 import { demoOffer, isDemoPurchaseEnabled } from './demoOffer'
 import { createNativeDemoSales, purchaseRequestHash, readPurchaseBinding } from './nativeSales'
 import { createDemoPaymentGateway, isRetryableDemoPayment, isVerifiedDemoCapture, matchesDemoPayment } from './payment'
+import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../paidCaseAnalysis/bootstrap'
 
 function requireEnabled(): void {
   if (!isDemoPurchaseEnabled()) throw new CrudHttpError(403, { error: 'Demo purchases are disabled.' })
@@ -50,6 +51,8 @@ export function purchaseReceipt(order: SalesOrder, payment: SalesPayment, transa
 
 export function createDemoPurchaseService(container: AwilixContainer, activateOverride?: ActivatePaidPurchase): DemoPurchaseService {
   const activatePaidPurchase = activateOverride ?? createActivatePaidPurchase(container)
+  const startPaidAnalysis = createPaidCaseAnalysisBootstrap(container)
+  const readPaidAnalysis = createPaidCaseAnalysisReader(container)
   async function activeCustomer(identity: PurchaseIdentity, em: EntityManager, lock: boolean): Promise<void> {
     const user = await findOneWithDecryption(em, CustomerUser, {
       id: identity.customerUserId, tenantId: identity.tenantId, organizationId: identity.organizationId,
@@ -105,7 +108,7 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       })
     },
     async confirm(identity, orderId) {
-      return locked(identity, async () => {
+      const receipt = await locked(identity, async () => {
         const { sales, gateway } = await dependencies(identity)
         let order = await sales.loadOrder(orderId)
         assertPurchaseOwner(order, identity)
@@ -128,6 +131,9 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
         if (!payment) throw new Error('The native payment disappeared after reconciliation.')
         return purchaseReceipt(order, payment, transaction)
       })
+      // Payment/activation and its customer lock have committed before native
+      // research may be queued. Reconfirmation recovers this handoff idempotently.
+      return receipt.status === 'paid' ? { ...receipt, processing: await startPaidAnalysis(identity, orderId) } : receipt
     },
     async read(identity, orderId) {
       requireEnabled()
@@ -138,7 +144,8 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       assertPurchaseOwner(order, identity)
       const payment = await sales.loadPayment(orderId)
       if (!payment) throw new CrudHttpError(409, { error: 'Purchase payment initiation is incomplete; retry the original request.' })
-      return purchaseReceipt(order, payment, await gateway.read(payment.id))
+      const receipt = purchaseReceipt(order, payment, await gateway.read(payment.id))
+      return receipt.status === 'paid' ? { ...receipt, processing: await readPaidAnalysis(identity, orderId) } : receipt
     },
   }
 }

@@ -6,6 +6,7 @@ import { orderDataSchema, orderFactsOf, type OrderData } from '../data/schemas/z
 import { limits } from '../data/templates'
 import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type AgencyResearchService, type ResearchExecutionContext, type ResearchRunRequest, type ResearchRunResult, type ResearchStep } from './contracts'
 import { collectSources, type FetchPage, type SocialPost } from './research/fetch'
+import type { ResearchMaterialSource } from './contracts/agencyResearch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
 import { configuredFixtureSources } from './research/fixtureSources'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
@@ -83,6 +84,7 @@ export type RunResearchOptions = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  materialSources?: ResearchMaterialSource[]
   through: ResearchStep
   /** 6.5 — the client's plan selection; null = simulated selection of the recommendation. */
   selectedTopicId?: string | null
@@ -127,7 +129,7 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   })
   ctx.taskRunIds.push(run.id)
   try {
-    const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, log: ctx.log })
+    const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, materialSources: ctx.materialSources, log: ctx.log })
     await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, collected)
     const result = await runSourcesStep({ order: ctx.order, sources: collected, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
     // The register is reviewed in 3.7; its blockers travel as issues, not as a status.
@@ -209,6 +211,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     searchWeb: opts.searchWeb,
     socialPosts: opts.socialPosts,
     pages: opts.pages,
+    materialSources: opts.materialSources,
     repairFindings: [],
     attempt: 1,
     selectedTopicId: opts.selectedTopicId ?? null,
@@ -357,7 +360,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new Error('[internal] research execution is not authorized')
       }
       const apiKey = process.env.FIRECRAWL_API_KEY ?? ''
-      const fixtureSources = configuredFixtureSources()
+      const fixtureSources = configuredFixtureSources(parsed.order)
       const em = (container.resolve('em') as EntityManager).fork()
       const agentRunIds: string[] = []
       const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
@@ -371,8 +374,9 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         models: defaultModels(),
         fetchPage: fixtureSources?.fetchPage ?? createFirecrawlFetcher({ apiKey }),
         searchWeb: fixtureSources ? fixtureSources.searchWeb : apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
-        socialPosts: parsed.socialPosts,
-        pages: parsed.pages,
+        socialPosts: fixtureSources?.socialPosts ?? parsed.socialPosts,
+        pages: fixtureSources?.pages ?? parsed.pages,
+        materialSources: parsed.materialSources,
         through: parsed.through,
         selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,

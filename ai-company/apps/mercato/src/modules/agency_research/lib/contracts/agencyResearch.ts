@@ -41,6 +41,16 @@ export type ResearchStep = (typeof researchSteps)[number]
 export const clientViewTemplates = ['WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-TOV', 'WZR-PLAN', 'WZR-POST', 'WZR-PAKIET'] as const
 export type ClientViewTemplate = (typeof clientViewTemplates)[number]
 
+/** Server-resolved case attachments, never caller assertions of file access or approval. */
+export const researchMaterialSourceSchema = z.object({
+  attachmentId: z.string().uuid(),
+  submissionId: z.string().uuid(),
+  fileName: z.string().min(1),
+  text: z.string().nullable(),
+  submittedAt: z.string().datetime(),
+}).strict()
+export type ResearchMaterialSource = z.infer<typeof researchMaterialSourceSchema>
+
 export const researchRunRequestSchema = z.object({
   /** The order (or case) the documents belong to; text, tenant-scoped. */
   orderRef: z.string().min(1),
@@ -65,6 +75,8 @@ export const researchRunRequestSchema = z.object({
     .optional(),
   /** Explicit page list instead of discovery. */
   pages: z.array(z.string().min(1)).optional(),
+  /** Trusted native attachment extraction; null text is an unavailable source. */
+  materialSources: z.array(researchMaterialSourceSchema).optional(),
   /** Per-run spend cap in PLN; the module default applies when omitted. */
   maxCostPln: z.number().positive().optional(),
   /** 6.5 — the plan topic the client selected (`TOP01`…); absent = the recommendation as a simulated selection. */

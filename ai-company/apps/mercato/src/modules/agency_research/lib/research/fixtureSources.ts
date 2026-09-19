@@ -1,7 +1,8 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { FetchPage } from './fetch'
+import type { FetchPage, SocialPost } from './fetch'
 import type { SearchHit, SearchWeb } from './firecrawl'
+import { orderDataSchema, orderFactsOf, type OrderData } from '../../data/schemas/zamowienie'
 
 /** A file-backed fetcher for demos without network: `<dir>/manifest.json` maps url → {file, access, title}. */
 export function fileFetcher(dir: string): FetchPage {
@@ -19,12 +20,25 @@ export function fileSearch(file: string): SearchWeb {
   return async (query) => table[query] ?? table['*'] ?? []
 }
 
-export function configuredFixtureSources(): { fetchPage: FetchPage; searchWeb: SearchWeb } | null {
+export function configuredFixtureSources(order?: OrderData): { fetchPage: FetchPage; searchWeb: SearchWeb; pages?: string[]; socialPosts?: SocialPost[] } | null {
   const dir = process.env.AGENCY_TEST_RESEARCH_FIXTURE_DIR?.trim()
   if (!dir) return null
   if (process.env.NODE_ENV === 'production' || process.env.AGENCY_TEST_NATIVE_TRIAGE !== '1' || !path.isAbsolute(dir)) {
     throw new Error('[internal] research fixture sources require explicit native test mode, a non-production runtime and an absolute fixture directory')
   }
   const searchFile = path.join(dir, 'search.json')
-  return { fetchPage: fileFetcher(dir), searchWeb: fs.existsSync(searchFile) ? fileSearch(searchFile) : async () => [] }
+  const sources = { fetchPage: fileFetcher(dir), searchWeb: fs.existsSync(searchFile) ? fileSearch(searchFile) : async () => [] }
+  if (!order) return sources
+  const orderFile = path.join(dir, 'order.json')
+  if (!fs.existsSync(orderFile)) return sources
+  const fixture = orderFactsOf(orderDataSchema.parse(JSON.parse(fs.readFileSync(orderFile, 'utf8'))))
+  const requested = orderFactsOf(order)
+  if (new URL(requested.websiteUrl).href !== new URL(fixture.websiteUrl).href) return sources
+  const host = new URL(fixture.websiteUrl).host
+  const manifest = JSON.parse(fs.readFileSync(path.join(dir, 'manifest.json'), 'utf8')) as Record<string, unknown>
+  const pages = Object.keys(manifest).filter((url) => new URL(url).host === host)
+  const socialFile = path.join(dir, 'social.json')
+  const socialPosts = requested.officialSocialUrl === fixture.officialSocialUrl && fs.existsSync(socialFile)
+    ? (JSON.parse(fs.readFileSync(socialFile, 'utf8')) as { posts: SocialPost[] }).posts : undefined
+  return { ...sources, pages, socialPosts }
 }

@@ -80,6 +80,12 @@ native-fixture module discovery, use `node scripts/agency-dev.mjs cli generate`
 with the same `AGENCY_TEST_NATIVE_TRIAGE`/`AGENCY_TEST_NATIVE_POST` flags as the
 app. Bare `yarn generate` does not expand those launcher flags and can omit the
 research/orchestrator modules, causing legitimate RBAC failures afterward.
+New translation keys do not require generation when the locale registry already
+imports their source dictionary. If a page renders a literal key, check that
+registration and the live dictionary payload first. A correctly registered key
+missing at runtime can be held in the process-level dictionary cache: restart
+only the app with matching flags, then verify the key. Do not weaken selectors
+or reset the database.
 If changing
 the generated module set leaves Next reporting a missing server module factory,
 restart the app with the matching flags; preserve the database. This is not a

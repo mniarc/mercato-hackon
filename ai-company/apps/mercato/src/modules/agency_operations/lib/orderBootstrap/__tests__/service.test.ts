@@ -7,12 +7,14 @@ import { createDemoPurchaseService, purchaseReceipt } from '../service'
 import { createNativeDemoSales, purchaseRequestHash, type PurchaseBinding } from '../nativeSales'
 import { createDemoPaymentGateway, isVerifiedDemoCapture } from '../payment'
 import { demoOffer } from '../demoOffer'
+import { createPaidCaseAnalysisBootstrap, createPaidCaseAnalysisReader } from '../../paidCaseAnalysis/bootstrap'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
 jest.mock('../configure', () => ({ readDemoPurchaseConfiguration: jest.fn(async () => ({})) }))
 jest.mock('../activate', () => ({ createActivatePaidPurchase: jest.fn() }))
 jest.mock('../nativeSales', () => ({ ...jest.requireActual('../nativeSales'), createNativeDemoSales: jest.fn() }))
 jest.mock('../payment', () => ({ ...jest.requireActual('../payment'), createDemoPaymentGateway: jest.fn() }))
+jest.mock('../../paidCaseAnalysis/bootstrap', () => ({ createPaidCaseAnalysisBootstrap: jest.fn(), createPaidCaseAnalysisReader: jest.fn() }))
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const identity = { tenantId: uuid(1), organizationId: uuid(2), customerEntityId: uuid(3), customerUserId: uuid(4) }
@@ -25,11 +27,16 @@ const container = { resolve: (name: string) => name === 'em' ? em : undefined } 
 let order: SalesOrder, payment: SalesPayment, transaction: GatewayTransaction
 const ensureOrder = jest.fn(), ensurePayment = jest.fn(), loadOrder = jest.fn(), loadPayment = jest.fn(), reconcileCaptured = jest.fn(), saveActivation = jest.fn()
 const readGateway = jest.fn(), ensureSession = jest.fn(), retrySession = jest.fn(), confirmGateway = jest.fn(), activate = jest.fn()
+const startPaidAnalysis = jest.fn(), readPaidAnalysis = jest.fn()
 const previousFlag = process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED
 
 beforeEach(() => {
   jest.clearAllMocks()
   process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED = 'true'
+  jest.mocked(createPaidCaseAnalysisBootstrap).mockReturnValue(startPaidAnalysis)
+  jest.mocked(createPaidCaseAnalysisReader).mockReturnValue(readPaidAnalysis)
+  startPaidAnalysis.mockResolvedValue({ state: 'waiting_configuration', reason: 'execution_disabled' })
+  readPaidAnalysis.mockResolvedValue({ state: 'waiting_configuration', reason: 'execution_disabled' })
   const binding: PurchaseBinding = { requestId: input.requestId, requestHash: purchaseRequestHash(input), customerUserId: identity.customerUserId,
     reservedCaseId: uuid(9), originalPurchase: input, termsAcceptedAt: new Date().toISOString(), offerVersion: demoOffer.offerVersion,
     termsVersion: demoOffer.termsVersion, amount: demoOffer.amount, currencyCode: demoOffer.currency, provider: demoOffer.provider }
@@ -157,6 +164,26 @@ test('capture reconciles the native ledger then activates once across confirmati
   expect(activate).toHaveBeenCalledTimes(1)
   expect(activate).toHaveBeenCalledWith(expect.objectContaining({ caseId: uuid(9), originalPurchase: input, orderId: order.id, paymentId: payment.id }))
   expect(reconcileCaptured.mock.invocationCallOrder[0]).toBeLessThan(activate.mock.invocationCallOrder[0])
+  expect(startPaidAnalysis).toHaveBeenCalledTimes(2)
+})
+
+test('paid processing dispatch is after payment transaction commit; GET only reads its status', async () => {
+  let transactionOpen = false
+  em.transactional.mockImplementationOnce(async (fn) => {
+    transactionOpen = true
+    const result = await fn(em)
+    transactionOpen = false
+    return result
+  })
+  startPaidAnalysis.mockImplementationOnce(async () => {
+    expect(transactionOpen).toBe(false)
+    return { state: 'started', workflowInstanceId: uuid(20), nativeStatus: 'WAITING_FOR_ACTIVITIES', replayed: false }
+  })
+  const service = createDemoPurchaseService(container, activate)
+  expect(await service.confirm(identity, order.id)).toMatchObject({ status: 'paid', processing: { state: 'started', workflowInstanceId: uuid(20) } })
+  expect(await service.read(identity, order.id)).toMatchObject({ status: 'paid', processing: { state: 'waiting_configuration', reason: 'execution_disabled' } })
+  expect(startPaidAnalysis).toHaveBeenCalledTimes(1)
+  expect(readPaidAnalysis).toHaveBeenCalledWith(identity, order.id)
 })
 
 test('a confirmation retry after activation failure reuses the reserved case identity', async () => {

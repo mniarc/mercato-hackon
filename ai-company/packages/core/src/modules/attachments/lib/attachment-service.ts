@@ -142,6 +142,8 @@ export type ReadScopedAttachmentResult = {
   contentDisposition: string
   fileName: string
   mimeType: string
+  /** Stored platform extraction, never a new OCR/provider call. Null/absent means unavailable. */
+  extractedText?: string | null
 }
 
 export type ReleaseScopedAttachmentInput = {
@@ -400,6 +402,7 @@ export class DefaultAttachmentService implements AttachmentService {
       ),
       fileName: attachment.fileName,
       mimeType,
+      extractedText: attachment.content ?? null,
     }
   }
 

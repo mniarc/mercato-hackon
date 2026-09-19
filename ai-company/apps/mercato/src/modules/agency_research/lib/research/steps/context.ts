@@ -1,4 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { ResearchMaterialSource } from '../../contracts/agencyResearch'
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
@@ -57,6 +58,7 @@ export type StepContext = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  materialSources?: ResearchMaterialSource[]
   /** QA findings addressed to this step on a repair pass (3.7 / 4.2 / 5.4 / 6.3 / 7.3 loops), else empty. */
   repairFindings: QaFinding[]
   attempt: number

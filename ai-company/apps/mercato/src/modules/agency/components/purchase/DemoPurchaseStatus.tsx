@@ -21,6 +21,11 @@ export function DemoPurchaseStatus({ receipt, orgSlug, enabled, busy, error, con
           : t('agency.purchase.blocked', 'This purchase requires attention before the agency process can continue.')}</p>
       <p className="mt-2 break-all text-xs text-muted-foreground">{t('agency.purchase.orderId', 'Order')}: {receipt.orderId}</p>
       {receipt.reason ? <p className="mt-2 text-sm text-muted-foreground">{t('agency.purchase.reason', 'Recorded reason')}: {receipt.reason}</p> : null}
+      {completed && receipt.processing ? <div className="mt-4 space-y-2 text-sm" role="status">
+        <p>{t(`agency.purchase.processing.${receipt.processing.state}`)}</p>
+        {'reason' in receipt.processing ? <p className="text-muted-foreground">{t(`agency.purchase.processing.reason.${receipt.processing.reason}`)}</p> : null}
+        {'nativeStatus' in receipt.processing ? <p className="text-muted-foreground">{t('agency.purchase.processing.nativeStatus')}: {receipt.processing.nativeStatus}</p> : null}
+      </div> : null}
     </PortalCard>
     {error ? <ErrorMessage label={error} /> : null}
     <div className="flex flex-wrap gap-3">

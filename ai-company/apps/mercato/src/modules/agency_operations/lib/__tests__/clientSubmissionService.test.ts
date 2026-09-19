@@ -35,6 +35,7 @@ const customer = jest.fn()
 const startWorkflow = jest.fn()
 const executeWorkflow = jest.fn()
 const hasRegistration = jest.fn()
+const readScoped = jest.fn()
 let inTransaction = false
 const em = {
   transactional: async (fn: (tx: unknown) => unknown): Promise<unknown> => {
@@ -53,6 +54,7 @@ const container = {
     if (key === 'em') return em
     if (key === 'customerUserService') return { findById: customer }
     if (key === 'workflowExecutor') return { startWorkflow, executeWorkflow }
+    if (key === 'attachmentService') return { readScoped }
     throw new Error(key)
   },
 } as unknown as AppContainer
@@ -64,6 +66,7 @@ beforeEach(() => {
   inTransaction = false
   nativeEnabled.mockReturnValue(false)
   hasRegistration.mockReturnValue(true)
+  readScoped.mockRejectedValue({ status: 404 })
   agencyCase = { id: caseId, ...identity, deletedAt: null, materialAttachmentId: materialId }
   customer.mockResolvedValue({ isActive: true, customerEntityId: identity.customerEntityId })
   findOne.mockImplementation((_em, type, where) => {
@@ -99,6 +102,31 @@ it('stores immutable original and replays the same event without creating or cla
   expect(executeWorkflow).toHaveBeenCalledTimes(1)
   expect(startWorkflow.mock.calls[0][1].metadata).not.toHaveProperty('initiatedBy')
   expect(JSON.stringify(replay)).not.toContain('privateStaffData')
+})
+
+it('accepts supplementary material only through the native scoped attachment boundary', async () => {
+  readScoped.mockResolvedValue({ buffer: Buffer.from('material') })
+  await createClientSubmissionService(container).submit(identity, caseId, { eventId: 'supplement', materialAttachmentId: foreignId })
+  expect(readScoped).toHaveBeenCalledWith(expect.objectContaining({ attachmentId: foreignId,
+    expectedOwner: { entityId: 'agency_operations:agency_case', recordId: caseId },
+    expectedAssignment: { type: 'agency_operations:agency_case', id: caseId }, requirePrivatePartition: true,
+  }))
+})
+
+it('starts a saved native-only submission once after configuration, preserving its immutable original', async () => {
+  const service = createClientSubmissionService(container)
+  const original = { eventId: 'pending-native', text: 'My material', materialAttachmentId: materialId }
+  const pending = await service.submit(identity, caseId, original, { requireNative: true })
+  expect(pending.item.workflow).toBeNull()
+  expect(startWorkflow).not.toHaveBeenCalled()
+  nativeEnabled.mockReturnValue(true)
+  executeWorkflow.mockResolvedValue(undefined)
+  await service.submit(identity, caseId, { ...original, text: 'Must not replace' }, { requireNative: true, startPending: true })
+  await service.submit(identity, caseId, original, { requireNative: true, startPending: true })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  expect(startWorkflow.mock.calls[0][1].workflowId).toBe(NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID)
+  expect(executeWorkflow).toHaveBeenCalledTimes(1)
+  expect(stored!.original.text).toBe('My material')
 })
 
 it('preserves the exact review response as original input without granting approval authority', async () => {

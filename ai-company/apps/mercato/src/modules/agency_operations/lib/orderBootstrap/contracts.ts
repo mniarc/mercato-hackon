@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { paidCaseProcessingSchema } from '../paidCaseAnalysis/status'
 
 export const DEMO_PURCHASE_SERVICE = 'agencyDemoPurchaseService' as const
 
@@ -41,6 +42,7 @@ export const demoPurchaseReceiptSchema = z.object({
   workflowInstanceId: z.uuid().nullable(),
   reason: z.string().optional(),
   canRetryPayment: z.boolean().optional(),
+  processing: paidCaseProcessingSchema.optional(),
 })
 
 export const demoPaymentRetrySchema = z.object({ providerSessionId: z.string().trim().min(1).max(255) }).strict()

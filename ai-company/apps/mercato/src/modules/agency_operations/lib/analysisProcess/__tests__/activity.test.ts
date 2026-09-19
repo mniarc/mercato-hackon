@@ -8,6 +8,8 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryp
 import { createAnalysisWorkflowActivity, parseAnalysisMaterial } from '../activity'
 import { AGENCY_ANALYSIS_WORKFLOW_ID, AGENCY_ANALYSIS_RESULT_KEY, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 import type { AnalysisExecutionPolicy } from '../contracts'
+import { loadCaseMaterialSources } from '../materialSources'
+jest.mock('../materialSources', () => ({ loadCaseMaterialSources: jest.fn() }))
 
 const tenantId = '00000000-0000-4000-8000-000000000001'
 const organizationId = '00000000-0000-4000-8000-000000000002'
@@ -45,6 +47,7 @@ beforeEach(() => {
   readScoped.mockResolvedValue({ buffer: Buffer.from(JSON.stringify(material)) })
   status.mockResolvedValue({ taskRuns: [], documents: [], sources: 0, totalPln: 0 })
   run.mockResolvedValue(result)
+  jest.mocked(loadCaseMaterialSources).mockResolvedValue([])
 })
 afterAll(() => {
   if (originalEnabled === undefined) delete process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED
@@ -58,9 +61,10 @@ it('uses the exact case/private material and native identity, ignoring upload sp
   expect(status).toHaveBeenCalledWith({ tenantId, organizationId }, caseId)
   expect(run).toHaveBeenCalledWith({
     context: { tenantId, organizationId, userId, workflowInstanceId: workflowId, stepId: 'research', invocationId: stepInstanceId },
-    request: { order: material.order, pages: material.pages, orderRef: caseId, through: '3.8', maxCostPln: 2 },
+    request: { order: material.order, pages: material.pages, materialSources: [], orderRef: caseId, through: '3.8', maxCostPln: 2 },
   })
   expect(output).toEqual({ ...result, caseId, requestedThrough: '3.8', state: 'completed' })
+  expect(loadCaseMaterialSources).toHaveBeenCalledWith(container, { tenantId, organizationId }, caseId, userId)
 })
 
 it('accepts the native transition activity context without inventing an invocation ID', async () => {
@@ -75,6 +79,7 @@ it('does not run for a foreign case or workflow', async () => {
   await expect(createAnalysisWorkflowActivity(container)({ caseId, policy }, context())).rejects.toThrow()
   expect(readScoped).not.toHaveBeenCalled()
   expect(run).not.toHaveBeenCalled()
+  expect(loadCaseMaterialSources).not.toHaveBeenCalled()
 })
 
 it('rejects customer-chosen product limits instead of authorizing them', async () => {

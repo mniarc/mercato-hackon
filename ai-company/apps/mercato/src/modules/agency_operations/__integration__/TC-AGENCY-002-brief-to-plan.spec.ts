@@ -12,14 +12,18 @@ import {
 import { BRIEF_REVIEW_WORKFLOW_ID, BRIEF_REVIEW_CONTEXT_KEY, briefReviewInvitationSchema } from '../lib/briefStrategyProcess/contracts'
 import { STRATEGY_PAIR_REVIEW_WORKFLOW_ID, STRATEGY_PAIR_REVIEW_CONTEXT_KEY, strategyPairInvitationSchema } from '../lib/strategyPairReview/contracts'
 import { PLAN_REVIEW_WORKFLOW_ID, PLAN_REVIEW_CONTEXT_KEY, planReviewInvitationSchema } from '../lib/planReview/contracts'
-import { analysisMaterialSchema } from '../lib/analysisProcess/contracts'
+import { demoPurchaseReceiptSchema } from '../lib/orderBootstrap/contracts'
+import { demoOffer } from '../lib/orderBootstrap/demoOffer'
+import { supplementaryMaterialResultSchema } from '../lib/contracts/clientMaterialIntake'
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
-import { answersForQuestions, createProductionJourneyIntelligence } from './support/productionJourney/intelligence'
+import { answersForQuestions, createProductionJourneyIntelligence, SUPPLEMENTARY_MATERIAL_TEXT } from './support/productionJourney/intelligence'
 import { configureProductionJourney, readProducedBrief, removeProductionJourneyDefinition } from './support/productionJourney/setup'
-import { assertLoopbackOverrides, deleteProductionJourneyRecords, readInvitation, type JourneyScope } from './support/productionJourney/records'
+import { assertLoopbackOverrides, deleteProductionJourneyRecords, readInvitation, readUploadedResearchMaterial, type JourneyScope } from './support/productionJourney/records'
+import { configurePurchaseJourney } from './support/purchaseJourney/setup'
+import { deletePurchaseJourneyRecords, readPurchaseJourneyRecords } from './support/purchaseJourney/records'
 
 export const integrationMeta = {
-  dependsOnModules: ['agency', 'agency_operations', 'agency_research', 'auth', 'customer_accounts', 'customers', 'attachments', 'workflows', 'agent_orchestrator'],
+  dependsOnModules: ['agency', 'agency_operations', 'agency_research', 'auth', 'customer_accounts', 'customers', 'catalog', 'sales', 'payment_gateways', 'example', 'attachments', 'workflows', 'agent_orchestrator'],
 }
 const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
 async function checkpoint(page: Page, info: TestInfo, name: string) {
@@ -46,6 +50,7 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
   test('research asks, client answers and accepts the resulting brief and strategy pair', async ({ page, request }, info) => {
     test.setTimeout(600_000)
     expect(process.env.AGENCY_TEST_NATIVE_TRIAGE, 'Run only with the explicit local intelligence fixture').toBe('1')
+    expect(process.env.OM_AGENCY_DEMO_PURCHASE_ENABLED, 'Enable the zero-charge purchase in app and runner').toMatch(/^(1|true)$/)
     const appRoot = path.resolve(process.env.OM_TEST_APP_ROOT ?? path.resolve(process.cwd(), 'apps/mercato'))
     const sourceDirectory = path.join(appRoot, 'src/modules/agency_research/__fixtures__/flow')
     expect(path.resolve(process.env.AGENCY_TEST_RESEARCH_FIXTURE_DIR ?? '')).toBe(sourceDirectory)
@@ -67,6 +72,7 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
       console.log('[TC-AGENCY-002] Clean up this journey only')
       try {
         if (scope) await deleteProductionJourneyRecords(request, adminToken, scope)
+        if (scope && customerUserId) await deletePurchaseJourneyRecords(request, adminToken, { ...scope, customerUserId })
         for (const id of definitions) await removeProductionJourneyDefinition({ id, tenantId, organizationId })
         if (customerUserId && customerRoleId) {
           const detached = await apiRequest(request, 'PUT', `/api/customer_accounts/admin/users/${customerUserId}`, { token: provisioningToken, data: { roleIds: [] } })
@@ -78,13 +84,14 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
       } finally { await provider.close() }
     }
     const order = JSON.parse(fs.readFileSync(path.join(sourceDirectory, 'order.json'), 'utf8'))
-    const social = JSON.parse(fs.readFileSync(path.join(sourceDirectory, 'social.json'), 'utf8'))
-    const material = analysisMaterialSchema.parse({ order, socialPosts: social.posts,
-      pages: ['https://makeitflow.pl/index.php', 'https://makeitflow.pl/projekty/flowco-ai', 'https://makeitflow.pl/promocje-konsumenckie'] })
     const customer = await test.step('Configure explicit fixture policy and a real customer', async () => {
       console.log('[TC-AGENCY-002] Configure new native versions and local source/model fixtures')
       await assertLoopbackOverrides({ tenantId, organizationId }, provider.baseUrl)
-      definitions = await configureProductionJourney({ tenantId, organizationId, userId, productSelection: material.order.product_selection })
+      await configurePurchaseJourney({ tenantId, organizationId, userId })
+      definitions = await configureProductionJourney({ tenantId, organizationId, userId, productSelection: {
+        sku: demoOffer.sku, offer_version: demoOffer.offerVersion, price_net: demoOffer.amount, currency: demoOffer.currency,
+        result_limits: order.product_selection.result_limits,
+      } })
       customerEntityId = await createCustomerCompanyFixture(request, adminToken, `Production journey ${suffix}`)
       scope = { tenantId, organizationId, customerEntityId }
       customerRoleId = (await createCustomerRoleFixture(request, provisioningToken, {
@@ -106,20 +113,68 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
       { name: 'om_feedback_suppress', value: '1', url: BASE_URL, sameSite: 'Lax' },
     ])
     const openTask = async (taskId: string) => page.goto(new URL(`/${orgSlug}/portal/tasks/${taskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
-    const caseId = await test.step('Ingest real source material and run native initial research', async () => {
-      console.log('[TC-AGENCY-002] Start native analysis; source fixtures contain no produced documents')
-      const response = await request.post(new URL('/api/agency/portal/materials', BASE_URL).toString(), {
-        headers: { Cookie: session.cookieHeader }, multipart: {
-          title: `Brief-to-plan ${suffix}`, process: JSON.stringify({ kind: 'analysis' }),
-          file: { name: `research-input-${suffix}.json`, mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(material)) },
-        },
-      })
+    const paid = await test.step('Purchase through the real customer form and queue research for the same paid case', async () => {
+      console.log('[TC-AGENCY-002] Real order and zero-charge payment; no internal process JSON or seeded research')
+      const purchases = '/api/agency/portal/purchases'
+      const offered = page.waitForResponse((response) => new URL(response.url()).pathname === purchases && response.request().method() === 'GET')
+      await page.goto(new URL(`/${orgSlug}/portal/agency/order`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+      const offerResponse = await offered
+      expect(offerResponse.ok(), await offerResponse.text()).toBeTruthy()
+      expect(await offerResponse.json()).toMatchObject({ enabled: true, sku: demoOffer.sku, amount: demoOffer.amount,
+        currency: demoOffer.currency, offerVersion: demoOffer.offerVersion, termsVersion: demoOffer.termsVersion })
+      const fields = { brandDisplayName: order.brand.display_name, brandWebsiteUrl: order.brand.website_url,
+        market: order.market_language.market, language: order.market_language.language,
+        contactName: `Production customer ${suffix}`, contactEmail: customer.email,
+        billingLegalName: `Production journey ${suffix}`, billingCountry: 'PL', billingAddress: 'Fixture address, Warsaw',
+        billingTaxId: 'DEMO-NOT-A-REAL-INVOICE', officialSocialUrl: order.official_social.url, purchaseGoal: order.purchase_goal }
+      for (const [id, value] of Object.entries(fields)) await page.locator(`#${id}`).fill(value as string)
+      await page.locator('#billingBuyerType').selectOption('company')
+      await page.getByRole('checkbox').check()
+      const initiated = page.waitForResponse((response) => new URL(response.url()).pathname === purchases && response.request().method() === 'POST')
+      await page.getByRole('button', { name: /Create demo order|Utwórz zamówienie demonstracyjne/ }).click()
+      const initiatedResponse = await initiated
+      expect(initiatedResponse.status(), await initiatedResponse.text()).toBe(201)
+      const pending = demoPurchaseReceiptSchema.parse(await initiatedResponse.json())
+      expect(pending).toMatchObject({ status: 'pending_payment', caseId: null })
+      const confirmed = page.waitForResponse((response) => new URL(response.url()).pathname === `${purchases}/${pending.orderId}/confirm`
+        && response.request().method() === 'POST')
+      await page.getByRole('button', { name: /Confirm test payment|Potwierdź płatność testową/ }).click()
+      const confirmedResponse = await confirmed
+      expect(confirmedResponse.ok(), await confirmedResponse.text()).toBeTruthy()
+      const receipt = demoPurchaseReceiptSchema.parse(await confirmedResponse.json())
+      expect(receipt).toMatchObject({ status: 'paid', orderId: pending.orderId, paymentId: pending.paymentId,
+        processing: { state: 'started', nativeStatus: 'WAITING_FOR_ACTIVITIES' } })
+      expect(receipt.caseId).toBeTruthy()
+      expect(receipt.processing?.state === 'started' && receipt.processing.workflowInstanceId).not.toBe(receipt.workflowInstanceId)
+      await checkpoint(page, info, '00-paid-case-native-research-queued')
+      return receipt
+    })
+    const caseId = paid.caseId!
+    const uploaded = await test.step('Upload real private material to this paid case before research starts', async () => {
+      intelligence.allowMaterial({ text: SUPPLEMENTARY_MATERIAL_TEXT })
+      await page.goto(new URL(`/${orgSlug}/portal/agency/materials?caseId=${caseId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+      await page.getByLabel('Material file', { exact: true }).setInputFiles({ name: `private-background-${suffix}.txt`,
+        mimeType: 'text/plain', buffer: Buffer.from(SUPPLEMENTARY_MATERIAL_TEXT) })
+      await page.getByLabel('Message about this material (optional)', { exact: true }).fill(SUPPLEMENTARY_MATERIAL_TEXT)
+      const sent = page.waitForResponse((response) => new URL(response.url()).pathname === '/api/agency/portal/materials'
+        && response.request().method() === 'POST')
+      await page.locator('form').filter({ has: page.getByLabel('Message about this material (optional)', { exact: true }) })
+        .getByRole('button', { name: 'Submit material', exact: true }).click()
+      const response = await sent
       expect(response.status(), await response.text()).toBe(202)
-      const created = await response.json() as { caseId: string; workflowInstanceId: string; status: string }
-      expect(created.status).toBe('WAITING_FOR_ACTIVITIES')
-      expect(created.workflowInstanceId).toBeTruthy()
-      await drainIntegrationQueue('workflow-activities')
-      return created.caseId
+      const saved = supplementaryMaterialResultSchema.parse(await response.json())
+      expect(saved).toMatchObject({ caseId, state: 'submitted_to_native_triage', replayed: false })
+      intelligence.allowMaterial({ text: SUPPLEMENTARY_MATERIAL_TEXT, attachmentId: saved.attachmentId })
+      await expect(page.getByTestId('agency-material-case-id')).toHaveText(caseId)
+      await checkpoint(page, info, '00b-private-material-saved-on-paid-case')
+      return saved
+    })
+    await test.step('Run the teammate research producer for this purchased case', async () => {
+      await continueNativeResponse()
+      const saved = await readUploadedResearchMaterial(scope!, caseId, uploaded.attachmentId)
+      expect(saved.attachment?.id).toBe(uploaded.attachmentId)
+      expect(saved.attachment?.material_attachment_id).not.toBe(uploaded.attachmentId)
+      expect(saved.source).toMatchObject({ content_md: SUPPLEMENTARY_MATERIAL_TEXT, access: 'full', source_visibility: 'client_private' })
     })
     const first = await readInvitation(scope!, caseId, BRIEF_REVIEW_WORKFLOW_ID)
     const original = briefReviewInvitationSchema.parse(first.context[BRIEF_REVIEW_CONTEXT_KEY]).review
@@ -190,6 +245,14 @@ test.describe('TC-AGENCY-002: original client answers through real producers to 
       await expect(page.getByRole('heading', { name: 'Review your content plan', exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: 'Send response', exact: true })).toBeVisible()
       await checkpoint(page, info, '04-real-plan-awaiting-client-choice')
+      const records = await readPurchaseJourneyRecords({ ...scope!, customerUserId: customerUserId! })
+      expect(records.orders).toHaveLength(1)
+      expect(records.payments).toHaveLength(1)
+      expect(records.cases).toHaveLength(1)
+      expect(records.cases[0]).toMatchObject({ id: caseId, workflow_id: 'agency_operations.analysis.v1',
+        workflow_instance_id: paid.processing?.state === 'started' ? paid.processing.workflowInstanceId : undefined })
+      expect(records.orders[0].id).toBe(paid.orderId)
+      expect(Number(records.payments[0].captured_amount)).toBe(demoOffer.amount)
       console.log(`[TC-AGENCY-002] Completed through plan invitation; ${intelligence.calls.length} real native model-boundary calls. No plan approval, post production or publication performed.`)
     })
   })

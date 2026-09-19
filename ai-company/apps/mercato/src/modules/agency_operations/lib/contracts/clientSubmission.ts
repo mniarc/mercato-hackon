@@ -61,6 +61,7 @@ export type ClientSubmissionRequest = z.input<typeof clientSubmissionRequestSche
 export type ClientSubmissionItem = z.infer<typeof clientSubmissionItemSchema>
 export type ClientSubmissionDisposition = z.infer<typeof clientSubmissionDispositionSchema>
 export type ClientSubmissionService = {
-  submit(identity: ClientCaseIdentity, caseId: string, input: ClientSubmissionRequest): Promise<{ item: ClientSubmissionItem; replayed: boolean }>
+  // Trusted server options, never part of the public request schema.
+  submit(identity: ClientCaseIdentity, caseId: string, input: ClientSubmissionRequest, options?: { requireNative?: true; startPending?: true }): Promise<{ item: ClientSubmissionItem; replayed: boolean }>
   list(identity: ClientCaseIdentity, caseId: string): Promise<{ items: ClientSubmissionItem[] }>
 }

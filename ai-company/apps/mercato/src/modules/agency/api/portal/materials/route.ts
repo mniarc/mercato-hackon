@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { supplementaryMaterialResultSchema } from '@/modules/agency_operations/lib/contracts'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
 import { getCustomerAuthFromRequest } from '@open-mercato/core/modules/customer_accounts/lib/customerAuth'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
@@ -26,19 +27,11 @@ export async function POST(req: Request) {
 
   try {
     const form = await attachments.readUploadForm(req)
-    const processField = form.get('process')
-    let process: unknown
-    if (processField !== null) {
-      if (typeof processField !== 'string') {
-        return Response.json({ error: translate('agency.materials.invalidProcess') }, { status: 400 })
-      }
-      try {
-        process = JSON.parse(processField)
-      } catch {
-        return Response.json({ error: translate('agency.materials.invalidProcess') }, { status: 400 })
-      }
-    }
-    const parsed = portalMaterialRequestSchema.safeParse({ title: form.get('title'), process })
+    if (form.has('process')) return Response.json({ error: translate('agency.materials.invalidProcess') }, { status: 400 })
+    const parsed = portalMaterialRequestSchema.safeParse({
+      caseId: form.get('caseId'), eventId: form.get('eventId'),
+      ...(form.get('text') !== null ? { text: form.get('text') } : {}),
+    })
     const file = form.get('file')
     if (!parsed.success || !file || typeof file === 'string' || file.size === 0) {
       return Response.json({ error: translate('agency.materials.invalid') }, { status: 400 })
@@ -54,7 +47,7 @@ export async function POST(req: Request) {
         userFeatures: auth.resolvedFeatures,
       },
       input: {
-        resourceKind: 'agency_operations:agency_case',
+        resourceKind: 'agency_operations:agency_client_submission', resourceId: parsed.data.caseId,
         operation: 'create',
         mutationPayload: parsed.data,
       },
@@ -67,12 +60,11 @@ export async function POST(req: Request) {
     const result = await submitPortalMaterial(
       container,
       { ...auth, customerEntityId: auth.customerEntityId },
-      guarded.data.title,
+      guarded.data,
       file,
-      guarded.data.process,
     )
     await guard.runAfterSuccess()
-    return Response.json(result, { status: result.status === 'COMPLETED' ? 201 : 202 })
+    return Response.json(result, { status: result.replayed ? 200 : 202 })
   } catch (error) {
     if (isCrudHttpError(error)) return Response.json(error.body, { status: error.status })
     throw error
@@ -81,34 +73,13 @@ export async function POST(req: Request) {
 
 export const openApi: OpenApiRouteDoc = {
   tag: 'Agency',
-  methods: {
-    POST: {
-      summary: 'Submit material for the signed-in customer',
-      requestBody: {
-        contentType: 'multipart/form-data',
-        schema: z.object({
-          title: z.string().min(1).max(200),
-          file: z.string().meta({ format: 'binary' }),
-          process: z.string().optional().describe('JSON object: {kind:"tone_of_voice",brand:string,outputLanguage:"en"|"pl"} or {kind:"analysis"} using the configured staff execution policy. Omit for deterministic intake.'),
-        }),
-      },
-      responses: [{
-        status: 201,
-        schema: z.object({ caseId: z.uuid(), workflowInstanceId: z.uuid(), status: z.literal('COMPLETED') }),
-      }, {
-        status: 202,
-        schema: z.object({
-          caseId: z.uuid(), workflowInstanceId: z.uuid(),
-          status: z.enum(['RUNNING', 'WAITING_FOR_ACTIVITIES', 'PAUSED', 'FAILED', 'CANCELLED']),
-        }),
-      }],
-      errors: [
-        { status: 400, description: 'Invalid title or material' },
-        { status: 401, description: 'Customer authentication required' },
-        { status: 403, description: 'Customer account not linked or mutation denied' },
-        { status: 413, description: 'Attachment upload limit exceeded' },
-        { status: 503, description: 'Requested process is not configured or enabled' },
-      ],
-    },
-  },
+  methods: { POST: {
+    summary: 'Save supplementary material to an existing customer-owned case',
+    description: 'Preserves the original purchase receipt. Saves a native private attachment and immutable client submission, then dispatches to native triage when configured. Does not start research or create another case.',
+    requestBody: { contentType: 'multipart/form-data', schema: portalMaterialRequestSchema.extend({ file: z.string().meta({ format: 'binary' }) }) },
+    responses: [200, 202].map((status) => ({ status, schema: supplementaryMaterialResultSchema })),
+    errors: [{ status: 400, description: 'Invalid case, event or material' }, { status: 401, description: 'Customer authentication required' },
+      { status: 403, description: 'Inactive or unlinked customer' }, { status: 404, description: 'Case not owned by this customer' },
+      { status: 413, description: 'Attachment upload limit exceeded' }],
+  } },
 }
