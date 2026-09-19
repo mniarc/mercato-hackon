@@ -133,11 +133,12 @@ function PortalThemeToggle({ t }: { t: (key: string, fallback?: string) => strin
     <button
       type="button"
       onClick={toggle}
-      className="mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      className="flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
       aria-pressed={!isDark}
+      aria-label={isDark ? t('portal.nav.themeLight', 'Tryb jasny') : t('portal.nav.themeDark', 'Tryb ciemny')}
+      title={isDark ? t('portal.nav.themeLight', 'Tryb jasny') : t('portal.nav.themeDark', 'Tryb ciemny')}
     >
-      {isDark ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
-      {isDark ? t('portal.nav.themeLight', 'Tryb jasny') : t('portal.nav.themeDark', 'Tryb ciemny')}
+      {isDark ? <SunIcon className="size-[18px]" /> : <MoonIcon className="size-[18px]" />}
     </button>
   )
 }
@@ -492,7 +493,6 @@ export function PortalShell({
             )}
           </div>
         </div>
-        <PortalThemeToggle t={t} />
         <button
           type="button"
           onClick={onLogout}
@@ -537,6 +537,7 @@ export function PortalShell({
             </IconButton>
           </div>
           <div className="flex items-center gap-3">
+            <PortalThemeToggle t={t} />
             <PortalNotificationBell t={t} />
           </div>
         </header>
