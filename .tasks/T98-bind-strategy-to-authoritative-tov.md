@@ -1,6 +1,6 @@
 # T98 — Bind strategy and downstream work to the sole ToV specialist
 
-State: active (P0)
+State: active (P0; initial integration source checked, connected recovery/proof pending)
 Sources: F22-1, F23-1, F24-1, F24-2; explicit user architecture decision.
 Depends on: T97 case-bound specialist intake.
 
@@ -11,13 +11,20 @@ into research-owned documents. Missing corpus/result is an actionable native
 wait; the saved specialist outcome must continue the same case toward paired
 review. ToV corrections return to its specialist, never a research rewrite.
 
+The initial intake/strategy/downstream integration passed 22 focused suites /
+174 tests and app typecheck. Additive specialist-owned `revise` now reuses the
+same synthesizer and saved evidence, requires exact native-definition execution
+policy, preserves unaffected fields and writes an immutable version. Its two
+focused checks and app typecheck passed. It has no workflow caller yet and does
+not claim an enforced monetary cap or completed correction journey.
+
 Recovery still required (F22-1 AC4, F23-1 AC4, F24-1 AC2–3, F25-1 AC2):
 bind saved pair-QA findings or the authorized G client-change decision to the
 previous specialist version; request specialist-owned correction, preserve
 unaffected content/history, then reassess the exact new pair and request fresh
 client review. Current case-only intake replay and first-result continuation do
-not implement this. Agree additive specialist revision/caller contracts and
-explicit execution authority before edits; no competing writer or implicit
+not implement this. Connect the specialist revision contract and author explicit
+execution policy through the native workflow; no competing writer or implicit
 reuse of the initial phase's spending allowance.
 
 Owners: strategy/QA/pair projection (employee_process_delivery), scoped specialist

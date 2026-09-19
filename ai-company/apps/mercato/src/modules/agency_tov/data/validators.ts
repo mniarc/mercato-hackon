@@ -234,20 +234,6 @@ export type TovProfileSynthesizerResult = z.infer<typeof tovProfileSynthesizerRe
 // Agent 3 — brand synthesizer (reduce across authors → KLI-TOV)
 // ---------------------------------------------------------------------------
 
-export const tovBrandSynthesizerInputSchema = z.object({
-  brand: z.string().min(1),
-  outputLanguage: z.enum(tovOutputLanguages),
-  profiles: z
-    .array(
-      z.object({
-        profile: tovProfileMetaSchema,
-        voice: tovProfileVoiceSchema,
-      }),
-    )
-    .min(1),
-})
-export type TovBrandSynthesizerInput = z.infer<typeof tovBrandSynthesizerInputSchema>
-
 export const tovBrandPillarSchema = z.object({
   name: z.string().min(1),
   description: z.string().min(1),
@@ -320,6 +306,18 @@ export const tovBrandVoiceSchema = z.object({
   confidence,
 })
 export type TovBrandVoice = z.infer<typeof tovBrandVoiceSchema>
+
+export const tovRevisionFieldSchema = tovBrandVoiceSchema.omit({ brand: true }).keyof()
+export const tovBrandSynthesizerInputSchema = z.object({
+  brand: z.string().min(1),
+  outputLanguage: z.enum(tovOutputLanguages),
+  profiles: z.array(z.object({ profile: tovProfileMetaSchema, voice: tovProfileVoiceSchema })).min(1),
+  correction: z.object({
+    previousVersion: z.string().min(1), previous: tovBrandVoiceSchema,
+    instructions: z.string().min(1), affectedFields: z.array(tovRevisionFieldSchema).min(1),
+  }).optional(),
+})
+export type TovBrandSynthesizerInput = z.infer<typeof tovBrandSynthesizerInputSchema>
 
 export const tovBrandSynthesizerResult = z.object({
   kind: z.literal('research'),

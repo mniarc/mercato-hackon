@@ -8,9 +8,13 @@ import { runTovPipeline, type TovAgentRunner, type TovPipelineOptions, type TovP
 import { linkResolverFor, renderBrandTov, renderProfileVoice } from './tov/render'
 import { readTovDocumentVersion, type TovDocumentVersionRequest } from './documentVersion/read'
 import type { SpecialistTovDocument } from './documentVersion/contracts'
+import { runTovRevision } from './revision/run'
+import { readRevisionPolicy } from './revision/policy'
+import { tovRevisionRequestSchema, type TovRevisionInput, type TovRevisionResult } from './revision/contracts'
 
 export type { TovDocumentVersionRequest } from './documentVersion/read'
 export type { SpecialistTovDocument, SpecialistTovReference } from './documentVersion/contracts'
+export type { TovRevisionInput, TovRevisionRequest, TovRevisionResult } from './revision/contracts'
 
 export const AGENCY_TOV_RESEARCH_SERVICE = 'agencyTovResearchService' as const
 
@@ -32,6 +36,7 @@ export type TovResearchResult = {
 }
 export interface AgencyTovResearchService {
   run(input: TovResearchInput): Promise<TovResearchResult>
+  revise(input: TovRevisionInput): Promise<TovRevisionResult>
   /** Server-only: caller owns staff ACL or exact customer-task/case authorization. */
   getDocumentVersion(scope: TovScope, reference: TovDocumentVersionRequest): Promise<SpecialistTovDocument | null>
 }
@@ -104,6 +109,22 @@ export async function runStoredTovResearch(input: {
 
 export function createAgencyTovResearchService(container: Container): AgencyTovResearchService {
   return {
+    async revise(input) {
+      const { context } = input
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] ToV revision requires explicit execution scope')
+      const request = tovRevisionRequestSchema.parse(input.request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(context.userId, ['agency_tov.manage', 'agent_orchestrator.agents.run'], scope)) {
+        throw new Error('[internal] ToV revision execution is not authorized')
+      }
+      const em = (container.resolve('em') as EntityManager).fork()
+      const executionPolicy = await readRevisionPolicy(em, input)
+      if (!executionPolicy) return { status: 'not_configured', reason: 'revision_execution_not_authorized' }
+      const agentRunIds: string[] = []
+      return runTovRevision({ em, scope, request, executionPolicy, agentRunIds,
+        runAgent: createTovAgentRunner(container, context, agentRunIds) })
+    },
     async getDocumentVersion(scope, reference) {
       return readTovDocumentVersion((container.resolve('em') as EntityManager).fork(), scope, reference)
     },
