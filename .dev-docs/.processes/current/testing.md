@@ -48,6 +48,11 @@ do not use it to restart or maintain this daily environment.
 
 ## Daily loop
 
+Tests support feature delivery, not a separate workstream to manufacture coverage.
+Add a check only for a changed behavior or observed defect; do not expand harnesses,
+repeat passing checks, or hold unrelated features behind an unrelated test failure.
+State unproved runtime behavior plainly instead of presenting partial proof as a full pass.
+
 1. Start or attach to the development app. Initialize the owned database once.
 2. Edit code and use hot reload. Run generation only when discovered module files
    change; restart the app for configuration changes when needed.
@@ -55,6 +60,11 @@ do not use it to restart or maintain this daily environment.
    demo spec when the changed runtime seam needs proof, headed when requested.
 4. Fix the observed failure and rerun only the affected check. A failed assertion
    does not justify a rebuild, database recreation, or a full-suite run.
+
+Keep module activation flags identical for generation, app and runner. If changing
+the generated module set leaves Next reporting a missing server module factory,
+restart the app with the matching flags; preserve the database. This is not a
+reason to regenerate the database or weaken a portal assertion.
 
 The separate demo runner must pass the complete matching app environment to
 fixtures and workers: database, queue, auth/encryption configuration, and base

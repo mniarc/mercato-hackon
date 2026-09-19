@@ -35,6 +35,16 @@ runtime validation. Let useful parallel work finish unless it conflicts or is un
 
 ## Teammate branches
 
+- During active delivery, the Git owner fetches and compares `origin/main` and
+  the known teammate branches about every 30 minutes, and after a teammate
+  handoff. Keep the last check time in conversation state, not a new tracking
+  document. Integrate new work at the next safe coherent boundary; the cadence
+  never justifies overwriting dirty work or interrupting a running demo.
+- Treat teammate-owned implementations as authoritative over our overlapping
+  mocks/scaffolds. Remove the overlap and adapt our callers. Change teammate
+  behavior only for a demonstrated architectural/integration need, preserving
+  their feature intent; do not rewrite it for stylistic preference or old tests.
+
 - Use one named Git owner: the coordinator, or an explicitly delegated direct
   agent. Other agents keep to disjoint code paths and do not stage/commit/merge
   concurrently. Detached PowerShell workers do not own active integration.
