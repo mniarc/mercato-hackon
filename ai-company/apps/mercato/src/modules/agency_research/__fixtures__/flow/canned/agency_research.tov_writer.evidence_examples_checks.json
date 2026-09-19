@@ -1,0 +1,34 @@
+{
+  "kind": "research",
+  "data": {
+    "evidence_language": [
+      { "type": "fact", "pattern": "Na stronie FLOW opisano… / FLOW deklaruje, że… — z odniesieniem do konkretnego miejsca.", "forbidden_upgrade": "Fakt o deklaracji nie staje się faktem o skuteczności." },
+      { "type": "first_party_claim", "pattern": "Tak pracujemy: … — w pierwszej osobie, o metodzie.", "forbidden_upgrade": "Nie dopisywać „i to działa” bez przypadku." },
+      { "type": "hypothesis", "pattern": "Podejrzewamy, że… / Z naszych rozmów wynika hipoteza, że… — zawsze z oznaczeniem.", "forbidden_upgrade": "Hipoteza nie staje się „wiemy, że”." },
+      { "type": "illustrative_example", "pattern": "Wyobraź sobie firmę, która… — jawnie hipotetyczna sytuacja.", "forbidden_upgrade": "Przykład nie staje się historią klienta FLOW." },
+      { "type": "limitation", "pattern": "Nie wiemy jeszcze, czy… / To zależy od… — ograniczenie nazwane wprost.", "forbidden_upgrade": "Ograniczenia nie ukrywa się w przypisie." }
+    ],
+    "before_after": [
+      { "before": "Oferujemy kompleksowe rozwiązania dopasowane do potrzeb biznesu.", "after": "Zaczynamy od rozpoznania: czego potrzebują użytkownicy, jaki jest cel, jak pracujecie i co jest technicznie możliwe.", "changed_principle": "Konkretny", "fact_ids": ["F03"] },
+      { "before": "Nasze wdrożenia AI zwiększają efektywność zespołów.", "after": "AI wchodzi do projektu tylko wtedy, gdy ma uzasadnienie biznesowe; czasem lepsze jest rozwiązanie bez AI.", "changed_principle": "Uczciwy wobec dowodów", "fact_ids": ["F05"] },
+      { "before": "Prześlij specyfikację, a przygotujemy wycenę.", "after": "Nie masz specyfikacji? Opisz, co nie działa — od tego zaczynamy.", "changed_principle": "Ciekawy problemu", "fact_ids": ["F44"] }
+    ],
+    "context_rules": [
+      { "situation": "Wyjaśnianie metody", "tone_and_example": "Spokojnie, krok po kroku: „Najpierw pytamy, kto i po co korzysta z procesu.”", "boundary": "Bez nazw własnych metod, których nie ma w rejestrze." },
+      { "situation": "Zaproszenie do kontaktu", "tone_and_example": "Bezpośrednio, bez nacisku: „Jeśli to brzmi znajomo, napisz — porozmawiamy o problemie.”", "boundary": "Bez obietnicy czasu odpowiedzi ani darmowej konsultacji." },
+      { "situation": "Odpowiedź na sceptycyzm", "tone_and_example": "Przyznaj rację w części: „Tak, rozpoznanie kosztuje czas — dlatego pytamy tylko o to, co zmienia decyzję.”", "boundary": "Bez porównań z konkurencją." },
+      { "situation": "Brak danych", "tone_and_example": "Wprost: „Nie mamy jeszcze liczb, które by to potwierdzały.”", "boundary": "Nie zastępować liczb ogólnikami o skuteczności." }
+    ],
+    "copy_checks": [
+      "Czy pierwsze zdanie nazywa sytuację lub decyzję odbiorcy?",
+      "Czy każdy termin techniczny jest wyjaśniony w tym samym zdaniu?",
+      "Czy tekst mówi o metodzie FLOW, a nie o wynikach klientów?",
+      "Czy każda hipoteza jest oznaczona jako hipoteza?",
+      "Czy w tekście nie ma słów z listy zakazanych klisz?",
+      "Czy zaproszenie do kontaktu nie obiecuje czasu odpowiedzi ani gratisu?",
+      "Czy tekst nie sugeruje wyłączności podejścia FLOW?",
+      "Czy AI pojawia się tylko z uzasadnieniem biznesowym?",
+      "Czy liczby w tekście mają fakt w rejestrze?"
+    ]
+  }
+}

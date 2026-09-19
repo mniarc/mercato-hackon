@@ -20,6 +20,20 @@ import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
+import { runStrategyStep } from './research/steps/strategy'
+import { runTovStep } from './research/steps/tov'
+import { runStrategyQaLoop } from './research/steps/strategyQa'
+import { runPlanStep } from './research/steps/plan'
+import { runPlanQaLoop } from './research/steps/planQa'
+import { runSelectionStep } from './research/steps/selection'
+import { runPostInstructionStep } from './research/steps/postInstruction'
+import { runPostStep } from './research/steps/post'
+import { runPostQaLoop } from './research/steps/postQa'
+import { runPublicationConfigStep } from './research/steps/publicationConfig'
+import { runPublicationOrderStep } from './research/steps/publicationOrder'
+import { runPublicationConfirmationStep } from './research/steps/publicationConfirmation'
+import { runPackageStep } from './research/steps/package'
+import { runClosureStep } from './research/steps/closure'
 import { createOrchestratorRunner } from './runners'
 import { AgencyResearchDocumentVersion } from '../data/entities'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
@@ -39,6 +53,8 @@ export type RunResearchOptions = {
   socialPosts?: SocialPost[]
   pages?: string[]
   through: ResearchStep
+  /** 6.5 — the client's plan selection; null = simulated selection of the recommendation. */
+  selectedTopicId?: string | null
   maxCostPln?: number
   cache?: PipelineCache
   concurrency?: number
@@ -102,8 +118,8 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
 }
 
 /**
- * Shared CLI/server composition of the process: 3.1 pins the order as a document
- * version, then the steps run in STD-PROCES order up to `through`, each as a task
+ * Shared CLI/server composition of the process (P3 → P9): 3.1 pins the order as a
+ * document version, then the steps run in STD-PROCES order up to `through`, each as a task
  * run that starts `running` and ends done / failed / paused_budget with its ledger.
  * A budget pause ends the run cleanly; any other error is re-thrown after the
  * task run has recorded it. Agents remain read-only throughout.
@@ -160,10 +176,15 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     pages: opts.pages,
     repairFindings: [],
     attempt: 1,
+    selectedTopicId: opts.selectedTopicId ?? null,
   }
 
   let qaVerdict: 'ready' | 'to_fix' | 'exception' | undefined
   let briefQaVerdict: 'ready_for_approval' | 'needs_client_data' | 'needs_agent_fix' | undefined
+  let strategyQaVerdict: 'ready_for_approval' | 'needs_agent_fix' | undefined
+  let planQaVerdict: 'ready_for_approval' | 'needs_agent_fix' | undefined
+  let postQaVerdict: 'pass_for_draft' | 'needs_fix' | 'reject' | undefined
+  let closeAllowed: boolean | undefined
   let escalationVersionId: string | undefined
   const chain: { step: ResearchStep; run: (ctx: StepContext) => Promise<StepOutcome | null> }[] = [
     { step: '3.2', run: runSourcesStepDb },
@@ -196,6 +217,62 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
         return { taskRunId: qa.taskRunId, versionId: qa.briefVersionId, status: qa.verdict === 'needs_agent_fix' ? 'to_fix' : 'done' }
       },
     },
+    {
+      // 5.2 strategy → 5.3 ToV → 5.4 Q-S on the pair (repairs ≤ 2, then E.1). Approval 5.5 belongs to the spine;
+      // every consumer below runs in simulation until the client has approved.
+      step: '5.4',
+      run: async (c) => {
+        await runStrategyStep(c)
+        await runTovStep(c)
+        const qa = await runStrategyQaLoop(c, { strategyStep: runStrategyStep, tovStep: runTovStep })
+        strategyQaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
+        return { taskRunId: qa.taskRunId, versionId: qa.strategyVersionId, status: qa.verdict === 'ready_for_approval' ? 'done' : 'to_fix' }
+      },
+    },
+    {
+      // 6.2 plan → 6.3 Q-P → 6.5 selection (client's topic or the recommendation, simulated) → 6.7 post instruction (code only).
+      step: '6.7',
+      run: async (c) => {
+        await runPlanStep(c)
+        const qa = await runPlanQaLoop(c, { planStep: runPlanStep })
+        planQaVerdict = qa.verdict
+        if (qa.verdict !== 'ready_for_approval') return { taskRunId: qa.taskRunId, versionId: qa.planVersionId, status: 'to_fix' }
+        const selection = await runSelectionStep(c)
+        if (selection.status !== 'done') return null
+        return runPostInstructionStep(c)
+      },
+    },
+    {
+      // 7.2 post by the isolated author → 7.3 independent editor (repairs ≤ 2, then E.1).
+      step: '7.3',
+      run: async (c) => {
+        await runPostStep(c)
+        const qa = await runPostQaLoop(c, { postStep: runPostStep })
+        postQaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
+        return { taskRunId: qa.taskRunId, versionId: qa.postVersionId, status: qa.verdict === 'pass_for_draft' ? 'done' : 'to_fix' }
+      },
+    },
+    {
+      // 8.2 configuration → 8.3 publication order + preflight → 8.7 confirmation. Documents only: nothing is sent.
+      step: '8.7',
+      run: async (c) => {
+        await runPublicationConfigStep(c)
+        await runPublicationOrderStep(c)
+        return runPublicationConfirmationStep(c)
+      },
+    },
+    {
+      // 9.1 package → 9.3 closure gate (recorded on the task run; the spine owns order closure).
+      step: '9.3',
+      run: async (c) => {
+        await runPackageStep(c)
+        const closure = await runClosureStep(c)
+        closeAllowed = closure.closeAllowed
+        return { taskRunId: closure.taskRunId, versionId: closure.versionId, status: 'done' }
+      },
+    },
   ]
   let completedThrough: ResearchStep | null = null
   let currentStep: ResearchStep = '3.2'
@@ -224,7 +301,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     })
     escalationVersionId = escalation.versionId
   }
-  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, briefQaVerdict, escalationVersionId }
+  return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, briefQaVerdict, strategyQaVerdict, planQaVerdict, postQaVerdict, closeAllowed, escalationVersionId }
 }
 
 type Container = { resolve(name: string): unknown }
@@ -256,21 +333,24 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         socialPosts: parsed.socialPosts,
         pages: parsed.pages,
         through: parsed.through,
+        selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,
         agentRunIds,
       })
-      return { taskRunIds: outcome.taskRunIds, documentVersionIds: outcome.documentVersionIds, agentRunIds: outcome.agentRunIds, spentPln: outcome.spentPln, completedThrough: outcome.completedThrough, qaVerdict: outcome.qaVerdict, briefQaVerdict: outcome.briefQaVerdict, escalationVersionId: outcome.escalationVersionId }
+      const { versionsByStep: _versionsByStep, ...result } = outcome
+      return result
     },
     async getClientView(scope, orderRef, templateId) {
       const em = (container.resolve('em') as EntityManager).fork()
-      const brief = await currentInputVersion(em, scope, orderRef, templateId)
-      if (!brief) return { status: 'not_ready' }
-      const version = await em.findOne(AgencyResearchDocumentVersion, { id: brief.versionId })
-      const ustalenia = await currentInputVersion(em, scope, orderRef, 'WZR-USTALENIA')
+      const current = await currentInputVersion(em, scope, orderRef, templateId)
+      if (!current) return { status: 'not_ready' }
+      const version = await em.findOne(AgencyResearchDocumentVersion, { id: current.versionId })
+      // Only the brief carries the first-contact questions; every other client view is its projection alone.
+      const ustalenia = templateId === 'WZR-BRIEF' ? await currentInputVersion(em, scope, orderRef, 'WZR-USTALENIA') : null
       const questions = ustalenia ? firstContactQuestions(ustalenia.data as UstaleniaData) : []
       return {
-        status: brief.status ?? 'draft',
-        version: brief.version,
+        status: current.status ?? 'draft',
+        version: current.version,
         client_view_md: version?.clientViewMd ?? null,
         questions: questions.map((q) => ({ question_id: q.question_id, question: q.question, hint: q.hint, reason: q.reason, brief_field: q.brief_field, priority: q.priority })),
       }

@@ -1,0 +1,264 @@
+{
+  "kind": "research",
+  "data": {
+    "topics": [
+      {
+        "local_ref": "T-G",
+        "day": 17,
+        "pillar_id": "PL01",
+        "audience_question": "Ile to kosztuje i od czego zależy?",
+        "topic": "Cena po diagnozie",
+        "main_message": "Cenę ustala się po diagnozie, bo dopiero wtedy znany jest zakres.",
+        "format": "text",
+        "angle": {
+          "tool": "Trzy zmienne wyceny",
+          "steps": [
+            "Zakres etapów.",
+            "Liczba badanych grup.",
+            "Gotowe elementy do ponownego użycia."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL03"
+        ],
+        "seed_ids": [
+          "T07"
+        ],
+        "fact_ids": [
+          "F06"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Wycena następuje po diagnozie zakresu; brak cennika publicznego.",
+        "evidence_limits": "Nie podawać kwot, widełek ani czasu realizacji.",
+        "post_goal": "Uprzedzić pytanie o cenę bez obietnicy.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-H",
+        "day": 19,
+        "pillar_id": "PL02",
+        "audience_question": "Jak brzmi „produkt cyfrowy” w praktyce?",
+        "topic": "Produkt cyfrowy bez żargonu",
+        "main_message": "Produkt cyfrowy to narzędzie, którego ktoś używa, żeby wykonać pracę — nie technologia.",
+        "format": "text",
+        "angle": {
+          "tool": "Test jednego zdania",
+          "steps": [
+            "Kto używa.",
+            "Do czego.",
+            "Co się zmienia po użyciu."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL02"
+        ],
+        "seed_ids": [
+          "T10"
+        ],
+        "fact_ids": [
+          "F01",
+          "F02"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Firma projektuje i wdraża produkty cyfrowe łącząc badania, projektowanie i technologię.",
+        "evidence_limits": "Nie wymieniać klientów ani wdrożeń bez faktu w rejestrze.",
+        "post_goal": "Przetłumaczyć ofertę na język odbiorcy.",
+        "cta": "Jak jednym zdaniem opisałbyś narzędzie, którego brakuje w Twoim zespole?",
+        "cta_type": "question",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-I",
+        "day": 21,
+        "pillar_id": "PL03",
+        "audience_question": "Jak szybko zobaczymy prototyp?",
+        "topic": "Prototyp zanim kod",
+        "main_message": "Prototyp pokazuje decyzje, zanim powstanie kod, ale jego termin zależy od zakresu diagnozy.",
+        "format": "text",
+        "angle": {
+          "tool": "Co prototyp odpowiada, a czego nie",
+          "steps": [
+            "Czy ludzie rozumieją ekran.",
+            "Czy krok ma sens w procesie.",
+            "Nie: czy system wytrzyma obciążenie."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T11"
+        ],
+        "fact_ids": [
+          "F03",
+          "F08"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Prototypy służą sprawdzeniu rozwiązania z użytkownikami przed wdrożeniem.",
+        "evidence_limits": "Nie podawać liczby dni do prototypu.",
+        "post_goal": "Ustawić oczekiwania wobec prototypu.",
+        "cta": "Co chcielibyście sprawdzić na prototypie w pierwszej kolejności?",
+        "cta_type": "question",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-J",
+        "day": 24,
+        "pillar_id": "PL01",
+        "audience_question": "Jak rozmawiać o budżecie z zespołem, który boi się zmiany?",
+        "topic": "Budżet i obawa zespołu",
+        "main_message": "Rozmowa o budżecie zaczyna się od kosztu obecnego sposobu pracy, nie od ceny narzędzia.",
+        "format": "text",
+        "angle": {
+          "tool": "Rachunek status quo",
+          "steps": [
+            "Ile czasu zajmuje obejście problemu.",
+            "Kto ponosi ten koszt.",
+            "Co się stanie za rok bez zmiany."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T13"
+        ],
+        "fact_ids": [
+          "F03",
+          "F09"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Punktem wyjścia jest potrzeba w procesie; koszt status quo pochodzi z obserwacji zespołu.",
+        "evidence_limits": "Nie liczyć oszczędności w procentach ani złotych.",
+        "post_goal": "Dać argument wewnętrzny osobie inicjującej zmianę.",
+        "cta": "Ile kosztuje Was dziś obejście problemu?",
+        "cta_type": "reflection",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-K",
+        "day": 27,
+        "pillar_id": "PL02",
+        "audience_question": "Kto powinien odpowiadać za wdrożenie po stronie firmy?",
+        "topic": "Role po stronie klienta",
+        "main_message": "Wdrożenie wymaga osoby, która zna proces, i osoby, która decyduje — rzadko tej samej.",
+        "format": "text",
+        "angle": {
+          "tool": "Mapa trzech ról",
+          "steps": [
+            "Kto zna proces.",
+            "Kto decyduje.",
+            "Kto będzie używać."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL03"
+        ],
+        "seed_ids": [
+          "T09"
+        ],
+        "fact_ids": [
+          "F04",
+          "F10"
+        ],
+        "proof_ids": [
+          "P02"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Współpraca przebiega etapami z udziałem zespołu klienta.",
+        "evidence_limits": "Nie opisywać ról klienta jako standardu firmy; to propozycja.",
+        "post_goal": "Przygotować odbiorcę do współpracy.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-L",
+        "day": 30,
+        "pillar_id": "PL03",
+        "audience_question": "Co, jeśli po diagnozie okaże się, że narzędzie nie jest potrzebne?",
+        "topic": "Wynik: nie budować",
+        "main_message": "Diagnoza może wskazać, że lepsza jest zmiana w procesie niż nowe narzędzie.",
+        "format": "text",
+        "angle": {
+          "tool": "Trzy wyniki diagnozy",
+          "steps": [
+            "Zbuduj.",
+            "Zmień proces.",
+            "Poczekaj i zmierz."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL02"
+        ],
+        "seed_ids": [
+          "T08"
+        ],
+        "fact_ids": [
+          "F05",
+          "F11"
+        ],
+        "proof_ids": [
+          "P02"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Rozwiązanie dobierane jest do uzasadnienia biznesowego, także bez nowej technologii.",
+        "evidence_limits": "Nie twierdzić, że firma odradza projekty częściej niż inni.",
+        "post_goal": "Zbudować zaufanie przez uczciwy wynik diagnozy.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      }
+    ]
+  }
+}

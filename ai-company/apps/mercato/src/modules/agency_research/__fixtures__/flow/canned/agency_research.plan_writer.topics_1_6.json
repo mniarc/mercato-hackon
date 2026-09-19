@@ -1,0 +1,265 @@
+{
+  "kind": "research",
+  "data": {
+    "topics": [
+      {
+        "local_ref": "T-A",
+        "day": 1,
+        "pillar_id": "PL01",
+        "audience_question": "Od czego zacząć, gdy chcemy nowego narzędzia?",
+        "topic": "Problem przed narzędziem",
+        "main_message": "Zanim wybierzesz technologię, opisz sytuację, użytkownika, cel i ograniczenia.",
+        "format": "text",
+        "angle": {
+          "tool": "Cztery pytania przed wyborem technologii",
+          "steps": [
+            "Nazwij sytuację, którą chcesz zmienić.",
+            "Zapisz, kto z niej korzysta i co próbuje zrobić.",
+            "Opisz oczekiwaną zmianę biznesową.",
+            "Wypisz ograniczenia organizacji i technologii."
+          ],
+          "status": "creative_proposal",
+          "example": {
+            "text": "Wyobraźmy sobie firmę, która chce aplikacji, a najpierw opisuje, gdzie zatrzymuje się obsługa zamówienia.",
+            "status": "hypothetical_not_customer_case"
+          }
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T01"
+        ],
+        "fact_ids": [
+          "F03"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Punktem wyjścia są potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne.",
+        "evidence_limits": "Nie twierdzić, że diagnoza zawsze obniża koszt ani że checklista jest oficjalnym artefaktem firmy.",
+        "post_goal": "Nazwać problem przed specyfikacją.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-B",
+        "day": 4,
+        "pillar_id": "PL02",
+        "audience_question": "Czy musimy mieć specyfikację, żeby rozmawiać z dostawcą?",
+        "topic": "Rozmowa bez specyfikacji",
+        "main_message": "Do rozmowy wystarczy opisany problem; specyfikacja powstaje w trakcie pracy.",
+        "format": "text",
+        "angle": {
+          "tool": "Trzy zdania zamiast specyfikacji",
+          "steps": [
+            "Co dziś nie działa i dla kogo.",
+            "Co próbowaliście już zmienić.",
+            "Czego nie wiecie o przyczynie."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T02"
+        ],
+        "fact_ids": [
+          "F04"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Można zgłosić się bez gotowej specyfikacji; zakres ustala się w diagnozie.",
+        "evidence_limits": "Nie obiecywać, że specyfikacja powstanie w określonym czasie ani bezpłatnie.",
+        "post_goal": "Obniżyć próg pierwszego kontaktu.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-C",
+        "day": 7,
+        "pillar_id": "PL03",
+        "audience_question": "Kiedy AI ma sens w naszym procesie?",
+        "topic": "AI z uzasadnieniem",
+        "main_message": "Sztuczna inteligencja wchodzi do procesu tylko wtedy, gdy ma uzasadnienie biznesowe.",
+        "format": "text",
+        "angle": {
+          "tool": "Test uzasadnienia dla AI",
+          "steps": [
+            "Jaką decyzję lub czynność ma wspierać.",
+            "Jakie dane już istnieją.",
+            "Co się stanie, gdy model się pomyli."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL02"
+        ],
+        "seed_ids": [
+          "T03"
+        ],
+        "fact_ids": [
+          "F05"
+        ],
+        "proof_ids": [
+          "P02"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Rozwiązania z AI powstają tam, gdzie mają uzasadnienie biznesowe; dopuszcza się rozwiązania bez AI.",
+        "evidence_limits": "Nie podawać procentowych oszczędności ani liczby wdrożeń AI.",
+        "post_goal": "Odczarować AI jako cel sam w sobie.",
+        "cta": "Które zadanie w Twoim procesie chciałbyś sprawdzić pod kątem AI?",
+        "cta_type": "question",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-D",
+        "day": 10,
+        "pillar_id": "PL01",
+        "audience_question": "Jak sprawdzić założenie, zanim wydamy budżet?",
+        "topic": "Założenie do sprawdzenia",
+        "main_message": "Najtańszy moment na sprawdzenie założenia jest przed budowaniem.",
+        "format": "text",
+        "angle": {
+          "tool": "Karta jednego założenia",
+          "steps": [
+            "Zapisz założenie jednym zdaniem.",
+            "Wskaż, kto może je obalić.",
+            "Ustal najmniejszy test."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T04"
+        ],
+        "fact_ids": [
+          "F03",
+          "F06"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Badania i prototypy służą sprawdzeniu założeń przed wdrożeniem.",
+        "evidence_limits": "Nie twierdzić, że każde założenie da się sprawdzić w tydzień.",
+        "post_goal": "Pokazać badanie jako oszczędność ryzyka, nie koszt.",
+        "cta": "Jakie założenie w Waszym projekcie nikt jeszcze nie sprawdził?",
+        "cta_type": "reflection",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-E",
+        "day": 12,
+        "pillar_id": "PL02",
+        "audience_question": "Co składa się na diagnozę przed projektem?",
+        "topic": "Cztery obszary diagnozy",
+        "main_message": "Diagnoza obejmuje potrzeby, cel, organizację pracy i technologię — w tej kolejności.",
+        "format": "text",
+        "angle": {
+          "tool": "Mapa czterech obszarów",
+          "steps": [
+            "Potrzeby ludzi w procesie.",
+            "Cel biznesowy zmiany.",
+            "Sposób pracy zespołu.",
+            "Możliwości techniczne."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL01"
+        ],
+        "seed_ids": [
+          "T05"
+        ],
+        "fact_ids": [
+          "F03"
+        ],
+        "proof_ids": [
+          "P01"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Diagnoza łączy potrzeby użytkowników z celem biznesowym, organizacją pracy i technologią.",
+        "evidence_limits": "Nie przedstawiać diagnozy jako gwarancji trafnego wyboru.",
+        "post_goal": "Wyjaśnić, co dzieje się na początku współpracy.",
+        "cta": "Masz konkretną trudność w procesie? Napisz do nas przez stronę.",
+        "cta_type": "contact",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      },
+      {
+        "local_ref": "T-F",
+        "day": 15,
+        "pillar_id": "PL03",
+        "audience_question": "Cały cykl czy jeden etap — jak wybrać model współpracy?",
+        "topic": "Etap albo całość",
+        "main_message": "Można zamówić jeden etap albo cały cykl; wybór zależy od tego, czego brakuje w zespole.",
+        "format": "text",
+        "angle": {
+          "tool": "Dwie kolumny brakujących kompetencji",
+          "steps": [
+            "Co zespół robi sam.",
+            "Czego brakuje na każdym etapie."
+          ],
+          "status": "creative_proposal",
+          "example": null
+        },
+        "claim_ids": [
+          "CL03"
+        ],
+        "seed_ids": [
+          "T06"
+        ],
+        "fact_ids": [
+          "F05",
+          "F07"
+        ],
+        "proof_ids": [
+          "P02"
+        ],
+        "source_ids": [
+          "S-01"
+        ],
+        "evidence_excerpt": "Oferta obejmuje cały cykl albo wybrany etap: badania, projektowanie, wdrożenie.",
+        "evidence_limits": "Nie sugerować, że cały cykl jest zawsze tańszy lub szybszy.",
+        "post_goal": "Pokazać elastyczność zakresu bez wyceny.",
+        "cta": "Który etap w Waszym projekcie utknął?",
+        "cta_type": "question",
+        "readiness": "ready",
+        "readiness_scope": "dowody w banku wystarczają do napisania postu",
+        "evidence_reuse_note": null
+      }
+    ]
+  }
+}

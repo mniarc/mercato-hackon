@@ -1,11 +1,12 @@
-# `agency_research` — audit and research agents (P3 → P4)
+# `agency_research` — the agency process agents (P3 → P9)
 
-The audit department of the AI agency: process steps 3.1–3.8 (sources, communication
-audit, competitors, findings map, QA, freeze) and 4.1–4.2 (brief, brief QA), built as
-an instance of the [`agency_tov` agent-module template](../agency_tov/README.md) on
-Rafał's document contracts v1.1 (`WZR-*` templates, COMMON-ENVELOPE).
-
-**Phase F06 (this version): step 3.2 — the source register `WEW-ZRODLA`.**
+The production side of the AI agency: process steps 3.1–3.8 (sources, communication
+audit, competitors, findings map, QA, freeze), 4.1–4.2 (brief, brief QA), 5.2–5.4
+(strategy, tone of voice, Q-S), 6.2–6.7 (plan, Q-P, selection, post instruction),
+7.2–7.3 (post, Q-T editor), 8.2–8.7 (publication documents — nothing is sent) and
+9.1–9.3 (package, closure gate), built as an instance of the
+[`agency_tov` agent-module template](../agency_tov/README.md) on Rafał's document
+contracts v1.1 (`WZR-*` templates, COMMON-ENVELOPE, STD-PROCES gates, STD-LIMITY).
 
 ## The pattern
 
@@ -77,6 +78,7 @@ OM_AGENCY_RESEARCH_USD_PLN=3.7
 OM_AGENCY_RESEARCH_MAX_COST_PLN=20
 OM_AGENCY_RESEARCH_MODEL_EXTRACT=openrouter/anthropic/claude-haiku-4.5      # optional overrides
 OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5
+OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
 ```
 
 `OM_ENABLE_ENTERPRISE_MODULES=true` and `OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true` gate the
@@ -121,7 +123,7 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 `toOrderData()`). The identity is a trusted server execution identity, checked against
 `agency_research.manage` + `agent_orchestrator.agents.run`.
 
-## The whole P3 → P4 chain (F06–F09)
+## The whole P3 → P9 chain
 
 | step | document | agents | gate highlights |
 |---|---|---|---|
@@ -134,12 +136,33 @@ The `order` is exactly what the customer portal's order form emits (`agency/…/
 | 3.8 | — (frozen set on the task run) | — | idempotent per set hash; only `status` changes |
 | 4.1 | `KLI-BRIEF` | brief_writer (3 section calls) | decision states from the map, two equal voice variants, rights copied from proof cards, CTA without owner blocks publication |
 | 4.2 | — (task run + `qa_result`) | brief_qa + validator | ready_for_approval / needs_client_data / needs_agent_fix; agent errors repaired ≤2, client gaps become the questions |
+| 5.2 | `KLI-STRATEGIA` | strategy_writer (3 section calls) | CL/PL ids minted in code, support level capped by the cited proof cards (no auto promotion), uniqueness never from a competitor's silence, "everyone else" alternative rejected |
+| 5.3 | `KLI-TOV` | tov_writer (2 section calls) | 4 principles, 5 axes, 5 evidence-language types, 3 before/after pairs grounded only when facts resolve, 6–8 copy checks |
+| 5.4 | — (task run + `qa_result`) | strategy_qa + validator | Q-S on the pair: ready_for_approval / needs_agent_fix; repairs ≤2 through 5.2/5.3, then E.1 |
+| 6.2 | `KLI-PLAN` | plan_writer (3 section calls) | TOP ids by day, 12 distinct topics (word-set similarity < 0.6), pillar balance, every id resolves |
+| 6.3 | — (task run + `qa_result`) | plan_qa + validator | Q-P: exactly 12 `ready` topics before the plan may be approved; repairs ≤2 |
+| 6.5 | `KLI-PLAN` (new version) | — | `--topic TOPxx` = client selection; otherwise the recommendation as `simulated_selection`, `real_approval: false` |
+| 6.7 | `WEW-ZLECENIE-POSTU` | — (code only) | evidence cards carry the texts, rights copied from proof cards, ≤5 voice rules, adapter limits from `data/adapters.ts`, 7 completion lines |
+| 7.2 | `KLI-POST` | post_author (isolated: instruction + ToV only) | fragments verbatim in the text, links only from the instruction, numbers only from evidence, prohibited claims, metrics in code |
+| 7.3 | `KLI-POST` (new version per pass) | post_editor + validator | Q-T: pass_for_draft / needs_fix / reject; repairs ≤2, then E.1 `qa_exhausted` |
+| 8.2 | `WEW-KONFIG-PUBLIKACJI` | — | platform from the adapter catalog, ids null (a name is not an id), connection never a secret, readiness `not_ready` with blockers |
+| 8.3 | `WEW-ZLECENIE-PUBLIKACJI` | — | content hash, idempotency key, content approval ≠ publication consent (both `missing` without real records), nine preflight gates, hold from open E.1 |
+| 8.7 | `WEW-POTWIERDZENIE-PUBLIKACJI` | — | always `not_executed` here; external id / URL null; `retry_allowed: false`; where an adapter would plug in: `lib/research/publication.ts` |
+| 9.1 | `KLI-PAKIET` | — | manifest over current versions, 3–5 audit takeaways from gaps + implications, limitations, completion check |
+| 9.3 | — (task run + `qa_result`) | — | deterministic closure gate: payment, completion, publication, delivery, no blockers → `close_allowed` |
 
-`run --through 3.2 | 3.5 | 3.8 | 4.2`; `status`, `escalations`. API: `GET /api/agency_research/documents`,
+**Simulation.** No client approval exists in this lane, so every consumer of an unapproved `KLI-*` document
+saves its output with `simulation_flag: true` and a `SIMULATED_INPUT` issue (`lib/research/simulation.ts`); a
+synthetic approval is never recorded as a decision, publication consent stays `missing`, and the package's
+`close_allowed` is false until the spine records real approvals, a confirmed publication and a delivery.
+
+`run --through 3.2 | 3.5 | 3.8 | 4.2 | 5.4 | 6.7 | 7.3 | 8.7 | 9.3 [--topic TOP03]`; `status`, `escalations`.
+Expected live cost beyond 4.2: ≈ 9 Sonnet + 3 Haiku calls (P5–P7) plus repairs; P6.7, P8 and P9 are code only. API: `GET /api/agency_research/documents`,
 `document-versions`, `task-runs` (staff, `agency_research.documents.view`) and the portal route
 `GET /api/agency_research/portal/brief?order_ref=` (customer JWT; returns only the client view and the ≤8
 questions — the surface Krysia's portal renders; ownership hook `assertCustomerOwnsOrder` is a TODO until orders
-are persisted). The service exposes `getClientView(scope, orderRef, 'WZR-BRIEF')` for the same.
+are persisted). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
+`WZR-PLAN`, `WZR-POST` and `WZR-PAKIET` (questions only for the brief).
 
 Everything the process needs from the client (4.3–4.7 approvals, G requests) stays with the spine; this lane hands
 over `(task_run_id, version_id)` references and the client projections.

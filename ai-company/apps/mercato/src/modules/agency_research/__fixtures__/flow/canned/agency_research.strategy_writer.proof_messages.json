@@ -1,0 +1,55 @@
+{
+  "kind": "research",
+  "data": {
+    "proof_architecture": [
+      {
+        "local_ref": "UVP",
+        "allowed_claim": "FLOW zaczyna od rozpoznania problemu w czterech obszarach, zanim zaproponuje rozwiązanie.",
+        "mechanism": "Diagnoza potrzeb, celu, organizacji i techniki przed decyzją o narzędziu.",
+        "proof_ids": ["P01"],
+        "fact_ids": ["F03", "F04"],
+        "source_ids": ["S-01"],
+        "status": "declared_method",
+        "limitations": ["Metoda jest deklaracją ze strony; brak opisanego przypadku z wynikiem"],
+        "forbidden_claim": "Nie twierdzić, że rozpoznanie gwarantuje trafną decyzję ani że inni tego nie robią.",
+        "confirmation_owner": "none_needed"
+      },
+      {
+        "local_ref": "CL-A",
+        "allowed_claim": "Można zgłosić się do FLOW bez gotowej specyfikacji.",
+        "mechanism": "Pierwszy kontakt to rozmowa o problemie, nie wycena dokumentu.",
+        "proof_ids": ["P01"],
+        "fact_ids": ["F04"],
+        "source_ids": ["S-01"],
+        "status": "declared_method",
+        "limitations": ["Deklaracja procesu; nie wiemy, jak wygląda w praktyce"],
+        "forbidden_claim": "Nie obiecywać darmowej konsultacji ani czasu odpowiedzi.",
+        "confirmation_owner": "client"
+      },
+      {
+        "local_ref": "CL-B",
+        "allowed_claim": "FLOW stosuje AI tylko wtedy, gdy ma to uzasadnienie biznesowe.",
+        "mechanism": "Rozwiązania z AI i bez AI są równoprawne; wybór wynika z diagnozy.",
+        "proof_ids": ["P02"],
+        "fact_ids": ["F05"],
+        "source_ids": ["S-01"],
+        "status": "documented_capability",
+        "limitations": ["Brak przykładu wdrożenia AI"],
+        "forbidden_claim": "Nie sugerować doświadczenia we wdrożeniach AI bez przypadku.",
+        "confirmation_owner": "client"
+      }
+    ],
+    "message_hierarchy": {
+      "main_promise": {
+        "text": "Zanim wybierzesz narzędzie, rozpoznaj problem — FLOW pomaga to zrobić w czterech obszarach.",
+        "status": "demonstrated_result",
+        "claim_refs": ["UVP"]
+      },
+      "supporting_messages": [
+        { "order": 1, "text": "Nie potrzebujesz specyfikacji, żeby zacząć rozmowę.", "claim_refs": ["CL-A"], "fact_ids": ["F04"] },
+        { "order": 2, "text": "AI pojawia się tylko tam, gdzie ma sens biznesowy.", "claim_refs": ["CL-B", "CL-Z"], "fact_ids": ["F05"] }
+      ],
+      "explanation_order": ["problem odbiorcy", "cztery obszary rozpoznania", "co z tego wynika dla decyzji", "zaproszenie do rozmowy"]
+    }
+  }
+}

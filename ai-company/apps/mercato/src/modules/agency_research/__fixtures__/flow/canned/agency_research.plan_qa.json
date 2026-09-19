@@ -1,0 +1,47 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "needs_agent_fix",
+      "summary": "Sprawdzono plan v1 na tle strategii i banku dowodów; jedna luka redakcyjna w ujęciu.",
+      "findings": [
+        {
+          "code": "other",
+          "path": "KLI-PLAN.topics[TOP02].angle",
+          "severity": "blocking",
+          "gap": "Ujęcie nie mówi, co odbiorca ma zrobić z trzema zdaniami.",
+          "owner": "agent",
+          "fix_step": "6.2",
+          "fix_hint": "Dodaj, gdzie zapisać zdania i po co."
+        },
+        {
+          "code": "other",
+          "path": "SOMEWHERE-ELSE.x",
+          "severity": "minor",
+          "gap": "ścieżka spoza dokumentów — do odrzucenia przez bramkę",
+          "owner": "agent",
+          "fix_step": "6.2",
+          "fix_hint": null
+        }
+      ]
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "ready_for_approval",
+      "summary": "Plan v2: dwanaście odrębnych pytań, filary zrównoważone, rekomendowany temat ma komplet dowodów w banku.",
+      "findings": [
+        {
+          "code": "other",
+          "path": "KLI-PLAN.balance.evidence_diversity",
+          "severity": "minor",
+          "gap": "Wiele tematów wraca do jednej deklaracji; warto to powiedzieć klientowi wprost.",
+          "owner": "agent",
+          "fix_step": null,
+          "fix_hint": null
+        }
+      ]
+    }
+  }
+]

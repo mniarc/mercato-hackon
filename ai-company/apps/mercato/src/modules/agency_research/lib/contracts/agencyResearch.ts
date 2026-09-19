@@ -10,8 +10,19 @@ import { orderDataSchema } from '../../data/schemas/zamowienie'
 
 export const AGENCY_RESEARCH_SERVICE = 'agencyResearchService' as const
 
-export const researchSteps = ['3.2', '3.5', '3.8', '4.2'] as const
+/**
+ * The checkpoints a run can stop at, in STD-PROCES order. Each is the last step of
+ * a phase: 3.2 sources · 3.5 audit + comparison · 3.8 findings, QA, freeze ·
+ * 4.2 brief + QA · 5.4 strategy, ToV + Q-S · 6.7 plan, Q-P, selection, post
+ * instruction · 7.3 post + Q-T · 8.7 publication documents (nothing is sent) ·
+ * 9.3 package + closure gate.
+ */
+export const researchSteps = ['3.2', '3.5', '3.8', '4.2', '5.4', '6.7', '7.3', '8.7', '9.3'] as const
 export type ResearchStep = (typeof researchSteps)[number]
+
+/** Client-facing documents the portal may render through `getClientView`. */
+export const clientViewTemplates = ['WZR-BRIEF', 'WZR-STRATEGIA', 'WZR-TOV', 'WZR-PLAN', 'WZR-POST', 'WZR-PAKIET'] as const
+export type ClientViewTemplate = (typeof clientViewTemplates)[number]
 
 export const researchRunRequestSchema = z.object({
   /** The order (or case) the documents belong to; text, tenant-scoped. */
@@ -39,6 +50,8 @@ export const researchRunRequestSchema = z.object({
   pages: z.array(z.string().min(1)).optional(),
   /** Per-run spend cap in PLN; the module default applies when omitted. */
   maxCostPln: z.number().positive().optional(),
+  /** 6.5 — the plan topic the client selected (`TOP01`…); absent = the recommendation as a simulated selection. */
+  selectedTopicId: z.string().min(1).optional(),
 })
 export type ResearchRunRequest = z.infer<typeof researchRunRequestSchema>
 
@@ -54,6 +67,14 @@ export type ResearchRunResult = {
   qaVerdict?: 'ready' | 'to_fix' | 'exception'
   /** 4.2 verdict when brief QA ran. */
   briefQaVerdict?: 'ready_for_approval' | 'needs_client_data' | 'needs_agent_fix'
+  /** 5.4 verdict when Q-S ran. */
+  strategyQaVerdict?: 'ready_for_approval' | 'needs_agent_fix'
+  /** 6.3 verdict when Q-P ran. */
+  planQaVerdict?: 'ready_for_approval' | 'needs_agent_fix'
+  /** 7.3 verdict when Q-T ran. */
+  postQaVerdict?: 'pass_for_draft' | 'needs_fix' | 'reject'
+  /** 9.3 — the deterministic closure gate; false while anything is simulated, unpublished or undelivered. */
+  closeAllowed?: boolean
   /** The WEW-ESKALACJA version opened by E.1 (QA exhausted, exception or budget), when any. */
   escalationVersionId?: string
 }
@@ -68,7 +89,7 @@ export type ResearchExecutionContext = {
   invocationId?: string
 }
 
-/** What the customer portal renders for a brief: the projection, never the internal data. */
+/** What the customer portal renders for a client-facing document: the projection, never the internal data. */
 export type ClientView =
   | { status: 'not_ready' }
   | {
@@ -80,8 +101,8 @@ export type ClientView =
 
 export interface AgencyResearchService {
   run(input: { context: ResearchExecutionContext; request: ResearchRunRequest }): Promise<ResearchRunResult>
-  /** The client projection of the current version of a document (today: `WZR-BRIEF`). */
-  getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: 'WZR-BRIEF'): Promise<ClientView>
+  /** The client projection of the current version of a client-facing document; questions only for the brief. */
+  getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   status(scope: { tenantId: string; organizationId: string }, orderRef: string): Promise<{
     documents: { templateId: string; outputId: string; status: string; versionNo: number | null; versionId: string | null }[]
     taskRuns: { id: string; stepId: string; attempt: number; status: string; costPln: number; outputVersionId: string | null; error: string | null }[]

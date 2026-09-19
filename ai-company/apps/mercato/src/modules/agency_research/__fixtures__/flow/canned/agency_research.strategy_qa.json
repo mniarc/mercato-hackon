@@ -1,0 +1,47 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "needs_agent_fix",
+      "summary": "Jedna szczegółowa uwaga do strategii: przekaz wspierający brzmi jak nagłówek posta.",
+      "findings": [
+        {
+          "code": "other",
+          "path": "KLI-STRATEGIA.message_hierarchy.supporting_messages[0]",
+          "severity": "blocking",
+          "gap": "Przekaz wspierający jest gotowym hookiem posta, a nie trwałym argumentem strategii.",
+          "owner": "agent",
+          "fix_step": "5.2",
+          "fix_hint": "Zapisz argument, który plan może rozwinąć na kilka sposobów."
+        },
+        {
+          "code": "other",
+          "path": "WEW-AUDYT.gaps[0]",
+          "severity": "minor",
+          "gap": "ścieżka spoza pary",
+          "owner": "agent",
+          "fix_step": null,
+          "fix_hint": null
+        }
+      ]
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "verdict": "ready_for_approval",
+      "summary": "Para strategia + ToV jest spójna z briefem i dowodami; bez blokujących ustaleń.",
+      "findings": [
+        {
+          "code": "other",
+          "path": "KLI-TOV.context_rules[1]",
+          "severity": "minor",
+          "gap": "Zaproszenie do kontaktu można skrócić.",
+          "owner": "agent",
+          "fix_step": null,
+          "fix_hint": null
+        }
+      ]
+    }
+  }
+]

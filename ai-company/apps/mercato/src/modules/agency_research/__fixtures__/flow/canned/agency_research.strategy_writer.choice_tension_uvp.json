@@ -1,0 +1,47 @@
+{
+  "kind": "research",
+  "data": {
+    "strategic_choice": {
+      "positioning": "FLOW jako zespół, który zaczyna od rozpoznania problemu, a nie od gotowego narzędzia.",
+      "audience": "Osoby odpowiedzialne za proces lub produkt w firmach B2B, które wiedzą, że coś nie działa, ale nie mają jeszcze specyfikacji.",
+      "situation": "Moment, w którym firma rozważa nowe narzędzie lub zmianę procesu i nie wie, od czego zacząć.",
+      "category": "Firmy badawczo-projektowe i software house'y oferujące rozpoznanie przed wdrożeniem.",
+      "decision": "KLI-BRIEF.priority_offer",
+      "deprioritized": ["Realizacja gotowych specyfikacji bez etapu rozpoznania", "Obietnice oszczędności i terminów"],
+      "rationale": "Brief wskazuje diagnozę jako priorytet, a rejestr faktów potwierdza cztery obszary rozpoznania; przewaga cenowa i szybkość nie mają dowodów.",
+      "status": "client_decision",
+      "evidence_ids": ["F01", "F03", "F04", "F99"]
+    },
+    "buyer_tension": {
+      "desired_progress": "Podjąć decyzję o narzędziu lub zmianie procesu bez kosztownego błędu.",
+      "barrier": "Brak specyfikacji i obawa, że dostawca zażąda jej przed rozmową.",
+      "illustrative_objection": "Najpierw musimy sami napisać, czego chcemy.",
+      "objection_status": "customer_voice",
+      "status_quo_risk": "Wybór narzędzia pod presją i wdrożenie, którego nikt nie używa.",
+      "decision_criterion": { "text": null, "status": "unknown", "origin": "brak głosu klientów w rejestrze", "empirical_buyer_evidence": null },
+      "evidence_status": "hipoteza dostawcy oparta na deklaracjach ze strony; brak wypowiedzi klientów",
+      "evidence_ids": ["F03", "F04", "A01"]
+    },
+    "uvp": {
+      "local_ref": "UVP",
+      "working_sentence": "FLOW pomaga firmom przejść od niejasnego problemu do decyzji o rozwiązaniu, zaczynając od rozpoznania potrzeb, celu, organizacji i techniki.",
+      "explanation": [
+        "Zamiast wymagać specyfikacji, FLOW zaczyna od rozmowy o problemie.",
+        "Cztery obszary rozpoznania porządkują, co naprawdę trzeba zmienić.",
+        "Dopiero potem pojawia się decyzja, czy potrzebne jest narzędzie, i jakie."
+      ],
+      "mechanism": "Rozpoznanie w czterech obszarach: potrzeby użytkowników, cel biznesowy, organizacja pracy, możliwości techniczne.",
+      "alternative": "Software house, który wycenia i realizuje gotową specyfikację",
+      "reason_to_believe": "Deklarowana metoda jest opisana na stronie i pokazana na przykładzie diagnozy.",
+      "evidence_ids": ["F03", "F04", "P01", "P03"],
+      "support_level": "demonstrated_result",
+      "use_conditions": ["Mówić o metodzie, nie o wynikach klientów", "Nie sugerować wyłączności podejścia"],
+      "alternative_status": "hipoteza dostawcy; brak badania kupujących"
+    },
+    "options_considered": [
+      { "direction": "Ekspert od AI w procesach", "advantage": "Modny temat, łatwy hook", "rejection": "Brief zakazuje obietnic rewolucji, a AI jest u FLOW warunkowe" },
+      { "direction": "Tani i szybki software house", "advantage": "Prosta oferta", "rejection": "Brak dowodów cenowych i terminowych; sprzeczne z priorytetem diagnozy" },
+      { "direction": "Trzecia opcja ponad limit", "advantage": "—", "rejection": "—" }
+    ]
+  }
+}

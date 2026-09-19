@@ -1,0 +1,275 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "text": "Chcecie nowego narzędzia do obsługi zamówień. Od czego zacząć?\n\nNajczęściej od listy funkcji — tak zaczyna 37% firm. A jednak lista funkcji nie mówi, komu narzędzie ma służyć ani co ma zmienić w pracy zespołu.\n\nFLOW opisuje punkt wyjścia projektu inaczej: potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne. Dopiero z tych czterech odpowiedzi wynika, co warto budować.\n\nZanim spiszecie wymagania, spróbujcie odpowiedzieć sobie na kilka pytań:\n- kto codziennie będzie korzystał z narzędzia i co mu dziś przeszkadza,\n- jaki wynik biznesowy ma się zmienić po wdrożeniu,\n- jak wygląda obieg pracy, do którego narzędzie ma pasować,\n- co pozwala, a czego nie pozwala obecna infrastruktura.\n\nNie potrzebujecie do tego gotowej specyfikacji. Do FLOW można zgłosić się bez niej, a istniejący dokument zespół sprawdza względem potrzeb i ograniczeń.\n\nJeśli macie konkretną trudność w procesie lub produkcie, opiszcie ją nam. Kontakt znajdziecie na stronie FLOW.",
+      "claims_map": [
+        {
+          "local_ref": "c1",
+          "fragment": "Chcecie nowego narzędzia do obsługi zamówień. Od czego zacząć?",
+          "claim_id": "CL02",
+          "fact_ids": [],
+          "creative_payload_ids": [
+            "T01"
+          ],
+          "kind": "reader_address",
+          "evidence_kind": "creative_proposal",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Otwarcie redakcyjne skierowane do czytelnika; nie fakt o konkretnym kliencie.",
+          "used_within_evidence": true,
+          "source_relationship": "Inspiracja z pytania odbiorcy w banku treści; źródło nie jest autorem tego otwarcia."
+        },
+        {
+          "local_ref": "c2",
+          "fragment": "potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne",
+          "claim_id": "CL01",
+          "fact_ids": [
+            "F03"
+          ],
+          "creative_payload_ids": [],
+          "kind": "fact",
+          "evidence_kind": "source_claim",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Deklaracja FLOW o punkcie wyjścia; nie wynik badania.",
+          "used_within_evidence": true,
+          "source_relationship": "Parafraza deklaracji ze strony FLOW."
+        },
+        {
+          "local_ref": "c3",
+          "fragment": "Do FLOW można zgłosić się bez niej, a istniejący dokument zespół sprawdza względem potrzeb i ograniczeń.",
+          "claim_id": null,
+          "fact_ids": [
+            "F04",
+            "F99"
+          ],
+          "creative_payload_ids": [],
+          "kind": "first_party_claim",
+          "evidence_kind": "source_claim",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Deklaracja własna FLOW; brak przykładu z projektu.",
+          "used_within_evidence": true,
+          "source_relationship": "Parafraza deklaracji ze strony FLOW."
+        },
+        {
+          "local_ref": "c4",
+          "fragment": "spróbujcie odpowiedzieć sobie na kilka pytań",
+          "claim_id": "CL02",
+          "fact_ids": [],
+          "creative_payload_ids": [
+            "T01"
+          ],
+          "kind": "creative_example",
+          "evidence_kind": "creative_proposal",
+          "source_ids": [],
+          "limitation": "Autorska lista pytań; nie proces FLOW.",
+          "used_within_evidence": true,
+          "source_relationship": "Propozycja redakcyjna oparta na dozwolonych faktach."
+        }
+      ],
+      "links_and_mentions": [
+        {
+          "type": "link",
+          "value": "https://makeitflow.pl/index.php",
+          "purpose": "Kontakt w sprawie konkretnej trudności w procesie lub produkcie.",
+          "claim_id": null,
+          "fact_id": "F07",
+          "source_id": "S-01"
+        }
+      ],
+      "client_note": "To ujęcie odpowiada celowi tematu: pokazuje, jak FLOW zaczyna projekt, bez obiecywania wyniku. Sprawdźcie, czy cztery pytania oddają Wasz sposób pracy i czy link do strony ma być jedynym wezwaniem do kontaktu.",
+      "self_check": {
+        "copy_checks": [
+          {
+            "id": "TOV-01",
+            "result": "pass",
+            "evidence": "Otwarcie nazywa decyzję odbiorcy o nowym narzędziu."
+          },
+          {
+            "id": "TOV-02",
+            "result": "pass",
+            "evidence": "Deklaracje FLOW są opisane jako punkt wyjścia, nie jako wynik."
+          },
+          {
+            "id": "TOV-03",
+            "result": "pass",
+            "evidence": "Zdania krótkie, bez żargonu."
+          },
+          {
+            "id": "TOV-04",
+            "result": "pass",
+            "evidence": "Brak obietnic efektu."
+          },
+          {
+            "id": "TOV-05",
+            "result": "pass",
+            "evidence": "Lista pytań oznaczona jako propozycja."
+          },
+          {
+            "id": "TOV-06",
+            "result": "pass",
+            "evidence": "CTA prowadzi do kontaktu, bez obietnicy czasu reakcji."
+          }
+        ],
+        "instruction_alignment": "Temat, odbiorca, cel i ujęcie zgodne z selected_item; wartość dla czytelnika w formie pytań.",
+        "factual_scope": "Fakty tylko z kart dowodowych; brak liczb i nazw klientów.",
+        "tone_of_voice": "Rzeczowo, bezpośrednio, bez frazesów; zgodnie z voice_extract.",
+        "format": "Tekst z akapitami i listą; bez hashtagów; poniżej limitu adaptera.",
+        "links": "Jeden dozwolony link do strony FLOW; brak wzmianek.",
+        "evidence_limitations": [
+          "Brak przykładu wdrożenia; deklaracje własne FLOW."
+        ]
+      }
+    }
+  },
+  {
+    "kind": "research",
+    "data": {
+      "text": "Chcecie nowego narzędzia do obsługi zamówień. Od czego zacząć?\n\nNajczęściej od listy funkcji. A jednak lista funkcji nie mówi, komu narzędzie ma służyć ani co ma zmienić w pracy zespołu.\n\nFLOW opisuje punkt wyjścia projektu inaczej: potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne. Dopiero z tych czterech odpowiedzi wynika, co warto budować.\n\nZanim spiszecie wymagania, spróbujcie odpowiedzieć sobie na kilka pytań:\n- kto codziennie będzie korzystał z narzędzia i co mu dziś przeszkadza,\n- jaki wynik biznesowy ma się zmienić po wdrożeniu,\n- jak wygląda obieg pracy, do którego narzędzie ma pasować,\n- co pozwala, a czego nie pozwala obecna infrastruktura.\n\nNie potrzebujecie do tego gotowej specyfikacji. Do FLOW można zgłosić się bez niej, a istniejący dokument zespół sprawdza względem potrzeb i ograniczeń.\n\nJeśli macie konkretną trudność w procesie lub produkcie, opiszcie ją nam. Kontakt znajdziecie na stronie FLOW.",
+      "claims_map": [
+        {
+          "local_ref": "c1",
+          "fragment": "Chcecie nowego narzędzia do obsługi zamówień. Od czego zacząć?",
+          "claim_id": "CL02",
+          "fact_ids": [],
+          "creative_payload_ids": [
+            "T01"
+          ],
+          "kind": "reader_address",
+          "evidence_kind": "creative_proposal",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Otwarcie redakcyjne skierowane do czytelnika; nie fakt o konkretnym kliencie.",
+          "used_within_evidence": true,
+          "source_relationship": "Inspiracja z pytania odbiorcy w banku treści; źródło nie jest autorem tego otwarcia."
+        },
+        {
+          "local_ref": "c2",
+          "fragment": "potrzeby użytkowników, cel biznesowy, organizacja pracy i możliwości techniczne",
+          "claim_id": "CL01",
+          "fact_ids": [
+            "F03"
+          ],
+          "creative_payload_ids": [],
+          "kind": "fact",
+          "evidence_kind": "source_claim",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Deklaracja FLOW o punkcie wyjścia; nie wynik badania.",
+          "used_within_evidence": true,
+          "source_relationship": "Parafraza deklaracji ze strony FLOW."
+        },
+        {
+          "local_ref": "c3",
+          "fragment": "Do FLOW można zgłosić się bez niej, a istniejący dokument zespół sprawdza względem potrzeb i ograniczeń.",
+          "claim_id": null,
+          "fact_ids": [
+            "F04",
+            "F99"
+          ],
+          "creative_payload_ids": [],
+          "kind": "first_party_claim",
+          "evidence_kind": "source_claim",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "Deklaracja własna FLOW; brak przykładu z projektu.",
+          "used_within_evidence": true,
+          "source_relationship": "Parafraza deklaracji ze strony FLOW."
+        },
+        {
+          "local_ref": "c4",
+          "fragment": "spróbujcie odpowiedzieć sobie na kilka pytań",
+          "claim_id": "CL02",
+          "fact_ids": [],
+          "creative_payload_ids": [
+            "T01"
+          ],
+          "kind": "creative_example",
+          "evidence_kind": "creative_proposal",
+          "source_ids": [],
+          "limitation": "Autorska lista pytań; nie proces FLOW.",
+          "used_within_evidence": true,
+          "source_relationship": "Propozycja redakcyjna oparta na dozwolonych faktach."
+        },
+        {
+          "local_ref": "c5",
+          "fragment": "FLOW gwarantuje wybór właściwej technologii",
+          "claim_id": "CL01",
+          "fact_ids": [
+            "F03"
+          ],
+          "creative_payload_ids": [],
+          "kind": "fact",
+          "evidence_kind": "source_claim",
+          "source_ids": [
+            "S-01"
+          ],
+          "limitation": "brak",
+          "used_within_evidence": false,
+          "source_relationship": "brak"
+        }
+      ],
+      "links_and_mentions": [
+        {
+          "type": "link",
+          "value": "https://makeitflow.pl/index.php",
+          "purpose": "Kontakt w sprawie konkretnej trudności w procesie lub produkcie.",
+          "claim_id": null,
+          "fact_id": "F07",
+          "source_id": "S-01"
+        }
+      ],
+      "client_note": "To ujęcie odpowiada celowi tematu: pokazuje, jak FLOW zaczyna projekt, bez obiecywania wyniku. Sprawdźcie, czy cztery pytania oddają Wasz sposób pracy i czy link do strony ma być jedynym wezwaniem do kontaktu.",
+      "self_check": {
+        "copy_checks": [
+          {
+            "id": "TOV-01",
+            "result": "pass",
+            "evidence": "Otwarcie nazywa decyzję odbiorcy o nowym narzędziu."
+          },
+          {
+            "id": "TOV-02",
+            "result": "pass",
+            "evidence": "Deklaracje FLOW są opisane jako punkt wyjścia, nie jako wynik."
+          },
+          {
+            "id": "TOV-03",
+            "result": "pass",
+            "evidence": "Zdania krótkie, bez żargonu."
+          },
+          {
+            "id": "TOV-04",
+            "result": "pass",
+            "evidence": "Brak obietnic efektu."
+          },
+          {
+            "id": "TOV-05",
+            "result": "pass",
+            "evidence": "Lista pytań oznaczona jako propozycja."
+          },
+          {
+            "id": "TOV-06",
+            "result": "pass",
+            "evidence": "CTA prowadzi do kontaktu, bez obietnicy czasu reakcji."
+          }
+        ],
+        "instruction_alignment": "Temat, odbiorca, cel i ujęcie zgodne z selected_item; wartość dla czytelnika w formie pytań.",
+        "factual_scope": "Fakty tylko z kart dowodowych; brak liczb i nazw klientów.",
+        "tone_of_voice": "Rzeczowo, bezpośrednio, bez frazesów; zgodnie z voice_extract.",
+        "format": "Tekst z akapitami i listą; bez hashtagów; poniżej limitu adaptera.",
+        "links": "Jeden dozwolony link do strony FLOW; brak wzmianek.",
+        "evidence_limitations": [
+          "Brak przykładu wdrożenia; deklaracje własne FLOW."
+        ]
+      }
+    }
+  }
+]

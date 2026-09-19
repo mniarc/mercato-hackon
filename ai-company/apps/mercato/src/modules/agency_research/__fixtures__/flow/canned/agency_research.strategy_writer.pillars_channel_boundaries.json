@@ -1,0 +1,66 @@
+{
+  "kind": "research",
+  "data": {
+    "pillars": [
+      {
+        "local_ref": "PL-A",
+        "area": "Od problemu do decyzji",
+        "strategic_goal": "Pokazać, jak wygląda rozpoznanie zanim padnie słowo „narzędzie”.",
+        "audience_question": "Od czego zacząć, gdy wiemy, że coś nie działa?",
+        "allowed_content": ["Cztery obszary rozpoznania", "Pytania pomocnicze przed wyborem technologii"],
+        "exclusions": ["Wyniki klientów", "Porównania z konkurencją"],
+        "claim_refs": ["UVP"],
+        "seed_ids": ["T01", "T02"]
+      },
+      {
+        "local_ref": "PL-B",
+        "area": "Bez specyfikacji",
+        "strategic_goal": "Obniżyć próg pierwszego kontaktu.",
+        "audience_question": "Czy muszę wiedzieć, czego chcę, zanim zapytam?",
+        "allowed_content": ["Jak wygląda pierwsza rozmowa", "Co FLOW pyta na początku"],
+        "exclusions": ["Obietnice czasu odpowiedzi", "Darmowe konsultacje"],
+        "claim_refs": ["CL-A"],
+        "seed_ids": ["T03"]
+      },
+      {
+        "local_ref": "PL-C",
+        "area": "AI z uzasadnieniem",
+        "strategic_goal": "Odróżnić rozsądek od mody na AI.",
+        "audience_question": "Czy potrzebuję AI, czy po prostu lepszego procesu?",
+        "allowed_content": ["Kiedy AI ma sens", "Rozwiązania bez AI jako równoprawne"],
+        "exclusions": ["Obietnice rewolucji", "Przykłady wdrożeń bez dowodu"],
+        "claim_refs": ["CL-B"],
+        "seed_ids": ["T04", "T05"]
+      }
+    ],
+    "channel_role": {
+      "channel": "LinkedIn firmy",
+      "role": "Wyjaśnianie sposobu myślenia FLOW osobom, które dopiero rozważają zmianę.",
+      "knowledge_level": "Odbiorca zna swój proces, nie zna metod rozpoznania.",
+      "contact_path": "Wiadomość lub formularz kontaktowy na stronie",
+      "content_scope": "Krótkie posty tekstowe o rozpoznaniu, pierwszym kontakcie i roli AI.",
+      "limits": "Jeden kanał, bez płatnych kampanii; brak danych o dotychczasowych zasięgach.",
+      "contact_owner": null,
+      "evidence_ids": ["F07", "S-01"]
+    },
+    "measurement_hypothesis": {
+      "hypothesis": "Posty wyjaśniające rozpoznanie przyciągną osoby bez specyfikacji, które inaczej nie napisałyby do FLOW.",
+      "observable_signals": ["Wiadomości nawiązujące do treści postów", "Pytania o pierwszą rozmowę"],
+      "measures": [{ "name": "kontakty z LinkedIn", "definition": "Liczba wiadomości, w których nadawca wspomina post lub temat rozpoznania." }],
+      "baseline": null,
+      "numerical_target": "5 kontaktów miesięcznie",
+      "future_test": "Po 30 dniach porównać liczbę i treść kontaktów z okresem przed publikacją.",
+      "causality_limit": "Kontakty mogą wynikać z innych działań; bez analityki wewnętrznej nie ustalimy przyczyny.",
+      "evidence_ids": []
+    },
+    "creative_boundaries": {
+      "not_promoted": ["Realizacja gotowych specyfikacji", "Wdrożenia AI jako główna usługa"],
+      "prohibited_promises": ["Oszczędności procentowe", "Gwarantowane terminy"],
+      "permitted_creativity": "Nowe metafory, pytania i struktury, o ile nie udają faktów ani wyników.",
+      "rights": "Cytaty ze strony FLOW dozwolone; nazw klientów nie ma w rejestrze.",
+      "open_assumptions": ["Kryterium decyzji kupującego pozostaje nieznane", "Właściciel kontaktu do ustalenia przed publikacją"],
+      "plan_effect": "Plan rozwija trzy filary; tematy o wynikach klientów są wykluczone.",
+      "research_return_required": false
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "kind": "research",
+  "data": {
+    "voice_principles": [
+      { "trait": "Konkretny", "purpose": "Odbiorca ma rozpoznać własny problem w pierwszym zdaniu.", "author_behavior": "Zaczynaj od sytuacji odbiorcy, nie od FLOW.", "typical_error": "Otwarcie od „W FLOW wierzymy, że…”." },
+      { "trait": "Ciekawy problemu", "purpose": "Rozpoznanie jest sednem oferty, więc pytania są ważniejsze niż odpowiedzi.", "author_behavior": "Zadawaj pytania, które odbiorca może sobie zadać sam.", "typical_error": "Lista usług zamiast pytań." },
+      { "trait": "Zrozumiały dla biznesu", "purpose": "Odbiorca odpowiada za proces, nie za technologię.", "author_behavior": "Każdy termin techniczny wyjaśnij w tym samym zdaniu.", "typical_error": "Skróty i nazwy narzędzi bez kontekstu." },
+      { "trait": "Uczciwy wobec dowodów", "purpose": "FLOW nie ma jeszcze opisanych wyników; obietnice muszą być procesowe.", "author_behavior": "Mów, co robimy, nie co osiągnie klient.", "typical_error": "„Zwiększysz efektywność o…”." },
+      { "trait": "Piąta zasada ponad limit", "purpose": "—", "author_behavior": "—", "typical_error": "—" }
+    ],
+    "style_axes": [
+      { "axis": "formality", "position": "Zwracamy się na „Ty”, bez żargonu korporacyjnego.", "example": "Chcesz nowego narzędzia? Zacznij od pytania, po co.", "change_when": "Odpowiedź na formalne zapytanie ofertowe." },
+      { "axis": "directness", "position": "Nazywamy problem wprost, bez owijania.", "example": "Specyfikacja napisana bez rozpoznania zwykle opisuje objaw.", "change_when": "Gdy mowa o cudzym błędzie — wtedy bez oceny osób." },
+      { "axis": "technicality", "position": "Technika w tle; na pierwszym planie decyzja odbiorcy.", "example": "Nie ma znaczenia, czy to będzie AI — ważne, co ma się zmienić w pracy.", "change_when": "Posty o możliwościach technicznych mogą wejść głębiej." },
+      { "axis": "humor", "position": "Lekka metafora dopuszczona, żartów z odbiorcy nie ma.", "example": "Specyfikacja nie jest biletem wstępu.", "change_when": "Tematy o kosztach błędnych decyzji — bez metafor." },
+      { "axis": "claim_strength", "position": "Stwierdzamy metodę, hipotezy oznaczamy jako hipotezy.", "example": "Z naszego doświadczenia wynika, że… — tylko przy fakcie w rejestrze.", "change_when": "Nigdy nie rośnie bez nowego dowodu." }
+    ],
+    "wording": {
+      "preferred_in_context": ["rozpoznanie (zamiast: audyt)", "decyzja o rozwiązaniu (zamiast: wdrożenie)", "problem w procesie"],
+      "replacements": [
+        { "avoid": "kompleksowe rozwiązania", "use": "rozpoznanie, projekt i wdrożenie — osobno lub razem" },
+        { "avoid": "transformacja cyfrowa", "use": "zmiana w tym, jak pracujecie" },
+        { "avoid": "optymalizacja", "use": "usunięcie konkretnej przeszkody" },
+        { "avoid": "innowacyjny", "use": "nowy dla was" },
+        { "avoid": "dedykowany", "use": "dopasowany do waszego procesu" },
+        { "avoid": "synergia", "use": "wspólna praca zespołów" }
+      ],
+      "replacement_boundary": "Zamiana słowa nie może zmienić zakresu obietnicy ani dodać wyniku.",
+      "cliches": ["kompleksowe rozwiązania", "partner w transformacji", "szyte na miarę", "rozpoznanie"],
+      "expert_terms": "Dozwolone: „specyfikacja”, „proces”, „narzędzie”; każdy inny termin z jednozdaniowym wyjaśnieniem.",
+      "sentence_pattern": "Sytuacja odbiorcy → co robimy → czego to nie obiecuje."
+    }
+  }
+}

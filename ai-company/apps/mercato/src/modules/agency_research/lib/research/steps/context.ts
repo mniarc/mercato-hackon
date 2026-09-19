@@ -36,9 +36,11 @@ export type StepContext = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
-  /** QA findings addressed to this step on a repair pass (3.7 / 4.2 loops), else empty. */
+  /** QA findings addressed to this step on a repair pass (3.7 / 4.2 / 5.4 / 6.3 / 7.3 loops), else empty. */
   repairFindings: QaFinding[]
   attempt: number
+  /** 6.5 — the topic the client selected (`TOP01`…); when absent the recommendation is taken as a simulated selection. */
+  selectedTopicId?: string | null
 }
 
 export type StepOutcome = {
