@@ -95,8 +95,9 @@ describe('3.4–3.5 competitors pipeline', () => {
     })
     expect(konkurencjaDataSchema.safeParse(result.data).success).toBe(true)
     expect(zrodlaDataSchema.safeParse(result.zrodlaV2).success).toBe(true)
-    // Selection: the url not from search is dropped; three real hosts remain (one of them unreadable).
-    expect(result.data.selection.map((s) => s.company)).toEqual(['Northlight Studio', 'Kubik Digital', 'Pracownia Ekspres'])
+    // Selection: the url not from search is dropped; of three real hosts the unreadable one is excluded (no alternate left), two remain.
+    expect(result.data.selection.map((s) => s.company)).toEqual(['Northlight Studio', 'Kubik Digital'])
+    expect(result.stats.competitors).toBe(2)
     expect(result.issues.map((i) => i.code)).toEqual(expect.arrayContaining(['URL_NOT_FROM_SEARCH', 'COMPETITOR_UNREAD']))
     // Pages: S-07 home + S-08 oferta + S-09 kontakt (unavailable) for Northlight, S-10 Kubik, S-11 Ekspres (unavailable).
     expect(result.appended.sources.map((s) => [s.source_id, s.publisher, s.access])).toEqual([
@@ -112,12 +113,11 @@ describe('3.4–3.5 competitors pipeline', () => {
     expect(competitorFacts.every((f) => f.locator.char_offset !== null)).toBe(true)
     expect(result.zrodlaV2.facts.length).toBe(zrodla.facts.length + 9)
     expect(result.zrodlaV2.sources.length).toBe(zrodla.sources.length + 5)
-    // Cards: a citation outside the company's own facts is dropped and the dimension becomes unknown; an unread company is unknown throughout.
+    // Cards: a citation outside the company's own facts is dropped and the dimension becomes unknown; an unread company gets no card.
     const kubik = result.data.cards.find((c) => c.company === 'Kubik Digital')
     expect(kubik?.proof).toEqual({ text: 'unknown', fact_ids: [], status: null })
     expect(kubik?.service.fact_ids).toEqual(['C07'])
-    const ekspres = result.data.cards.find((c) => c.company === 'Pracownia Ekspres')
-    expect(ekspres?.market_segment.text).toBe('unknown')
+    expect(result.data.cards.find((c) => c.company === 'Pracownia Ekspres')).toBeUndefined()
     expect(result.data.channels.every((ch) => ch.business_effectiveness === 'unknown')).toBe(true)
     // Comparison: a parity claim needs two known companies; strength never exceeds its proof; the "jedyni" candidate is flagged.
     expect(result.data.parity_claims).toHaveLength(1)
@@ -132,6 +132,6 @@ describe('3.4–3.5 competitors pipeline', () => {
     expect(countClientWords(result.clientView)).toBeLessThanOrEqual(350)
     expect(result.clientView).toContain('| Northlight Studio |')
     expect(result.v1.parity_claims).toEqual([])
-    expect(result.stats).toMatchObject({ competitors: 3, pages: 3 })
+    expect(result.stats).toMatchObject({ competitors: 2, pages: 3 })
   })
 })

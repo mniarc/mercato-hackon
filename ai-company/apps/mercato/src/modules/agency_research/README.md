@@ -79,6 +79,7 @@ OM_AGENCY_RESEARCH_MAX_COST_PLN=20
 OM_AGENCY_RESEARCH_MODEL_EXTRACT=openrouter/anthropic/claude-haiku-4.5      # optional overrides
 OM_AGENCY_RESEARCH_MODEL_SYNTHESIS=openrouter/anthropic/claude-sonnet-5
 OM_AGENCY_RESEARCH_PUBLICATION_CONNECTION_REF=   # optional 8.2: a reference into the integrations store, never a secret; does not make the config ready
+OM_AGENT_RUN_TIMEOUT_MS=600000                   # orchestrator wall clock per agent run (default 300000); a synthesis over a full register can take longer
 ```
 
 `OM_ENABLE_ENTERPRISE_MODULES=true` and `OM_ENABLE_ENTERPRISE_MODULES_AGENTS=true` gate the
@@ -102,7 +103,8 @@ yarn mercato agency_research status --order-ref demo-open-mercato-1
 Options: `--pages url,url` replaces site discovery (≤ 10 same-host pages ranked home / about /
 offer / cases / contact / blog); `--dry-run` prints the plan and the estimate and stops;
 `--runner direct` (OpenRouter directly, prompt iteration); `--tenant --org --user`.
-Outputs in `--out`: `WEW-ZRODLA.{json,md}`, `events.json`, `cache/`.
+Outputs in `--out`: `documents/<OUTPUT>.v<N>.{json,md,client.md}` — one file set per stored version, written once and
+never overwritten (Marcin's rule: every output keeps its versions) — plus `events.<timestamp>.json` per run and `cache/`.
 
 ## What is stored (`data/entities.ts`, `lib/store.ts`)
 
@@ -161,7 +163,8 @@ Expected live cost beyond 4.2: ≈ 9 Sonnet + 3 Haiku calls (P5–P7) plus repai
 `document-versions`, `task-runs` (staff, `agency_research.documents.view`) and the portal route
 `GET /api/agency_research/portal/brief?order_ref=` (customer JWT; returns only the client view and the ≤8
 questions — the surface Krysia's portal renders; ownership hook `assertCustomerOwnsOrder` is a TODO until orders
-are persisted). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
+are persisted) and `GET /api/agency_research/portal/documents?order_ref=[&output=KLI-STRATEGIA|KLI-TOV|KLI-PLAN|KLI-POST|KLI-PAKIET]`
+(the list of the order's client documents with status / version / `simulation`, or one document's client view). The service exposes `getClientView(scope, orderRef, templateId)` for `WZR-BRIEF`, `WZR-STRATEGIA`, `WZR-TOV`,
 `WZR-PLAN`, `WZR-POST` and `WZR-PAKIET` (questions only for the brief).
 
 One-page map of the whole chain, the agents and what is stored: [`WORKFLOW.md`](./WORKFLOW.md).

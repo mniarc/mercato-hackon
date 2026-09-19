@@ -23,6 +23,38 @@ export function checkClientView(templateId: TemplateId, markdown: string): Clien
   return { markdown, words, limit, issue }
 }
 
+const SENTENCE_BREAK = /(?<=[.!?…])\s+(?=[^a-ząćęłńóśźż])/u
+const FIT_NOTE = { pl: '_Skrócono do limitu słów widoku klienta; pełna treść jest w dokumencie wewnętrznym._', en: '_Shortened to the client-view word budget; the full text is in the internal document._' }
+
+function firstSentences(line: string, count: number): string {
+  if (/^#|^\s*$|^\|/.test(line)) return line
+  const label = line.match(/^(\s*(?:[-*]|\d+\.)?\s*(?:\*\*[^*]+\*\*:?\s*)?)/)?.[1] ?? ''
+  const body = line.slice(label.length)
+  const sentences = body.split(SENTENCE_BREAK)
+  return sentences.length <= count ? line : label + sentences.slice(0, count).join(' ')
+}
+
+/**
+ * Fits rendered lines into the template's word budget deterministically, in
+ * Rafał's spirit (the view is a projection, never the document): first every
+ * body line is cut to two sentences, then to one, then trailing lines are
+ * dropped; a note says the full text lives in the internal document. Headings
+ * and table rows are never cut.
+ */
+export function fitClientView(templateId: TemplateId, lines: string[], language: 'pl' | 'en'): ClientView {
+  const limit = clientProjectionOf(templateId).word_limit
+  const joined = (parts: string[]) => parts.join('\n')
+  if (limit === null || countClientWords(joined(lines)) <= limit) return checkClientView(templateId, joined(lines))
+  const note = FIT_NOTE[language]
+  const noteWords = countClientWords(note)
+  for (const count of [2, 1]) {
+    const cut = lines.map((line) => firstSentences(line, count))
+    if (countClientWords(joined(cut)) + noteWords <= limit) return checkClientView(templateId, joined([...cut, '', note]))
+  }
+  const cut = lines.map((line) => firstSentences(line, 1))
+  return checkClientView(templateId, joined([...trimToBudget(cut, limit - noteWords), '', note]))
+}
+
 /** Keeps the first items of a list until the budget would be exceeded; used to trim client views deterministically. */
 export function trimToBudget(items: string[], budgetWords: number, alreadyUsed = 0): string[] {
   const kept: string[] = []

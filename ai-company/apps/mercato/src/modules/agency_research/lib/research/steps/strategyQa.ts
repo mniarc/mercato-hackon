@@ -1,6 +1,7 @@
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
+import { NON_PUBLIC_EVIDENCE } from './qa'
 import { audytDataSchema, type AudytData } from '../../../data/schemas/audyt'
 import { briefDataSchema, type BriefData } from '../../../data/schemas/brief'
 import { konkurencjaDataSchema, type KonkurencjaData } from '../../../data/schemas/konkurencja'
@@ -153,6 +154,26 @@ export function mergeStrategyQaVerdict(findings: QaFinding[]): StrategyQaVerdict
   return findings.some((f) => f.severity === 'blocking' && f.owner === 'agent') ? 'needs_agent_fix' : 'ready_for_approval'
 }
 
+/**
+ * Rafał's v1.1 lesson "audience decision ≠ buyer-criteria knowledge": a field the
+ * strategy honestly marks `unknown` (buyer criteria, interviews, benchmarks) is
+ * not a writer's omission — the writer cannot invent it. Such findings become the
+ * client's questions; a finding on KLI-BRIEF is about an input the strategy must
+ * respect, so it stays with the strategy writer.
+ */
+export function reclassifyStrategyFindings(findings: QaFinding[]): QaFinding[] {
+  return findings.map((f) => {
+    if (f.owner !== 'agent' && f.owner !== 'research') return f
+    if (NON_PUBLIC_EVIDENCE.test(f.gap) || /decision_criterion|empirical_buyer_evidence/.test(f.path)) {
+      return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence public sources cannot provide (buyer criteria, interviews, benchmarks); a question for the client, not a rewrite' }
+    }
+    // Length is governed by the contract's client-view budget, which the validator measures; a per-section
+    // word count the QA agent invents is advice, never a blocker.
+    if (f.code === 'limit_exceeded' && f.severity === 'blocking') return { ...f, severity: 'major' }
+    return f
+  })
+}
+
 /** The author step of a finding: from `fix_step`, else from the document its path names. */
 export function fixStepOf(f: QaFinding): '5.2' | '5.3' | null {
   if (f.fix_step === '5.2' || f.fix_step === '5.3') return f.fix_step
@@ -230,7 +251,7 @@ export async function runStrategyQa(opts: StrategyQaOptions): Promise<StrategyQa
       return { value: { ...data, findings: kept }, issues: [], kept: kept.length, dropped: data.findings.length - kept.length }
     },
   })
-  const findings = [...validator, ...value.findings]
+  const findings = [...validator, ...reclassifyStrategyFindings(value.findings)]
   return { verdict: mergeStrategyQaVerdict(findings), findings, summary: value.summary, stats: { agentCalls: stats.agentCalls, cachedSteps: stats.cachedSteps } }
 }
 

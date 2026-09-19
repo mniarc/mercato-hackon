@@ -117,6 +117,12 @@ export function gateTopicsSection(
   const seenDays = new Set<number>()
   for (const [index, topic] of topics.entries()) {
     const path = `${section}.topics[${index}]`
+    // The agent schema is lenient on text; a topic missing its substance is dropped here, not by the provider.
+    const blank = (['topic', 'main_message', 'audience_question', 'evidence_excerpt', 'post_goal', 'readiness_scope', 'evidence_limits', 'format', 'cta'] as const).filter((key) => !topic[key]?.trim())
+    if (blank.length || !topic.angle.tool.trim() || !topic.local_ref.trim()) {
+      issues.push(issue('EMPTY_FIELD', path, `${topic.local_ref || `topics[${index}]`}: empty ${blank.join(', ') || 'angle/local_ref'}; topic dropped`, 'dropped'))
+      continue
+    }
     if (!args.pillarIds.has(topic.pillar_id)) {
       const resolved = resolveId(topic.pillar_id, args.pillarIds)
       if (!resolved) {

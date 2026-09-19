@@ -117,7 +117,7 @@ const CLAIM_CODES = new Set(['unsourced_claim', 'invented_effectiveness', 'fact_
  * `client` and it stops routing repairs that cannot change anything.
  */
 /** Evidence no author step can obtain from public sources — "lack of public knowledge is not a company defect" (Rafał). */
-const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data)/i
+export const NON_PUBLIC_EVIDENCE = /\b(interview|survey|conversion data|sales data|analytics|independent (validation|verification)|third[- ]party (validation|verification)|benchmark|methodology|ICP validation|customer data|internal data|selection criteri|decision criteri|buyer criteri|kryteri\w* (wyboru|decyzji)|wywiad)/i
 
 /** An author step owns only the document its path names; the QA agent's own routing is advisory. */
 function fixStepForPath(path: string): AuthorStepId | null {

@@ -81,48 +81,50 @@ export const planWriterInputSchema = z.object({
 })
 export type PlanWriterInput = z.infer<typeof planWriterInputSchema>
 
+// Lenient on purpose: provider-side structured output enforces types and enums, not string lengths or
+// numeric ranges, and a single empty string must not void a whole six-topic answer — the gate drops the row.
 export const planWriterTopicSchema = z.object({
-  local_ref: z.string().min(1),
-  day: z.number().int().min(1).max(30),
-  pillar_id: z.string().min(1),
-  audience_question: z.string().min(1),
-  topic: z.string().min(1),
-  main_message: z.string().min(1),
-  format: z.string().min(1),
+  local_ref: z.string(),
+  day: z.number().int(),
+  pillar_id: z.string(),
+  audience_question: z.string(),
+  topic: z.string(),
+  main_message: z.string(),
+  format: z.string(),
   angle: z.object({
-    tool: z.string().min(1),
-    steps: z.array(z.string().min(1)),
-    status: z.string().min(1),
-    example: z.object({ text: z.string().min(1), status: z.string().min(1) }).nullable(),
+    tool: z.string(),
+    steps: z.array(z.string()),
+    status: z.string(),
+    example: z.object({ text: z.string(), status: z.string() }).nullable(),
   }),
   claim_ids: ids,
   seed_ids: ids,
   fact_ids: ids,
   proof_ids: ids,
   source_ids: ids,
-  evidence_excerpt: z.string().min(1),
-  evidence_limits: z.string().min(1),
-  post_goal: z.string().min(1),
-  cta: z.string().min(1),
+  evidence_excerpt: z.string(),
+  evidence_limits: z.string(),
+  post_goal: z.string(),
+  cta: z.string(),
   cta_type: z.enum(ctaTypes),
   readiness: z.enum(readiness),
-  readiness_scope: z.string().min(1),
+  readiness_scope: z.string(),
   evidence_reuse_note: z.string().nullable(),
 })
 export type PlanWriterTopic = z.infer<typeof planWriterTopicSchema>
 
 export const planWriterRecommendationSchema = z.object({
   /** A `TOP..` id of the existing topics. */
-  topic_id: z.string().min(1),
-  reason: z.string().min(1),
-  evidence_available: z.array(z.string().min(1)),
-  role: z.string().min(1),
+  topic_id: z.string(),
+  reason: z.string(),
+  evidence_available: z.array(z.string()),
+  role: z.string(),
   readiness: z.enum(readiness),
 })
 
 /** The writer's balance: pillar counts as rows (a record is not accepted by provider structured output); code rebuilds the record. */
 export const planWriterBalanceSchema = planBalanceSchema.omit({ pillar_counts: true }).extend({
-  pillar_counts: z.array(z.object({ pillar_id: z.string().min(1), count: z.number().int().min(0) })),
+  pillar_counts: z.array(z.object({ pillar_id: z.string(), count: z.number().int() })),
 })
 
 /** One agent per section, each with a section-sized result: the topics window, or balance + recommendation. */

@@ -43,3 +43,19 @@ describe('3.7 finding reclassification', () => {
     expect(result.verdict).toBe('ready')
   })
 })
+
+describe('Q-S finding reclassification', () => {
+  it('sends an honest `unknown` buyer criterion to the client instead of the strategy writer', async () => {
+    const { reclassifyStrategyFindings } = await import('../lib/research/steps/strategyQa')
+    const [out] = reclassifyStrategyFindings([finding({ code: 'missing_must_field', path: 'KLI-STRATEGIA.buyer_tension.decision_criterion', owner: 'agent', fix_step: '5.2', gap: 'decision_criterion is unknown with no evidence_ids' })])
+    expect(out.owner).toBe('client')
+    expect(out.fix_step).toBeNull()
+  })
+
+  it('keeps a contradiction with the brief on the strategy writer', async () => {
+    const { reclassifyStrategyFindings } = await import('../lib/research/steps/strategyQa')
+    const [out] = reclassifyStrategyFindings([finding({ code: 'contradiction', path: 'KLI-BRIEF.promise_constraints', owner: 'agent', fix_step: '5.2', gap: 'the strategy names partners the brief forbids naming' })])
+    expect(out.owner).toBe('agent')
+    expect(out.fix_step).toBe('5.2')
+  })
+})

@@ -1,6 +1,6 @@
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { TovData } from '../../../data/schemas/tov'
-import { checkClientView, type ClientView } from '../clientView'
+import { fitClientView, type ClientView } from '../clientView'
 
 /**
  * KLI-TOV rendering. The client view follows WZR-TOV's projection: 500–750
@@ -105,7 +105,7 @@ export function renderTovClientView(args: { outputLanguage: 'pl' | 'en'; brand: 
     ...data.copy_checks.map((check, index) => `${index + 1}. ${check}`),
     '',
   ]
-  return checkClientView('WZR-TOV', lines.join('\n'))
+  return fitClientView('WZR-TOV', lines, args.outputLanguage)
 }
 
 /** Internal markdown: every field with its ids and statuses — for staff and QA. */
