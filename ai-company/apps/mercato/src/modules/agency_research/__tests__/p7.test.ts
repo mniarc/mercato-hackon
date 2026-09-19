@@ -260,6 +260,29 @@ describe('post QA (7.3)', () => {
     expect(ctx.documentVersionIds).toHaveLength(2)
   })
 
+  it('keeps phase-only QA on its pinned instruction and own draft without simulating client consent', async () => {
+    const { data } = await runPipeline()
+    const { ctx, mocked } = loopContext(createFixtureRunner(canned), data)
+    ctx.postInputs = {
+      instruction: { document_id: 'WEW-ZLECENIE-POSTU@o', version: '1.0', versionId: 'instruction-1', status: 'ready_for_review', data: instruction() },
+      tov: { document_id: 'KLI-TOV@o', version: '1.0', versionId: 'tov-1', status: 'approved', data: tov() },
+    }
+    ctx.postOutputs = { post: { document_id: 'KLI-POST@o', version: '1.0', versionId: 'post-1', status: 'draft', data } }
+    let versionNo = 1
+    mocked.saveDocumentVersion.mockImplementation(async (_em, _scope, input) => {
+      versionNo += 1
+      return { version: { id: `post-${versionNo}` }, document: {},
+        envelope: { document_id: 'KLI-POST@o', version: `${versionNo}.0`, status: input.status } } as never
+    })
+    const postStep = jest.fn(async () => ({ taskRunId: 'repair', versionId: 'post-2', status: 'done' }))
+    const outcome = await runPostQaLoop(ctx, { postStep })
+    expect(outcome).toMatchObject({ verdict: 'pass_for_draft', repairs: 1, postVersionId: 'post-3' })
+    expect(mocked.currentInputVersion).not.toHaveBeenCalled()
+    expect(mocked.saveDocumentVersion.mock.calls.every((call) => call[2].simulation === false)).toBe(true)
+    expect(ctx.postOutputs.post).toMatchObject({ versionId: 'post-3', status: 'ready_for_review' })
+    expect((ctx.postOutputs.post!.data as PostData).qa.real_approval_recorded).toBe(false)
+  })
+
   it('opens an E.1 exception with resume point 7.2 when the editor still fails after the allowed repairs', async () => {
     const { data } = await runPipeline()
     const alwaysNeedsFix: ResearchAgentRunner = async () => ({

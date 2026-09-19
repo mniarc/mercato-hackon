@@ -153,7 +153,12 @@ A QA-ready plan creates a native customer review task. Its response goes through
 G before saving plan approval and one explicit topic choice. That saved decision
 feeds the teammate's deterministic post-instruction compiler (no model call);
 employees can see the selected topic, exact instruction or blocking reason.
-This does not generate a post or grant publication consent. Older configured
+Post production additionally requires `postExecution: { "maxCostPln": <explicit-positive-cap> }`
+on the original analysis policy and the execution flag below. It runs only the
+teammate author/editor against the exact instruction, selected topic and accepted
+ToV. Repairs stay within that run; duplicate handoffs replay its saved outcome.
+Employees see the post/QA references, budget pause or exception. This does not
+grant client approval or publication consent. Older configured
 submission workflows must be updated through native version publishing to use
 new continuations; code changes do not rewrite running workflow definitions.
 For an existing installation, initialize the plan-review task definition without

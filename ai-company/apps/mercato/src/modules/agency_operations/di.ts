@@ -44,6 +44,8 @@ import { createPlanReviewService } from './lib/planReview/service'
 import { PLAN_REVIEW_SERVICE, PLAN_RESPONSE_FUNCTION } from './lib/planReview/contracts'
 import { POST_INSTRUCTION_FUNCTION } from './lib/planApproval/contracts'
 import { createPostInstructionHandoff } from './lib/planApproval/handoff'
+import { createPostExecutionActivity } from './lib/postExecution/activity'
+import { POST_EXECUTION_FUNCTION } from './lib/postExecution/contracts'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
@@ -56,6 +58,7 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [`workflowFunction:${PLAN_REVIEW_HANDOFF_FUNCTION}`]: asFunction(() => createPlanReviewHandoff(container)).scoped(),
     [`workflowFunction:${POST_INSTRUCTION_FUNCTION}`]: asFunction(() => createPostInstructionHandoff(container)).scoped(),
+    [`workflowFunction:${POST_EXECUTION_FUNCTION}`]: asFunction(() => createPostExecutionActivity(container)).scoped(),
     [`workflowFunction:${ACCEPT_PLAN_FUNCTION}`]: asValue(clientTriage.acceptPlan),
     [`workflowFunction:${PLANNING_EXECUTION_FUNCTION}`]: asFunction(() => createPlanningExecutionActivity(container)).scoped(),
     [`workflowFunction:${STRATEGY_PAIR_CONTINUATION_FUNCTION}`]: asFunction(() => createStrategyPairContinuation(container)).scoped(),

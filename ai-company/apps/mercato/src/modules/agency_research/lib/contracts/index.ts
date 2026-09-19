@@ -18,3 +18,5 @@ export { planReviewRequestSchema, acceptPlanInputSchema, planAcceptanceReceiptSc
 export type { PlanReviewRequest, PlanReview, PlanAcceptance, AcceptPlanInput, PlanAcceptanceReceipt, PlanAcceptanceRecord } from '../planAcceptance/contracts'
 export { postInstructionExecutionRequestSchema, postInstructionReadySchema, postInstructionExecutionResultSchema } from '../postInstructionExecution/contracts'
 export type { PostInstructionExecutionRequest, PostInstructionExecutionResult } from '../postInstructionExecution/contracts'
+export { postExecutionRequestSchema, postExecutionOutcomeSchema, postExecutionResultSchema } from '../postExecution/contracts'
+export type { PostExecutionRequest, PostExecutionOutcome, PostExecutionResult } from '../postExecution/contracts'

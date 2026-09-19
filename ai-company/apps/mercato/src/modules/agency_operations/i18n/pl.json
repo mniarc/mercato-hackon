@@ -1,4 +1,13 @@
 {
+  "agencyOperations.cases.process.postExecution.title": "Zapisany wynik autora i redaktora postu",
+  "agencyOperations.cases.process.postExecution.completed": "Zakończono pisanie i kontrolę redakcyjną. Sprawdź zapisany wynik QA.",
+  "agencyOperations.cases.process.postExecution.paused_budget": "Produkcję postu wstrzymano po osiągnięciu ustalonego limitu kosztów.",
+  "agencyOperations.cases.process.postExecution.execution_incomplete": "Produkcja postu nie ma kompletnego zapisanego wyniku.",
+  "agencyOperations.cases.process.postExecution.not_configured": "Produkcja postu nie została włączona lub skonfigurowana.",
+  "agencyOperations.cases.process.postExecution.not_ready": "Warunki rozpoczęcia produkcji postu nie zostały spełnione.",
+  "agencyOperations.cases.process.postExecution.readyForReview": "Zapisany wynik QA oznacza tę wersję jako gotową do oceny przez klienta.",
+  "agencyOperations.cases.process.postExecution.notReadyForReview": "Ten zapisany wynik nie jest gotowy do oceny przez klienta.",
+  "agencyOperations.cases.process.postExecution.noApproval": "Post ani wynik redaktora nie oznacza akceptacji klienta lub zgody na publikację.",
   "agencyOperations.cases.process.postInstruction.title": "Zapisana instrukcja postu",
   "agencyOperations.cases.process.postInstruction.ready": "Zapisano instrukcję dla tematu wybranego przez klienta.",
   "agencyOperations.cases.process.postInstruction.not_ready": "Nie udało się przygotować instrukcji postu.",

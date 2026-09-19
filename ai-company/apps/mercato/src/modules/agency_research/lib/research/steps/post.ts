@@ -404,13 +404,16 @@ const nextLabel = (previous: InputVersion | null) => (previous ? `${Number(previ
 
 /** The post's inputs per WZR-POST's execution policy: the instruction and the ToV, plus the previous post on a repair. */
 export async function runPostStep(ctx: StepContext): Promise<StepOutcome> {
-  const instruction = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZLECENIE-POSTU')
-  const tov = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
+  if (ctx.postInputs && !ctx.postOutputs) throw new Error('[internal] Pinned post execution requires its own post output')
+  const instruction = ctx.postInputs ? ctx.postInputs.instruction : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZLECENIE-POSTU')
+  const tov = ctx.postInputs ? ctx.postInputs.tov : await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
   if (!instruction || !tov) throw new Error('[internal] 7.2 needs current WEW-ZLECENIE-POSTU and KLI-TOV versions — run the process through 6.7 first')
-  const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-POST')
+  const currentPost = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-POST')
+  const previous = ctx.postInputs ? ctx.postOutputs!.post : currentPost
   const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ document_id: v.document_id, version: v.version, status: v.status })
-  const inputVersions: InputVersion[] = [ctx.orderVersion, pin(instruction), pin(tov), ...(previous ? [pin(previous)] : [])]
-  const simulation = simulationIssue(inputVersions)
+  const foundationVersions: InputVersion[] = [ctx.orderVersion, pin(instruction), pin(tov)]
+  const inputVersions = [...foundationVersions, ...(previous ? [pin(previous)] : [])]
+  const simulation = simulationIssue(ctx.postInputs ? foundationVersions : inputVersions)
   const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '7.2', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run.id)
   try {
@@ -422,7 +425,7 @@ export async function runPostStep(ctx: StepContext): Promise<StepOutcome> {
       previousPost: previous ? postDataSchema.parse(previous.data) : null,
       repairFindings: ctx.repairFindings,
       simulated: simulation !== null,
-      versionLabel: nextLabel(previous),
+      versionLabel: nextLabel(currentPost),
       runAgent: ctx.runAgent,
       ledger: ctx.ledger,
       models: ctx.models,
@@ -443,6 +446,12 @@ export async function runPostStep(ctx: StepContext): Promise<StepOutcome> {
       taskRunId: run.id,
       simulation: simulation !== null,
     })
+    if (ctx.postInputs && ctx.postOutputs) {
+      ctx.postOutputs.post = {
+        document_id: saved.envelope.document_id, version: saved.envelope.version, status: saved.envelope.status,
+        versionId: saved.version.id, data: result.data,
+      }
+    }
     ctx.documentVersionIds.push(saved.version.id)
     await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats: result.stats, metrics: result.data.qa.metrics }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
