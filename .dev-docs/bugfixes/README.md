@@ -74,3 +74,4 @@ transformer, so specs import module code with the same `@/…` and
 | Date | Branch | Leaf (bug) | Doc |
 |------|--------|------------|-----|
 | 2026-09-19 | `bugfixes/tov-corpus-date-normalization` | LinkedIn `postedAt.date` kept un-normalised, breaking chronological order | [2026-09-19-tov-corpus-date-normalization.md](2026-09-19-tov-corpus-date-normalization.md) |
+| 2026-09-19 | `bugfixes/analysis-resume-point` | A crashed QA repair round resumed at the analysis group, not the QA group | [2026-09-19-research-resume-point-repair-crash.md](2026-09-19-research-resume-point-repair-crash.md) |
