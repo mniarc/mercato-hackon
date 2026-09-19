@@ -23,6 +23,8 @@ type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/wor
 const actorSchema = z.object({ tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(), roleNames: z.array(z.string()) })
 const contextSchema = z.object({ workflowInstance: z.object({ id: z.uuid(), workflowId: z.literal(EMPLOYEE_QUESTION_WORKFLOW_ID), tenantId: z.uuid(), organizationId: z.uuid() }) })
 const answerSchema = z.string().min(1).max(12000).refine((text) => text.trim().length > 0)
+const additionalQuestionTemplates = new Set(['WZR-STRATEGIA', 'WZR-TOV', 'WZR-PLAN'])
+const questionDocumentTemplates = new Set(['WZR-BRIEF', 'WZR-POST', ...additionalQuestionTemplates])
 function record(value: unknown): Record<string, unknown> { return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {} }
 function notFound(): never { throw new CrudHttpError(404, { error: 'api.errors.notFound' }) }
 function conflict(): never { throw new CrudHttpError(409, { error: 'api.errors.conflict' }) }
@@ -92,19 +94,25 @@ export function createEmployeeQuestionService(container: AppContainer): Employee
         const contacts = container.resolve<{ findById(id: string, tenantId: string, organizationId: string): Promise<{ isActive?: boolean; customerEntityId?: string | null } | null> }>('customerUserService')
         const customer = await contacts.findById(agencyCase.submittedByCustomerUserId, scope.tenantId, scope.organizationId)
         if (!customer || customer.isActive === false || customer.customerEntityId !== agencyCase.customerEntityId) conflict()
-        if (request.documentVersionId) {
-          if (!container.hasRegistration(AGENCY_RESEARCH_SERVICE)) conflict()
-          const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
-          const document = await research.getBriefReview(scope, agencyCase.id, request.documentVersionId)
-            ?? await research.getPostReview(scope, agencyCase.id, request.documentVersionId)
-          if (!document || document.orderRef !== agencyCase.id || document.versionId !== request.documentVersionId) notFound()
-        }
         const correlationKey = `agency-question:${parent.id}:${createHash('sha256').update(request.eventId).digest('hex')}`
         const previous = await findOneWithDecryption(tx, WorkflowInstance, { workflowId: EMPLOYEE_QUESTION_WORKFLOW_ID, correlationKey, ...scope, deletedAt: null }, undefined, scope)
         if (previous) {
           const binding = bindingOf(previous)
           if (!binding || binding.question !== request.question || binding.documentVersionId !== request.documentVersionId || binding.employeeUserId !== actor.userId) conflict()
           return { workflowInstanceId: previous.id, replayed: true }
+        }
+        if (request.documentVersionId) {
+          if (!container.hasRegistration(AGENCY_RESEARCH_SERVICE)) conflict()
+          const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+          const document = await research.getBriefReview(scope, agencyCase.id, request.documentVersionId)
+            ?? await research.getPostReview(scope, agencyCase.id, request.documentVersionId)
+          if (document) {
+            if (document.orderRef !== agencyCase.id || document.versionId !== request.documentVersionId) notFound()
+          } else {
+            const status = await research.status(scope, agencyCase.id)
+            if (!status.documents.some((item) => additionalQuestionTemplates.has(item.templateId)
+              && item.versionId === request.documentVersionId && item.versionNo !== null)) notFound()
+          }
         }
         const authoring = container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring')
         const definition = await authoring.findOwnedDefinition(tx, { workflowId: EMPLOYEE_QUESTION_WORKFLOW_ID, ...scope })
@@ -185,7 +193,12 @@ export function createEmployeeQuestionService(container: AppContainer): Employee
           submissionId: submission?.id ?? null,
         }
       }))
-      return { configured, parents, questions: questions.filter((item): item is NonNullable<typeof item> => item !== null) }
+      const status = container.hasRegistration(AGENCY_RESEARCH_SERVICE)
+        ? await container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).status(scope, agencyCase.id) : null
+      const documents = (status?.documents ?? []).flatMap((document) => questionDocumentTemplates.has(document.templateId)
+        && document.versionId && document.versionNo !== null
+        ? [{ versionId: document.versionId, documentCode: document.outputId, versionLabel: `${document.versionNo}.0` }] : [])
+      return { configured, documents, parents, questions: questions.filter((item): item is NonNullable<typeof item> => item !== null) }
     },
   }
 }

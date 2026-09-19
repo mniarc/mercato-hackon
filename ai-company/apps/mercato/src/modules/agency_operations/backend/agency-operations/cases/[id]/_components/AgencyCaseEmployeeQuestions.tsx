@@ -43,12 +43,14 @@ export function AgencyCaseEmployeeQuestions({ caseId, updatedAt }: { caseId: str
   }, [endpoint, revision])
 
   const parents = data?.parents ?? []
+  const documents = data?.documents ?? []
   const fields = React.useMemo<CrudField[]>(() => [
     { id: 'parentTaskId', type: 'select', label: translate(`${key}.parent`), required: true,
       options: parents.filter((parent) => parent.canAsk).map((parent) => ({ value: parent.taskId, label: parent.taskName })) },
     { id: 'question', type: 'textarea', label: translate(`${key}.question`), required: true, maxLength: 4000 },
-    { id: 'documentVersionId', type: 'text', label: translate(`${key}.version`), description: translate(`${key}.versionHelp`) },
-  ], [parents, translate])
+    { id: 'documentVersionId', type: 'select', label: translate(`${key}.version`), description: translate(`${key}.versionHelp`),
+      options: documents.map((document) => ({ value: document.versionId, label: `${document.documentCode} · ${document.versionLabel}` })) },
+  ], [parents, documents, translate])
   const initialValues = React.useMemo(() => ({ id: caseId, updatedAt, parentTaskId: '', question: '', documentVersionId: '' }), [caseId, updatedAt])
   const columns = React.useMemo<ColumnDef<EmployeeQuestionItem>[]>(() => [
     { accessorKey: 'question', header: translate(`${key}.question`), cell: ({ row }) => <p className="whitespace-pre-wrap">{row.original.question}</p> },
