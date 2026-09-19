@@ -91,7 +91,8 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
       })
     },
     async confirm(identity, orderId) {
-      return locked(identity, async () => {
+      let launch: (() => Promise<void>) | undefined
+      const receipt = await locked(identity, async () => {
         const { sales, gateway } = await dependencies(identity)
         let order = await sales.loadOrder(orderId)
         assertPurchaseOwner(order, identity)
@@ -108,12 +109,16 @@ export function createDemoPurchaseService(container: AwilixContainer, activateOv
           const activation = await activatePaidPurchase({ identity, caseId: binding.reservedCaseId,
             orderId, paymentId: payment.id, originalPurchase: binding.originalPurchase, termsAcceptedAt: binding.termsAcceptedAt })
           if (activation.caseId !== binding.reservedCaseId) throw new Error('Purchase activation returned an unexpected case.')
-          order = await sales.saveActivation(orderId, activation)
+          order = await sales.saveActivation(orderId, { caseId: activation.caseId, workflowInstanceId: activation.workflowInstanceId })
+          launch = activation.launch
         }
         payment = await sales.loadPayment(orderId)
         if (!payment) throw new Error('The native payment disappeared after reconciliation.')
         return purchaseReceipt(order, payment, transaction)
       })
+      // The research step is async and paid: dispatch it only once the purchase rows are committed.
+      if (launch) await launch()
+      return receipt
     },
     async read(identity, orderId) {
       requireEnabled()

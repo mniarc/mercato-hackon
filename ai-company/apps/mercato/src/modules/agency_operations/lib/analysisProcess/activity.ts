@@ -11,6 +11,38 @@ import { AgencyCase } from '../../data/entities'
 import { AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from '../contracts'
 import { analysisMaterialSchema, analysisExecutionPolicySchema, analysisProcessResultSchema, type AnalysisProcessResult } from './contracts'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
+import { createLogger } from '@open-mercato/shared/lib/logger'
+
+const logger = createLogger('agency_operations').child({ component: 'analysis' })
+const SOCIAL_CORPUS_MAX_POSTS = 40
+
+type CorpusScraper = {
+  available(): boolean
+  sourceOf(url: string): string | null
+  scrape(input: { url: string; maxPosts: number; log?: (message: string) => void }): Promise<{ posts: Array<{ id: string; url: string; text: string; postedAt: string; authorName: string; likes: number; comments: number; shares: number }>; actorId: string; items: number; error: string | null }>
+}
+
+/**
+ * The official social profile rarely renders for a plain fetch, so when the
+ * material carries no corpus the case borrows the ToV lane's scraper (optional
+ * DI seam, needs APIFY_TOKEN) for the profile the client named. A failure or a
+ * missing scraper leaves the research to the website alone — never a stop.
+ */
+async function liveSocialCorpus(container: AppContainer, order: { official_social?: { url?: string | null; url_or_null?: string | null } }, caseId: string) {
+  const url = order.official_social?.url ?? order.official_social?.url_or_null ?? null
+  if (!url || !container.hasRegistration('agencyTovCorpusScraper')) return undefined
+  const scraper = container.resolve<CorpusScraper>('agencyTovCorpusScraper')
+  if (!scraper.available() || !scraper.sourceOf(url)) return undefined
+  try {
+    const result = await scraper.scrape({ url, maxPosts: SOCIAL_CORPUS_MAX_POSTS, log: (message) => logger.info(message, { caseId }) })
+    logger.info('Social corpus scraped for analysis', { caseId, url, actorId: result.actorId, items: result.items, posts: result.posts.length, error: result.error })
+    if (!result.posts.length) return undefined
+    return result.posts.map((post) => ({ id: post.id, url: post.url, text: post.text, postedAt: post.postedAt, authorName: post.authorName, likes: post.likes, comments: post.comments, shares: post.shares }))
+  } catch (error) {
+    logger.warn('Social corpus scrape failed; analysis continues without it', { caseId, url, error: error instanceof Error ? error.message : String(error) })
+    return undefined
+  }
+}
 
 export function assertAnalysisExecutionEnabled(): void {
   if (!parseBooleanWithDefault(process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED, false)) {
@@ -71,12 +103,13 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     // of charging for a second whole analysis or inventing a partial replay.
     const previous = await service.status(scope, agencyCase.id)
     if (previous.taskRuns.length) throw new CrudHttpError(409, { error: 'Research already exists for this case; reconcile the existing task runs before starting another analysis' })
+    const socialPosts = parsed.socialPosts?.length ? parsed.socialPosts : await liveSocialCorpus(container, parsed.order, agencyCase.id)
     const result = await service.run({
       context: {
         ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
         ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
       },
-      request: { ...parsed, orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln },
+      request: { ...parsed, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln },
     })
     const completed = result.completedThrough === input.policy.through
       && (input.policy.through === '3.2' || input.policy.through === '3.5' || result.qaVerdict === 'ready')

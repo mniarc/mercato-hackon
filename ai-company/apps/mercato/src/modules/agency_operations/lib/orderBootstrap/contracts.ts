@@ -53,7 +53,13 @@ export type ActivatePaidPurchaseInput = {
   originalPurchase: DemoPurchaseRequest
   termsAcceptedAt: string
 }
-export type ActivatePaidPurchase = (input: ActivatePaidPurchaseInput) => Promise<{ caseId: string; workflowInstanceId: string }>
+export type PaidPurchaseActivation = {
+  caseId: string
+  workflowInstanceId: string
+  /** Runs after the purchase transaction commits: dispatches the analysis workflow's async research step. Absent on the waiting path. */
+  launch?: () => Promise<void>
+}
+export type ActivatePaidPurchase = (input: ActivatePaidPurchaseInput) => Promise<PaidPurchaseActivation>
 
 export type DemoPurchaseService = {
   start(identity: PurchaseIdentity, input: DemoPurchaseRequest): Promise<DemoPurchaseReceipt>
