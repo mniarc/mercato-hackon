@@ -76,19 +76,6 @@
           "Obecność w tych samych przetargach.",
           "Cena i konwersja."
         ]
-      },
-      "channel_observation": {
-        "visible_activity": "WWW",
-        "sample": "1-2 strony",
-        "visible_metrics": "Brak metryk.",
-        "unknowns": [
-          "lead",
-          "koszt",
-          "konwersja"
-        ],
-        "fact_ids": [
-          "C01"
-        ]
       }
     }
   },
@@ -169,19 +156,6 @@
           "Obecność w tych samych przetargach.",
           "Cena i konwersja."
         ]
-      },
-      "channel_observation": {
-        "visible_activity": "WWW",
-        "sample": "1-2 strony",
-        "visible_metrics": "Brak metryk.",
-        "unknowns": [
-          "lead",
-          "koszt",
-          "konwersja"
-        ],
-        "fact_ids": [
-          "C07"
-        ]
       }
     }
   },
@@ -257,19 +231,6 @@
         "unknowns": [
           "Obecność w tych samych przetargach.",
           "Cena i konwersja."
-        ]
-      },
-      "channel_observation": {
-        "visible_activity": "WWW",
-        "sample": "1-2 strony",
-        "visible_metrics": "Brak metryk.",
-        "unknowns": [
-          "lead",
-          "koszt",
-          "konwersja"
-        ],
-        "fact_ids": [
-          "C01"
         ]
       }
     }

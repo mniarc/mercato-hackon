@@ -1,4 +1,4 @@
-import { competitorCardResult, competitorSelectorResult, competitorSynthesizerResult } from '../../../data/agents/competitors'
+import { competitorCardResult, competitorChannelsResult, competitorSelectorResult, competitorSynthesizerResult } from '../../../data/agents/competitors'
 import type { AudytData } from '../../../data/schemas/audyt'
 import type { DocumentIssue } from '../../../data/schemas/envelope'
 import { konkurencjaDataSchema, type KonkurencjaData } from '../../../data/schemas/konkurencja'
@@ -6,7 +6,7 @@ import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import { zrodlaDataSchema, type BusinessProfile, type Fact, type LanguageSample, type Source, type ZrodlaData } from '../../../data/schemas/zrodla'
 import { pageExtractorResult, type PageExtraction } from '../../../data/validators'
 import { limits } from '../../../data/templates'
-import { RESEARCH_COMPETITOR_CARD_AGENT_ID, RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID } from '../../agents/ids.competitors'
+import { RESEARCH_COMPETITOR_CARD_AGENT_ID, RESEARCH_COMPETITOR_CHANNELS_AGENT_ID, RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID } from '../../agents/ids.competitors'
 import { RESEARCH_PAGE_EXTRACTOR_AGENT_ID } from '../../agents/ids.sources'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, saveSources, startTaskRun } from '../../store'
 import { checkClientView } from '../clientView'
@@ -377,27 +377,30 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
     const facts = factsByCompany.get(candidate.company) ?? []
     const samples = samplesByCompany.get(candidate.company) ?? []
     const companyIds = new Set([...facts.map((f) => f.fact_id), ...samples.map((s) => s.sample_id), ...appendedSources.filter((s) => s.publisher === candidate.company).map((s) => s.source_id)])
+    const companyInput = {
+      order: orderCtx,
+      outputLanguage: lang,
+      company: candidate.company,
+      selection: { competition_type: candidate.competition_type, shared_problem_scope: candidate.shared_problem_scope, reason: candidate.reason },
+      sources: appendedSources.filter((s) => s.publisher === candidate.company).map((s) => ({ source_id: s.source_id, url: s.url, kind: s.kind, access: s.access })),
+      facts: facts.map((f) => ({ fact_id: f.fact_id, kind: f.kind, claim: f.claim, limitation: f.limitation, source_ids: f.source_ids })),
+      language_samples: samples.map((s) => ({ sample_id: s.sample_id, excerpt: s.excerpt_or_paraphrase, linguistic_features: s.linguistic_features })),
+    }
+    const fixIds = (gateIssues: GateIssue[]) => (ids: string[], path: string) => {
+      const kept = ids.filter((id) => companyIds.has(id))
+      if (kept.length < ids.length) gateIssues.push(issue('UNKNOWN_ID', path, `${candidate.company}: dropped citations outside this competitor's facts`))
+      return kept
+    }
+    // The same packet feeds two agents: the comparable card, then the channel observation.
     const card = await step<ReturnType<typeof competitorCardResult.parse>['data']>({
       step: '3.4',
       agentId: RESEARCH_COMPETITOR_CARD_AGENT_ID,
       label: `card ${candidate.company}`,
-      input: {
-        order: orderCtx,
-        outputLanguage: lang,
-        company: candidate.company,
-        selection: { competition_type: candidate.competition_type, shared_problem_scope: candidate.shared_problem_scope, reason: candidate.reason },
-        sources: appendedSources.filter((s) => s.publisher === candidate.company).map((s) => ({ source_id: s.source_id, url: s.url, kind: s.kind, access: s.access })),
-        facts: facts.map((f) => ({ fact_id: f.fact_id, kind: f.kind, claim: f.claim, limitation: f.limitation, source_ids: f.source_ids })),
-        language_samples: samples.map((s) => ({ sample_id: s.sample_id, excerpt: s.excerpt_or_paraphrase, linguistic_features: s.linguistic_features })),
-      },
+      input: companyInput,
       parse: (raw) => competitorCardResult.parse(raw).data,
       gate: (data) => {
         const gateIssues: GateIssue[] = []
-        const fix = (ids: string[], path: string) => {
-          const kept = ids.filter((id) => companyIds.has(id))
-          if (kept.length < ids.length) gateIssues.push(issue('UNKNOWN_ID', path, `${candidate.company}: dropped citations outside this competitor's facts`))
-          return kept
-        }
+        const fix = fixIds(gateIssues)
         const dims = ['market_segment', 'problem', 'service', 'message', 'mechanism', 'proof', 'cta', 'language'] as const
         const fixed = { ...data.card }
         for (const dim of dims) {
@@ -406,22 +409,34 @@ export async function runCompetitorsPipeline(opts: CompetitorsPipelineOptions): 
           fixed[dim] = fact_ids.length ? { ...fixed[dim], fact_ids } : { text: 'unknown', fact_ids: [], status: null }
         }
         fixed.channels = { ...fixed.channels, fact_ids: fix(fixed.channels.fact_ids, `cards.${candidate.company}.channels`) }
-        const channel_observation = { ...data.channel_observation, fact_ids: fix(data.channel_observation.fact_ids, `channels.${candidate.company}`) }
-        return { value: { card: fixed, channel_observation }, issues: gateIssues, kept: 1, dropped: 0 }
+        return { value: { card: fixed }, issues: gateIssues, kept: 1, dropped: 0 }
       },
     })
     issues.push(...card.issues)
+    const observation = await step<ReturnType<typeof competitorChannelsResult.parse>['data']>({
+      step: '3.4',
+      agentId: RESEARCH_COMPETITOR_CHANNELS_AGENT_ID,
+      label: `channels ${candidate.company}`,
+      input: companyInput,
+      parse: (raw) => competitorChannelsResult.parse(raw).data,
+      gate: (data) => {
+        const gateIssues: GateIssue[] = []
+        const channel_observation = { ...data.channel_observation, fact_ids: fixIds(gateIssues)(data.channel_observation.fact_ids, `channels.${candidate.company}`) }
+        return { value: { channel_observation }, issues: gateIssues, kept: 1, dropped: 0 }
+      },
+    })
+    issues.push(...observation.issues)
     cards.push({ company: candidate.company, ...card.value.card })
     channels.push({
       company: candidate.company,
-      visible_activity: card.value.channel_observation.visible_activity,
-      sample: card.value.channel_observation.sample,
+      visible_activity: observation.value.channel_observation.visible_activity,
+      sample: observation.value.channel_observation.sample,
       retrieved_at: retrievedAt,
       published_dates: null,
-      visible_metrics: card.value.channel_observation.visible_metrics,
+      visible_metrics: observation.value.channel_observation.visible_metrics,
       business_effectiveness: 'unknown',
-      unknowns: card.value.channel_observation.unknowns,
-      fact_ids: card.value.channel_observation.fact_ids,
+      unknowns: observation.value.channel_observation.unknowns,
+      fact_ids: observation.value.channel_observation.fact_ids,
     })
   }
   const v1: KonkurencjaData = konkurencjaDataSchema.parse({

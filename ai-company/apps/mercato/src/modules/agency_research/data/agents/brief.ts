@@ -160,9 +160,9 @@ export const briefQaAgentResult = z.object({
 export type BriefQaAgentData = z.infer<typeof briefQaAgentResult>['data']
 
 /**
- * One result shape for all three writer calls: every section key optional, the
- * pipeline requires the keys of the requested section. A flat object keeps
- * provider-side structured output reliable (no top-level union).
+ * The assembled view of the three section calls (every key optional). Each call
+ * is its own agent with its own section-sized result schema — a union of all
+ * sections is too large a grammar for provider-side structured output.
  */
 export const briefWriterSectionsSchema = z.object({
   ...briefOfferSectionSchema.partial().shape,
@@ -170,4 +170,10 @@ export const briefWriterSectionsSchema = z.object({
   ...briefChannelSectionSchema.partial().shape,
 })
 export type BriefWriterSections = z.infer<typeof briefWriterSectionsSchema>
-export const briefWriterResult = z.object({ kind: z.literal('research'), data: briefWriterSectionsSchema })
+
+/** Result schema per section group, keyed like `BRIEF_SECTION_AGENT_IDS`. */
+export const briefSectionResults = {
+  offer_audience_direction: briefOfferSectionResult,
+  promise_voice: briefPromiseVoiceSectionResult,
+  channel_success_assets: briefChannelSectionResult,
+} as const

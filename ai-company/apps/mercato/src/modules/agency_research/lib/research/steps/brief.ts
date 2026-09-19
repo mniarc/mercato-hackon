@@ -8,9 +8,9 @@ import { briefDataSchema, type BriefData } from '../../../data/schemas/brief'
 import { audytDataSchema } from '../../../data/schemas/audyt'
 import { ustaleniaDataSchema } from '../../../data/schemas/ustalenia'
 import { zrodlaDataSchema } from '../../../data/schemas/zrodla'
-import { briefWriterResult, type BriefWriterInput, type BriefWriterSections } from '../../../data/agents/brief'
+import { briefSectionResults, type BriefWriterInput, type BriefWriterSections } from '../../../data/agents/brief'
 import { limits } from '../../../data/templates'
-import { RESEARCH_BRIEF_WRITER_AGENT_ID } from '../../agents/ids.brief'
+import { BRIEF_SECTION_AGENT_IDS } from '../../agents/ids.brief'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
 import { GateError, type GateIssue } from '../gate'
 import { resolveId } from '../ids'
@@ -387,10 +387,10 @@ export async function runBriefPipeline(opts: BriefPipelineOptions): Promise<Brie
   for (const section of Object.keys(SECTION_KEYS) as SectionName[]) {
     const { value, issues: sectionIssues } = await step<BriefWriterSections>({
       step: '4.1',
-      agentId: RESEARCH_BRIEF_WRITER_AGENT_ID,
+      agentId: BRIEF_SECTION_AGENT_IDS[section],
       label: section,
       input: writerInput(opts, section),
-      parse: (raw) => briefWriterResult.parse(raw).data,
+      parse: (raw) => briefSectionResults[section].parse(raw).data as BriefWriterSections,
       gate: (data) => gateSection(section, data, known),
     })
     issues.push(...sectionIssues)

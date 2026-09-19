@@ -12,9 +12,9 @@ import { planDataSchema, type PlanData, type PlanTopic } from '../../../data/sch
 import { strategiaDataSchema } from '../../../data/schemas/strategia'
 import { tovDataSchema } from '../../../data/schemas/tov'
 import { zrodlaDataSchema } from '../../../data/schemas/zrodla'
-import { planWriterResult, type PlanWriterInput, type PlanWriterSection, type PlanWriterSections, type PlanWriterTopic } from '../../../data/agents/plan'
+import { planBalanceResult, planTopicsResult, type PlanBalanceSection, type PlanTopicsSection, type PlanWriterInput, type PlanWriterSection, type PlanWriterTopic } from '../../../data/agents/plan'
 import { idPrefixes, limits } from '../../../data/templates'
-import { RESEARCH_PLAN_WRITER_AGENT_ID } from '../../agents/ids.plan'
+import { RESEARCH_PLAN_BALANCE_AGENT_ID, RESEARCH_PLAN_TOPICS_AGENT_ID } from '../../agents/ids.plan'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
 import { GateError, type GateIssue } from '../gate'
 import { mintId, resolveId } from '../ids'
@@ -106,9 +106,9 @@ const topicText = (topic: Pick<PlanWriterTopic, 'audience_question' | 'topic' | 
 /** A topics section: the requested count, days inside the window, ids resolved, evidence present, no paraphrase of an earlier topic. */
 export function gateTopicsSection(
   section: PlanWriterSection,
-  sections: PlanWriterSections,
+  sections: PlanTopicsSection,
   args: { known: Set<string>; pillarIds: Set<string>; count: number; existing: Pick<PlanTopic, 'audience_question' | 'topic' | 'main_message'>[] },
-): { value: PlanWriterSections; issues: GateIssue[]; kept: number; dropped: number } {
+): { value: PlanTopicsSection; issues: GateIssue[]; kept: number; dropped: number } {
   const issues: GateIssue[] = []
   const topics = sections.topics
   if (!topics) throw new GateError(`plan_writer ${section}`, [issue('MISSING_SECTION', section, 'section key `topics` missing', 'dropped')])
@@ -161,7 +161,7 @@ export function gateTopicsSection(
 }
 
 /** The balance call: the recommendation must point at one of the twelve gated topics. */
-export function gateBalanceSection(sections: PlanWriterSections, topicIds: Set<string>): { value: PlanWriterSections; issues: GateIssue[]; kept: number; dropped: number } {
+export function gateBalanceSection(sections: PlanBalanceSection, topicIds: Set<string>): { value: PlanBalanceSection; issues: GateIssue[]; kept: number; dropped: number } {
   const issues: GateIssue[] = []
   if (!sections.balance || !sections.recommendation) {
     throw new GateError('plan_writer balance_recommendation', [issue('MISSING_SECTION', 'balance_recommendation', 'section keys `balance` and `recommendation` required', 'dropped')])
@@ -200,8 +200,8 @@ export function assemblePlan(args: {
   outputLanguage: 'pl' | 'en'
   order: OrderFacts
   topics: PlanWriterTopic[]
-  balance: PlanWriterSections['balance']
-  recommendation: PlanWriterSections['recommendation']
+  balance: PlanBalanceSection['balance']
+  recommendation: PlanBalanceSection['recommendation']
   strategia: StrategiaData
   brief: BriefData
   versions: Record<string, string>
@@ -230,11 +230,12 @@ export function assemblePlan(args: {
   const pillarCounts: Record<string, number> = {}
   for (const pillar of strategia.pillars) pillarCounts[pillar.pillar_id] = 0
   for (const topic of topics) pillarCounts[topic.pillar_id] = (pillarCounts[topic.pillar_id] ?? 0) + 1
-  const balance = args.balance!
-  if (JSON.stringify(balance.pillar_counts) !== JSON.stringify(pillarCounts)) {
+  const balance = args.balance
+  const writerCounts = Object.fromEntries(balance.pillar_counts.map((row) => [row.pillar_id, row.count]))
+  if (JSON.stringify(writerCounts) !== JSON.stringify(pillarCounts)) {
     issues.push({ code: 'PILLAR_COUNTS_RECOMPUTED', severity: 'repaired', detail: 'pillar counts recomputed from the topics; the writer\'s arithmetic differed', path: 'balance.pillar_counts' })
   }
-  const recommendation = args.recommendation!
+  const recommendation = args.recommendation
   const recommended = topics.find((topic) => topic.topic_id === recommendation.topic_id)
   const data: PlanData = {
     plan_context: {
@@ -372,26 +373,26 @@ export async function runPlanPipeline(opts: PlanPipelineOptions): Promise<PlanPi
   }
   for (const section of ['topics_1_6', 'topics_7_12'] as const) {
     const count = section === 'topics_1_6' ? perSection : opts.order.topics - perSection
-    const { value, issues: sectionIssues } = await step<PlanWriterSections>({
+    const { value, issues: sectionIssues } = await step<PlanTopicsSection>({
       step: '6.2',
-      agentId: RESEARCH_PLAN_WRITER_AGENT_ID,
+      agentId: RESEARCH_PLAN_TOPICS_AGENT_ID,
       label: section,
       input: writerInput(opts, section, provisional(raw)),
-      parse: (data) => planWriterResult.parse(data).data,
+      parse: (data) => planTopicsResult.parse(data).data,
       gate: (data) => gateTopicsSection(section, data, { known, pillarIds, count, existing: raw }),
     })
     issues.push(...sectionIssues)
-    raw.push(...(value.topics ?? []))
+    raw.push(...value.topics)
   }
   const withIds = provisional(raw)
   const idByTopic = new Map<PlanWriterTopic, string>([...raw].sort((a, b) => a.day - b.day).map((topic, index) => [topic, mintId(idPrefixes.topic, index)]))
   const topicIds = new Set(withIds.map((topic) => topic.topic_id))
-  const { value: tail, issues: tailIssues } = await step<PlanWriterSections>({
+  const { value: tail, issues: tailIssues } = await step<PlanBalanceSection>({
     step: '6.2',
-    agentId: RESEARCH_PLAN_WRITER_AGENT_ID,
+    agentId: RESEARCH_PLAN_BALANCE_AGENT_ID,
     label: 'balance_recommendation',
     input: writerInput(opts, 'balance_recommendation', withIds),
-    parse: (data) => planWriterResult.parse(data).data,
+    parse: (data) => planBalanceResult.parse(data).data,
     gate: (data) => gateBalanceSection(data, topicIds),
   })
   issues.push(...tailIssues)

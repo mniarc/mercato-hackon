@@ -1,5 +1,6 @@
 import type { DocumentIssue } from '../../data/schemas/envelope'
 import { RESEARCH_AGENT_TIERS } from '../agentIds'
+import { limits } from '../../data/templates'
 import { GateError, type GateIssue } from './gate'
 import { BudgetPausedError, type Ledger, type Usage } from './ledger'
 import { fingerprint } from './util'
@@ -31,6 +32,7 @@ export type PipelineEvent =
   | { type: 'call'; step: string; agentId: string; label: string; cached: boolean; ms: number; costPln: number }
   | { type: 'gate'; step: string; section: string; kept: number; dropped: number; issues: GateIssue[] }
   | { type: 'gate_rejected'; step: string; section: string; attempt: number; issues: GateIssue[] }
+  | { type: 'technical_retry'; step: string; agentId: string; label: string; attempt: number; error: string }
   | { type: 'budget_warning'; total: number; warnAt: number }
   | { type: 'budget_paused'; total: number; cap: number }
 
@@ -40,6 +42,12 @@ export const DEFAULT_CONCURRENCY = 4
 export const DEFAULT_EXTRACT_TIMEOUT_MS = 3 * 60_000
 export const DEFAULT_SYNTHESIS_TIMEOUT_MS = 8 * 60_000
 export const EXPECTED_OUTPUT_TOKENS = { extract: 2_500, synthesis: 6_000, qa: 1_500 } as const
+const TECHNICAL_RETRY_DELAY_MS = 15_000
+
+/** A provider / network failure (not a gate, not the budget) that a second attempt may clear. */
+function isTechnicalError(error: unknown): boolean {
+  return !(error instanceof GateError) && !(error instanceof BudgetPausedError)
+}
 
 export type StepFn = <T>(args: {
   step: string
@@ -82,11 +90,23 @@ export function createStepRunner(opts: {
       }
     }
     let attempt = 0
+    let technicalAttempt = 0
     for (;;) {
       const inputChars = JSON.stringify(input).length
       ledger.assertCanSpend(step, agentId, ledger.estimateCallPln(model, inputChars, EXPECTED_OUTPUT_TOKENS[tier]))
       const started = Date.now()
-      const { result, usage } = await runAgent(agentId, input, { runTimeoutMs: timeouts[tier], tier })
+      let call: Awaited<ReturnType<ResearchAgentRunner>>
+      try {
+        call = await runAgent(agentId, input, { runTimeoutMs: timeouts[tier], tier })
+      } catch (error) {
+        // STD-LIMITY: two technical attempts per task; a failed attempt is still a persisted run, never a silent loop.
+        technicalAttempt += 1
+        if (!isTechnicalError(error) || technicalAttempt >= limits.generation.technicalAttemptsPerTask) throw error
+        onEvent({ type: 'technical_retry', step, agentId, label, attempt: technicalAttempt, error: error instanceof Error ? error.message : String(error) })
+        await new Promise((resolve) => setTimeout(resolve, TECHNICAL_RETRY_DELAY_MS))
+        continue
+      }
+      const { result, usage } = call
       stats.agentCalls += 1
       const entry = ledger.record(step, agentId, usage)
       onEvent({ type: 'call', step, agentId, label, cached: false, ms: Date.now() - started, costPln: entry.costPln })

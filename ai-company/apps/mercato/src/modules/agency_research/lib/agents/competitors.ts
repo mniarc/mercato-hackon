@@ -1,8 +1,8 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { renderContractFields } from '../../data/contracts'
-import { competitorCardResult, competitorSelectorResult, competitorSynthesizerResult } from '../../data/agents/competitors'
-import { RESEARCH_COMPETITOR_CARD_AGENT_ID, RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID } from './ids.competitors'
+import { competitorCardResult, competitorChannelsResult, competitorSelectorResult, competitorSynthesizerResult } from '../../data/agents/competitors'
+import { RESEARCH_COMPETITOR_CARD_AGENT_ID, RESEARCH_COMPETITOR_CHANNELS_AGENT_ID, RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID } from './ids.competitors'
 import { MODEL_EXTRACT, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // F07 — competitors (3.4–3.5). Discovery and fetching are code (Firecrawl search,
@@ -53,13 +53,30 @@ export const competitorsAgents: AiAgentDefinition[] = [
       '`unverified`. `comparability`: on which criteria this company is comparable with the',
       'client and on which it is not (scale, price, identical customers). `category`: the',
       'comparative classification. `unknowns`: what would matter for a buyer but is not',
-      'public. Also return `channel_observation`: the visible activity, the sample you had,',
-      'the metrics you could see, and the `unknowns` (leads, cost, conversion, revenue) —',
-      'activity and reactions are not effectiveness.',
+      'public.',
       SHARED_RULES,
-      renderContractFields('WZR-KONKURENCJA', ['cards', 'channels']),
+      renderContractFields('WZR-KONKURENCJA', ['cards']),
     ].join(' '),
     result: { kind: 'research', schema: competitorCardResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_COMPETITOR_CHANNELS_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Competitor channel observation',
+    description: 'Describes what is visible of one competitor\'s channel activity from its extracted facts — the sample, the visible metrics and the unknowns; activity is not effectiveness.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      'Return the WZR-KONKURENCJA `channel_observation` for `company` from its `facts` and',
+      '`language_samples` (ids from the input only): the `visible_activity`, the `sample` you',
+      'had, the `visible_metrics` you could see, `fact_ids`, and the `unknowns` (leads, cost,',
+      'conversion, revenue) — activity and reactions are not effectiveness. Nothing read is',
+      '`unknown`, never filled from memory.',
+      SHARED_RULES,
+      renderContractFields('WZR-KONKURENCJA', ['channels']),
+    ].join(' '),
+    result: { kind: 'research', schema: competitorChannelsResult },
   }),
 
   defineAgent({

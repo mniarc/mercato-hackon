@@ -67,6 +67,13 @@ export const competitorCardResult = z.object({
       category: z.string().min(1),
       unknowns: z.array(z.string().min(1)),
     }),
+  }),
+})
+
+/** The channel observation is a second agent over the same packet, so each registered schema stays small. */
+export const competitorChannelsResult = z.object({
+  kind: z.literal('research'),
+  data: z.object({
     channel_observation: z.object({
       visible_activity: z.string().min(1),
       sample: z.string().min(1),

@@ -1,8 +1,8 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { renderContractFields } from '../../data/contracts'
-import { auditMapperResult, auditVoiceResult } from '../../data/agents/audit'
-import { RESEARCH_AUDIT_MAPPER_AGENT_ID, RESEARCH_AUDIT_VOICE_AGENT_ID } from './ids.audit'
+import { auditGapsResult, auditMapperResult, auditVoiceResult } from '../../data/agents/audit'
+import { RESEARCH_AUDIT_GAPS_AGENT_ID, RESEARCH_AUDIT_MAPPER_AGENT_ID, RESEARCH_AUDIT_VOICE_AGENT_ID } from './ids.audit'
 import { MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 
 // F07 — communication audit (3.3): two syntheses over the register, never over
@@ -47,32 +47,48 @@ export const auditAgents: AiAgentDefinition[] = [
     id: RESEARCH_AUDIT_VOICE_AGENT_ID,
     moduleId: 'agency_research',
     agentType: 'researcher',
-    label: 'Audit voice and gaps',
-    description: 'Describes how the company writes today from the language samples, names the 3–5 gaps that matter for production, and the assets worth reusing.',
+    label: 'Audit voice',
+    description: 'Describes how the company writes today from the verbatim language samples: seven dimensions, each with the samples that show it or an explicit "sample insufficient".',
     defaultModel: MODEL_SYNTHESIS,
     instructions: [
-      'With the audit maps already made (`maps`), the `language_samples` (verbatim fragments',
-      'with their ids), the `coverage` rows, the `content_bank` and `proof_cards`, return three',
-      'sections of WEW-AUDYT. `voice_audit`: for formality, directness, technical level,',
-      'emotion, claim certainty, recurring phrases and channel differences give a `finding`',
-      'with the `sample_ids` that show it — or state that the sample is insufficient',
+      'With the audit maps already made (`maps`) and the `language_samples` (verbatim fragments',
+      'with their ids), return `voice_audit` of WEW-AUDYT: for formality, directness, technical',
+      'level, emotion, claim certainty, recurring phrases and channel differences give a',
+      '`finding` with the `sample_ids` that show it — or state that the sample is insufficient',
       '(`sample_ids: []`, finding says so); differences between FAQ, posts and invitations are',
       'observations of context, not proof of inconsistency (`interpretation_limit`);',
-      '`future_voice_status` records that the future voice is a client decision, not an audit',
-      'finding. `gaps`: 3–5 gaps that matter for producing strategy, tone and a post — each',
-      'with the observation, the business impact ONLY as a hypothesis (or null), `evidence_ids`,',
-      '`priority` (must/should/could), what is `needed` (a decision or a material), the',
-      '`destination` where it is resolved (a WEW-USTALENIA → KLI-BRIEF field, or a step 3.2/3.4),',
-      'the `finding_type` (e.g. observed_portfolio_plus_pending_decision) and the',
-      '`consequence_for_work`. Lack of public knowledge is NOT a company defect: separate what',
-      'was observed, what the sample cannot show, and what the client must decide; no',
-      'aesthetic preferences of the auditor. `reusable_assets`: concrete materials or methods a',
-      'strategy or post could use (with `proof_ids` / `seed_ids`, availability and the limit of',
-      'use), not only what must be fixed. If `repair_findings` is non-empty, fix exactly what',
-      'they name.',
+      '`sample_size` names what was read; `future_voice_status` records that the future voice',
+      'is a client decision, not an audit finding. No aesthetic preferences of the auditor. If',
+      '`repair_findings` is non-empty, fix exactly what they name.',
       SHARED_RULES,
-      renderContractFields('WZR-AUDYT', ['voice_audit', 'gaps', 'reusable_assets']),
+      renderContractFields('WZR-AUDYT', ['voice_audit']),
     ].join(' '),
     result: { kind: 'research', schema: auditVoiceResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_AUDIT_GAPS_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Audit gaps and reusable assets',
+    description: 'Names the 3–5 gaps that matter for producing strategy, tone and a post, and the materials worth reusing — lack of public knowledge is not a company defect.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: [
+      'With the audit maps already made (`maps`), the `language_samples`, the `coverage` rows,',
+      'the `content_bank` and `proof_cards`, return two sections of WEW-AUDYT. `gaps`: 3–5 gaps',
+      'that matter for producing strategy, tone and a post — each with the observation, the',
+      'business impact ONLY as a hypothesis (or null), `evidence_ids`, `priority`',
+      '(must/should/could), what is `needed` (a decision or a material), the `destination` where',
+      'it is resolved (a WEW-USTALENIA → KLI-BRIEF field, or a step 3.2/3.4), the',
+      '`finding_type` (e.g. observed_portfolio_plus_pending_decision) and the',
+      '`consequence_for_work`. Lack of public knowledge is NOT a company defect: separate what',
+      'was observed, what the sample cannot show, and what the client must decide.',
+      '`reusable_assets`: concrete materials or methods a strategy or post could use (with',
+      '`proof_ids` / `seed_ids`, availability and the limit of use), not only what must be',
+      'fixed. If `repair_findings` is non-empty, fix exactly what they name.',
+      SHARED_RULES,
+      renderContractFields('WZR-AUDYT', ['gaps', 'reusable_assets']),
+    ].join(' '),
+    result: { kind: 'research', schema: auditGapsResult },
   }),
 ]
