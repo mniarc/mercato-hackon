@@ -28,6 +28,13 @@ export const briefWriterInputSchema = z.object({
   outputLanguage,
   /** Which of the three section groups this call writes. */
   section: z.enum(['offer_audience_direction', 'promise_voice', 'channel_success_assets']),
+  /** 3.2a — who speaks for the brand; their own posts and talks are the samples and facts listed here. */
+  people: z.array(z.object({
+    name: z.string(), role: z.string(), provided_by: z.string(),
+    channels: z.array(z.object({ platform: z.string(), url: z.string(), posts: z.number() })),
+    mentions: z.array(z.object({ kind: z.string(), url: z.string() })),
+    sample_ids: z.array(z.string()), fact_ids: z.array(z.string()),
+  })).default([]),
   field_map: z.array(
     z.object({
       field_key: z.enum(briefFieldKeys),

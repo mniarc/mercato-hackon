@@ -41,8 +41,23 @@ function firstSentences(line: string, count: number): string {
  * dropped; a note says the full text lives in the internal document. Headings
  * and table rows are never cut.
  */
-export function fitClientView(templateId: TemplateId, lines: string[], language: 'pl' | 'en'): ClientView {
-  const limit = clientProjectionOf(templateId).word_limit
+/** Evidence ids are internal: the client reads "(…)" groups of ids and bare id runs as nothing at all. */
+export function stripEvidenceIds(text: string): string {
+  const id = '(?:(?:S|F|C|P|L|A|T|X|G|D|Q|ER)-?\\d{2,}|VOICE-[AB])'
+  const run = `${id}(?:\\s*(?:[,;/–-]|\\bi\\b|\\boraz\\b|\\band\\b)\\s*${id})*`
+  return text
+    .replace(new RegExp(`\\s*\\(\\s*${run}\\s*\\)`, 'g'), '')
+    .replace(new RegExp(`\\s*\\b(?:w|in|see|zob\\.)\\s+${run}(?=[\\s,.;:)]|$)`, 'g'), '')
+    .replace(new RegExp(`\\b${run}\\b`, 'g'), '')
+    .replace(/\s+([,.;:!?)])/g, '$1')
+    .replace(/\(\s*\)/g, '')
+    .replace(/,\s*,/g, ',')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim()
+}
+
+export function fitClientView(templateId: TemplateId, lines: string[], language: 'pl' | 'en', budgetWords?: number): ClientView {
+  const limit = budgetWords ?? clientProjectionOf(templateId).word_limit
   const joined = (parts: string[]) => parts.join('\n')
   if (limit === null || countClientWords(joined(lines)) <= limit) return checkClientView(templateId, joined(lines))
   const note = FIT_NOTE[language]

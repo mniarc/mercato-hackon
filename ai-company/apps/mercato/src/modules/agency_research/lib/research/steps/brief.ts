@@ -350,10 +350,21 @@ function writerInput(opts: BriefPipelineOptions, section: SectionName): BriefWri
     `claim certainty: ${audyt.voice_audit.claim_certainty.finding}`,
     `future voice: ${audyt.voice_audit.future_voice_status}`,
   ].join(' · ')
+  const people = (zrodla.people ?? []).map((person) => {
+    const sourceIds = new Set([...person.own_channels.flatMap((channel) => channel.source_ids), ...person.mentions.map((mention) => mention.source_id).filter((id): id is string => !!id)])
+    return {
+      name: person.name, role: person.role, provided_by: person.provided_by,
+      channels: person.own_channels.map((channel) => ({ platform: channel.platform, url: channel.url, posts: channel.posts })),
+      mentions: person.mentions.map((mention) => ({ kind: mention.kind, url: mention.url })),
+      sample_ids: zrodla.language_samples.filter((sample) => sourceIds.has(sample.source_id)).map((sample) => sample.sample_id),
+      fact_ids: zrodla.facts.filter((fact) => fact.source_ids.some((id) => sourceIds.has(id))).map((fact) => fact.fact_id),
+    }
+  })
   return {
     order: { brand: order.brand, market: order.market, language: order.language, websiteUrl: order.websiteUrl, purchaseGoal: order.purchaseGoal, sku: order.sku },
     outputLanguage: opts.outputLanguage,
     section,
+    people,
     field_map: ustalenia.field_map.map((r) => ({ field_key: r.field_key, proposed_value: r.proposed_value, evidence_ids: r.evidence_ids, provenance: r.provenance, readiness: r.readiness, decision_state: r.decision_state, priority: r.priority, status: r.status, reason: r.reason })),
     questions: ustalenia.questions.map((q) => ({ question_id: q.question_id, question: q.question, brief_field: q.brief_field, priority: q.priority, state: q.state })),
     facts: zrodla.facts.map((f) => ({ fact_id: f.fact_id, entity: f.entity, claim: f.claim, kind: f.kind, limitation: f.limitation })),

@@ -2,7 +2,7 @@ import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { BriefData } from '../../../data/schemas/brief'
 import type { UstaleniaData } from '../../../data/schemas/ustalenia'
 import { limits } from '../../../data/templates'
-import { checkClientView, trimToBudget, type ClientView } from '../clientView'
+import { checkClientView, fitClientView, stripEvidenceIds, type ClientView } from '../clientView'
 import { countClientWords } from '../util'
 
 /**
@@ -19,6 +19,7 @@ const T = {
     direction: 'Cel biznesowy i kierunek marki',
     promise: 'Co możemy wiarygodnie obiecać',
     notPromised: 'Czego nie obiecujemy',
+    avoid: 'Czego unikamy',
     voice: 'Preferencje głosu',
     voiceExamples: 'Dwa równorzędne przykłady — który jest bliższy firmie?',
     channel: 'Kanał i następny krok',
@@ -42,6 +43,7 @@ const T = {
     direction: 'Business goal and brand direction',
     promise: 'What we can credibly promise',
     notPromised: 'What we do not promise',
+    avoid: 'What we avoid',
     voice: 'Voice preferences',
     voiceExamples: 'Two equally valid examples — which is closer to you?',
     channel: 'Channel and next step',
@@ -99,7 +101,8 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
     `**${t.notPromised}:** ${data.promise_constraints.prohibited_claims.join('; ')}`,
     '',
     `## ${t.voice} (${stateLabel(t, data.voice_preferences.decision_state)})`,
-    `${data.voice_preferences.desired_traits.join(', ')}${data.voice_preferences.unwanted_traits.length ? ` — ${t.notPromised.toLowerCase()}: ${data.voice_preferences.unwanted_traits.join(', ')}` : ''}`,
+    ...data.voice_preferences.desired_traits.map((trait) => `- ${trait}`),
+    ...(data.voice_preferences.unwanted_traits.length ? [`**${t.avoid}:** ${data.voice_preferences.unwanted_traits.join('; ')}`] : []),
     ...(data.voice_preferences.proposed_examples.length
       ? [`**${t.voiceExamples}**`, ...data.voice_preferences.proposed_examples.map((e) => `- **${e.label}:** ${e.text}`)]
       : []),
@@ -113,20 +116,18 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
     data.success_and_limits.scope_limit,
     '',
   ]
-  const body = sections.join('\n')
+  // The questions ARE the first contact (Rafał: 6–8 Must questions), so they are reserved
+  // first and the prose is fitted around them; evidence ids never reach the client.
   const questions = firstContactQuestions(ustalenia)
-  const questionLines = questions.map((q, index) => `${index + 1}. **${q.question}** _(${t.hint}: ${q.hint}; ${t.why}: ${q.reason})_`)
+  const questionLines = questions.map((q, index) => `${index + 1}. **${stripEvidenceIds(q.question)}** _(${t.hint}: ${stripEvidenceIds(q.hint)}; ${t.why}: ${stripEvidenceIds(q.reason)})_`)
+  const questionBlock = [`## ${t.questions}`, ...(questionLines.length ? questionLines : ['—'])]
   const budget = limits.clientText.briefWordsMax
-  const used = countClientWords(body) + countClientWords(`## ${t.questions}`)
-  // Questions are trimmed to the budget; the filled MUST fields above are never cut.
-  const kept = trimToBudget(questionLines, budget, used)
-  const markdown = `${body}\n## ${t.questions}\n${kept.length ? kept.join('\n') : '—'}\n`
+  const bodyBudget = Math.max(200, budget - countClientWords(questionBlock.join('\n')))
+  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => stripEvidenceIds(line)), args.outputLanguage, bodyBudget)
+  const markdown = `${fitted.markdown}\n${questionBlock.join('\n')}\n`
   const view = checkClientView('WZR-BRIEF', markdown)
   const issues: DocumentIssue[] = []
   if (view.issue) issues.push(view.issue)
-  if (kept.length < questionLines.length) {
-    issues.push({ code: 'QUESTIONS_DEFERRED', severity: 'limitation', detail: `${questionLines.length - kept.length} of ${questionLines.length} questions deferred to a later contact to keep the brief within ${budget} words`, path: 'client_view.questions' })
-  }
   return { ...view, issue: issues[0] ?? null, markdown }
 }
 
