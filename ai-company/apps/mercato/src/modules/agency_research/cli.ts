@@ -15,8 +15,9 @@ import type { FetchPage, SocialPost } from './lib/research/fetch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './lib/research/firecrawl'
 import { fileFetcher, fileSearch } from './lib/research/fixtureSources'
 import { formatLedger } from './lib/research/ledger'
-import type { PipelineCache, ResearchAgentRunner } from './lib/research/pipeline'
+import type { ResearchAgentRunner } from './lib/research/pipeline'
 import { createFixtureRunner, createOrchestratorRunner } from './lib/runners'
+import { fileCache } from './lib/research/fileCache'
 import { currentInputVersion, orderStatus, type ResearchScope } from './lib/store'
 import { AgencyResearchDocumentVersion } from './data/entities'
 import { researchSteps, type ResearchStep } from './lib/contracts'
@@ -54,20 +55,6 @@ function cachedFetcher(inner: FetchPage, dir: string, refetch: boolean): FetchPa
     const page = await inner(url)
     if (page.status === 'ok') fs.writeFileSync(file, JSON.stringify(page, null, 2))
     return page
-  }
-}
-
-function fileCache(dir: string): PipelineCache {
-  fs.mkdirSync(dir, { recursive: true })
-  const fileFor = (key: string) => path.join(dir, `${key.replace(/[^a-z0-9_.-]+/gi, '_')}.json`)
-  return {
-    async get(key) {
-      const file = fileFor(key)
-      return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null
-    },
-    async set(key, value) {
-      fs.writeFileSync(fileFor(key), JSON.stringify(value, null, 2))
-    },
   }
 }
 

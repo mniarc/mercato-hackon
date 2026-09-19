@@ -15,6 +15,7 @@ import type { ResearchMaterialSource } from './contracts/agencyResearch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
 import { configuredFixtureSources } from './research/fixtureSources'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
+import { fileCache, orderCacheDir } from './research/fileCache'
 import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner, type StepFn } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
@@ -547,6 +548,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,
         resumeFrom: parsed.resumeFrom ?? null,
+        cache: fileCache(orderCacheDir(parsed.orderRef)),
         agentRunIds,
       })
       const { versionsByStep: _versionsByStep, ...result } = outcome

@@ -2,7 +2,7 @@ import type { DocumentIssue } from '../../../data/schemas/envelope'
 import type { BriefData } from '../../../data/schemas/brief'
 import type { UstaleniaData } from '../../../data/schemas/ustalenia'
 import { limits } from '../../../data/templates'
-import { checkClientView, trimToBudget, type ClientView } from '../clientView'
+import { checkClientView, fitClientView, stripEvidenceIds, type ClientView } from '../clientView'
 import { countClientWords } from '../util'
 
 /**
@@ -19,12 +19,14 @@ const T = {
     direction: 'Cel biznesowy i kierunek marki',
     promise: 'Co możemy wiarygodnie obiecać',
     notPromised: 'Czego nie obiecujemy',
+    avoid: 'Czego unikamy',
     voice: 'Preferencje głosu',
     voiceExamples: 'Dwa równorzędne przykłady — który jest bliższy firmie?',
     channel: 'Kanał i następny krok',
     success: 'Miara powodzenia i ograniczenia',
     questions: 'Pytania do Ciebie',
     why: 'dlaczego',
+    ourMaterial: 'naszym materiale z researchu',
     hint: 'podpowiedź',
     proposal: 'propozycja do potwierdzenia',
     decided: 'potwierdzone',
@@ -42,12 +44,14 @@ const T = {
     direction: 'Business goal and brand direction',
     promise: 'What we can credibly promise',
     notPromised: 'What we do not promise',
+    avoid: 'What we avoid',
     voice: 'Voice preferences',
     voiceExamples: 'Two equally valid examples — which is closer to you?',
     channel: 'Channel and next step',
     success: 'Measure of success and limits',
     questions: 'Questions for you',
     why: 'why',
+    ourMaterial: 'our research material',
     hint: 'hint',
     proposal: 'proposal to confirm',
     decided: 'confirmed',
@@ -77,6 +81,11 @@ export function firstContactQuestions(ustalenia: UstaleniaData, max = limits.cli
     .slice(0, max)
 }
 
+const FIELD_LABELS = {
+  pl: { priority_offer: 'co teraz promujemy', priority_audience: 'do kogo kierujemy komunikację', business_direction: 'cel biznesowy i kierunek marki', buyer_reality: 'rzeczywiste sytuacje zakupowe', promise_constraints: 'co możemy wiarygodnie obiecać', voice_preferences: 'preferencje głosu', channel_and_cta: 'kanał i następny krok', success_and_limits: 'miara powodzenia i ograniczenia', assets_and_permissions: 'materiały i uprawnienia', open_assumptions: 'otwarte założenia' },
+  en: { priority_offer: 'what we promote now', priority_audience: 'who we address', business_direction: 'business goal and brand direction', buyer_reality: 'real buying situations', promise_constraints: 'what we can credibly promise', voice_preferences: 'voice preferences', channel_and_cta: 'channel and next step', success_and_limits: 'measure of success and limits', assets_and_permissions: 'materials and permissions', open_assumptions: 'open assumptions' },
+} as const
+
 export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand: string; data: BriefData; ustalenia: UstaleniaData }): ClientView {
   const { data, ustalenia } = args
   const t = T[args.outputLanguage]
@@ -99,7 +108,8 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
     `**${t.notPromised}:** ${data.promise_constraints.prohibited_claims.join('; ')}`,
     '',
     `## ${t.voice} (${stateLabel(t, data.voice_preferences.decision_state)})`,
-    `${data.voice_preferences.desired_traits.join(', ')}${data.voice_preferences.unwanted_traits.length ? ` — ${t.notPromised.toLowerCase()}: ${data.voice_preferences.unwanted_traits.join(', ')}` : ''}`,
+    ...data.voice_preferences.desired_traits.map((trait) => `- ${trait}`),
+    ...(data.voice_preferences.unwanted_traits.length ? [`**${t.avoid}:** ${data.voice_preferences.unwanted_traits.join('; ')}`] : []),
     ...(data.voice_preferences.proposed_examples.length
       ? [`**${t.voiceExamples}**`, ...data.voice_preferences.proposed_examples.map((e) => `- **${e.label}:** ${e.text}`)]
       : []),
@@ -113,20 +123,22 @@ export function renderBriefClientView(args: { outputLanguage: 'pl' | 'en'; brand
     data.success_and_limits.scope_limit,
     '',
   ]
-  const body = sections.join('\n')
+  // The questions ARE the first contact (Rafał: 6–8 Must questions), so they are reserved
+  // first and the prose is fitted around them; evidence ids never reach the client.
   const questions = firstContactQuestions(ustalenia)
-  const questionLines = questions.map((q, index) => `${index + 1}. **${q.question}** _(${t.hint}: ${q.hint}; ${t.why}: ${q.reason})_`)
+  const clientWords = (text: string) => stripEvidenceIds(text)
+    .replace(/\b(priority_offer|priority_audience|business_direction|buyer_reality|promise_constraints|voice_preferences|channel_and_cta|success_and_limits|assets_and_permissions|open_assumptions)\b/g, (key) => `„${FIELD_LABELS[args.outputLanguage][key as keyof typeof FIELD_LABELS['pl']]}”`)
+    .replace(/\b(buyer_map|offer_map|field_map|journey|proof_cards|language_samples)\b/g, t.ourMaterial)
+    .replace(/\s*\((?:gap|hypothesis|hipoteza|luka)\)/gi, '')
+  const questionLines = questions.map((q, index) => `${index + 1}. **${clientWords(q.question)}** _(${t.hint}: ${clientWords(q.hint)})_`)
+  const questionBlock = [`## ${t.questions}`, ...(questionLines.length ? questionLines : ['—'])]
   const budget = limits.clientText.briefWordsMax
-  const used = countClientWords(body) + countClientWords(`## ${t.questions}`)
-  // Questions are trimmed to the budget; the filled MUST fields above are never cut.
-  const kept = trimToBudget(questionLines, budget, used)
-  const markdown = `${body}\n## ${t.questions}\n${kept.length ? kept.join('\n') : '—'}\n`
+  const bodyBudget = Math.max(200, budget - countClientWords(questionBlock.join('\n')))
+  const fitted = fitClientView('WZR-BRIEF', sections.map((line) => stripEvidenceIds(line)), args.outputLanguage, bodyBudget, { keepEveryLine: true })
+  const markdown = `${fitted.markdown}\n${questionBlock.join('\n')}\n`
   const view = checkClientView('WZR-BRIEF', markdown)
   const issues: DocumentIssue[] = []
   if (view.issue) issues.push(view.issue)
-  if (kept.length < questionLines.length) {
-    issues.push({ code: 'QUESTIONS_DEFERRED', severity: 'limitation', detail: `${questionLines.length - kept.length} of ${questionLines.length} questions deferred to a later contact to keep the brief within ${budget} words`, path: 'client_view.questions' })
-  }
   return { ...view, issue: issues[0] ?? null, markdown }
 }
 
