@@ -8,11 +8,13 @@ Sources: all 102 stories in [user-stories](../../.specs/user-stories).
 Keep replaceable judgment workers under
 `ai-company/apps/mercato/src/modules/agency_operations/agents/<role>/`, with
 `contract.ts`, `prompt.ts`, and `definition.ts` together. Author native
-`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The 15 role
+`agent_orchestrator` `DefineAgentInput` data with typed outcomes. The 10 agency-owned role
 folders below are side-effect-free, disabled scaffolds: importing them must not
-call `defineAgent` or register anything. The root `ai-agents.ts` keeps `aiAgents=[]`
-until an owning business slice explicitly registers its definition with native
-`defineAgent` and wires authorized inputs, persistence, bounds, and effects.
+call `defineAgent` or register anything. The root `ai-agents.ts` is the sole native
+registration point. It is empty by default; `OM_AGENCY_TRIAGE_ENABLED=true`
+registers only client triage through native `defineAgent`. Other role definitions
+remain inactive until their owning slice wires authorized inputs, persistence,
+bounds, and effects. Activation alone is neither runtime proof nor approval to spend.
 
 Execute through native workflow `INVOKE_AGENT`, or native DI `agentRuntime.run`
 where a genuine domain pipeline needs it, as the teammate ToV pipeline does.
@@ -41,7 +43,7 @@ the corresponding execution; a scaffold must not invent missing business values.
 ## Judgment roles and typed handoffs
 
 At activation, the owning process must scope inputs to the client/case and exact
-supplied versions. All current role outputs are research/draft scaffolds: the
+supplied versions. The remaining agency-owned role outputs are research/draft scaffolds: the
 native `research` envelope carries typed `data` that enriches context, not an
 approved action or customer document. A business-language recommendation is not
 a native `proposal` envelope. Native proposals carry actions/options for native
@@ -51,16 +53,16 @@ a schema. None of these runtime result kinds is customer approval. Source
 references mean supplied evidence, not a claim that disabled workers already
 fetch websites or read attachments.
 
-| Folder | Source anchors | Input → output / next owner |
+| Role / implementation owner | Source anchors | Input → output / next owner |
 | --- | --- | --- |
 | `sales-advisor` | F01-2 | Approved offer + question → grounded explanation or clarification; purchase action remains deterministic. |
-| `source-researcher` | F06-2, F06-3, F11-1 | Assigned evidence request + sources → source findings, gaps, and provenance; audit/research consume them. |
-| `brand-auditor` | F07-1, F11-1 | Current brand evidence + audit template → supported observations and unknowns. |
-| `market-researcher` | F07-2, F07-3, F11-1 | Competitor evidence + comparison template → grounded market comparison. |
-| `findings-analyst` | F08-1 | Audit + comparison + source references → conclusions and unanswered brief questions. |
-| `brief-author` | F09-1, F09-2 | Verified analysis + customer answers + brief template → brief draft with dependencies and gaps. |
+| Source research — `agency_research` | F06-2, F06-3; F11-1 supplementary handoff | Step 3.2: `page_extractor`, `proof_builder`, `content_seeder`, `conflict_finder`, `coverage_assessor` → persisted source register. |
+| Brand audit — `agency_research` | F07-1; F11-1 supplementary handoff | Step 3.3: `audit_mapper`, `audit_voice_and_gaps` → communication audit. |
+| Market research — `agency_research` | F07-2, F07-3; F11-1 supplementary handoff | Steps 3.4–3.5: `competitor_selector`, `competitor_card_extractor`, `competitor_synthesizer` → competitor comparison. |
+| Findings and research QA — `agency_research` | F08-1, F08-2, F08-3 | Steps 3.6–3.8: `field_mapper`, `question_writer`, `readiness_assessor`, `research_qa` → findings, QA and code-owned frozen package. |
+| Brief and brief QA — `agency_research` | F09-1, F09-2, F09-3; F11-2 supplementary handoff | Steps 4.1–4.2: `brief_writer`, `brief_qa` → versioned draft, QA and customer-safe projection; customer acceptance remains separate. |
 | `strategy-author` | F21-1, F21-2 | Accepted brief + verified evidence + strategy template → strategy proposal; teammate ToV and pair QA follow. |
-| `quality-reviewer` | F08-2, F09-3, F11-2, F23-1, F27-1, F38-1, F38-2 | Exact stage artifacts + applicable criteria → findings and proposed correction/readiness; not customer approval. |
+| `quality-reviewer` | F23-1, F27-1, F38-1, F38-2 | Exact strategy-pair, plan or delivery artifacts + criteria → findings and proposed correction/readiness; audit/brief QA remain teammate-owned. |
 | `content-planner` | F26-2 | Accepted brief/strategy/ToV + configured topic count → source-backed 30-day, one-channel plan and recommendation. |
 | `post-copywriter` | F30-2 | Exact post instruction + accepted dependencies → one proposed text-post version. |
 | `post-editor` | F31-1, F31-2 | Post + instruction + evidence + channel constraints → QA result, correction, targeted research return, client question, or exception. |
@@ -75,6 +77,27 @@ process integrates through its public research/document service, not extracted
 or copied ToV internals. Corpus research alone does not complete F22-1: the
 strategy process must bind the accepted brief, strategy proposal, ToV revision,
 and pair QA. The teammate `agency` portal remains the customer surface.
+
+Teammate `agency_research` owns source research, audit, competitor comparison,
+findings/QA, and brief drafting/QA. Agent names in its rows above carry the
+`agency_research.` prefix and are registered by that module's `ai-agents.ts`;
+the five overlapping agency role folders are removed, not aliased or copied.
+Resolve `agencyResearchService` through its public `lib/contracts/agencyResearch`
+contract. `run` accepts a trusted server identity, scoped order data and `through`
+(`3.2`, `3.5`, `3.8`, or `4.2`); it returns exact task/document/native-run references
+and QA outcomes. `status` exposes persisted progress; `getClientView` exposes the
+customer-safe brief projection. T26/T27 own the agency case/workflow handoffs,
+including supplementary research and customer review; service availability does
+not prove those interactions complete. Do not register competing research or
+brief workers in `agency_operations`, or call individual teammate agents to
+bypass their evidence, QA and persistence pipeline.
+
+The opt-in case adapter lives in `agency_operations/lib/analysisProcess/`.
+Authorized staff pin stage, spend setting and product selection in a native
+workflow definition. Portal intake chooses only `analysis`, stores private
+material and links the exact workflow version; the employee view reads its saved
+result. Partial research waits rather than claiming delivery or replaying the
+whole pipeline. Targeted F11 return and live runtime proof remain outstanding.
 
 ## Complete source coverage and delivery owners
 
@@ -110,10 +133,10 @@ names Discord, but that does not settle a generic production channel contract.
 
 The current bounded foundation persists intake, deterministic answer/clarify,
 clarification replies, and employee attention using real platform infrastructure
-(T15/T16/T20 and earlier milestones). Triage retains only its domain contracts
-and pure authorized-result projection; there is no shipped agency execution
-adapter. T19 must connect native workflow invocation, scoped asynchronous
-execution, configuration, grants, saved results, and effects. T17 still needs
+(T15/T16/T20 and earlier milestones). Triage's opt-in implementation connects native
+workflow invocation, workflow-owned grants, post-commit asynchronous dispatch,
+and authorized-result projection; T19 still owns its end-to-end runtime proof.
+Default-off wiring is not proof that an agent has completed a native run. T17 still needs
 positive persisted-artifact runtime proof;
 T21 needs exact-step exception return; T22 needs a real version review receipt.
 None is made complete by adding the role folders.

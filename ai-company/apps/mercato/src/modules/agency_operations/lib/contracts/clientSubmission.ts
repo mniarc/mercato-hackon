@@ -14,8 +14,8 @@ export const clientSubmissionRequestSchema = z.object({
 
 export const clientSubmissionDispositionSchema = z.object({
   kind: z.enum(['answer', 'clarify', 'change', 'approve', 'hold', 'escalate']),
-  source: z.literal('deterministic_scaffold'),
-  workerId: z.literal('agency_operations.client-triage.scaffold.v1'),
+  source: z.enum(['deterministic_scaffold', 'native_agent']),
+  workerId: z.enum(['agency_operations.client-triage.scaffold.v1', 'agency_operations.client_triage']),
   rationale: z.string(),
   message: z.string(),
   targets: z.object({ caseId: z.uuid(), submissionId: z.uuid(), documentVersionReference: z.uuid().optional() }),

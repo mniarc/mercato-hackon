@@ -39,6 +39,10 @@ inspect native AI settings/run metadata if another model is reported. Keys stay 
 `NEXT_PUBLIC_*`, commit a filled example, paste keys into tasks/chat, or log them.
 Restart the app and workers after changing their environment.
 
+Research tiers also inherit `OM_AI_MODEL`. Leave
+`OM_AGENCY_RESEARCH_MODEL_EXTRACT`, `_SYNTHESIS`, and `_QA` unset unless deliberately
+overriding a tier. Native module/tenant overrides still take precedence.
+
 The model factory already rejects an explicitly pinned, unconfigured provider
 (`AiModelFactoryError`); do not catch that as a successful no-op or silently fall
 back to another provider. A configured key is not proof of credit, model access,
@@ -112,3 +116,53 @@ Native workflow state and persisted research/run references are authoritative.
 The bridge/configuration and deterministic demo are verified independently;
 an end-to-end paid OpenRouter run still requires its own explicit smoke proof.
 See [testing](testing.md) for the persistent runtime.
+
+## Case analysis through teammate research (opt-in)
+
+After coordinated module generation/migration, configure the scope as authorized staff:
+
+```powershell
+node scripts/agency-dev.mjs cli agency_operations configure-analysis --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> --policy-file <approved-policy.json>
+```
+
+Policy JSON requires `through` (`3.2`, `3.5`, `3.8`, or `4.2`), positive `maxCostPln`,
+and `productSelection` matching the actual offer, including explicit
+`result_limits.topics`. It is stored in the native workflow definition; subsequent
+changes require native version publishing. This is execution permission, not
+proof of payment or customer acceptance. The research service's budget accounting
+is not a provider-enforced billing ceiling.
+
+Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
+existing portal materials API accepts `process: {"kind":"analysis"}` and a private
+JSON file containing `order` plus optional `socialPosts`/`pages`, using the teammate
+`researchRunRequestSchema` shapes. Clients cannot supply execution policy. Uploaded
+product selection must match the configured policy; baseline and ToV are unchanged.
+
+The native workflow calls `agencyResearchService`, saves exact task/document/agent
+references, and exposes them in the employee case process view. Incomplete QA or
+budget outcomes stay waiting; no customer approval is inferred. Targeted supplements
+and automatic recovery of partially persisted research are not implemented: reconcile
+existing runs instead of rerunning the full analysis. Code checks are separate from
+the pending live runtime proof; do not activate this in an occupied development runtime.
+
+## Native client triage (opt-in; runtime proof pending)
+
+With the same Enterprise prerequisites, configure the scope once:
+
+```powershell
+node scripts/agency-dev.mjs cli agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>
+```
+
+This grants only `agent_orchestrator.agents.run` to the native workflow identity.
+Configuration refuses to overwrite an existing definition; changes use native
+workflow version publishing. Set `OM_AGENCY_TRIAGE_ENABLED=true` in app/workers
+only for intended native execution. Client submissions then use `INVOKE_AGENT`;
+clients cannot select workers. Answer/clarify can route; other typed results are
+saved as explicitly unapplied. Agent failure enters a native employee UserTask;
+its sole resolution decision returns to the original triage input.
+
+Keep the flag false for the deterministic baseline. Prompts and the shared model
+environment are not pinned by workflow versioning. Native run timeout does not
+cancel an in-flight provider request; activity timeout/retry settings are not
+agent budgets. No monetary/token cap is enforced by this binding. Paid execution
+still needs approved bounds and a separate live proof; opt-in is not that approval.

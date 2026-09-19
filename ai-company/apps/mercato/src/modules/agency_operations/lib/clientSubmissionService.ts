@@ -10,6 +10,8 @@ import type { ClientCaseIdentity } from './contracts/clientCaseQuery'
 import { clientMaterialIntakeInputSchema } from './contracts/clientMaterialIntake'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema, type ClientSubmissionItem, type ClientSubmissionService } from './contracts/clientSubmission'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from './clientSubmissionWorkflow'
+import { isClientTriageEnabled } from '../agents/client-triage/configuration'
+import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 
 type Executor = {
   startWorkflow(em: EntityManager, options: {
@@ -54,7 +56,8 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
     async submit(identity, caseId, rawInput) {
       const scope = await authorize(identity, caseId)
       const input = clientSubmissionRequestSchema.parse(rawInput)
-      return em.transactional(async (tx) => {
+      const native = isClientTriageEnabled()
+      const accepted = await em.transactional(async (tx) => {
         // Serializes this case's submissions through commit, including workflow creation.
         const agencyCase = await findOneWithDecryption(tx, AgencyCase, { id: caseId, ...scope, deletedAt: null }, {
           lockMode: LockMode.PESSIMISTIC_WRITE,
@@ -65,7 +68,7 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
         }, undefined, scope)
         if (existing) {
           // Replaying the key always returns its immutable original; it never reclassifies.
-          return { item: await project(tx, existing), replayed: true }
+          return { submission: existing, replayed: true }
         }
         if (input.materialAttachmentId && input.materialAttachmentId !== agencyCase.materialAttachmentId) {
           throw new CrudHttpError(404, { error: 'api.errors.notFound' })
@@ -77,19 +80,25 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
         tx.persist(submission)
         await tx.flush()
         const executor = container.resolve<Executor>('workflowExecutor')
+        if (native && !container.hasRegistration('agentWorkflowBridge')) {
+          throw new Error('[internal] Native client triage requires agent_orchestrator')
+        }
         const workflow = await executor.startWorkflow(tx, {
-          workflowId: CLIENT_SUBMISSION_WORKFLOW_ID, ...scope,
+          workflowId: native ? NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID : CLIENT_SUBMISSION_WORKFLOW_ID, ...scope,
           correlationKey: `agency-submission:${submission.id}`,
           metadata: { entityType: 'agency_operations:agency_client_submission', entityId: submission.id },
           // Never impersonate the customer contact as a staff execution user.
-          // The deterministic activity needs no staff principal or external capability.
+          // Native execution uses the explicitly configured workflow's own principal.
           initialContext: { ...scope, caseId, submissionId: submission.id, scaffoldScenario: input.scaffoldScenario },
         })
         submission.workflowInstanceId = workflow.id
         await tx.flush()
-        await executor.executeWorkflow(tx, container, workflow.id)
-        return { item: await project(tx, submission), replayed: false }
+        return { submission, replayed: false }
       })
+      if (!accepted.replayed && accepted.submission.workflowInstanceId) {
+        await container.resolve<Executor>('workflowExecutor').executeWorkflow(em, container, accepted.submission.workflowInstanceId)
+      }
+      return { item: await project(em, accepted.submission), replayed: accepted.replayed }
     },
     async list(identity, caseId) {
       const scope = await authorize(identity, caseId)

@@ -5,14 +5,19 @@ import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/enti
 
 const findOne = jest.fn()
 const findMany = jest.fn()
+const nativeEnabled = jest.fn()
+jest.mock('../../agents/client-triage/configuration', () => ({
+  isClientTriageEnabled: () => nativeEnabled(),
+}))
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({
   findOneWithDecryption: (...args: unknown[]) => findOne(...args),
   findWithDecryption: (...args: unknown[]) => findMany(...args),
 }))
 
 import { createClientSubmissionService } from '../clientSubmissionService'
-import { CLIENT_TRIAGE_RESULT_KEY, createClientSubmissionWorkflow, deterministicClientTriage } from '../clientSubmissionWorkflow'
+import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY, createClientSubmissionWorkflow, deterministicClientTriage } from '../clientSubmissionWorkflow'
 import { clientSubmissionDispositionSchema } from '../contracts/clientSubmission'
+import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../agents/client-triage/workflow'
 
 const identity = {
   tenantId: '00000000-0000-4000-8000-000000000001', organizationId: '00000000-0000-4000-8000-000000000002',
@@ -29,13 +34,21 @@ let agencyCase: Record<string, unknown>
 const customer = jest.fn()
 const startWorkflow = jest.fn()
 const executeWorkflow = jest.fn()
+const hasRegistration = jest.fn()
+let inTransaction = false
 const em = {
-  transactional: async (fn: (tx: unknown) => unknown): Promise<unknown> => fn(em),
+  transactional: async (fn: (tx: unknown) => unknown): Promise<unknown> => {
+    const before = stored
+    inTransaction = true
+    try { return await fn(em) } catch (error) { stored = before; throw error }
+    finally { inTransaction = false }
+  },
   create: jest.fn((_type, input) => Object.assign(new AgencyClientSubmission(), { id: submissionId, ...input })),
   persist: jest.fn((submission) => { stored = submission }),
   flush: jest.fn(),
 }
 const container = {
+  hasRegistration,
   resolve(key: string) {
     if (key === 'em') return em
     if (key === 'customerUserService') return { findById: customer }
@@ -48,6 +61,9 @@ beforeEach(() => {
   jest.clearAllMocks()
   stored = undefined
   workflow = undefined
+  inTransaction = false
+  nativeEnabled.mockReturnValue(false)
+  hasRegistration.mockReturnValue(true)
   agencyCase = { id: caseId, ...identity, deletedAt: null, materialAttachmentId: materialId }
   customer.mockResolvedValue({ isActive: true, customerEntityId: identity.customerEntityId })
   findOne.mockImplementation((_em, type, where) => {
@@ -79,9 +95,56 @@ it('stores immutable original and replays the same event without creating or cla
   expect(replay.item.disposition).toMatchObject({ kind: 'answer', source: 'deterministic_scaffold', effectsApplied: false })
   expect(replay.item.workflow).toEqual({ status: 'COMPLETED', currentStep: 'answered' })
   expect(startWorkflow).toHaveBeenCalledTimes(1)
+  expect(startWorkflow.mock.calls[0][1].workflowId).toBe(CLIENT_SUBMISSION_WORKFLOW_ID)
   expect(executeWorkflow).toHaveBeenCalledTimes(1)
   expect(startWorkflow.mock.calls[0][1].metadata).not.toHaveProperty('initiatedBy')
   expect(JSON.stringify(replay)).not.toContain('privateStaffData')
+})
+
+it('dispatches opted-in native triage only after committing its scoped original, and never redispatches a replay', async () => {
+  nativeEnabled.mockReturnValue(true)
+  executeWorkflow.mockImplementation(async (manager, appContainer, instanceId) => {
+    expect(inTransaction).toBe(false)
+    expect(manager).toBe(em)
+    expect(appContainer).toBe(container)
+    expect(instanceId).toBe(workflowId)
+    expect(stored).toMatchObject({
+      workflowInstanceId: workflowId, tenantId: identity.tenantId, organizationId: identity.organizationId,
+      original: { eventId: 'native-1', text: 'Original native submission' },
+    })
+    workflow!.status = 'PAUSED'
+    workflow!.currentStepId = 'triage'
+  })
+  const service = createClientSubmissionService(container)
+  const first = await service.submit(identity, caseId, { eventId: 'native-1', text: 'Original native submission' })
+  const replay = await service.submit(identity, caseId, { eventId: 'native-1', text: 'Do not reclassify this replacement' })
+  expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({
+    workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID,
+    tenantId: identity.tenantId, organizationId: identity.organizationId,
+    initialContext: expect.objectContaining({
+      tenantId: identity.tenantId, organizationId: identity.organizationId,
+      customerEntityId: identity.customerEntityId, caseId, submissionId,
+    }),
+    metadata: { entityType: 'agency_operations:agency_client_submission', entityId: submissionId },
+  }))
+  expect(first.item.workflow).toEqual({ status: 'PAUSED', currentStep: 'triage' })
+  expect(first.item.disposition).toBeNull()
+  expect(replay).toEqual({ item: first.item, replayed: true })
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+  expect(executeWorkflow).toHaveBeenCalledTimes(1)
+  expect(hasRegistration).toHaveBeenCalledWith('agentWorkflowBridge')
+  expect(startWorkflow.mock.calls[0][1].initialContext).not.toHaveProperty('customerUserId')
+})
+
+it('rejects native triage without its native bridge and rolls back the submission', async () => {
+  nativeEnabled.mockReturnValue(true)
+  hasRegistration.mockReturnValue(false)
+  await expect(createClientSubmissionService(container).submit(identity, caseId, {
+    eventId: 'native-1', text: 'Original',
+  })).rejects.toThrow('Native client triage requires agent_orchestrator')
+  expect(stored).toBeUndefined()
+  expect(startWorkflow).not.toHaveBeenCalled()
+  expect(executeWorkflow).not.toHaveBeenCalled()
 })
 
 it.each(['customerEntityId', 'tenantId', 'organizationId'])('denies foreign %s before writing or executing', async (field) => {

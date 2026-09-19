@@ -19,11 +19,17 @@ import { CLIENT_TRIAGE_FUNCTION_NAME, deterministicClientTriage } from './lib/cl
 import { CLIENT_MATERIAL_INTAKE_SERVICE } from './lib/contracts'
 import { AGENCY_AGENT_FUNCTION_NAME } from './workflows'
 import { AGENCY_TOV_FUNCTION_NAME, createTovWorkflowActivity } from './lib/tovProcess'
+import { createClientTriageActivities } from './agents/client-triage/activities'
+import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION } from './agents/client-triage/workflow'
+import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
 
 export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUNCTION_NAME}` as const
 
 export function register(container: AppContainer): void {
+  const clientTriage = createClientTriageActivities(container)
   container.register({
+    [`workflowFunction:${PREPARE_CLIENT_TRIAGE_FUNCTION}`]: asValue(clientTriage.prepare),
+    [`workflowFunction:${PROJECT_CLIENT_TRIAGE_FUNCTION}`]: asValue(clientTriage.project),
     [AGENCY_CASE_WORKFLOW_SERVICE]: asFunction(
       () => createAgencyCaseWorkflowService(container),
     ).scoped(),
@@ -49,6 +55,9 @@ export function register(container: AppContainer): void {
     [`workflowFunction:${CLIENT_TRIAGE_FUNCTION_NAME}`]: asValue(deterministicClientTriage),
     [`workflowFunction:${AGENCY_TOV_FUNCTION_NAME}`]: asFunction(
       () => createTovWorkflowActivity(container),
+    ).scoped(),
+    [`workflowFunction:${AGENCY_ANALYSIS_FUNCTION_NAME}`]: asFunction(
+      () => createAnalysisWorkflowActivity(container),
     ).scoped(),
   })
 }

@@ -44,6 +44,9 @@ const translations: Record<string, string> = {
   'agencyOperations.cases.detail.sections.material': 'Client material',
   'agencyOperations.cases.detail.sections.run': 'Workflow run',
   'agencyOperations.cases.detail.workflow.open': 'Open workflow run',
+  'agencyOperations.cases.process.title': 'Case processes',
+  'agencyOperations.cases.process.empty': 'No client submissions recorded.',
+  'agencyOperations.cases.escalation.action': 'Escalate case',
   'agencyOperations.cases.list.columns.client': 'Client',
   'agencyOperations.cases.list.columns.createdAt': 'Created',
   'agencyOperations.cases.list.columns.material': 'Material',
@@ -216,6 +219,12 @@ test('the detail composes public case and workflow APIs into persisted evidence'
     if (url === '/api/agency_operations/cases?id=case-1&pageSize=1') {
       return successfulCall({ items: [agencyCase], total: 1, totalPages: 1 })
     }
+    if (url === '/api/agency_operations/cases/case-1') {
+      return successfulCall({ caseId: 'case-1', submissions: [], hasMore: false, analysis: null })
+    }
+    if (url === '/api/auth/feature-check') {
+      return successfulCall({ granted: ['agency_operations.cases.view', 'customers.companies.view'] })
+    }
     if (url === '/api/workflows/instances/workflow-1') {
       return successfulCall({
         data: {
@@ -263,9 +272,14 @@ test('the detail composes public case and workflow APIs into persisted evidence'
   expect(materialLink.getAttribute('href')).toBe('/api/agency_operations/cases/case-1/material')
   const workflowLink = screen.getByRole('link', { name: 'Open workflow run' })
   expect(workflowLink.getAttribute('href')).toBe('/backend/instances/workflow-1')
+  expect(await screen.findByText('No client submissions recorded.')).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Case processes' })).toBeTruthy()
+  expect(screen.queryByText('Escalate case')).toBeNull()
 
   expect(new Set(apiCallMock.mock.calls.map(([input]) => String(input)))).toEqual(new Set([
     '/api/agency_operations/cases?id=case-1&pageSize=1',
+    '/api/agency_operations/cases/case-1',
+    '/api/auth/feature-check',
     '/api/workflows/instances/workflow-1',
     '/api/workflows/instances/workflow-1/steps?limit=100',
   ]))

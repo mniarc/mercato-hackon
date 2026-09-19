@@ -89,7 +89,7 @@ export const openApi: OpenApiRouteDoc = {
         schema: z.object({
           title: z.string().min(1).max(200),
           file: z.string().meta({ format: 'binary' }),
-          process: z.string().optional().describe('JSON object: {kind:"tone_of_voice",brand:string,outputLanguage:"en"|"pl"}. Omit for deterministic intake.'),
+          process: z.string().optional().describe('JSON object: {kind:"tone_of_voice",brand:string,outputLanguage:"en"|"pl"} or {kind:"analysis"} using the configured staff execution policy. Omit for deterministic intake.'),
         }),
       },
       responses: [{
