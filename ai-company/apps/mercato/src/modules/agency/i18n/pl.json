@@ -244,5 +244,8 @@
   "agency.materials.status.PAUSED": "Materiał został przyjęty. Przetwarzanie jest wstrzymane; agencja może sprawdzić sprawę.",
   "agency.materials.status.FAILED": "Materiał został przyjęty, ale przetwarzanie nie powiodło się. Agencja może sprawdzić sprawę.",
   "agency.materials.status.CANCELLED": "Materiał został przyjęty, ale przetwarzanie zostało anulowane. Agencja może sprawdzić sprawę.",
-  "agency.review.clarificationOnly": "Uzupełnij brakujące informacje w komentarzach. Akceptacja będzie dostępna dopiero po sprawdzeniu briefu."
+  "agency.review.clarificationOnly": "Uzupełnij brakujące informacje w komentarzach. Akceptacja będzie dostępna dopiero po sprawdzeniu briefu.",
+  "agency.order.spokespeople": "Osoby wypowiadające się w imieniu marki (opcjonalnie)",
+  "agency.order.spokespeopleHint": "Założyciele, właściciele, eksperci, których głos ma nieść komunikację. Jedna osoba w wierszu: imię i nazwisko, rola, link do profilu. Ich publiczne wpisy, wywiady i artykuły są czytane w ramach researchu.",
+  "agency.order.spokespeoplePlaceholder": "Anna Kowalska, CEO, https://www.linkedin.com/in/…"
 }

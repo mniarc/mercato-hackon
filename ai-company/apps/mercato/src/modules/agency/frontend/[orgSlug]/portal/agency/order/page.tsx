@@ -33,6 +33,7 @@ type OrderForm = {
   billingTaxId: string
   officialSocialUrl: string
   purchaseGoal: string
+  spokespeople: string
   acceptTerms: boolean
 }
 
@@ -50,6 +51,7 @@ const emptyForm: OrderForm = {
   billingTaxId: '',
   officialSocialUrl: '',
   purchaseGoal: '',
+  spokespeople: '',
   acceptTerms: false,
 }
 
@@ -197,6 +199,18 @@ export default function AgencyOrderPage({ params }: Props) {
         <PortalCard>
           <PortalCardHeader title={t('agency.order.social')} description={t('agency.order.socialHint')} />
           <Field id="officialSocialUrl" label={t('agency.order.socialLink')} value={form.officialSocialUrl} onChange={set('officialSocialUrl')} type="url" placeholder="https://" />
+        </PortalCard>
+
+        <PortalCard>
+          <PortalCardHeader title={t('agency.order.spokespeople')} description={t('agency.order.spokespeopleHint')} />
+          <Textarea
+            id="spokespeople"
+            value={form.spokespeople}
+            maxLength={2000}
+            onChange={(event) => set('spokespeople')(event.target.value)}
+            rows={3}
+            placeholder={t('agency.order.spokespeoplePlaceholder')}
+          />
         </PortalCard>
 
         <PortalCard>

@@ -5,7 +5,7 @@ production process P3 → P9 as implemented in `agency_research`, plus the `agen
 sits next to. For code layout and run commands see `README.md`; for the process definition see
 Rafał's package v1.1 (`WZR-*` contracts, STD-PROCES, STD-LIMITY).
 
-## Agents (34 in total: 4 + 30)
+## Agents (36 in total: 4 + 32)
 
 | lane | agent id | role | model tier |
 |---|---|---|---|
@@ -13,7 +13,9 @@ Rafał's package v1.1 (`WZR-*` contracts, STD-PROCES, STD-LIMITY).
 | agency_tov | `agency_tov.batch_analyst` | reads one batch of posts, returns observations with verbatim quotes | extract |
 | agency_tov | `agency_tov.profile_synthesizer` | one profile's voice from its batches | synthesis |
 | agency_tov | `agency_tov.brand_synthesizer` | KLI-TOV corpus profile across profiles | synthesis |
-| 3.2 | `agency_research.page_extractor` | one page → facts, language samples, audience signals (verbatim quotes) | extract |
+| 3.2a | `agency_research.people_finder` | who speaks for the brand: names the client's pages introduce with a role (verbatim quote per person) | extract |
+| 3.2a | `agency_research.channel_selector` | per person: which search hits are their own channels, which are interviews/podcasts/press about them | extract |
+| 3.2 | `agency_research.page_extractor` | one page → facts, language samples, audience signals (verbatim quotes); a person's page → that person's voice | extract |
 | 3.2 | `agency_research.proof_builder` | proof cards over the fact bank + business profile | synthesis |
 | 3.2 | `agency_research.content_seeder` | 12 content seeds (plan capacity) | synthesis |
 | 3.2 | `agency_research.conflict_finder` | contradictions between facts | extract |
@@ -44,7 +46,10 @@ visible in Backend → Agents. Steps 6.5, 6.7, 8.x, 9.x have no agents: they are
 
 ```
 3.1 activate ─ order pinned as WEW-DANE-ZAMOWIENIA v1
-3.2 sources ─ fetch ≤10 site pages + 8 social items (Firecrawl, SSRF-guarded) → WEW-ZRODLA
+3.2 sources ─ fetch ≤10 site pages + 8 social items (Firecrawl, SSRF-guarded)
+3.2a people ─ people_finder over the client pages (+ the order's spokespeople) → ≤4 people × 3 web searches
+              → channel_selector picks own channels + third-party mentions → own posts scraped (Apify seam, ≤8 each),
+              interviews/podcast pages fetched (≤2 each) → extra sources, publisher = the person → WEW-ZRODLA
 3.3 audit ─┬─ WEW-AUDYT
 3.4 competitors ─┘ search → ≤3 companies × ≤4 pages → WEW-KONKURENCJA v1 + WEW-ZRODLA v2
 3.5 comparison ─ WEW-KONKURENCJA v2

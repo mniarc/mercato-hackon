@@ -130,7 +130,7 @@ export const factBankInputSchema = z.object({
   order: orderContextSchema,
   outputLanguage: z.enum(outputLanguages),
   sources: z.array(
-    z.object({ source_id: z.string(), publisher: z.string(), kind: z.string(), url: z.string(), access: z.string(), retrieved_at: z.string() }),
+    z.object({ source_id: z.string(), publisher: z.string(), kind: z.string(), url: z.string(), access: z.string(), retrieved_at: z.string(), published_at: z.string().nullable(), limitation: z.string().nullable() }),
   ),
   facts: z.array(
     z.object({ fact_id: z.string(), entity: z.string(), claim: z.string(), kind: z.enum(factKinds), source_ids: z.array(z.string()), limitation: z.string().nullable() }),

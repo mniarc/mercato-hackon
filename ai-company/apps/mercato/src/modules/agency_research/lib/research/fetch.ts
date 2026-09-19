@@ -131,6 +131,33 @@ async function fetchWithAttempts(fetchPage: FetchPage, url: string, attempts: nu
   return last
 }
 
+/** Months between a date and now, floored; null when the date does not parse. */
+export function monthsBetween(date: string, now: Date): number | null {
+  const then = new Date(date)
+  if (Number.isNaN(then.getTime())) return null
+  return Math.max(0, (now.getUTCFullYear() - then.getUTCFullYear()) * 12 + now.getUTCMonth() - then.getUTCMonth())
+}
+
+/**
+ * Company socials go quiet and go stale. A post older than `socialStaleMonths` is dated evidence;
+ * when the channel's newest post is that old, every post carries the note so no agent reads
+ * the channel as the current offer — the website is the closest thing to the truth then.
+ */
+export function markStaleSocial(sources: CollectedSource[], now: Date): void {
+  const posts = sources.filter((s) => s.origin === 'corpus' && s.published_at)
+  if (!posts.length) return
+  const ages = posts.map((s) => monthsBetween(s.published_at!, now))
+  const newest = Math.min(...ages.filter((age): age is number => age !== null))
+  const channelSilent = Number.isFinite(newest) && newest >= limits.research.socialStaleMonths
+  posts.forEach((source, index) => {
+    const age = ages[index]
+    if (age === null || age < limits.research.socialStaleMonths) return
+    source.limitation = channelSilent
+      ? `dated post (${age} months); no newer communication in the channel — the website states the current offer`
+      : `dated post (${age} months) — the website states the current offer`
+  })
+}
+
 export async function collectSources(order: OrderFacts, opts: CollectOptions): Promise<CollectedSource[]> {
   const now = opts.now ?? (() => new Date())
   const log = opts.log ?? (() => {})
@@ -206,6 +233,7 @@ export async function collectSources(order: OrderFacts, opts: CollectOptions): P
       source.published_at = post.postedAt
       source.read_scope = `${post.text.length} chars, whole post from the stored corpus (${post.likes} likes, ${post.comments} comments)`
     }
+    markStaleSocial(collected, now())
   } else if (order.officialSocialUrl) {
     const page = await fetchWithAttempts(opts.fetchPage, order.officialSocialUrl, limits.research.fetchAttemptsPerUrl)
     const source = record(page, 'oficjalny kanał publiczny', order.officialSocialPlatform ?? 'social', 'purchase_form')

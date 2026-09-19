@@ -244,5 +244,8 @@
   "agency.materials.status.PAUSED": "Material received. Processing is paused; your agency can review the case.",
   "agency.materials.status.FAILED": "Material received, but processing failed. Your agency can review the case.",
   "agency.materials.status.CANCELLED": "Material received, but processing was cancelled. Your agency can review the case.",
-  "agency.review.clarificationOnly": "Add the missing information in comments. Acceptance is available only after the brief passes review."
+  "agency.review.clarificationOnly": "Add the missing information in comments. Acceptance is available only after the brief passes review.",
+  "agency.order.spokespeople": "People who speak for the brand (optional)",
+  "agency.order.spokespeopleHint": "Founders, owners, experts whose voice the communication should carry. One person per line: name, role, profile link. Their public posts, interviews and articles are read as part of the research.",
+  "agency.order.spokespeoplePlaceholder": "Anna Kowalska, CEO, https://www.linkedin.com/in/…"
 }

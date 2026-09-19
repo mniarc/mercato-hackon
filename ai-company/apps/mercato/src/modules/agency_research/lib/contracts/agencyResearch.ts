@@ -62,6 +62,8 @@ export const researchRunRequestSchema = z.object({
     .optional(),
   /** Explicit page list instead of discovery. */
   pages: z.array(z.string().min(1)).optional(),
+  /** People who speak for the brand, as the client named them (3.2a follows them across the web). */
+  people: z.array(z.object({ name: z.string().min(1), role: z.string().nullable().optional(), knownUrls: z.array(z.string().min(1)).max(10).optional() })).optional(),
   /** Per-run spend cap in PLN; the module default applies when omitted. */
   maxCostPln: z.number().positive().optional(),
   /** 6.5 — the plan topic the client selected (`TOP01`…); absent = the recommendation as a simulated selection. */

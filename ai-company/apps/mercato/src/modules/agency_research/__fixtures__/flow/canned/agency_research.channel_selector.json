@@ -1,0 +1,24 @@
+[
+  {
+    "kind": "research",
+    "data": {
+      "own_channels": [
+        {
+          "url": "https://www.linkedin.com/in/rafal-muda/",
+          "platform": "linkedin",
+          "why": "Profil osoby z nazwą marki w tytule wyniku.",
+          "confidence": 0.9
+        }
+      ],
+      "mentions": [
+        {
+          "url": "https://digitalbiznes.example/wywiad-rafal-muda-flow",
+          "kind": "interview",
+          "why": "Rozmowa z tą osobą o FLOW w tytule.",
+          "confidence": 0.9
+        }
+      ],
+      "not_this_person": []
+    }
+  }
+]

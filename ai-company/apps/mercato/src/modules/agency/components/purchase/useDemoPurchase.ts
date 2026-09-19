@@ -13,7 +13,7 @@ export type DemoPurchaseReceipt = z.infer<typeof receiptSchema>
 export type PurchaseBuyer = {
   brandDisplayName: string; brandWebsiteUrl: string; market: string; language: string; contactName: string; contactEmail: string;
   billingBuyerType: 'company' | 'individual'; billingLegalName: string; billingCountry: string; billingAddress: string; billingTaxId: string;
-  officialSocialUrl: string; purchaseGoal: string;
+  officialSocialUrl: string; purchaseGoal: string; spokespeople: string;
 }
 const endpoint = '/api/agency/portal/purchases'
 

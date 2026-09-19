@@ -6,7 +6,7 @@ import { orderStatus } from '../../../lib/store'
 
 jest.mock('@open-mercato/shared/lib/auth/server', () => ({ getAuthFromRequest: jest.fn() }))
 jest.mock('@open-mercato/shared/lib/di/container', () => ({ createRequestContainer: jest.fn() }))
-jest.mock('../../../lib/store', () => ({ orderStatus: jest.fn() }))
+jest.mock('../../../lib/store', () => ({ orderStatus: jest.fn(), liveAgentRuns: jest.fn(async () => []) }))
 
 import * as route from '../route'
 

@@ -30,5 +30,41 @@
       "title": "Kubik blog",
       "snippet": "same host again"
     }
+  ],
+  "\"Rafał Muda\" FLOW Centrum Badawcze": [
+    {
+      "url": "https://digitalbiznes.example/wywiad-rafal-muda-flow",
+      "title": "„Najpierw diagnoza, potem specyfikacja” — rozmowa z Rafałem Mudą z FLOW",
+      "snippet": "Rafał Muda odpowiada w FLOW za projekty badawcze i rozwój oferty."
+    },
+    {
+      "url": "https://www.linkedin.com/in/rafal-muda/",
+      "title": "Rafał Muda – FLOW Centrum Badawcze | LinkedIn",
+      "snippet": "Projekty badawcze, rozwój oferty."
+    },
+    {
+      "url": "https://www.goldenline.example/rafal-muda",
+      "title": "Rafał Muda – katalog osób",
+      "snippet": "aggregator"
+    },
+    {
+      "url": "https://makeitflow.pl/index.php",
+      "title": "FLOW",
+      "snippet": "the client itself"
+    }
+  ],
+  "\"Rafał Muda\" linkedin": [
+    {
+      "url": "https://www.linkedin.com/in/rafal-muda/",
+      "title": "Rafał Muda – FLOW Centrum Badawcze | LinkedIn",
+      "snippet": "Projekty badawcze, rozwój oferty."
+    }
+  ],
+  "\"Rafał Muda\" wywiad OR podcast OR rozmowa": [
+    {
+      "url": "https://digitalbiznes.example/wywiad-rafal-muda-flow",
+      "title": "„Najpierw diagnoza, potem specyfikacja” — rozmowa z Rafałem Mudą z FLOW",
+      "snippet": "Rafał Muda odpowiada w FLOW za projekty badawcze i rozwój oferty."
+    }
   ]
 }

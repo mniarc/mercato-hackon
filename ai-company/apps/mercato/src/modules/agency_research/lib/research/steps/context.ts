@@ -1,6 +1,7 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
+import type { KnownPerson, ScrapeProfilePosts } from './people'
 import type { QaFinding } from '../../../data/schemas/qa'
 import type { ResearchScope } from '../../store'
 import type { FetchPage, SocialPost } from '../fetch'
@@ -57,6 +58,10 @@ export type StepContext = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  /** 3.2a — people the client named; the finder adds those the pages name. */
+  knownPeople?: KnownPerson[]
+  /** 3.2a — reads a person's own posts (Apify through the ToV lane's seam); absent = their channels are only listed. */
+  scrapeProfilePosts?: ScrapeProfilePosts
   /** QA findings addressed to this step on a repair pass (3.7 / 4.2 / 5.4 / 6.3 / 7.3 loops), else empty. */
   repairFindings: QaFinding[]
   attempt: number

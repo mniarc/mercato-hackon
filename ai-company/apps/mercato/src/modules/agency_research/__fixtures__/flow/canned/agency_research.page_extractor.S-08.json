@@ -4,8 +4,18 @@
     "facts": [
       {
         "local_ref": "f1",
-        "claim": "Warsztat odkrywczy trwa dwa dni i kończy się mapą problemu.",
-        "quote": "Warsztat odkrywczy trwa dwa dni i kończy się mapą problemu",
+        "claim": "Northlight prowadzi badania, projektuje interfejsy i wdraża produkty dla B2B.",
+        "quote": "prowadzi badania użytkowników, projektuje interfejsy i wdraża produkty cyfrowe dla firm B2B",
+        "kind": "first_party_claim",
+        "use_scope": [
+          "oferta"
+        ],
+        "limitation": "Deklaracja."
+      },
+      {
+        "local_ref": "f2",
+        "claim": "Northlight zaczyna od warsztatu odkrywczego.",
+        "quote": "Zaczynamy od warsztatu odkrywczego, w którym spisujemy problem, odbiorców i ograniczenia techniczne",
         "kind": "first_party_claim",
         "use_scope": [
           "mechanizm"
@@ -13,18 +23,40 @@
         "limitation": null
       },
       {
-        "local_ref": "f2",
-        "claim": "Northlight nie obiecuje wyników sprzedażowych.",
-        "quote": "Nie obiecujemy wyników sprzedażowych; obiecujemy przetestowane założenia",
+        "local_ref": "f3",
+        "claim": "Northlight deklaruje klientów z produkcji maszyn i logistyki.",
+        "quote": "Zaufali nam producenci maszyn i firmy logistyczne",
         "kind": "first_party_claim",
         "use_scope": [
-          "promise"
+          "proof"
+        ],
+        "limitation": "Brak nazwanych klientów."
+      },
+      {
+        "local_ref": "f4",
+        "claim": "CTA: bezpłatna konsultacja przez formularz.",
+        "quote": "Umów bezpłatną konsultację przez formularz",
+        "kind": "observed",
+        "use_scope": [
+          "cta"
         ],
         "limitation": null
       }
     ],
-    "language_samples": [],
+    "language_samples": [
+      {
+        "local_ref": "l1",
+        "excerpt": "Każdy etap kończy się decyzją klienta.",
+        "situation": "opis procesu",
+        "suggested_audience": "decydent",
+        "linguistic_features": [
+          "krótko",
+          "rzeczowo"
+        ],
+        "observed_function": "buduje przewidywalność"
+      }
+    ],
     "audience_signals": [],
-    "page_summary": "Oferta z czasami etapów."
+    "page_summary": "Strona główna studia badawczo-projektowego."
   }
 }

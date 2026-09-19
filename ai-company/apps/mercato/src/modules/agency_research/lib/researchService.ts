@@ -8,11 +8,11 @@ import { AGENCY_RESEARCH_SERVICE, researchRunRequestSchema, researchSteps, type 
 import { collectSources, type FetchPage, type SocialPost } from './research/fetch'
 import { createFirecrawlFetcher, createFirecrawlSearch, type SearchWeb } from './research/firecrawl'
 import { BudgetPausedError, createLedger, type LedgerEvent } from './research/ledger'
-import type { ModelSet, PipelineCache, PipelineEvent, ResearchAgentRunner } from './research/pipeline'
+import { createStepRunner, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner, type StepFn } from './research/pipeline'
 import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
 import type { ZrodlaData } from '../data/schemas/zrodla'
-import type { TemplateId } from '../data/schemas/envelope'
+import type { DocumentIssue, TemplateId } from '../data/schemas/envelope'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
 import { readBriefReview } from './briefReview/read'
@@ -43,6 +43,7 @@ import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
 import { runComparisonStep, runCompetitorsStep } from './research/steps/competitors'
 import type { StepContext, StepOutcome } from './research/steps/context'
+import { discoverPeople, type KnownPerson, type ScrapeProfilePosts } from './research/steps/people'
 import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
@@ -79,6 +80,10 @@ export type RunResearchOptions = {
   searchWeb?: SearchWeb
   socialPosts?: SocialPost[]
   pages?: string[]
+  /** 3.2a — people the client named on the order (name, role, known profile URLs). */
+  knownPeople?: KnownPerson[]
+  /** 3.2a — profile-post scraper; the service wires the ToV lane's Apify seam when APIFY_TOKEN is set. */
+  scrapeProfilePosts?: ScrapeProfilePosts
   through: ResearchStep
   /** 6.5 — the client's plan selection; null = simulated selection of the recommendation. */
   selectedTopicId?: string | null
@@ -140,6 +145,16 @@ export function carryCompetitorEntries(fresh: ZrodlaData, previous: ZrodlaData):
   }
 }
 
+/** The step runner 3.2a uses for its two agents: the same budget, cache, gates and retries as every other call. */
+function peopleStepRunner(ctx: StepContext): StepFn {
+  return createStepRunner({
+    runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache,
+    groundingRetries: limits.generation.groundingRetries, onEvent: ctx.onEvent,
+    timeouts: { extract: DEFAULT_EXTRACT_TIMEOUT_MS, synthesis: DEFAULT_SYNTHESIS_TIMEOUT_MS, qa: DEFAULT_EXTRACT_TIMEOUT_MS },
+    stats: { agentCalls: 0, cachedSteps: 0, dropped: 0, rejected: 0 },
+  })
+}
+
 /** 3.2 as a step over the shared context: fetch → sources rows → pipeline → WEW-ZRODLA v1. */
 export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
@@ -155,8 +170,21 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
   ctx.taskRunIds.push(run.id)
   try {
     const collected = await collectSources(ctx.order, { fetchPage: ctx.fetchPage, socialPosts: ctx.socialPosts, pages: ctx.pages, log: ctx.log })
-    await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, collected)
-    const result = await runSourcesStep({ order: ctx.order, sources: collected, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
+    // 3.2a — the people who speak for the brand and what they say elsewhere; skipped when an explicit page list replaces discovery.
+    const people = ctx.pages?.length
+      ? null
+      : await discoverPeople({
+          order: ctx.order, collected, knownPeople: ctx.knownPeople ?? [], searchWeb: ctx.searchWeb, fetchPage: ctx.fetchPage,
+          scrapeProfilePosts: ctx.scrapeProfilePosts, step: peopleStepRunner(ctx), log: ctx.log,
+        })
+    if (people) ctx.log(`3.2a people: ${people.people.length} followed, ${people.stats.searches} searches, ${people.stats.scraped_posts} posts, ${people.stats.fetched_pages} pages`)
+    const sources = people ? [...collected, ...people.sources] : collected
+    await saveSources(ctx.em, ctx.scope, ctx.orderRef, run.id, sources)
+    const result = await runSourcesStep({ order: ctx.order, sources, runAgent: ctx.runAgent, ledger: ctx.ledger, models: ctx.models, cache: ctx.cache, concurrency: ctx.concurrency, onEvent: ctx.onEvent })
+    if (people) {
+      result.data.people = people.people
+      result.issues.push(...people.issues.map((item) => ({ code: item.code, severity: item.severity === 'dropped' || item.severity === 'repaired' ? 'repaired' : 'limitation', detail: item.detail, path: `people.${item.path}` } as DocumentIssue)))
+    }
     // A repair of 3.2 rebuilds the client's half of the register; the competitor half 3.4 appended (C-facts, their
     // sources and samples) is carried forward unchanged, so WEW-KONKURENCJA keeps citing ids that exist.
     const data = previous ? carryCompetitorEntries(result.data, previous.data as ZrodlaData) : result.data
@@ -173,7 +201,7 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
       taskRunId: run.id,
     })
     ctx.documentVersionIds.push(saved.version.id)
-    await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { businessProfile: result.businessProfile, stats: result.stats }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
+    await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { businessProfile: result.businessProfile, stats: result.stats, people: people?.stats ?? null }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
   } catch (error) {
     const paused = error instanceof BudgetPausedError
@@ -239,6 +267,8 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     searchWeb: opts.searchWeb,
     socialPosts: opts.socialPosts,
     pages: opts.pages,
+    knownPeople: opts.knownPeople,
+    scrapeProfilePosts: opts.scrapeProfilePosts,
     repairFindings: [],
     attempt: 1,
     selectedTopicId: opts.selectedTopicId ?? null,
@@ -390,7 +420,21 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
   return { taskRunIds, documentVersionIds, agentRunIds, spentPln: ledger.snapshot().total, completedThrough, versionsByStep, qaVerdict, briefQaVerdict, strategyQaVerdict, planQaVerdict, postQaVerdict, closeAllowed, escalationVersionId }
 }
 
-type Container = { resolve(name: string): unknown }
+type Container = { resolve(name: string): unknown; hasRegistration?(name: string): boolean }
+
+type CorpusScraper = { available(): boolean; sourceOf(url: string): string | null; scrape(input: { url: string; maxPosts: number }): Promise<{ posts: Array<{ id: string; url: string; text: string; postedAt: string; authorName: string; likes: number; comments: number; shares: number }> }> }
+
+/** The ToV lane's Apify seam, resolved optionally (ADR-001: no import across the agency modules). */
+export function profileScraperFrom(container: Container): ScrapeProfilePosts | undefined {
+  if (!container.hasRegistration?.('agencyTovCorpusScraper')) return undefined
+  const scraper = container.resolve('agencyTovCorpusScraper') as CorpusScraper
+  if (!scraper.available()) return undefined
+  return async ({ url, maxPosts }) => {
+    if (!scraper.sourceOf(url)) return []
+    const { posts } = await scraper.scrape({ url, maxPosts })
+    return posts.map((post) => ({ id: post.id, url: post.url, text: post.text, postedAt: post.postedAt, authorName: post.authorName, likes: post.likes, comments: post.comments, shares: post.shares }))
+  }
+}
 
 export function createAgencyResearchService(container: Container): AgencyResearchService {
   return {
@@ -418,6 +462,8 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         searchWeb: apiKey ? createFirecrawlSearch({ apiKey }) : undefined,
         socialPosts: parsed.socialPosts,
         pages: parsed.pages,
+        knownPeople: (parsed.people ?? []).map((person) => ({ name: person.name, role: person.role ?? null, provided_by: 'client' as const, knownUrls: person.knownUrls ?? [] })),
+        scrapeProfilePosts: profileScraperFrom(container),
         through: parsed.through,
         selectedTopicId: parsed.selectedTopicId ?? null,
         maxCostPln: parsed.maxCostPln,
