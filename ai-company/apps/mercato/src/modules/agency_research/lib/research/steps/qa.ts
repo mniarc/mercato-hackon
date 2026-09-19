@@ -227,12 +227,15 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
  * exception; blocking findings owned by the client are questions, not failures.
  */
 export function mergeQaVerdict(agent: QaResult, validator: QaFinding[]): QaResult {
-  const findings = [...validator, ...agent.findings].slice(0, 20)
-  const blocking = findings.filter((f) => f.severity === 'blocking')
+  const all = [...validator, ...agent.findings]
+  const blocking = all.filter((f) => f.severity === 'blocking')
   const exception = blocking.some((f) => f.owner === 'staff' || ((f.owner === 'agent' || f.owner === 'research') && !f.fix_step))
   const toFix = blocking.some((f) => (f.owner === 'agent' || f.owner === 'research') && f.fix_step)
   // The agent's own verdict is advisory: with no blocking finding the analysis is ready.
   const verdict: QaResult['verdict'] = exception ? 'exception' : toFix ? 'to_fix' : 'ready'
+  // Decide over every finding, but keep blocking ones within the stored cap so the
+  // repair loop (which routes repairs off the stored findings) never loses a fix target.
+  const findings = [...blocking, ...all.filter((f) => f.severity !== 'blocking')].slice(0, 20)
   return qaResultSchema.parse({ verdict, findings, summary: agent.summary })
 }
 
