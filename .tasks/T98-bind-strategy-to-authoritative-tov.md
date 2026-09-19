@@ -1,6 +1,8 @@
 # T98 — Bind strategy and downstream work to the sole ToV specialist
 
 State: active (P0; initial integration source checked, connected recovery/proof pending)
+Immediate scope: connect the existing revision producer to saved client/QA requests,
+native continuation and fresh paired review; preserve initial integration.
 Sources: F22-1, F23-1, F24-1, F24-2; explicit user architecture decision.
 Depends on: T97 case-bound specialist intake.
 

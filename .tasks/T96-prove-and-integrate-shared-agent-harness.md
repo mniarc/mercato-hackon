@@ -1,12 +1,16 @@
 # T96 - Integrate and prove the shared agent harness
 
-State: ready
+State: active (immediate batch; one assigned runtime owner)
 Priority: P0-immediate
 Depends on: T95 source handoff; T93 runtime selection; T94 journal/index.
 Owns: coordinator integration, runtime validation and remaining cross-owner wiring.
 Sources: user request for demonstrable end-to-end teammate agent integration.
 
 ## Deliver
+
+- T95's dual fixture/live harness is already source-integrated. Finish its proof
+  and observed defects; do not create another harness. Live configuration/gating
+  checks make no paid calls and are not live-model execution proof.
 
 - Review the detached T95 handoff once and reconcile it with current T79, T93 and
   T94 changes without losing teammate behavior or pending main changes.
