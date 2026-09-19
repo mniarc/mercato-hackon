@@ -38,16 +38,18 @@ beforeEach(() => {
     receipt: { person: uuid(30), at: '2026-09-19T06:00:00.000Z', scope: 'post_content', version: '2.0', source: { submissionId: uuid(5) } } } as never)
   jest.mocked(findOneWithDecryption).mockImplementation(async (_em, entity, query) => {
     const brief = { ...scope, orderRef: 'case', templateId: 'WZR-BRIEF', deletedAt: null }
-    const documents = rows.map((row) => ({ ...scope, orderRef: 'case', templateId: row.templateId, id: row.documentId, currentVersionId: row.id, deletedAt: null }))
+    const documents = [...new Map(rows.map((row) => [row.templateId, { ...scope, orderRef: 'case', templateId: row.templateId, id: row.documentId, currentVersionId: row.id, deletedAt: null }])).values()]
     const candidates = entity === AgencyResearchDocument ? [brief, ...documents] : rows
     return (candidates.find((row) => Object.entries(query as Record<string, unknown>).every(([key, value]) => Reflect.get(row, key) === value)) ?? null) as never
   })
   jest.mocked(findWithDecryption).mockImplementation(async () => runs as never)
   jest.mocked(startTaskRun).mockImplementation(async (_em, tenantScope, task) => {
-    const run = Object.assign(new AgencyResearchTaskRun(), { ...tenantScope, ...task, id: uuid(40), status: 'running' }); runs.push(run); return run
+    const run = Object.assign(new AgencyResearchTaskRun(), { ...tenantScope, ...task, id: uuid(40 + runs.length), status: 'running' }); runs.push(run); return run
   })
   jest.mocked(saveDocumentVersion).mockImplementation(async (_em, tenantScope, data) => {
-    const version = Object.assign(new AgencyResearchDocumentVersion(), { ...tenantScope, ...data, id: uuid(50 + rows.length), versionNo: 1 }); rows.push(version)
+    const previous = rows.filter((row) => row.templateId === data.templateId)
+    const version = Object.assign(new AgencyResearchDocumentVersion(), { ...tenantScope, ...data, id: uuid(50 + rows.length),
+      documentId: previous[0]?.documentId ?? uuid(70 + rows.length), versionNo: previous.length + 1 }); rows.push(version)
     return { version } as never
   })
   jest.mocked(finishTaskRun).mockImplementation(async (_em, run, outcome) => { Object.assign(run, outcome) })
@@ -84,4 +86,32 @@ test('preparation reuses the exact separate consent without granting send author
   expect(prepared).toMatchObject({ status: 'prepared', publicationConsent: 'valid', contentApproval: 'valid', canSend: false })
   const instruction = jest.mocked(saveDocumentVersion).mock.calls.find((call) => call[2].templateId === 'WZR-ZLECENIE-PUBLIKACJI')![2]
   expect(instruction.data).toMatchObject({ payload: { text }, publication_consent_check: { state: 'valid' }, execution_guard: { reservation_state: 'none', attempt_refs: [] } })
+})
+
+test('configuration and actual consent changes append preparation; unchanged inputs replay without changing prior instructions', async () => {
+  const initial = await preparePublication(em, input)
+  const oldInstruction = rows.find((row) => row.templateId === 'WZR-ZLECENIE-PUBLIKACJI')!
+  const oldData = structuredClone(oldInstruction.data)
+  const oldConfig = rows.find((row) => row.templateId === 'WZR-KONFIG-PUBLIKACJI')!
+  const data = buildPublicationConfig({ order: { brand: 'Brand', officialSocialPlatform: 'Discord', officialSocialUrl: null } }, 'en').data
+  data.destination_identity.channel_or_page_id_or_null = '123456789012345678'
+  const config = Object.assign(new AgencyResearchDocumentVersion(), { ...oldConfig, id: uuid(90), versionNo: 2, data })
+  rows.push(config)
+  const configured = await preparePublication(em, input)
+  expect(configured).toMatchObject({ status: 'prepared', configVersionId: config.id, publicationConsent: 'missing', replayed: false, canSend: false })
+  expect(configured).not.toEqual(initial)
+  const consent = publicationConsentRecordSchema.parse({ person: uuid(30), at: '2026-09-19T06:00:00.000Z', scope: 'post_publication',
+    documentId: rows[0].documentId, documentVersionId: rows[0].id, version: '2.0', contentHash: contentHashOf(rows[0].data as PostData),
+    destination: { configVersionId: config.id, platform: 'Discord', accountId: null, channelId: '123456789012345678', displayName: 'Demo channel' },
+    source: { kind: 'agency_publication_consent', submissionId: uuid(5), eventId: 'post-review:original', workflowInstanceId: uuid(82), agentRunId: uuid(83), invitationTaskId: uuid(84) },
+  })
+  rows[0].approvalRecords = [consent]
+  const consented = await preparePublication(em, input)
+  expect(consented).toMatchObject({ status: 'prepared', publicationConsent: 'valid', configVersionId: config.id, replayed: false, canSend: false })
+  await expect(preparePublication(em, input)).resolves.toEqual({ ...consented, replayed: true })
+  rows[0].approvalRecords = [consent, { ...consent, at: '2026-09-19T07:00:00.000Z', source: { ...consent.source, submissionId: uuid(91) } }]
+  await expect(preparePublication(em, input)).resolves.toMatchObject({ status: 'prepared', publicationConsent: 'valid', replayed: false, canSend: false })
+  expect(startTaskRun).toHaveBeenCalledTimes(4)
+  expect(oldInstruction.data).toEqual(oldData)
+  expect(rows.filter((row) => row.templateId === 'WZR-ZLECENIE-PUBLIKACJI')).toHaveLength(4)
 })

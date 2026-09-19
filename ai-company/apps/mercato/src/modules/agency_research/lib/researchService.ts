@@ -45,6 +45,8 @@ import { preparePublicationInputSchema } from './publicationPreparation/contract
 import { readPublicationConsent } from './publicationConsent/read'
 import { recordPublicationConsent } from './publicationConsent/record'
 import { recordPublicationConsentInputSchema } from './publicationConsent/contracts'
+import { configurePublicationDestination } from './publicationDestination/configure'
+import { configurePublicationDestinationInputSchema } from './publicationDestination/contracts'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -553,6 +555,15 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
       }
       return preparePublication((container.resolve('em') as EntityManager).fork(), input)
+    },
+    async configurePublicationDestination(rawInput) {
+      const input = configurePublicationDestinationInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) {
+        throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      }
+      return configurePublicationDestination((container.resolve('em') as EntityManager).fork(), input)
     },
     async acceptPost(rawInput) {
       const input = acceptPostInputSchema.parse(rawInput)

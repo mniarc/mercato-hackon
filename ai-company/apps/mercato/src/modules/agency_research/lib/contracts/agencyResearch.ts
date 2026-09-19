@@ -18,6 +18,7 @@ import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAccept
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
 import type { BriefRevisionRequest, BriefRevisionResult } from '../briefRevision/contracts'
 import type { PublicationConsent, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
+import type { ConfigurePublicationDestinationInput, PublicationDestinationResult } from '../publicationDestination/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -159,6 +160,7 @@ export interface AgencyResearchService {
   runPostExecution(input: { context: ResearchExecutionContext; request: PostExecutionRequest }): Promise<PostExecutionResult>
   runPostRevision(input: { context: ResearchExecutionContext; request: PostRevisionRequest }): Promise<PostRevisionResult>
   preparePublication(input: PreparePublicationInput): Promise<PublicationPreparationResult>
+  configurePublicationDestination(input: ConfigurePublicationDestinationInput): Promise<PublicationDestinationResult>
   /** The client projection of the current version of a client-facing document; questions only for the brief. */
   getClientView(scope: { tenantId: string; organizationId: string }, orderRef: string, templateId: ClientViewTemplate): Promise<ClientView>
   /** Caller establishes case/customer ownership; the service enforces scope and exact version binding. */

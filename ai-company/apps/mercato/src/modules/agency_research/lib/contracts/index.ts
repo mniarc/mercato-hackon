@@ -1,4 +1,6 @@
 export * from './agencyResearch'
+export { configurePublicationDestinationInputSchema, publicationDestinationResultSchema } from '../publicationDestination/contracts'
+export type { ConfigurePublicationDestinationInput, PublicationDestinationResult } from '../publicationDestination/contracts'
 export * from '../materialRevision/contracts'
 export { publicationTargetSchema, publicationConsentRecordSchema, samePublicationDestination } from '../publicationConsent/contracts'
 export type { PublicationTarget, PublicationConsent, PublicationConsentRecord, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'

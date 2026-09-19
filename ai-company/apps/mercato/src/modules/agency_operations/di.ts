@@ -65,6 +65,8 @@ import { POST_REVISION_FUNCTION, POST_REVISION_REVIEW_FUNCTION, POST_REVISION_EX
 import { createPostRevisionActivity } from './lib/postRevision/activity'
 import { createPostRevisionReviewHandoff } from './lib/postRevision/reviewHandoff'
 import { createPostRevisionResearchExceptionHandoff } from './lib/postRevision/exceptionHandoff'
+import { AGENCY_PUBLICATION_DESTINATION_SERVICE } from './lib/publicationDestination/contracts'
+import { createPublicationDestinationService } from './lib/publicationDestination/service'
 import { MATERIAL_REVISION_FUNCTION, MATERIAL_REVISION_REVIEW_FUNCTION, MATERIAL_REVISION_EXCEPTION_FUNCTION } from './lib/materialRevision/contracts'
 import { createMaterialRevisionActivity } from './lib/materialRevision/activity'
 import { createMaterialRevisionReviewHandoff } from './lib/materialRevision/reviewHandoff'
@@ -75,6 +77,7 @@ export const AGENCY_AGENT_FUNCTION_DI_KEY = `workflowFunction:${AGENCY_AGENT_FUN
 export function register(container: AppContainer): void {
   const clientTriage = createClientTriageActivities(container)
   container.register({
+    [AGENCY_PUBLICATION_DESTINATION_SERVICE]: asFunction(() => createPublicationDestinationService(container)).scoped(),
     [`workflowFunction:${MATERIAL_REVISION_FUNCTION}`]: asFunction(() => createMaterialRevisionActivity(container)).scoped(),
     [`workflowFunction:${MATERIAL_REVISION_REVIEW_FUNCTION}`]: asFunction(() => createMaterialRevisionReviewHandoff(container)).scoped(),
     [`workflowFunction:${MATERIAL_REVISION_EXCEPTION_FUNCTION}`]: asFunction(() => createMaterialRevisionResearchExceptionHandoff(container)).scoped(),
