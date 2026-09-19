@@ -1,7 +1,7 @@
 import type { InputVersion } from '../../../data/schemas/envelope'
 import type { OrderFacts } from '../../../data/schemas/zamowienie'
 import type { QaFinding } from '../../../data/schemas/qa'
-import { NON_PUBLIC_EVIDENCE } from './qa'
+import { CLIENT_DECISION_GAP, NON_PUBLIC_EVIDENCE } from './qa'
 import { audytDataSchema, type AudytData } from '../../../data/schemas/audyt'
 import { briefDataSchema, type BriefData } from '../../../data/schemas/brief'
 import { konkurencjaDataSchema, type KonkurencjaData } from '../../../data/schemas/konkurencja'
@@ -164,7 +164,7 @@ export function mergeStrategyQaVerdict(findings: QaFinding[]): StrategyQaVerdict
 export function reclassifyStrategyFindings(findings: QaFinding[]): QaFinding[] {
   return findings.map((f) => {
     if (f.owner !== 'agent' && f.owner !== 'research') return f
-    if (NON_PUBLIC_EVIDENCE.test(f.gap) || /decision_criterion|empirical_buyer_evidence/.test(f.path)) {
+    if (NON_PUBLIC_EVIDENCE.test(f.gap) || CLIENT_DECISION_GAP.test(f.gap) || /decision_criterion|empirical_buyer_evidence/.test(f.path)) {
       return { ...f, owner: 'client', fix_step: null, fix_hint: 'needs evidence public sources cannot provide (buyer criteria, interviews, benchmarks); a question for the client, not a rewrite' }
     }
     // Length is governed by the contract's client-view budget, which the validator measures; a per-section
