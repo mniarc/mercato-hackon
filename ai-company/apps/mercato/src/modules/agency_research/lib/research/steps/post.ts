@@ -359,7 +359,7 @@ export function authorInput(opts: PostPipelineOptions): PostAuthorInput {
       evidence_language: tov.evidence_language,
       copy_checks: tov.copy_checks.map((question, index) => ({ id: mintId(idPrefixes.copyCheck, index, '-'), question })),
     },
-    previous_text: opts.previousPost?.text ?? null,
+    previous_text: opts.repairFindings?.length ? (opts.previousPost?.text ?? null) : null,
     repair_findings: opts.repairFindings ?? [],
   }
 }

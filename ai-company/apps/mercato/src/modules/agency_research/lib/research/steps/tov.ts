@@ -205,7 +205,7 @@ function writerInput(opts: TovPipelineOptions, section: TovSection, draft: TovWr
     facts: zrodla.facts.map((f) => ({ fact_id: f.fact_id, entity: f.entity, claim: f.claim, kind: f.kind, limitation: f.limitation })),
     proof_cards: zrodla.proof_cards.map((p) => ({ proof_id: p.proof_id, proof_type: p.proof_type, artifact_or_method: p.artifact_or_method, observed_result: p.observed_result, fact_ids: p.fact_ids, limitations: p.limitations })),
     draft: draft as Record<string, unknown>,
-    previous_tov: (opts.previousTov as unknown as Record<string, unknown> | undefined) ?? null,
+    previous_tov: opts.repairFindings?.length ? ((opts.previousTov as unknown as Record<string, unknown> | undefined) ?? null) : null,
     repair_findings: opts.repairFindings ?? [],
   }
 }

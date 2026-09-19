@@ -424,7 +424,8 @@ function writerInput(opts: StrategyPipelineOptions, section: StrategySection, dr
       : null,
     evidence: evidenceInputOf(zrodla),
     draft: draft as Record<string, unknown>,
-    previous_strategy: (opts.previousStrategy as unknown as Record<string, unknown> | undefined) ?? null,
+    // The previous version matters only when this call repairs it; on a plain rerun it would only break the cache.
+    previous_strategy: opts.repairFindings?.length ? ((opts.previousStrategy as unknown as Record<string, unknown> | undefined) ?? null) : null,
     repair_findings: opts.repairFindings ?? [],
   }
 }
