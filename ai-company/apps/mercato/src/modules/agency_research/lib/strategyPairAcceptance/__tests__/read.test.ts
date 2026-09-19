@@ -43,6 +43,18 @@ test('one record cannot imply consent for the other document', async () => {
   await expect(readStrategyPairAcceptance({} as never, scope, input)).resolves.toMatchObject({ status: 'partial', remainingDocuments: ['tov'], acceptances: { tov: null } })
 })
 
+test('native clean pair QA makes draft versions reviewable without implying acceptance', async () => {
+  jest.mocked(readStrategyReview).mockResolvedValue({ ...pair,
+    strategy: { ...pair.strategy, documentStatus: 'ready_for_review', versionStatus: 'draft' },
+    tov: { ...pair.tov, documentStatus: 'ready_for_review', versionStatus: 'draft' },
+  })
+  jest.mocked(findOneWithDecryption).mockResolvedValue({ approvalRecords: [] } as never)
+  await expect(readStrategyPairAcceptance({} as never, scope, input)).resolves.toMatchObject({
+    status: 'partial', remainingDocuments: ['strategy', 'tov'], acceptances: { strategy: null, tov: null },
+    qaTaskRunId: pair.qa.taskRunId,
+  })
+})
+
 test('approved status without a durable record is not consent', async () => {
   jest.mocked(findOneWithDecryption).mockResolvedValue({ approvalRecords: [] } as never)
   await expect(readStrategyPairAcceptance({} as never, scope, input)).resolves.toMatchObject({ status: 'not_ready', reason: 'approval_record_missing' })
@@ -50,6 +62,8 @@ test('approved status without a durable record is not consent', async () => {
 
 test.each([
   [{ ...pair, tov: { ...pair.tov, isCurrent: false } }, 'pair_not_current'],
+  [{ ...pair, tov: { ...pair.tov, versionStatus: 'draft' } }, 'pair_not_reviewable'],
+  [{ ...pair, tov: { ...pair.tov, documentStatus: 'ready_for_review', versionStatus: 'blocked' } }, 'pair_not_reviewable'],
   [{ ...pair, qa: { state: 'missing' } }, 'pair_qa_not_ready'],
   [{ ...pair, brief: { ...pair.brief, isCurrent: false } }, 'brief_not_current_or_accepted'],
   [{ ...pair, tovUsesStrategy: false }, 'pair_dependency_mismatch'],

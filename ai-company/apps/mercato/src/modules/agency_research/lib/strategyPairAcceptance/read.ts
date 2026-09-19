@@ -15,8 +15,10 @@ export async function readEligiblePair(em: EntityManager, scope: Scope, input: {
   const pair = await readStrategyReview(em, scope, input.orderRef, input.strategyVersionId, input.tovVersionId)
   if (!pair) return { eligible: false, reason: 'pair_not_found' }
   if (!pair.strategy.isCurrent || !pair.tov.isCurrent) return { eligible: false, reason: 'pair_not_current' }
+  // Native pair QA marks the parents ready; versions remain draft until consent.
   if (![pair.strategy, pair.tov].every((document) => !document.simulationFlag
-    && ['ready_for_review', 'approved'].includes(document.documentStatus) && ['ready_for_review', 'approved'].includes(document.versionStatus))) {
+    && ((document.documentStatus === 'ready_for_review' && ['draft', 'ready_for_review'].includes(document.versionStatus))
+      || (document.documentStatus === 'approved' && document.versionStatus === 'approved')))) {
     return { eligible: false, reason: 'pair_not_reviewable' }
   }
   if (!pair.tovUsesStrategy) return { eligible: false, reason: 'pair_dependency_mismatch' }
