@@ -1,7 +1,16 @@
 {
   "schemaVersion": 1,
-  "notes": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory.",
+  "notes": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered teammate agents. The native agency_operations.client_triage router is additionally mapped so its journal observations are recognized; it is not a teammate producer. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled.",
   "agents": [
+    {
+      "id": "agency_operations.client_triage",
+      "processId": "agency_operations.client-submission.native.v1",
+      "source": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/definition.ts",
+      "connection": "connected",
+      "entry": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/activities.ts",
+      "notes": "Native G submission interpretation/router, registered under CLIENT_TRIAGE_AGENT_ID when triage is enabled. Its completed run does not prove any downstream producer or handoff."
+    },
     {
       "id": "agency_research.page_extractor",
       "processId": "agency_operations.analysis.v1",
