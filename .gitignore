@@ -5,5 +5,8 @@
 # Local browser captures for visual inspection
 /.visuals/
 
+# Local transferable build outputs (Docker image archives).
+/.build-artifacts/
+
 # Generated standalone specification coverage report
 /.dev-docs/coverage/report.html

@@ -62,6 +62,13 @@ available for the next start. `yarn dev:agency:setup` is explicit
 initialization recovery; it does not reinstall. Apply pending schema changes with
 `yarn dev:agency:migrate`. Shared platform-package edits can require a scoped
 package build; ordinary app-module edits use the existing Open Mercato hot reload.
+`dev:agency` reuses native package `dist` files and does not watch/build packages.
+After changing a native package, build that workspace (for example,
+`yarn workspace @open-mercato/core build`), then restart only the app if it loaded
+the old package. Typecheck reads source and does not prove `dist` is current.
+Root `yarn dev` includes package builds/watchers and automatic migrations; do not
+switch to it as a routine test repair. Production packaging uses the native
+`yarn build` then `yarn start`, separately from this persistent development loop.
 The launcher reuses Open Mercato's local integration environment: email/push
 delivery is captured or fake, not sent to real recipients. This is not a
 production configuration.
@@ -118,6 +125,13 @@ Keep one final persistence check for the outcome, not duplicate checkpoints.
 Exercise distinct retry behavior only when justified by an actual observed bug;
 do not confuse that scenario with automatically retrying a failed journey.
 Keep detailed contract and access assertions in focused tests outside the browser.
+Fold newly integrated normal-use behavior into the primary demo when it fits the
+same coherent customer-to-agency flow, including behavior not yet in a journey.
+Do not force unrelated use cases into one oversized scenario.
+The primary demo follows the normal happy path; do not inject payment failures,
+QA defects or exceptions into it. Report genuine failures if they occur. Keep
+separate journeys only for meaningful alternatives not covered by that demo,
+and remove overlapping happy-path sections after equivalent proof exists.
 Diagnose failures before changing assertions or fixture data; do not mirror
 internal field shapes as the journey's contract. Report coarse progress, not polling noise.
 
