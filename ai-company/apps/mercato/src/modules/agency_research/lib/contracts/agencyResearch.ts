@@ -14,6 +14,7 @@ import type { PostInstructionExecutionRequest, PostInstructionExecutionResult } 
 import type { PostExecutionRequest, PostExecutionResult } from '../postExecution/contracts'
 import type { PostAcceptanceRequest, PostAcceptance, AcceptPostInput, PostAcceptanceReceipt } from '../postAcceptance/contracts'
 import type { PreparePublicationInput, PublicationPreparationResult } from '../publicationPreparation/contracts'
+import type { PublicationConsent, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
 
 /**
  * The seam other modules use (ADR-001): resolve `AGENCY_RESEARCH_SERVICE` from the
@@ -156,6 +157,8 @@ export interface AgencyResearchService {
   acceptPlan(input: AcceptPlanInput): Promise<PlanAcceptanceReceipt>
   getPostAcceptance(scope: { tenantId: string; organizationId: string }, input: PostAcceptanceRequest): Promise<PostAcceptance>
   acceptPost(input: AcceptPostInput): Promise<PostAcceptanceReceipt>
+  getPublicationConsent(scope: { tenantId: string; organizationId: string }, input: PostAcceptanceRequest): Promise<PublicationConsent>
+  recordPublicationConsent(input: RecordPublicationConsentInput): Promise<PublicationConsentResult>
   /** Deterministic compiler only; does not invoke a copywriter or authorize publication. */
   runPostInstruction(input: { context: ResearchExecutionContext; request: PostInstructionExecutionRequest }): Promise<PostInstructionExecutionResult>
   getStrategyPairAcceptance(scope: { tenantId: string; organizationId: string }, input: StrategyPairAcceptanceRequest): Promise<StrategyPairAcceptanceState>

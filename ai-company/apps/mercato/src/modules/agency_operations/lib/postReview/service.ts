@@ -13,7 +13,7 @@ import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacS
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
-import { AGENCY_RESEARCH_SERVICE, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
+import { AGENCY_RESEARCH_SERVICE, samePublicationDestination, type AgencyResearchService } from '@/modules/agency_research/lib/contracts'
 import { AgencyCase, AgencyClientSubmission } from '../../data/entities'
 import { CLIENT_SUBMISSION_SERVICE, type ClientSubmissionService } from '../contracts/clientSubmission'
 import { POST_REVIEW_CONTEXT_KEY as INVITATION, POST_RESPONSE_CONTEXT_KEY as RESPONSE,
@@ -70,7 +70,12 @@ export function createPostReviewService(container: AppContainer): PostReviewServ
     const eligible = postReviewEligible(current, loaded.agencyCase.id)
     const matches = eligible && current.post.documentId === snapshot.post.documentId && current.post.versionId === snapshot.post.versionId
     const { acceptanceReceipt: _snapshotReceipt, ...document } = snapshot.post
-    return { ...snapshot, post: { ...document, isCurrent: Boolean(matches),
+    const consent = await research.getPublicationConsent(scope, { orderRef: loaded.agencyCase.id, postVersionId: snapshot.post.versionId })
+    const { publicationTarget: invitedTarget, publicationConsentReceipt: _snapshotConsent, ...original } = snapshot
+    const target = invitedTarget && consent.target && samePublicationDestination(invitedTarget, consent.target) ? invitedTarget : undefined
+    return { ...original, ...(target ? { publicationTarget: target } : {}),
+      ...(matches && consent.state === 'valid' && consent.record ? { publicationConsentReceipt: { consentedAt: consent.record.at } } : {}),
+      post: { ...document, isCurrent: Boolean(matches),
       status: matches ? current.receipt ? 'approved' as const : 'ready_for_review' as const : 'blocked' as const,
       ...(matches && current.receipt ? { acceptanceReceipt: { acceptedAt: current.receipt.at } } : {}),
     } }
@@ -105,6 +110,8 @@ export function createPostReviewService(container: AppContainer): PostReviewServ
         const definition = await container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring').findOwnedDefinition(tx, { ...scope, workflowId: WORKFLOW })
         if (!definition?.enabled || definition.metadata?.generatedBy?.module !== 'agency_operations' || definition.metadata.generatedBy.ownerId !== 'post_review') conflict()
         const review = await renderPostReview(current, agencyCase.id)
+        const consent = await research.getPublicationConsent(scope, { orderRef: agencyCase.id, postVersionId: input.postVersionId })
+        if (consent.target) review.publicationTarget = consent.target
         const instance = await executor.startWorkflow(tx, {
           ...scope, workflowId: WORKFLOW, correlationKey,
           metadata: { entityType: 'agency_operations:agency_case', entityId: agencyCase.id, initiatedBy: input.userId },
@@ -141,6 +148,7 @@ export function createPostReviewService(container: AppContainer): PostReviewServ
       const review = await currentReview(loaded, scope)
       if (!loaded.access.actable || instance.status !== 'PAUSED' || instance.currentStepId !== 'client_review'
         || !responseAvailable(review)) conflict()
+      if (input.publicationConsent && input.publicationConsent.configVersionId !== review.publicationTarget?.configVersionId) conflict()
       try {
         await container.resolve<TaskHandlerService>('taskHandler').completeUserTask(em, container, {
           taskId, userId: auth.sub, scope, formData: { [RESPONSE]: input },
@@ -166,11 +174,14 @@ export function createPostReviewService(container: AppContainer): PostReviewServ
       if (previous) return { requestId: previous.id, status: 'response_received', replayed: true }
       const review = await currentReview(loaded, scope)
       if (!responseAvailable(review)) conflict()
+      if (original.publicationConsent && original.publicationConsent.configVersionId !== review.publicationTarget?.configVersionId) conflict()
       const result = await container.resolve<ClientSubmissionService>(CLIENT_SUBMISSION_SERVICE).submit({
         ...scope, customerUserId: loaded.invitation.customerUserId, customerEntityId: loaded.invitation.customerEntityId,
       }, loaded.agencyCase.id, {
         eventId: postReviewEventId(task.id, original.externalEventId),
-        text: original.kind === 'message' ? original.body : `Client explicitly approves the content of post ${original.post.versionId}. This is not publication permission.`,
+        text: original.kind === 'message' ? original.body : original.publicationConsent
+          ? `Client explicitly approves the content of post ${original.post.versionId} and separately consents to publication of this version at the configured destination ${review.publicationTarget!.platform}: ${review.publicationTarget!.displayName} (${review.publicationTarget!.accountId ?? ''}/${review.publicationTarget!.channelId ?? ''}).`
+          : `Client explicitly approves the content of post ${original.post.versionId}. This is not publication permission.`,
         documentVersionReference: original.post.versionId,
         postReviewResponse: { taskId: task.id, ...original },
       })
@@ -178,7 +189,6 @@ export function createPostReviewService(container: AppContainer): PostReviewServ
     },
   }
 }
-
 
 
 

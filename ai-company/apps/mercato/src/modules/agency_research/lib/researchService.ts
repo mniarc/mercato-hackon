@@ -36,6 +36,9 @@ import { readPostAcceptance } from './postAcceptance/read'
 import { acceptPostInputSchema } from './postAcceptance/contracts'
 import { preparePublication } from './publicationPreparation'
 import { preparePublicationInputSchema } from './publicationPreparation/contracts'
+import { readPublicationConsent } from './publicationConsent/read'
+import { recordPublicationConsent } from './publicationConsent/record'
+import { recordPublicationConsentInputSchema } from './publicationConsent/contracts'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -476,6 +479,16 @@ export function createAgencyResearchService(container: Container): AgencyResearc
     },
     async getPostAcceptance(scope, input) {
       return readPostAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPublicationConsent(scope, input) {
+      return readPublicationConsent((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async recordPublicationConsent(rawInput) {
+      const input = recordPublicationConsentInputSchema.parse(rawInput)
+      const scope = { tenantId: input.context.tenantId, organizationId: input.context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!await rbac.userHasAllFeatures(input.context.userId, ['agency_research.manage'], scope)) throw new CrudHttpError(403, { error: 'api.errors.forbidden' })
+      return recordPublicationConsent((container.resolve('em') as EntityManager).fork(), input)
     },
     async preparePublication(rawInput) {
       const input = preparePublicationInputSchema.parse(rawInput)

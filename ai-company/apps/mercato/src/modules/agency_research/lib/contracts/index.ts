@@ -1,4 +1,6 @@
 export * from './agencyResearch'
+export { publicationTargetSchema, publicationConsentRecordSchema, samePublicationDestination } from '../publicationConsent/contracts'
+export type { PublicationTarget, PublicationConsent, PublicationConsentRecord, PublicationConsentResult, RecordPublicationConsentInput } from '../publicationConsent/contracts'
 export { acceptBriefInputSchema, briefAcceptanceReceiptSchema, briefAcceptanceRecordSchema, briefAcceptanceSourceSchema } from '../briefAcceptance/contracts'
 export type { AcceptBriefInput, BriefAcceptanceReceipt, BriefAcceptanceRecord, BriefAcceptanceProjection } from '../briefAcceptance/contracts'
 export type { ResearchExceptionProjection } from '../exceptionReview/read'

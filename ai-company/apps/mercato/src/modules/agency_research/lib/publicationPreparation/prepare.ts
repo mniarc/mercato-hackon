@@ -10,6 +10,7 @@ import { orderDataSchema, orderFactsOf } from '../../data/schemas/zamowienie'
 import { konfigPublikacjiDataSchema } from '../../data/schemas/konfigPublikacji'
 import { zleceniePostuDataSchema } from '../../data/schemas/zleceniePostu'
 import { readPostAcceptance } from '../postAcceptance/read'
+import { readPublicationConsent, publicationConsentCheckOf } from '../publicationConsent/read'
 import { documentIdFor, versionLabel } from '../research/envelope'
 import { buildPublicationConfig, buildPublicationOrder } from '../research/publication'
 import { renderKonfigPublikacji } from '../research/render/konfigPublikacji'
@@ -91,6 +92,7 @@ export async function preparePublication(manager: EntityManager, rawInput: unkno
       postVersion: { documentId: documentIdFor('WZR-POST', orderRef), version: accepted.post.version, status: 'approved', isCurrent: true,
         approvalRecords: [{ person, at, scope: approvalScope, version }] },
       config: builtConfig.data, configVersion: configPin, adapter: adapterFor(builtConfig.data.platform.platform),
+      publicationConsent: publicationConsentCheckOf(await readPublicationConsent(em, scope, { orderRef, postVersionId })),
       ctaPublicationReadiness: instruction.data.delivery_constraints.cta_publication_readiness,
     }, lang)
     const issues: DocumentIssue[] = built.data.preflight.check_results.filter((check) => check.result !== 'pass')

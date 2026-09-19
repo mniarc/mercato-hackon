@@ -52,6 +52,7 @@ export function createPostApproval(container: AppContainer) {
     if (!invitation.success || invitation.data.caseId !== submission.caseId || invitation.data.review.caseId !== submission.caseId
       || invitation.data.customerEntityId !== submission.customerEntityId || invitation.data.customerUserId !== submission.submittedByCustomerUserId
       || invitation.data.review.post.documentId !== response.post.documentId || invitation.data.review.post.versionId !== response.post.versionId) return null
+    if (response.publicationConsent && (response.publicationConsent.configVersionId !== invitation.data.review.publicationTarget?.configVersionId || !task.completedAt)) return null
     const contact = await container.resolve<Contacts>('customerUserService').findById(submission.submittedByCustomerUserId, scope.tenantId, scope.organizationId)
     if (!contact?.isActive || contact.customerEntityId !== submission.customerEntityId) return null
     const step = await findOneWithDecryption(em, StepInstance, {
@@ -85,7 +86,20 @@ export function createPostApproval(container: AppContainer) {
       if (!workflow) throw new Error('[internal] Post approval requires the native client submission workflow')
       const userId = await resolveWorkflowPrincipalUserId(em, workflow)
       if (!userId) throw new Error('[internal] Post approval requires the native workflow principal')
-      return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).acceptPost({ context: { ...scope, userId }, request })
+      const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+      const receipt = await research.acceptPost({ context: { ...scope, userId }, request })
+      // load() proved this exact original against the completed customer task and saved G decision.
+      const response = inputSchema.parse({ original: submission.original }).original.postReviewResponse!
+      if (response.publicationConsent) {
+        const task = await findOneWithDecryption(em, UserTask, { ...scope, id: response.taskId }, undefined, scope)
+        const invitationWorkflow = task && await findOneWithDecryption(em, WorkflowInstance, { ...scope, id: task.workflowInstanceId, workflowId: POST_REVIEW_WORKFLOW_ID, deletedAt: null }, undefined, scope)
+        const invitation = postReviewInvitationSchema.parse(invitationWorkflow?.context[POST_REVIEW_CONTEXT_KEY])
+        const destination = invitation.review.publicationTarget
+        if (!destination || destination.configVersionId !== response.publicationConsent.configVersionId) throw new Error('[internal] Publication consent must name the exact invited destination')
+        if (!task?.completedAt) throw new Error('[internal] Publication consent requires the native decision time')
+        await research.recordPublicationConsent({ context: { ...scope, userId }, request: { ...request, destination, consent: true, decidedAt: task.completedAt.toISOString() } })
+      }
+      return receipt
     },
   }
 }

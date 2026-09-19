@@ -10,12 +10,19 @@ jest.mock('@open-mercato/ui/portal/hooks/usePortalAppEvent', () => ({ usePortalA
 jest.mock('../../DocumentReview', () => ({ DocumentReview: ({ review, canRespond }: { review: { title: string }; canRespond: boolean }) => <p data-testid="saved-post" data-can-respond={String(canRespond)}>{review.title}</p> }))
 jest.mock('@open-mercato/ui/backend/detail', () => ({ LoadingMessage: ({ label }: { label: string }) => <p>{label}</p>, ErrorMessage: ({ label }: { label: string }) => <p role="alert">{label}</p> }))
 jest.mock('@open-mercato/ui/backend/CrudForm', () => ({
-  CrudForm: function ResponseForm({ onSubmit, initialValues }: { onSubmit: (values: Record<string, unknown>) => Promise<void>; initialValues: Record<string, unknown> }) {
+  CrudForm: function ResponseForm({ onSubmit, initialValues, fields }: {
+    onSubmit: (values: Record<string, unknown>) => Promise<void>; initialValues: Record<string, unknown>
+    fields: { id: string; visibleWhen?: { field: string; equals: string } }[]
+  }) {
     const [failed, setFailed] = React.useState(false)
     return <div>
       <p data-testid="initial-values">{JSON.stringify(initialValues)}</p>
+      <p data-testid="fields">{JSON.stringify(fields)}</p>
       {failed ? <p>retry response</p> : null}
       <button type="button" onClick={() => { void onSubmit({ kind: 'approval', approveContent: true }).catch(() => setFailed(true)) }}>Approve content</button>
+      {fields.some((field) => field.id === 'consentToPublication') ? <button type="button" onClick={() => {
+        void onSubmit({ kind: 'approval', approveContent: true, consentToPublication: true }).catch(() => setFailed(true))
+      }}>Approve content with separate consent</button> : null}
     </div>
   },
 }))
@@ -35,6 +42,7 @@ test('starts without automatic approval and retries one exact response', async (
   render(<PostReview taskId="task" orgSlug="acme" canComplete taskStatus="PENDING" />)
   expect(await screen.findByTestId('saved-post')).toHaveAttribute('data-can-respond', 'false')
   expect(JSON.parse(screen.getByTestId('initial-values').textContent!)).toMatchObject({ approveContent: false })
+  expect(screen.queryByRole('button', { name: 'Approve content with separate consent' })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: 'Approve content' }))
   await screen.findByText('retry response')
   fireEvent.click(screen.getByRole('button', { name: 'Approve content' }))
@@ -43,7 +51,38 @@ test('starts without automatic approval and retries one exact response', async (
   expect(writes).toHaveLength(2)
   expect(writes[0][1]?.body).toBe(writes[1][1]?.body)
   expect(JSON.parse(writes[0][1]?.body as string)).toMatchObject({ approveContent: true, post: { documentId: 'post', versionId: 'v1' } })
+  expect(JSON.parse(writes[0][1]?.body as string)).not.toHaveProperty('publicationConsent')
   expect(screen.queryByRole('button', { name: 'Approve content' })).toBeNull()
+})
+
+test('offers an independently unchecked consent field for the configured target and sends explicit consent', async () => {
+  jest.mocked(apiCall).mockResolvedValueOnce(response({ ...projection, review: { ...projection.review,
+    publicationTarget: { configVersionId: 'config-v1', platform: 'linkedin', accountId: 'account-1', channelId: null, displayName: 'Company page' },
+  } })).mockResolvedValueOnce(response({ requestId: 'request', status: 'response_received' }))
+  render(<PostReview taskId="task" orgSlug="acme" canComplete taskStatus="PENDING" />)
+  await screen.findByTestId('saved-post')
+  expect(JSON.parse(screen.getByTestId('initial-values').textContent!)).toMatchObject({ approveContent: false, consentToPublication: false })
+  expect(JSON.parse(screen.getByTestId('fields').textContent!)).toEqual(expect.arrayContaining([
+    expect.objectContaining({ id: 'consentToPublication', visibleWhen: { field: 'kind', equals: 'approval' } }),
+  ]))
+  fireEvent.click(screen.getByRole('button', { name: 'Approve content with separate consent' }))
+  await screen.findByText('agency.postReview.received')
+  const write = jest.mocked(apiCall).mock.calls.find(([, init]) => init?.method === 'POST')
+  expect(JSON.parse(write![1]!.body as string)).toMatchObject({
+    approveContent: true, publicationConsent: { configVersionId: 'config-v1', consent: true },
+  })
+})
+
+test('shows the saved publication consent separately without reopening the completed task', async () => {
+  jest.mocked(apiCall).mockResolvedValueOnce(response({ ...projection, canRespond: false, review: { ...projection.review,
+    post: { ...projection.review.post, status: 'approved', acceptanceReceipt: { acceptedAt: '2026-09-19T12:30:00.000Z' } },
+    publicationConsentReceipt: { consentedAt: '2026-09-19T12:30:00.000Z' },
+  } }))
+  render(<PostReview taskId="task" orgSlug="acme" canComplete taskStatus="COMPLETED" />)
+  await screen.findByTestId('saved-post')
+  expect(screen.getByText('agency.postReview.contentOnly')).toBeTruthy()
+  expect(screen.getByText('agency.postReview.publicationConsentSaved')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Approve content with separate consent' })).toBeNull()
 })
 
 test('completed native task shows content-only review without reopening approval', async () => {
@@ -55,5 +94,4 @@ test('completed native task shows content-only review without reopening approval
   expect(screen.getByText('agency.postReview.contentOnly')).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Approve content' })).toBeNull()
 })
-
 

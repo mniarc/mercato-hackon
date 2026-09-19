@@ -7,12 +7,12 @@ import { konfigPublikacjiDataSchema } from '../../../data/schemas/konfigPublikac
 import { postDataSchema } from '../../../data/schemas/post'
 import { potwierdzeniePublikacjiDataSchema } from '../../../data/schemas/potwierdzeniePublikacji'
 import { zleceniePostuDataSchema } from '../../../data/schemas/zleceniePostu'
-import { z } from 'zod'
 import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
 import { buildPublicationOrder, type PostVersionFacts } from '../publication'
 import { renderZleceniePublikacji, renderZleceniePublikacjiClientView } from '../render/zleceniePublikacji'
 import { simulationIssue } from '../simulation'
 import type { StepContext, StepOutcome } from './context'
+import { readPublicationConsent, publicationConsentCheckOf } from '../../publicationConsent/read'
 
 /**
  * Step 8.3 — WEW-ZLECENIE-PUBLIKACJI: one pinned KLI-POST version by hash, the
@@ -40,12 +40,13 @@ export async function runPublicationOrderStep(ctx: StepContext): Promise<StepOut
     const postData = postDataSchema.parse(post.data)
     const configData = konfigPublikacjiDataSchema.parse(config.data)
     // The approval records live on the exact version row, never on the document.
-    const versionRow = await em.findOne(AgencyResearchDocumentVersion, { id: post.versionId })
+    const versionRow = await em.findOne(AgencyResearchDocumentVersion, { ...scope, orderRef, id: post.versionId })
     const postVersion: PostVersionFacts = {
       documentId: post.document_id,
       version: post.version,
       status: post.status,
-      approvalRecords: z.array(approvalRecordSchema).catch([]).parse(versionRow?.approvalRecords ?? []),
+      approvalRecords: (Array.isArray(versionRow?.approvalRecords) ? versionRow.approvalRecords : [])
+        .map((raw) => approvalRecordSchema.safeParse(raw)).flatMap((parsed) => parsed.success ? [parsed.data] : []),
       isCurrent: true,
     }
     const escalationData = escalation ? eskalacjaDataSchema.pick({ resolution: true }).safeParse(escalation.data) : null
@@ -60,6 +61,7 @@ export async function runPublicationOrderStep(ctx: StepContext): Promise<StepOut
         postVersion,
         config: configData,
         configVersion: pin(config),
+        publicationConsent: publicationConsentCheckOf(await readPublicationConsent(em, scope, { orderRef, postVersionId: post.versionId })),
         adapter: adapterFor(configData.platform.platform),
         openEscalationRef,
         priorOutcome,

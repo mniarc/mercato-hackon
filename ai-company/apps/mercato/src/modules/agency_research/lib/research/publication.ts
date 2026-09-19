@@ -135,14 +135,14 @@ export type PostVersionFacts = {
 
 /** Content approval is a real client record on this exact version; a document merely `approved` without a record stays `missing`. */
 export function contentApprovalCheck(post: PostVersionFacts): ContentApprovalCheck {
-  const record = post.approvalRecords.find((r) => r.version === post.version)
+  const record = post.approvalRecords.find((r) => r.version === post.version && r.scope !== 'post_publication')
   let state: ContentApprovalCheck['state'] = 'missing'
   if (record && post.status === 'approved') state = post.isCurrent ? 'valid' : 'stale'
   else if (record && post.status === 'needs_review') state = 'revoked'
   return contentApprovalCheckSchema.parse({ state, approval_ref_or_null: record ? `${post.documentId}@${post.version}:${record.person}:${record.at}` : null, checked_content_version: post.version })
 }
 
-/** No consent register exists in this lane: consent is always `missing` here (never inferred from content approval). */
+/** Default for callers without an exact persisted consent read; never infer it from content approval. */
 export function publicationConsentCheck(): PublicationConsentCheck {
   return publicationConsentCheckSchema.parse({ state: 'missing', consent_ref_or_null: null, bound_content_hash_or_null: null, bound_destination_or_null: null })
 }
@@ -248,6 +248,7 @@ export function evaluatePreflight(input: PreflightInput, lang: Lang, now: Date =
 }
 
 export type OrderInput = {
+  publicationConsent?: PublicationConsentCheck
   orderRef: string
   post: PostData
   postVersion: PostVersionFacts
@@ -274,7 +275,9 @@ export function buildPublicationOrder(input: OrderInput, lang: Lang): { data: Zl
   const contentHash = contentHashOf(post)
   const destinationLabel = config.destination_identity.display_name
   const contentApproval = contentApprovalCheck(input.postVersion)
-  const consent = publicationConsentCheck()
+  const consent = input.publicationConsent ? publicationConsentCheckSchema.parse(input.publicationConsent) : publicationConsentCheck()
+  const destinationKey = JSON.stringify([config.platform.platform, config.destination_identity.account_or_workspace_id_or_null, config.destination_identity.channel_or_page_id_or_null])
+  if (consent.state === 'valid' && (consent.bound_content_hash_or_null !== contentHash || consent.bound_destination_or_null !== destinationKey)) consent.state = 'stale'
   const hold: ZleceniePublikacjiData['current_hold'] = input.openEscalationRef
     ? { state: 'exception', reason_or_null: HOLD[lang].exception, request_ref_or_null: input.openEscalationRef }
     : { state: 'none', reason_or_null: null, request_ref_or_null: null }
