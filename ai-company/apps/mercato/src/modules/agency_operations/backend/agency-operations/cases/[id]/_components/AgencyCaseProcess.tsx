@@ -120,7 +120,23 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
               <div className="space-y-2">
                 <p className="whitespace-pre-wrap text-sm">{submission.disposition.message}</p>
                 <p className="text-sm text-muted-foreground">{submission.disposition.rationale}</p>
-                <p className="text-xs text-muted-foreground">{translate(`${key}.noBusinessEffects`, 'This triage result does not approve a document or apply business changes.')}</p>
+                {!submission.disposition.effectsApplied ? <p className="text-xs text-muted-foreground">{translate(`${key}.noBusinessEffects`, 'This triage result does not approve a document or apply business changes.')}</p> : null}
+              </div>
+            ) : null}
+            {submission.strategyHandoff ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.strategy.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.strategy.${submission.strategyHandoff.status}`)}</p>
+                <p className="text-sm text-muted-foreground">{translate(`${key}.strategy.noExecution`)}</p>
+                <JsonDisplay data={submission.strategyHandoff} title={translate(`${key}.strategy.title`)} />
+              </div>
+            ) : null}
+            {submission.strategyExecution ? (
+              <div className="space-y-2">
+                <h3 className="text-sm font-semibold">{translate(`${key}.strategyExecution.title`)}</h3>
+                <p className="text-sm">{translate(`${key}.strategyExecution.${submission.strategyExecution.status}`)}</p>
+                <p className="text-sm text-muted-foreground">{translate(`${key}.strategyExecution.noApproval`)}</p>
+                <JsonDisplay data={submission.strategyExecution} title={translate(`${key}.strategyExecution.title`)} />
               </div>
             ) : null}
             {submission.tasks.map((task) => (

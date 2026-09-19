@@ -16,6 +16,7 @@ export const documentReviewSchema = z.object({
   topics: z.array(z.object({ id: reference, title: reference, readiness: z.enum(['ready', 'blocked']) })).optional(),
   target: z.object({ id: reference, ref: reference, label: reference, platform: reference }).optional(),
   contentApproved: z.boolean().optional(),
+  acceptanceReceipt: z.object({ acceptedAt: z.iso.datetime() }).optional(),
 })
 
 export type DocumentReview = z.infer<typeof documentReviewSchema>

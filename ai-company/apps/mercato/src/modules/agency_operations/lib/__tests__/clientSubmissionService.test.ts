@@ -101,6 +101,28 @@ it('stores immutable original and replays the same event without creating or cla
   expect(JSON.stringify(replay)).not.toContain('privateStaffData')
 })
 
+it('preserves the exact review response as original input without granting approval authority', async () => {
+  const service = createClientSubmissionService(container)
+  const reviewResponse = {
+    taskId: workflowId, channel: 'portal' as const, kind: 'approval' as const,
+    documentId: materialId, versionId: foreignId, externalEventId: 'review-event',
+    body: 'Accept, but change the ending.',
+  }
+  const result = await service.submit(identity, caseId, {
+    eventId: 'task-review-event', text: reviewResponse.body,
+    documentVersionReference: foreignId, reviewResponse,
+  })
+  expect(result.item.original.reviewResponse).toEqual(reviewResponse)
+  expect(stored?.original).toMatchObject({ reviewResponse })
+  expect(result.item.disposition).toMatchObject({ effectsApplied: false })
+  const replay = await service.submit(identity, caseId, {
+    eventId: 'task-review-event', text: 'Replace original',
+    reviewResponse: { ...reviewResponse, body: 'Unconditional acceptance' },
+  })
+  expect(replay.item.original.reviewResponse).toEqual(reviewResponse)
+  expect(startWorkflow).toHaveBeenCalledTimes(1)
+})
+
 it('dispatches opted-in native triage only after committing its scoped original, and never redispatches a replay', async () => {
   nativeEnabled.mockReturnValue(true)
   executeWorkflow.mockImplementation(async (manager, appContainer, instanceId) => {

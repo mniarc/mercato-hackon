@@ -9,6 +9,7 @@
 import { parseBooleanWithDefault } from '@open-mercato/shared/lib/boolean'
 import type { ModuleOverrides } from '@open-mercato/shared/modules/overrides'
 import { officialModuleEntries } from './official-modules.generated'
+import { agencyPortalTaskRoutes } from './modules/agency/route-overrides'
 
 export type ModuleEntry = {
   id: string
@@ -180,7 +181,7 @@ export const enabledModules: ModuleEntry[] = [
     },
   },
   { id: 'ratelimit_probe', from: '@app' },
-  { id: 'agency', from: '@app' },
+  { id: 'agency', from: '@app', overrides: { routes: { pages: agencyPortalTaskRoutes } } },
 ]
 
 // Official modules activated via official-modules.json / official-modules.local.json

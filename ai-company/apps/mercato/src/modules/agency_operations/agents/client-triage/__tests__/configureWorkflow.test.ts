@@ -50,7 +50,7 @@ it('uses native staff grant authorization before reading or writing a definition
   })
   await expect(configureNativeClientTriage(container, input)).rejects.toMatchObject({ status: 403 })
   expect(authorizeGrant).toHaveBeenCalledWith(rbac, {
-    userId: input.userId, scope, current: [], requested: ['agent_orchestrator.agents.run'],
+    userId: input.userId, scope, current: [], requested: ['agent_orchestrator.agents.run', 'agency_research.manage'],
   })
   expect(findOwnedDefinition).not.toHaveBeenCalled()
   expect(upsertOwnedDefinition).not.toHaveBeenCalled()
@@ -74,7 +74,7 @@ it('creates the owned native definition with its exact scope, granting staff act
     ownerModule: 'agency_operations', ownerId: 'client_triage',
     workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID,
     definition: nativeClientSubmissionDefinition,
-    grantedFeatures: ['agent_orchestrator.agents.run'],
+    grantedFeatures: ['agent_orchestrator.agents.run', 'agency_research.manage'],
     ...scope, actorUserId: input.userId,
   }))
 })

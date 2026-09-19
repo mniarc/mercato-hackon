@@ -83,3 +83,25 @@ test('readers cannot act and see the read-only note', () => {
   expect(screen.queryByRole('button', { name: pl['agency.review.sendComments'] })).toBeNull()
   expect(screen.getAllByText(pl['agency.review.readOnly']).length).toBeGreaterThan(0)
 })
+
+test.each([true, false])('shows a saved exact-version acceptance receipt without offering another decision (current: %s)', (isCurrent) => {
+  const acceptedAt = '2026-09-19T12:30:00.000Z'
+  mount({ review: { ...review, status: 'approved', isCurrent, acceptanceReceipt: { acceptedAt } }, submitted: 'accept' })
+  expect(screen.getByText(pl['agency.review.acceptanceRecorded'].replace('{version}', review.version))).toBeTruthy()
+  expect(document.querySelector('time')).toHaveAttribute('datetime', acceptedAt)
+  expect(screen.queryByText(pl['agency.review.accepted'])).toBeNull()
+  expect(screen.queryByRole('button', { name: pl['agency.review.accept'] })).toBeNull()
+})
+
+test('response acknowledgment does not become a recorded acceptance', () => {
+  mount({ submitted: 'accept' })
+  expect(screen.getByText(pl['agency.review.accepted'])).toBeTruthy()
+  expect(screen.queryByText(pl['agency.review.acceptanceRecordedAt'])).toBeNull()
+  expect(document.querySelector('time')).toBeNull()
+})
+
+test('a receipt on a non-approved projection is not rendered as acceptance', () => {
+  mount({ review: { ...review, acceptanceReceipt: { acceptedAt: '2026-09-19T12:30:00.000Z' } } })
+  expect(screen.queryByText(pl['agency.review.acceptanceRecordedAt'])).toBeNull()
+  expect(document.querySelector('time')).toBeNull()
+})

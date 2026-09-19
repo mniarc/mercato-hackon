@@ -15,7 +15,9 @@ import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID 
 import { CLIENT_TRIAGE_EXCEPTION_STEP_ID } from '../clientTriageException/workflow'
 import { AGENCY_ANALYSIS_RESULT_KEY, AGENCY_ANALYSIS_WORKFLOW_ID } from '../analysisProcess/workflow'
 import { analysisProcessResultSchema } from '../analysisProcess/contracts'
-import type { CaseAnalysisProcess, CaseProcessResponse, CaseProcessSubmission } from './contract'
+import { STRATEGY_READINESS_RESULT_KEY } from '../strategyHandoff/activity'
+import { STRATEGY_EXECUTION_RESULT_KEY, strategyExecutionActivityResultSchema } from '../strategyExecution/contracts'
+import { caseStrategyHandoffSchema, type CaseAnalysisProcess, type CaseProcessResponse, type CaseProcessSubmission } from './contract'
 
 type EmployeeScope = { tenantId: string; organizationId: string; userId: string; roleNames: string[] }
 
@@ -29,6 +31,8 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
   const disposition = clientSubmissionDispositionSchema.safeParse(savedResult)
   const interpretation = clientTriageInterpretationSchema.safeParse(context[CLIENT_TRIAGE_INTERPRETATION_KEY])
   const native = workflow?.workflowId === NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
+  const strategyHandoff = caseStrategyHandoffSchema.safeParse(record(context[STRATEGY_READINESS_RESULT_KEY]).result)
+  const strategyExecution = strategyExecutionActivityResultSchema.safeParse(record(context[STRATEGY_EXECUTION_RESULT_KEY]).result)
   const scaffold = workflow?.workflowId === CLIENT_SUBMISSION_WORKFLOW_ID
   const active = workflow?.status === 'PAUSED' || workflow?.status === 'WAITING_FOR_ACTIVITIES' || workflow?.status === 'RUNNING'
   const error = workflow?.errorMessage ?? (workflow?.currentStepId === CLIENT_TRIAGE_EXCEPTION_STEP_ID ? record(context.__error).message : null)
@@ -50,6 +54,10 @@ export function projectSubmissionProcess(submission: AgencyClientSubmission, wor
     disposition: disposition.success && disposition.data.targets.caseId === submission.caseId && disposition.data.targets.submissionId === submission.id
       ? disposition.data : null,
     interpretation: interpretation.success ? interpretation.data : null,
+    strategyHandoff: native && strategyHandoff.success && strategyHandoff.data.orderRef === submission.caseId
+      ? strategyHandoff.data : null,
+    strategyExecution: native && strategyExecution.success && strategyExecution.data.orderRef === submission.caseId
+      ? strategyExecution.data : null,
     tasks: tasks.map((task) => ({
       id: task.id, status: task.status, assignedTo: task.assignedTo ?? null,
       assignedToRoles: task.assignedToRoles ?? [], claimedBy: task.claimedBy ?? null,

@@ -100,10 +100,10 @@ test.each(['answer', 'clarify'] as const)('projects saved %s to only the stored 
   })
 })
 
-test('preserves unsupported business recommendations as an explicit unapplied result', async () => {
+test('preserves approval without an authorized review original as an explicit unapplied result', async () => {
   const result = await createClientTriageActivities(container).project({}, activityContext(interpretation('approve')))
   expect(result).toMatchObject({ kind: 'unapplied', triage: {
-    scope, interpretation: interpretation('approve'), disposition: null, unappliedReason: 'unsupported_disposition', effectsApplied: false,
+    scope, interpretation: interpretation('approve'), disposition: null, unappliedReason: 'target_not_authorized', effectsApplied: false,
   } })
   expect(result).not.toHaveProperty('targets')
 })

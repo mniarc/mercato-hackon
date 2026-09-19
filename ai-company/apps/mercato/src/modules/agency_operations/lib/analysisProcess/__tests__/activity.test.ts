@@ -132,7 +132,26 @@ it('pins staff policy in the native activity and keeps incomplete work away from
   const activity = definition.transitions.find((transition) => transition.transitionId === 'save_research')!.activities![0]
   expect(activity.config.args).toEqual({ caseId: '{{context.caseId}}', policy })
   expect(activity.retryPolicy?.maxAttempts).toBe(1)
-  expect(definition.transitions.find((transition) => transition.toStepId === 'completed')!.condition).toEqual({ field: `${AGENCY_ANALYSIS_RESULT_KEY}.result.state`, operator: '=', value: 'completed' })
+  expect(definition.transitions.find((transition) => transition.toStepId === 'completed')!.condition).toEqual({ operator: 'AND', rules: [
+    { field: 'agencyResearchException.result.kind', operator: '=', value: 'none' },
+    { field: `${AGENCY_ANALYSIS_RESULT_KEY}.result.state`, operator: '=', value: 'completed' },
+  ] })
   expect(definition.steps.find((step) => step.stepId === 'waiting')!.stepType).toBe('WAIT_FOR_SIGNAL')
   expect(definition.transitions.some((transition) => transition.fromStepId === 'waiting')).toBe(false)
+})
+
+it('hands off saved brief outcomes through the native function before routing the research result', () => {
+  const definition = createAgencyAnalysisWorkflowDefinition({ ...policy, through: '4.2' })
+  definition.steps.forEach((step) => workflowStepSchema.parse(step))
+  definition.transitions.forEach((transition) => workflowTransitionSchema.parse(transition))
+  expect(definition.transitions.find((transition) => transition.transitionId === 'handoff_brief')).toMatchObject({
+    fromStepId: 'exception_checked', toStepId: 'brief_handoff',
+    activities: [{ activityType: 'EXECUTE_FUNCTION', config: { functionName: 'agency_operations.handoffAnalysisBrief' } }],
+  })
+  expect(definition.transitions.find((transition) => transition.toStepId === 'completed')?.fromStepId).toBe('brief_handoff')
+  expect(definition.transitions.find((transition) => transition.transitionId === 'waiting')?.fromStepId).toBe('brief_handoff')
+  expect(definition.transitions.find((transition) => transition.transitionId === 'assign_research_exception')).toMatchObject({
+    fromStepId: 'exception_checked', toStepId: 'research_exception',
+    condition: { field: 'agencyResearchException.result.kind', operator: '=', value: 'employee_exception' },
+  })
 })

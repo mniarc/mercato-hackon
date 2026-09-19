@@ -18,6 +18,7 @@ import { StatusBadge, type StatusBadgeVariant } from '@open-mercato/ui/primitive
 import { AgencyCaseEscalation } from './AgencyCaseEscalation'
 import { AgencyCaseProcess } from './AgencyCaseProcess'
 import { AgencyCaseResearchLedger } from './AgencyCaseResearchLedger'
+import { AgencyCaseEmployeeQuestions } from './AgencyCaseEmployeeQuestions'
 import {
   loadAgencyCaseDetail,
   type AgencyCaseDetailView,
@@ -155,6 +156,7 @@ export function AgencyCaseDetail({ caseId }: { caseId?: string }) {
       <AgencyCaseProcess key={`process:${agencyCase.id}:${scopeVersion}`} caseId={agencyCase.id} />
 
       <AgencyCaseResearchLedger caseId={agencyCase.id} />
+      <AgencyCaseEmployeeQuestions key={`questions:${agencyCase.id}:${scopeVersion}`} caseId={agencyCase.id} updatedAt={agencyCase.updatedAt} />
 
       <section className="rounded-lg border bg-card p-6">
         <h2 className="mb-4 text-lg font-semibold">

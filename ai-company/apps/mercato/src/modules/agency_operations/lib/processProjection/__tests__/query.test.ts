@@ -135,3 +135,62 @@ test('preserves exact completed research references without upgrading them to cl
   const completed = Object.assign(workflow('completed', { agencyAnalysisResult: { result: completedResult } }, 'COMPLETED'), { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID })
   expect(projectAnalysisProcess(caseId, completed)?.result).toEqual(completedResult)
 })
+
+const strategyHandoff = {
+  status: 'ready', orderRef: caseId,
+  brief: { documentId: 'brief-document', versionId: 'accepted-brief-version', documentRef: 'KLI-BRIEF', version: '2.0', templateId: 'WZR-BRIEF' },
+  analysis: {
+    freezeTaskRunId: 'freeze-run', qaTaskRunId: 'analysis-qa-run', setHash: 'frozen-set',
+    documents: [{ documentId: 'analysis-document', versionId: 'frozen-analysis-version', documentRef: 'WEW-ANALIZA', version: '1.0', templateId: 'WZR-ANALIZA' }],
+  },
+  process: { workflowDefinitionId: instanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, version: 3 },
+}
+
+test('projects only the saved case-owned native strategy handoff with its exact references', () => {
+  const saved = workflow('strategy_ready', { agencyStrategyReadiness: { result: strategyHandoff } }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).strategyHandoff).toEqual(strategyHandoff)
+  expect(projectSubmissionProcess(submission, workflow('strategy_ready', {}, 'COMPLETED'), []).strategyHandoff).toBeNull()
+  saved.context = { agencyStrategyReadiness: { result: { ...strategyHandoff, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyHandoff).toBeNull()
+  saved.context = { agencyStrategyReadiness: { result: strategyHandoff } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).strategyHandoff).toBeNull()
+})
+
+test('retains the recorded strategy blocker and does not upgrade a malformed readiness result', () => {
+  const notReady = { status: 'not_ready', orderRef: caseId, reason: 'missing_process_configuration' }
+  expect(projectSubmissionProcess(submission, workflow('strategy_not_ready', { agencyStrategyReadiness: { result: notReady } }), []).strategyHandoff)
+    .toEqual(notReady)
+  expect(projectSubmissionProcess(submission, workflow('strategy_ready', { agencyStrategyReadiness: { result: { status: 'ready', orderRef: caseId } } }), []).strategyHandoff)
+    .toBeNull()
+})
+
+const strategyExecution = {
+  status: 'paused_budget', orderRef: caseId,
+  taskRunIds: ['activation-task', 'strategy-task'], documentVersionIds: ['strategy-version'],
+  agentRunIds: ['actual-strategy-agent-run'], spentPln: 0.35,
+  strategyVersionId: 'strategy-version', tovVersionId: null, qaTaskRunId: null, qaVerdict: null,
+}
+
+test('preserves saved strategy execution outputs and cost rather than deriving success from readiness', () => {
+  const saved = workflow('completed', {
+    agencyStrategyReadiness: { result: strategyHandoff },
+    agencyStrategyExecution: { result: strategyExecution },
+  }, 'COMPLETED')
+  expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toEqual(strategyExecution)
+  saved.context = { agencyStrategyReadiness: { result: strategyHandoff } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
+  saved.context = { agencyStrategyExecution: { result: { ...strategyExecution, orderRef: customerEntityId } } }
+  expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
+  saved.context = { agencyStrategyExecution: { result: strategyExecution } }
+  saved.workflowId = 'agency_operations.client-submission.scaffold.v1'
+  expect(projectSubmissionProcess(submission, saved, []).strategyExecution).toBeNull()
+})
+
+test('retains a saved interrupted activation and rejects malformed execution output', () => {
+  const incomplete = { status: 'execution_incomplete', orderRef: caseId, activationTaskRunId: 'activation-task', reason: 'in_progress_or_interrupted' }
+  expect(projectSubmissionProcess(submission, workflow('completed', { agencyStrategyExecution: { result: incomplete } }), []).strategyExecution)
+    .toEqual(incomplete)
+  expect(projectSubmissionProcess(submission, workflow('completed', { agencyStrategyExecution: { result: { status: 'completed', orderRef: caseId } } }), []).strategyExecution)
+    .toBeNull()
+})

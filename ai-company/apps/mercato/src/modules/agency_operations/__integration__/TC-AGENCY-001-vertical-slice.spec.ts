@@ -11,19 +11,22 @@ import {
 import { deleteAttachmentIfExists } from '@open-mercato/core/helpers/integration/attachmentsFixtures'
 import {
   createCustomerCompanyFixture,
+  createCustomerRoleFixture,
   createCustomerUserFixture,
   deleteCustomerCompanyFixture,
+  deleteCustomerRoleFixture,
   deleteCustomerUserFixture,
   portalLogin,
 } from '@open-mercato/core/helpers/integration/customerAccountsFixtures'
 import { withClient } from '@open-mercato/core/helpers/integration/dbFixtures'
-import { getTokenContext } from '@open-mercato/core/helpers/integration/generalFixtures'
+import { getTokenScope } from '@open-mercato/core/helpers/integration/generalFixtures'
 import { findInstanceUserTask, pollWorkflowInstance } from '@open-mercato/core/helpers/integration/workflowsFixtures'
 import { drainIntegrationQueue } from '@open-mercato/core/helpers/integration/queue'
 import { workflowDefinitionDataSchema } from '@open-mercato/core/modules/workflows/data/validators'
 import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 import { startNativeTriageProvider } from './support/nativeTriageProvider'
 import { deleteNativeTriageFixtures } from './support/nativeTriageCleanup'
+import { createBriefReviewFixture, deleteBriefReviewFixture, type BriefReviewFixture } from './support/briefReview'
 
 export const integrationMeta = {
   dependsOnModules: [
@@ -40,6 +43,7 @@ const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
 const EMPLOYEE_FEATURES = [
   'agency_operations.cases.view',
   'agency_operations.cases.escalate',
+  'agency_research.documents.view',
   'customers.companies.view',
   'workflows.instances.view',
   'workflows.view',
@@ -220,11 +224,22 @@ async function loginEmployee(
 }
 
 test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
+  test.use({ trace: 'retain-on-failure' })
+
+  let cleanupCurrentRun: (() => Promise<void>) | undefined
+
+  test.afterEach(async ({}, testInfo) => {
+    testInfo.setTimeout(30_000)
+    const cleanup = cleanupCurrentRun
+    cleanupCurrentRun = undefined
+    await cleanup?.()
+  })
+
   test('trusted intake becomes a completed employee-visible case with retrievable material', async ({
     page,
     request,
   }, testInfo) => {
-    test.setTimeout(180_000)
+    test.setTimeout(240_000)
 
     let screenshotSequence = 0
     const capture = async (label: string) => {
@@ -233,7 +248,9 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
     }
 
     const adminToken = await getAuthToken(request, 'admin')
-    const { tenantId, organizationId } = getTokenContext(adminToken)
+    const { tenantId, organizationId } = getTokenScope(adminToken)
+    const provisioningToken = await getAuthToken(request, 'superadmin')
+    const { userId: provisioningUserId } = getTokenScope(provisioningToken)
     const suffix = randomUUID().replaceAll('-', '').slice(0, 12)
     const title = `Agency proof ${suffix}`
     const fileName = `client-material-${suffix}.txt`
@@ -244,17 +261,44 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
 
     let customerEntityId: string | null = null
     let customerUserId: string | null = null
+    let customerRoleId: string | null = null
     let employeeRoleId: string | null = null
     let employeeUserId: string | null = null
     const provider = process.env.AGENCY_TEST_NATIVE_TRIAGE === '1' ? await startNativeTriageProvider() : null
     let nativeRecovery: { workflowInstanceId: string; submissionId: string } | null = null
+    let briefReview: BriefReviewFixture | null = null
     let resources: CreatedResources = {
       caseId: null,
       attachmentId: null,
       workflowInstanceId: null,
     }
 
-    try {
+    cleanupCurrentRun = async () => {
+      try { await runDemoPhase('Clean up fixtures', 'Cleanup complete', async () => {
+        if (!resources.caseId || !resources.attachmentId || !resources.workflowInstanceId) {
+          resources = await readCaseResourcesByTitle(title, tenantId, organizationId).catch(
+            () => resources,
+          )
+        }
+        if (briefReview) await deleteBriefReviewFixture(briefReview)
+        await deleteAttachmentIfExists(request, adminToken, resources.attachmentId)
+        await deleteCreatedDatabaseRows(resources, tenantId, organizationId)
+        if (customerUserId && customerRoleId) {
+          const response = await apiRequest(request, 'PUT', `/api/customer_accounts/admin/users/${customerUserId}`, {
+            token: provisioningToken,
+            data: { roleIds: [] },
+          })
+          expect(response.ok(), 'Fixture customer roles should be detached before deleting the user').toBeTruthy()
+        }
+        await deleteCustomerUserFixture(request, provisioningToken, customerUserId)
+        await deleteCustomerRoleFixture(request, provisioningToken, customerRoleId)
+        await deleteCustomerCompanyFixture(request, adminToken, customerEntityId)
+        await deleteUserIfExists(request, provisioningToken, employeeUserId)
+        await deleteRoleIfExists(request, provisioningToken, employeeRoleId)
+      }) } finally { await provider?.close() }
+    }
+
+    {
       if (provider) {
         await runDemoPhase('Check native triage configuration', 'Native triage ready with local intelligence only', async () => {
           expect(process.env.OPENROUTER_BASE_URL).toBe(provider.baseUrl)
@@ -294,21 +338,28 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
           `Agency proof client ${suffix}`,
         )
         customerEntityId = createdCustomerEntityId
-        const customerUser = await createCustomerUserFixture(request, adminToken, {
+        const customerRole = await createCustomerRoleFixture(request, provisioningToken, {
+          name: `Agency proof client role ${suffix}`,
+          features: ['portal.tasks.view', 'portal.tasks.complete'],
+          isPortalAdmin: false,
+        })
+        customerRoleId = customerRole.id
+        const customerUser = await createCustomerUserFixture(request, provisioningToken, {
           customerEntityId: createdCustomerEntityId,
           displayName: `Agency proof customer ${suffix}`,
+          roleIds: [customerRoleId],
         })
         customerUserId = customerUser.id
         employeeRoleId = await createRoleFixture(request, adminToken, {
           name: `Agency proof employee ${suffix}`,
           tenantId,
         })
-        await setRoleAclFeatures(request, adminToken, {
+        await setRoleAclFeatures(request, provisioningToken, {
           roleId: employeeRoleId,
           features: EMPLOYEE_FEATURES,
           organizations: [organizationId],
         })
-        employeeUserId = await createUserFixture(request, adminToken, {
+        employeeUserId = await createUserFixture(request, provisioningToken, {
           email: employeeEmail,
           password: employeePassword,
           organizationId,
@@ -496,6 +547,33 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         expect((await page.request.get(`${endpoint}/${randomUUID()}`)).status()).toBe(404)
       })
 
+      await runDemoPhase('Review the saved brief', 'Exact brief response received once', async () => {
+        briefReview = await createBriefReviewFixture({
+          caseId: intakeResult.caseId, tenantId, organizationId, userId: provisioningUserId,
+          customerEntityId: customerEntityId!, customerUserId: customerUserId!,
+        })
+        await page.goto(new URL(`/${intakeIdentity.orgSlug}/portal/tasks/${briefReview.taskId}`, BASE_URL).toString(), { waitUntil: 'domcontentloaded' })
+        await expect(page.getByTitle('Brief — version 1.0', { exact: true }).contentFrame()
+          .getByRole('heading', { name: 'Demo brief ready for your review' })).toBeVisible()
+        await capture('brief-review')
+        const received = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/agency/cases/${intakeResult.caseId}/requests` && response.request().method() === 'POST')
+        await page.getByRole('button', { name: 'Accept', exact: true }).click()
+        const response = await received
+        expect(response.status(), await response.text()).toBe(201)
+        const receipt = await response.json() as { requestId: string; status: string }
+        expect(receipt.status).toBe('response_received')
+        await expect(page.getByText('Your decision has been sent and is awaiting processing.')).toBeVisible()
+        const replay = await page.request.post(response.url(), { data: response.request().postDataJSON() })
+        expect(replay.status()).toBe(200)
+        expect(await replay.json()).toMatchObject({ requestId: receipt.requestId, replayed: true })
+        const original = await withClient(async (client) => client.query<{ original: { reviewResponse: { versionId: string; documentId: string; kind: string } } }>(
+          'SELECT original FROM agency_client_submissions WHERE id=$1 AND case_id=$2 AND tenant_id=$3 AND organization_id=$4',
+          [receipt.requestId, intakeResult.caseId, tenantId, organizationId],
+        ))
+        expect(original.rows[0].original.reviewResponse).toMatchObject({ versionId: briefReview.versionId, documentId: briefReview.documentId, kind: 'approval' })
+        await capture('brief-response-received')
+      })
+
       await runDemoPhase('Sign in employee', 'Employee signed in', async () => {
         await loginEmployee(page, employeeEmail, employeePassword, capture)
         await capture('employee-signed-in')
@@ -510,6 +588,11 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         await expect(caseLink).toBeVisible()
         await caseLink.click()
         await expect(page.getByRole('heading', { name: title, exact: true })).toBeVisible()
+        if (briefReview) {
+          await expect(page.getByText('Persisted research work', { exact: true })).toBeVisible()
+          await page.getByRole('button', { name: briefReview.versionId, exact: true }).first().click()
+          await expect(page.getByText('Stored version, dependencies and quality evidence', { exact: true })).toBeVisible()
+        }
         await capture('employee-case')
       })
 
@@ -559,6 +642,7 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         const responsePromise = page.waitForResponse((response) =>
           new URL(response.url()).pathname === `/api/agency_operations/cases/${intakeResult.caseId}/escalate`
             && response.request().method() === 'POST',
+          { timeout: 60_000 },
         )
         await dialog.getByRole('button', { name: 'Send to work inbox', exact: true }).click()
         const response = await responsePromise
@@ -578,20 +662,6 @@ test.describe('TC-AGENCY-001: real agency operations vertical slice', () => {
         expect(completed?.status).toBe('COMPLETED')
         await capture('human-attention-completed')
       })
-    } finally {
-      try { await runDemoPhase('Clean up fixtures', 'Cleanup complete', async () => {
-        if (!resources.caseId || !resources.attachmentId || !resources.workflowInstanceId) {
-          resources = await readCaseResourcesByTitle(title, tenantId, organizationId).catch(
-            () => resources,
-          )
-        }
-        await deleteAttachmentIfExists(request, adminToken, resources.attachmentId)
-        await deleteCreatedDatabaseRows(resources, tenantId, organizationId)
-        await deleteCustomerUserFixture(request, adminToken, customerUserId)
-        await deleteCustomerCompanyFixture(request, adminToken, customerEntityId)
-        await deleteUserIfExists(request, adminToken, employeeUserId)
-        await deleteRoleIfExists(request, adminToken, employeeRoleId)
-      }) } finally { await provider?.close() }
     }
   })
 })

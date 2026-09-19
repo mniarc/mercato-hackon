@@ -4,8 +4,9 @@ import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { z } from 'zod'
 import { AgencyClientSubmission } from '../../data/entities'
 import { clientSubmissionDispositionSchema } from '../../lib/contracts/clientSubmission'
-import { CLIENT_TRIAGE_AGENT_ID, inputSchema } from './contract'
+import { CLIENT_TRIAGE_AGENT_ID, inputSchema, type ClientTriageAllowedTarget } from './contract'
 import { projectClientTriageResult } from './projectResult'
+import { createBriefApproval } from './briefApproval'
 import { isClientTriageEnabled } from './configuration'
 import { CLIENT_TRIAGE_INTERPRETATION_KEY, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
@@ -16,6 +17,7 @@ const activityContextSchema = z.object({ workflowInstance: z.object({
 }) })
 
 export function createClientTriageActivities(container: AppContainer) {
+  const briefApproval = createBriefApproval(container)
   async function original(rawContext: unknown) {
     const { workflowInstance } = activityContextSchema.parse(rawContext)
     const { tenantId, organizationId } = workflowInstance
@@ -26,7 +28,7 @@ export function createClientTriageActivities(container: AppContainer) {
     return { submission, workflowInstance }
   }
 
-  return {
+  const activities = {
     async prepare(_input: unknown, context: unknown) {
       if (!isClientTriageEnabled()) throw new Error('[internal] Native client triage is disabled')
       const { submission } = await original(context)
@@ -34,18 +36,36 @@ export function createClientTriageActivities(container: AppContainer) {
     },
     async project(_input: unknown, context: unknown) {
       const { submission, workflowInstance } = await original(context)
+      const interpretation = workflowInstance.context[CLIENT_TRIAGE_INTERPRETATION_KEY]
+      const allowedTargets: ClientTriageAllowedTarget[] = ['answered', 'client_reply']
+      const approval = await briefApproval.load(submission, interpretation)
+      if (approval) allowedTargets.push('brief_accepted')
       const result = projectClientTriageResult({
         tenantId: submission.tenantId, organizationId: submission.organizationId,
         customerEntityId: submission.customerEntityId, caseId: submission.caseId,
         submissionId: submission.id, workflowInstanceId: workflowInstance.id,
-      }, workflowInstance.context[CLIENT_TRIAGE_INTERPRETATION_KEY], ['answered', 'client_reply'])
+      }, interpretation, allowedTargets)
       if (!result.disposition) return { kind: 'unapplied' as const, triage: result }
       const disposition = clientSubmissionDispositionSchema.parse({
         kind: result.disposition.kind, source: 'native_agent', workerId: CLIENT_TRIAGE_AGENT_ID,
-        rationale: result.interpretation.rationale, message: result.interpretation.responseMessage,
-        targets: { caseId: submission.caseId, submissionId: submission.id }, effectsApplied: false,
+        rationale: result.interpretation.rationale, message: result.interpretation.responseMessage ?? '',
+        targets: { caseId: submission.caseId, submissionId: submission.id,
+          ...(result.disposition.kind === 'approve' ? { documentVersionReference: approval?.versionId } : {}) }, effectsApplied: false,
       })
       return { ...disposition, triage: result }
     },
+    async acceptBrief(_input: unknown, context: unknown) {
+      const { submission, workflowInstance } = await original(context)
+      const interpretation = workflowInstance.context[CLIENT_TRIAGE_INTERPRETATION_KEY]
+      const acceptance = await briefApproval.accept(submission, interpretation)
+      const triage = projectClientTriageResult({ tenantId: submission.tenantId, organizationId: submission.organizationId,
+        customerEntityId: submission.customerEntityId, caseId: submission.caseId, submissionId: submission.id,
+        workflowInstanceId: workflowInstance.id }, interpretation, ['brief_accepted'])
+      return { kind: 'approve' as const, source: 'native_agent' as const, workerId: CLIENT_TRIAGE_AGENT_ID,
+        rationale: triage.interpretation.rationale, message: triage.interpretation.responseMessage ?? '',
+        targets: { caseId: submission.caseId, submissionId: submission.id, documentVersionReference: acceptance.versionId },
+        effectsApplied: true as const, acceptance, triage }
+    },
   }
+  return activities
 }

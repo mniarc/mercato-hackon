@@ -18,20 +18,24 @@ export function projectClientTriageResult(
   const recommendation = interpretation.recommendedDisposition
   let disposition: ClientTriageResult['disposition'] = null
   let unappliedReason: ClientTriageResult['unappliedReason'] = null
-  if (recommendation !== 'answer' && recommendation !== 'clarify') {
+  if (recommendation !== 'answer' && recommendation !== 'clarify' && recommendation !== 'approve') {
     unappliedReason = 'unsupported_disposition'
   } else if (interpretation.parts.some((part) => part.recommendedDisposition !== recommendation)) {
     unappliedReason = 'mixed_dispositions'
   } else if (recommendation !== 'clarify' && interpretation.parts.some((part) => part.needsClarification || part.intent === null)) {
     unappliedReason = 'uncertainty_not_clarified'
-  } else if (!interpretation.responseMessage) {
+  } else if (recommendation === 'approve' && interpretation.parts.some((part) => part.intent !== 'approval')) {
+    unappliedReason = 'mixed_dispositions'
+  } else if (recommendation !== 'approve' && !interpretation.responseMessage) {
     unappliedReason = 'missing_response'
   } else {
-    const targetStepId = recommendation === 'answer' ? 'answered' : 'client_reply'
+    const targetStepId = recommendation === 'answer' ? 'answered' : recommendation === 'clarify' ? 'client_reply' : 'brief_accepted'
     if (!allowedTargets.includes(targetStepId)) {
       unappliedReason = 'target_not_authorized'
     } else {
-      disposition = recommendation === 'answer'
+      disposition = recommendation === 'approve'
+        ? { kind: 'approve', targetStepId: 'brief_accepted' }
+        : recommendation === 'answer'
         ? { kind: 'answer', targetStepId: 'answered' }
         : { kind: 'clarify', targetStepId: 'client_reply' }
     }

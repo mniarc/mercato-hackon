@@ -1,13 +1,19 @@
 import { z } from 'zod'
 import { researchRunRequestSchema, researchSteps } from '@/modules/agency_research/lib/contracts'
 
+export const analysisIntakeSteps = ['3.2', '3.5', '3.8', '4.2'] as const
+
 // Execution permission/budget comes from the trusted caller, never inferred from
 // a portal offer preview, a document's status, or a model recommendation.
 export const analysisExecutionPolicySchema = z.object({
-  through: z.enum(researchSteps),
+  through: z.enum(analysisIntakeSteps),
   maxCostPln: z.number().positive(),
+  strategyExecution: z.object({ maxCostPln: z.number().positive() }).strict().optional(),
   productSelection: researchRunRequestSchema.shape.order.shape.product_selection,
 }).strict().superRefine((policy, context) => {
+  if (policy.strategyExecution && policy.through !== '4.2') {
+    context.addIssue({ code: 'custom', path: ['strategyExecution'], message: 'Strategy continuation requires the brief review handoff' })
+  }
   if (!Number.isInteger(policy.productSelection.result_limits?.topics) || (policy.productSelection.result_limits?.topics ?? 0) <= 0) {
     context.addIssue({ code: 'custom', path: ['productSelection', 'result_limits', 'topics'], message: 'Explicit product topic limit required' })
   }

@@ -67,3 +67,52 @@ test('shows a saved incomplete analysis handoff with exact native agent referenc
   expect(screen.getByRole('link', { name: 'agencyOperations.cases.detail.research.agentRun 1' }).getAttribute('href')).toBe('/backend/traces/actual-agent-run')
   expect(screen.queryByText('agencyOperations.cases.process.analysis.result.completed')).toBeNull()
 })
+
+test.each([
+  { status: 'not_ready', orderRef: 'case-id', reason: 'missing_process_configuration' },
+  {
+    status: 'ready', orderRef: 'case-id',
+    brief: { documentId: 'brief', versionId: 'accepted-brief-version', version: '2.0', templateId: 'WZR-BRIEF', documentRef: 'KLI-BRIEF' },
+    analysis: { freezeTaskRunId: 'freeze-run', qaTaskRunId: 'qa-run', setHash: 'frozen-set', documents: [] },
+    process: { workflowDefinitionId: 'pinned-definition', workflowId: 'agency_operations.analysis.v1', version: 3 },
+  },
+])('shows saved strategy readiness $status without claiming strategy execution', async (strategyHandoff) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process,
+    submissions: [{ ...process.submissions[0], strategyHandoff, disposition: { message: 'Acceptance recorded', rationale: 'Exact version', effectsApplied: true } }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.strategy.${strategyHandoff.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.strategy.noExecution')).toBeTruthy()
+  expect(screen.getByText(JSON.stringify(strategyHandoff))).toBeTruthy()
+  expect(screen.queryByText('agencyOperations.cases.process.noBusinessEffects')).toBeNull()
+  expect(screen.getByRole('link', { name: 'agencyOperations.cases.detail.workflow.open' })).toHaveAttribute('href', '/backend/instances/native-run')
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})
+
+test.each([
+  { status: 'not_configured', orderRef: 'case-id', reason: 'missing_strategy_authorization' },
+  { status: 'not_ready', orderRef: 'case-id', reason: 'brief_not_current' },
+  { status: 'execution_incomplete', orderRef: 'case-id', activationTaskRunId: 'activation-task', reason: 'in_progress_or_interrupted' },
+  {
+    status: 'completed', orderRef: 'case-id',
+    taskRunIds: ['activation', 'strategy', 'tov', 'qa'], documentVersionIds: ['strategy-v2', 'tov-v1'],
+    agentRunIds: ['strategy-agent', 'tov-agent'], spentPln: 0.8,
+    strategyVersionId: 'strategy-v2', tovVersionId: 'tov-v1', qaTaskRunId: 'qa', qaVerdict: 'needs_agent_fix',
+  },
+  {
+    status: 'paused_budget', orderRef: 'case-id',
+    taskRunIds: ['activation', 'strategy'], documentVersionIds: ['strategy-v2'],
+    agentRunIds: ['strategy-agent'], spentPln: 0.3,
+    strategyVersionId: 'strategy-v2', tovVersionId: null, qaTaskRunId: null, qaVerdict: null,
+  },
+])('shows saved strategy execution $status without inventing an approval or another fetch', async (strategyExecution) => {
+  jest.mocked(apiCall).mockResolvedValue({ ok: true, status: 200, result: {
+    ...process, submissions: [{ ...process.submissions[0], strategyExecution }],
+  } } as never)
+  render(<AgencyCaseProcess caseId="case-id" />)
+  expect(await screen.findByText(`agencyOperations.cases.process.strategyExecution.${strategyExecution.status}`)).toBeTruthy()
+  expect(screen.getByText('agencyOperations.cases.process.strategyExecution.noApproval')).toBeTruthy()
+  expect(screen.getByText(JSON.stringify(strategyExecution))).toBeTruthy()
+  expect(apiCall).toHaveBeenCalledTimes(1)
+})

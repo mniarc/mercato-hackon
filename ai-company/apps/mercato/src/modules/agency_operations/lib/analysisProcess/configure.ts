@@ -8,6 +8,7 @@ import { AGENCY_RESEARCH_SERVICE } from '@/modules/agency_research/lib/contracts
 import { analysisExecutionPolicySchema } from './contracts'
 import { assertAnalysisExecutionEnabled } from './activity'
 import { AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from './workflow'
+import { configureBriefReviewWorkflow } from '../briefStrategyProcess/configure'
 
 export const AGENCY_ANALYSIS_GRANTED_FEATURES = ['agency_research.manage', 'agent_orchestrator.agents.run']
 const inputSchema = z.object({ tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), policy: analysisExecutionPolicySchema })
@@ -27,6 +28,7 @@ export async function configureAgencyAnalysisProcess(container: AppContainer, ra
   if (await authoring.findOwnedDefinition(em, { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, ...scope })) {
     throw new Error('[internal] Analysis is already configured; publish a new native workflow version to change its execution policy')
   }
+  if (input.policy.through === '4.2') await configureBriefReviewWorkflow(container, input)
   const result = await authoring.upsertOwnedDefinition(em, {
     ownerModule: 'agency_operations', ownerId: 'analysis', workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
     workflowName: 'Agency analysis', description: 'Case-scoped teammate research with explicitly authorized execution limits; not payment or client approval.',

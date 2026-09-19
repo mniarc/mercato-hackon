@@ -31,6 +31,19 @@ describe('readDocumentReview', () => {
     expect(readDocumentReview({ agencyReview: brief })).toEqual({ kind: 'review', review: brief })
   })
 
+  it('preserves an optional timestamp receipt without exposing actor or source fields', () => {
+    const acceptedAt = '2026-09-19T12:30:00.000Z'
+    const review = { ...brief, status: 'approved', acceptanceReceipt: { acceptedAt } }
+    expect(readDocumentReview({ agencyReview: {
+      ...review, acceptanceReceipt: { acceptedAt, customerUserId: 'private-actor', source: 'internal-source' },
+    } })).toEqual({ kind: 'review', review })
+  })
+
+  it('rejects an invalid timestamp receipt', () => {
+    expect(readDocumentReview({ agencyReview: { ...brief, acceptanceReceipt: { acceptedAt: 'yesterday' } } }))
+      .toEqual({ kind: 'invalid' })
+  })
+
   it.each(['caseId', 'documentId', 'versionId', 'version'])('rejects a missing or blank %s', (field) => {
     expect(readDocumentReview({ agencyReview: { ...brief, [field]: undefined } })).toEqual({ kind: 'invalid' })
     expect(readDocumentReview({ agencyReview: { ...brief, [field]: '  ' } })).toEqual({ kind: 'invalid' })

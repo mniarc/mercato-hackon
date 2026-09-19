@@ -23,10 +23,21 @@ test('projects only the server-authorized target and never applies effects', () 
   expect(clientTriageInterpretationSchema.safeParse({ ...interpretation, targets: { caseId: scope.caseId } }).success).toBe(false)
 })
 
-test('keeps unsupported business recommendations and mixed parts unapplied', () => {
+test('keeps unauthorized approval and mixed parts unapplied', () => {
   const approvalPart = { ...interpretation.parts[0], intent: 'approval', recommendedDisposition: 'approve' }
-  expect(projectClientTriageResult(scope, { ...interpretation, parts: [approvalPart], recommendedDisposition: 'approve' }, ['answered', 'client_reply'])).toMatchObject({ disposition: null, unappliedReason: 'unsupported_disposition', interpretation: { recommendedDisposition: 'approve' } })
+  expect(projectClientTriageResult(scope, { ...interpretation, parts: [approvalPart], recommendedDisposition: 'approve' }, ['answered', 'client_reply'])).toMatchObject({ disposition: null, unappliedReason: 'target_not_authorized', interpretation: { recommendedDisposition: 'approve' } })
   expect(projectClientTriageResult(scope, { ...interpretation, parts: [...interpretation.parts, approvalPart] }, ['answered'])).toMatchObject({ disposition: null, unappliedReason: 'mixed_dispositions' })
+})
+
+test('permits exact brief approval only when every part is an unambiguous approval', () => {
+  const approval: ClientTriageInterpretation = { ...interpretation, parts: [{ ...interpretation.parts[0], intent: 'approval', recommendedDisposition: 'approve' }], recommendedDisposition: 'approve', responseMessage: null }
+  expect(projectClientTriageResult(scope, approval, ['brief_accepted'])).toMatchObject({ disposition: { kind: 'approve', targetStepId: 'brief_accepted' }, effectsApplied: false })
+  for (const part of [
+    { ...approval.parts[0], intent: 'change' }, { ...approval.parts[0], intent: 'hold' },
+    { ...approval.parts[0], needsClarification: true }, { ...approval.parts[0], recommendedDisposition: 'change' },
+  ]) {
+    expect(projectClientTriageResult(scope, { ...approval, parts: [approval.parts[0], part] }, ['brief_accepted']).disposition).toBeNull()
+  }
 })
 
 test('uncertainty cannot become an answer, while a grounded clarification can use the existing waiting step', () => {

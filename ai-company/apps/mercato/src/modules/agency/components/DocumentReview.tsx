@@ -87,6 +87,7 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
   const available = canRespond && !submitted && canCommentDocument(review)
   const canAccept = available && loaded && canAcceptDocument(review, topicId)
   const hasComments = annotations.some((annotation) => annotation.text.trim().length > 0)
+  const acceptanceReceipt = review.status === 'approved' ? review.acceptanceReceipt : undefined
 
   const availableRef = React.useRef(available)
   React.useEffect(() => { availableRef.current = available }, [available])
@@ -239,7 +240,12 @@ export function DocumentReview({ review, canRespond, submitting, submitted, erro
           ) : null}
 
           {error ? <Alert status="error"><AlertDescription>{error}</AlertDescription></Alert> : null}
-          {submitted ? (
+          {acceptanceReceipt ? (
+            <Alert status="success"><AlertDescription>
+              <p>{t('agency.review.acceptanceRecorded', { version: review.version })}</p>
+              <p>{t('agency.review.acceptanceRecordedAt')} <time dateTime={acceptanceReceipt.acceptedAt}>{new Date(acceptanceReceipt.acceptedAt).toLocaleString()}</time></p>
+            </AlertDescription></Alert>
+          ) : submitted ? (
             <Alert status="success"><AlertDescription>{t(demo ? 'agency.demo.localResult' : submitted === 'accept' ? 'agency.review.accepted' : 'agency.review.commentsSent')}</AlertDescription></Alert>
           ) : !available ? (
             <Alert status="information"><AlertDescription>{t(!review.isCurrent || review.status === 'needs_review' ? 'agency.review.stale' : 'agency.review.readOnly')}</AlertDescription></Alert>

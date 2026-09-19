@@ -2,6 +2,29 @@ import { z } from 'zod'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema } from '../contracts/clientSubmission'
 import { clientTriageInterpretationSchema } from '../../agents/client-triage/contract'
 import { analysisProcessResultSchema } from '../analysisProcess/contracts'
+import { strategyProcessReferenceSchema } from '@/modules/agency_research/lib/contracts'
+import { strategyExecutionActivityResultSchema } from '../strategyExecution/contracts'
+
+const strategyDocumentReferenceSchema = z.object({
+  documentId: z.string().min(1), versionId: z.string().min(1),
+  documentRef: z.string().min(1), version: z.string().min(1), templateId: z.string().min(1),
+})
+
+export const caseStrategyHandoffSchema = z.discriminatedUnion('status', [
+  z.object({
+    status: z.literal('not_ready'), orderRef: z.string().min(1),
+    reason: z.string().min(1), templateId: z.string().optional(),
+  }),
+  z.object({
+    status: z.literal('ready'), orderRef: z.string().min(1),
+    brief: strategyDocumentReferenceSchema,
+    analysis: z.object({
+      freezeTaskRunId: z.string().min(1), qaTaskRunId: z.string().min(1),
+      setHash: z.string().min(1), documents: z.array(strategyDocumentReferenceSchema),
+    }),
+    process: strategyProcessReferenceSchema,
+  }),
+])
 
 export const caseProcessSubmissionSchema = z.object({
   submissionId: z.uuid(),
@@ -21,6 +44,8 @@ export const caseProcessSubmissionSchema = z.object({
   }).nullable(),
   disposition: clientSubmissionDispositionSchema.nullable(),
   interpretation: clientTriageInterpretationSchema.nullable(),
+  strategyHandoff: caseStrategyHandoffSchema.nullable().optional(),
+  strategyExecution: strategyExecutionActivityResultSchema.nullable().optional(),
   tasks: z.array(z.object({
     id: z.uuid(),
     status: z.string(),

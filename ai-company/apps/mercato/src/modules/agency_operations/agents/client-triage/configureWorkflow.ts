@@ -7,7 +7,7 @@ import { z } from 'zod'
 import { nativeClientSubmissionDefinition, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from './workflow'
 
 const configurationInputSchema = z.object({ tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid() })
-export const CLIENT_TRIAGE_GRANTED_FEATURES = ['agent_orchestrator.agents.run']
+export const CLIENT_TRIAGE_GRANTED_FEATURES = ['agent_orchestrator.agents.run', 'agency_research.manage']
 
 export async function configureNativeClientTriage(container: AppContainer, rawInput: unknown) {
   const input = configurationInputSchema.parse(rawInput)
@@ -28,7 +28,7 @@ export async function configureNativeClientTriage(container: AppContainer, rawIn
     ownerModule: 'agency_operations', ownerId: 'client_triage',
     workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID,
     workflowName: 'Agency client submission triage',
-    description: 'Native typed triage, saved answer/clarification and same-workflow employee recovery. Other business routes remain unapplied.',
+    description: 'Native typed triage, saved answer/clarification, exact brief acceptance and same-workflow employee recovery. Other business routes remain unapplied.',
     definition: nativeClientSubmissionDefinition,
     grantedFeatures: CLIENT_TRIAGE_GRANTED_FEATURES,
     ...scope, actorUserId: input.userId,
