@@ -1,6 +1,7 @@
 # T23 - Map agency workers and scaffold replaceable definitions
 
-State: active
+State: done (bounded worker mapping/scaffold and duplicate-role retirement)
+Evidence: ADR-003 accounts for all 102 source story IDs; only five agency-owned definitions remain, with teammate research/production call sites preserved. Existing scaffold suite passed 6/6 and full app TypeScript check passed on 2026-09-19. This completes the mapping/scaffold task, not the mapped stories or live worker activation.
 Sources: all `.specs/user-stories` domains; exact story-to-role mapping in ADR-003
 Owns: `agency_operations/agents/**` and ADR-003 worker ownership map;
 coordinator owns shared registration and integration

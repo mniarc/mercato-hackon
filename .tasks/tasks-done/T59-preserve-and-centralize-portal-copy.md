@@ -1,6 +1,7 @@
 # T59 - Centralize portal copy without rewriting teammate wording
 
-State: active (copy extraction verified; awaiting T25 integration commit)
+State: done (bounded teammate-copy extraction)
+Evidence: Exact Polish extraction was verified against teammate wording; the integrated headed TC-AGENCY-003 purchase journey and full app typecheck passed on 2026-09-19. Approved demo purchase wording remains distinct. This does not establish production payments, paid fulfilment or complete sales-story coverage.
 Depends on: current T25 purchase integration
 Owns: agency offer/order pages and their existing EN/PL locale keys;
 coordinate purchase components with T25, no other portal redesign

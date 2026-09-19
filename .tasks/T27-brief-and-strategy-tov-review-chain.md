@@ -31,6 +31,13 @@ Receiving a comment or clarification therefore does not close this recovery loop
 - Apply answered values to versioned findings, retaining unanswered gaps and source
   references. Reuse teammate 4.1/4.2 to create a new version of the same brief,
   preserving unaffected content and previous history, without inherited approval.
+  Forward the already-loaded previous brief to all three existing writer inputs;
+  keep teammate prompt additions and code-owned decisions/permissions intact.
+- Use the approved server-only `runBriefRevision` seam with the saved G source,
+  exact brief version, original response and explicit configured revision budget.
+  The native answer mapper proposes only invited answers grounded in literal client
+  quotes; trusted code applies them. An unclear response returns the saved questions,
+  not a fabricated answer, approval, fresh document or second triage.
 - Keep findings/analysis dependencies coherent with the 3.8 package required by
   strategy readiness. A genuine evidence request uses T26's bounded 4.5 → 3.7/3.8
   return; do not rerun the entire analysis or stamp a successful freeze.

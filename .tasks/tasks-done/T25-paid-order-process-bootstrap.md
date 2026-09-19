@@ -1,6 +1,7 @@
 # T25 - Start one agency process from a confirmed paid order
 
-State: active (demo-only offer and zero-charge test payments approved)
+State: done (bounded approved demo purchase and persisted process bootstrap)
+Evidence: Headed TC-AGENCY-003 passed on 2026-09-19: real purchase form, native order/gateway session, retry preserving one order, verified signed mock capture, confirmation retry preserving one case, private JSON material and native WAIT_FOR_SIGNAL awaiting_execution. Focused payment/encrypted-lookup/transaction checks and full app typecheck passed. This is zero-charge demo proof, not paid research fulfilment, production payments or full sales-story completion.
 Depends on: T24; existing teammate offer/order frontend
 Owns: `agency_operations/lib/orderBootstrap/**`; agreed narrow `agency` purchase adapter
 Sources: F01-1, F01-2, F02-1, F02-2, F03-1, F03-2, F04-1, F04-2, F04-3, F05-1, F05-2
