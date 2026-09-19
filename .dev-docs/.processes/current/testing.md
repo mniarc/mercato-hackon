@@ -22,6 +22,25 @@ yarn test:agency:demo      # Visible run plus checkpoint screenshots
 node scripts/agency-dev.mjs cli <command> <arguments> # Native CLI, same owned DB/runtime
 ```
 
+For short self/team aliases from any working directory, invoke the wrapper by
+its path. It only changes into `ai-company/` and calls the scripts above.
+
+```powershell
+& C:\path\to\App\bin-dev\agency.ps1 start --journey production
+& C:\path\to\App\bin-dev\agency.ps1 status
+& C:\path\to\App\bin-dev\agency.ps1 demo --journey production
+```
+
+```sh
+sh /path/to/App/bin-dev/agency.sh start --journey production
+sh /path/to/App/bin-dev/agency.sh status
+sh /path/to/App/bin-dev/agency.sh demo --journey production
+```
+
+Run either wrapper with `help` for its complete three-command mapping. Defaults,
+localhost port `5002`, database reuse, and screenshot behavior remain owned by
+the existing package scripts and launcher.
+
 Select a non-default journey explicitly on both app and runner. The production
 preset pins the repository's source and loopback intelligence fixtures, native
 post execution and the zero-charge purchase flag; it never selects live models.
