@@ -44,6 +44,7 @@ function makeEm(formSchema: unknown) {
         where.id === taskId ? task : null
       ),
       flush: jest.fn(async () => undefined),
+      nativeUpdate: jest.fn(async () => 1),
       create: jest.fn(() => ({})),
       persist: jest.fn(function persist(this: unknown) {
         return { flush: async () => undefined }

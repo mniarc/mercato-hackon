@@ -204,7 +204,7 @@ export class NativeAgentRunner {
     // Wall-clock deadline for the WHOLE model execution (performance hardening
     // Phase 2) — a hung provider call can never pin a worker slot forever.
     // The timer is cancellable + unref'd (same hygiene as openCodeAgentRunner).
-    const runTimeoutMs = resolveNativeRunTimeoutMs()
+    const runTimeoutMs = resolveNativeRunTimeoutMs(ctx.runTimeoutMs)
     const deadline = createRunDeadline(runTimeoutMs)
     const deadlineAtMs = Date.now() + runTimeoutMs
 
@@ -587,7 +587,8 @@ const RUN_TIMED_OUT = Symbol('agent-run-timed-out')
  * lazily per run so deployments and tests can vary the env without a restart.
  */
 const DEFAULT_NATIVE_RUN_TIMEOUT_MS = 5 * 60_000
-function resolveNativeRunTimeoutMs(): number {
+function resolveNativeRunTimeoutMs(overrideMs?: number): number {
+  if (typeof overrideMs === 'number' && Number.isFinite(overrideMs) && overrideMs > 0) return overrideMs
   const raw = Number.parseInt(process.env.OM_AGENT_RUN_TIMEOUT_MS ?? '', 10)
   return Number.isFinite(raw) && raw > 0 ? raw : DEFAULT_NATIVE_RUN_TIMEOUT_MS
 }

@@ -1,4 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
+import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import type { RbacService } from '@open-mercato/core/modules/auth/services/rbacService'
 import { orderDataSchema, orderFactsOf, type OrderData } from '../data/schemas/zamowienie'
 import { limits } from '../data/templates'
@@ -11,6 +12,17 @@ import { renderZrodla } from './research/render/zrodla'
 import type { UstaleniaData } from '../data/schemas/ustalenia'
 import { budgetExhaustedResolutions, openEscalation } from './research/escalate'
 import { firstContactQuestions } from './research/render/brief'
+import { readBriefReview } from './briefReview/read'
+import { acceptBrief } from './briefAcceptance/accept'
+import { readBriefAcceptance } from './briefAcceptance/read'
+import { acceptStrategyPair } from './strategyPairAcceptance/accept'
+import { readStrategyPairAcceptance } from './strategyPairAcceptance/read'
+import { readPlanningReadiness } from './planningReadiness/read'
+import { readResearchException } from './exceptionReview/read'
+import { readPostReview } from './postReview/read'
+import { resolveStrategyReadiness } from './strategyReadiness'
+import { readStrategyReview } from './strategyReview/read'
+import { runStrategyExecution, strategyExecutionRequestSchema } from './strategyExecution'
 import { runAuditStep } from './research/steps/audit'
 import { runBriefStep } from './research/steps/brief'
 import { runBriefQaLoop } from './research/steps/briefQa'
@@ -67,11 +79,13 @@ export type RunResearchOutcome = ResearchRunResult & { versionsByStep: Record<st
 
 /** The models the pipeline assumes for estimates; the orchestrator resolves the real one per agent. */
 export function defaultModels(env: NodeJS.ProcessEnv = process.env): ModelSet {
-  const extract = env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? 'anthropic/claude-haiku-4.5'
+  const moduleModel = env.OM_AI_AGENCY_RESEARCH_MODEL?.trim() || env.AGENCY_RESEARCH_AI_MODEL?.trim() || undefined
+  const sharedModel = env.OM_AI_MODEL?.trim() || undefined
+  const extract = moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_EXTRACT ?? sharedModel ?? 'anthropic/claude-haiku-4.5'
   return {
     extract: extract.replace(/^openrouter\//, ''),
-    synthesis: (env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? 'anthropic/claude-sonnet-5').replace(/^openrouter\//, ''),
-    qa: (env.OM_AGENCY_RESEARCH_MODEL_QA ?? extract).replace(/^openrouter\//, ''),
+    synthesis: (moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_SYNTHESIS ?? sharedModel ?? 'anthropic/claude-sonnet-5').replace(/^openrouter\//, ''),
+    qa: (moduleModel ?? env.OM_AGENCY_RESEARCH_MODEL_QA ?? extract).replace(/^openrouter\//, ''),
   }
 }
 
@@ -340,6 +354,26 @@ export function createAgencyResearchService(container: Container): AgencyResearc
       const { versionsByStep: _versionsByStep, ...result } = outcome
       return result
     },
+    async runStrategy({ context, request }) {
+      if (!context.tenantId || !context.organizationId || !context.userId) throw new Error('[internal] strategy execution requires an explicit tenant, organization and execution user')
+      const parsed = strategyExecutionRequestSchema.parse(request)
+      const scope = { tenantId: context.tenantId, organizationId: context.organizationId }
+      const rbac = container.resolve('rbacService') as Pick<RbacService, 'userHasAllFeatures'>
+      if (!(await rbac.userHasAllFeatures(context.userId, ['agency_research.manage', 'agent_orchestrator.agents.run'], scope))) {
+        throw new Error('[internal] strategy execution is not authorized')
+      }
+      const agentRunIds: string[] = []
+      const runAgent = createOrchestratorRunner(container, { ...scope, userId: context.userId, workflowInstanceId: context.workflowInstanceId, stepId: context.stepId, invocationId: context.invocationId }, agentRunIds)
+      return runStrategyExecution({
+        em: (container.resolve('em') as EntityManager).fork(),
+        scope,
+        request: parsed,
+        runAgent,
+        runner: 'orchestrator',
+        models: defaultModels(),
+        agentRunIds,
+      })
+    },
     async getClientView(scope, orderRef, templateId) {
       const em = (container.resolve('em') as EntityManager).fork()
       const current = await currentInputVersion(em, scope, orderRef, templateId)
@@ -354,6 +388,36 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         client_view_md: version?.clientViewMd ?? null,
         questions: questions.map((q) => ({ question_id: q.question_id, question: q.question, hint: q.hint, reason: q.reason, brief_field: q.brief_field, priority: q.priority })),
       }
+    },
+    async getBriefReview(scope, orderRef, versionId) {
+      return readBriefReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
+    },
+    async getStrategyReview(scope, orderRef, strategyVersionId, tovVersionId) {
+      return readStrategyReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, strategyVersionId, tovVersionId)
+    },
+    async getPostReview(scope, orderRef, versionId) {
+      return readPostReview((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
+    },
+    async acceptBrief(input) {
+      return acceptBrief(container as AppContainer, input)
+    },
+    async acceptStrategyPair(input) {
+      return acceptStrategyPair(container as AppContainer, input)
+    },
+    async getStrategyPairAcceptance(scope, input) {
+      return readStrategyPairAcceptance((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getPlanningReadiness(scope, input) {
+      return readPlanningReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getBriefAcceptance(scope, orderRef, versionId) {
+      return readBriefAcceptance((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
+    },
+    async getStrategyReadiness(scope, input) {
+      return resolveStrategyReadiness((container.resolve('em') as EntityManager).fork(), scope, input)
+    },
+    async getExceptionReview(scope, orderRef, versionId) {
+      return readResearchException((container.resolve('em') as EntityManager).fork(), scope, orderRef, versionId)
     },
     async status(scope, orderRef) {
       const em = (container.resolve('em') as EntityManager).fork()

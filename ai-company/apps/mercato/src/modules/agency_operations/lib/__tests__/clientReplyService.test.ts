@@ -13,6 +13,7 @@ jest.mock('@open-mercato/shared/lib/encryption/find', () => ({
 
 import { createClientReplyService } from '../clientReplyService'
 import { CLIENT_REPLY_SIGNAL, CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY, deterministicClientTriage } from '../clientSubmissionWorkflow'
+import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../../agents/client-triage/workflow'
 
 const identity = {
   tenantId: '00000000-0000-4000-8000-000000000001', organizationId: '00000000-0000-4000-8000-000000000002',
@@ -49,6 +50,14 @@ const container = {
     throw new Error(key)
   },
 } as unknown as AppContainer
+
+function useNativeClarification() {
+  workflow.workflowId = NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID
+  workflow.context[CLIENT_TRIAGE_RESULT_KEY].result = {
+    ...workflow.context[CLIENT_TRIAGE_RESULT_KEY].result,
+    source: 'native_agent', workerId: 'agency_operations.client_triage',
+  }
+}
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -101,6 +110,51 @@ it('replays the saved result after completion without sending or classifying aga
   expect(await service.list(identity, caseId, submissionId)).toEqual({ items: [first.item] })
   await expect(service.reply(identity, caseId, submissionId, { eventId: 'reply-2', text: 'A stale new event' })).rejects.toMatchObject({ status: 409 })
   expect(sendSignal).toHaveBeenCalledTimes(1)
+})
+
+it('continues a saved native clarification through the fixed scoped signal and replays without resuming twice', async () => {
+  useNativeClarification()
+  const service = createClientReplyService(container)
+  const first = await service.reply(identity, caseId, submissionId, { eventId: 'native-reply', text: 'Native clarification' })
+  const replay = await service.reply(identity, caseId, submissionId, { eventId: 'native-reply', text: 'Do not overwrite' })
+  expect(first.item.outcome).toBe('clarification_received')
+  expect(replay).toEqual({ item: first.item, replayed: true })
+  expect(stored).toMatchObject({ workflowInstanceId: workflowId, stepInstanceId: stepId })
+  expect(sendSignal).toHaveBeenCalledTimes(1)
+  expect(sendSignal).toHaveBeenCalledWith(tx, container, {
+    tenantId: identity.tenantId, organizationId: identity.organizationId,
+    instanceId: workflowId, signalName: CLIENT_REPLY_SIGNAL,
+    payload: { clientClarificationReply: {
+      replyId, submissionId, submittedByCustomerUserId: identity.customerUserId,
+      receivedAt: first.item.createdAt, channel: 'portal',
+    } },
+  })
+})
+
+it.each(['tenantId', 'organizationId'])('rejects a native clarification workflow with foreign %s', async (field) => {
+  useNativeClarification()
+  workflow[field] = foreignId
+  await expect(createClientReplyService(container).reply(identity, caseId, submissionId, {
+    eventId: 'native-reply', text: 'Clarification',
+  })).rejects.toMatchObject({ status: 409 })
+  expect(tx.persist).not.toHaveBeenCalled()
+  expect(sendSignal).not.toHaveBeenCalled()
+})
+
+it('cannot use a native client reply to resume a human exception or a different saved target', async () => {
+  useNativeClarification()
+  const service = createClientReplyService(container)
+  workflow.currentStepId = 'triage_exception'
+  await expect(service.reply(identity, caseId, submissionId, {
+    eventId: 'native-reply', text: 'Resolve an employee exception',
+  })).rejects.toMatchObject({ status: 409 })
+  workflow.currentStepId = 'client_reply'
+  workflow.context[CLIENT_TRIAGE_RESULT_KEY].result.targets.submissionId = foreignId
+  await expect(service.reply(identity, caseId, submissionId, {
+    eventId: 'native-reply', text: 'Clarification',
+  })).rejects.toMatchObject({ status: 409 })
+  expect(tx.persist).not.toHaveBeenCalled()
+  expect(sendSignal).not.toHaveBeenCalled()
 })
 
 it.each(['tenantId', 'organizationId', 'customerEntityId', 'caseId'])('rejects a submission with foreign %s before storing or signaling', async (field) => {

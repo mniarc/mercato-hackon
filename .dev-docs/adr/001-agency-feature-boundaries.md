@@ -23,6 +23,9 @@ Domain terms remain in [the domain vocabulary](../.processes/current/ai-company-
   versioned documents. Connect through a small artifact/run reference seam,
   not imports into research internals or copied tone logic. Enterprise agents
   are optional for the core no-op slice and explicitly gated for this lane.
+- **Teammate audit/research (`agency_research`):** source collection and its
+  versioned evidence pipeline. Agency operations owns the case/workflow handoff
+  through `agencyResearchService`, not duplicate research agents or storage.
 
 ## Integrated feature boundaries
 
@@ -58,10 +61,16 @@ Artifact reads reference teammate-owned versions, with client-safe source-backed
 projections. A linked version does not itself establish a review invitation,
 current case version, approval, or a completed multi-document approval gate.
 
-Future workers reuse native agent definitions/execution and the shared server
-OpenRouter configuration. Use delegation only for a genuine supported research
-subtask. No general agency dispatcher is needed. Declared native budget options
-must not be confused with enforced limits on a particular execution path.
+Domain workers use `agent_orchestrator` `DefineAgentInput` / `defineAgent`, native
+workflow `INVOKE_AGENT`, or the native DI `agentRuntime` when a genuine domain
+pipeline needs it, plus the shared server OpenRouter configuration. This selected
+execution path requires Enterprise; the deterministic baseline still works without
+it and is not an equivalent OSS agent executor. ToV is an example of native usage,
+not code to extract, copy, or import as our runtime. No agency registration/run
+wrapper, dispatcher, or direct lower-level SDK execution path is needed. See the
+[worker map](003-agency-worker-and-interaction-map.md) for authoring and activation.
+Use delegation only for a genuine supported research subtask. Declared native
+budget options must not be confused with enforced limits on the selected path.
 Deterministic intelligence may scaffold these seams, but platform persistence,
 access and transitions remain real. Reusable extension points live in the domain
 vocabulary linked above.

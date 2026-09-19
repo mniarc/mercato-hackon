@@ -1,0 +1,24 @@
+export type StrategyReviewVersion = {
+  documentId: string
+  versionId: string
+  version: string
+  isCurrent: boolean
+  documentStatus: string
+  versionStatus: string
+  simulationFlag: boolean
+}
+
+export type StrategyReviewQa =
+  | { state: 'missing' }
+  | { state: 'unavailable'; taskRunId: string; status: string }
+  | { state: 'assessed'; taskRunId: string; status: 'done' | 'to_fix'; verdict: 'ready_for_approval' | 'needs_agent_fix' }
+
+/** Stored pair and QA evidence; customer acceptance remains a separate record. */
+export type StrategyReviewProjection = {
+  orderRef: string
+  strategy: StrategyReviewVersion & { templateId: 'WZR-STRATEGIA'; clientViewMd: string | null }
+  tov: StrategyReviewVersion & { templateId: 'WZR-TOV'; clientViewMd: string | null }
+  qa: StrategyReviewQa
+  tovUsesStrategy: boolean
+  brief: StrategyReviewVersion | null
+}

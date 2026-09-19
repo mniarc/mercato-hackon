@@ -37,5 +37,5 @@ test('a customer can switch documents, accept locally and reset the preview', as
   expect(screen.getByText('Zaakceptowano testowo')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Zresetuj test' }))
   await waitFor(() => expect(screen.queryByText('Zaakceptowano testowo')).toBeNull())
-  expect(screen.getByRole('button', { name: 'Dodaj uwagi' })).toBeTruthy()
+  expect(screen.getByText(pl['agency.review.commentsPanelTitle'])).toBeTruthy()
 })

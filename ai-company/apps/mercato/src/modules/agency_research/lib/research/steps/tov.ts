@@ -9,7 +9,8 @@ import { zrodlaDataSchema, type ZrodlaData } from '../../../data/schemas/zrodla'
 import { tovWriterResult, type TovSection, type TovWriterInput, type TovWriterSections } from '../../../data/agents/strategy'
 import { limits } from '../../../data/templates'
 import { RESEARCH_TOV_WRITER_AGENT_ID } from '../../agents/ids.strategy'
-import { currentInputVersion, finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
+import { finishTaskRun, saveDocumentVersion, startTaskRun } from '../../store'
+import { readStrategyFoundation, readStrategyPairVersion, recordStrategyPairVersion } from './strategyInputs'
 import { GateError, type GateIssue } from '../gate'
 import { resolveId } from '../ids'
 import type { Ledger } from '../ledger'
@@ -248,12 +249,12 @@ const pin = (v: InputVersion & { versionId: string }): InputVersion => ({ docume
 
 /** The ToV's inputs per the WZR-TOV handoff: the working strategy, the brief, the audit's voice findings, the register, and the previous ToV on a revision. */
 export async function runTovStep(ctx: StepContext): Promise<StepOutcome> {
-  const strategy = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
-  const brief = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-BRIEF')
-  const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
-  const audyt = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-AUDYT')
+  const strategy = await readStrategyPairVersion(ctx, 'strategy')
+  const brief = await readStrategyFoundation(ctx, 'brief')
+  const zrodla = await readStrategyFoundation(ctx, 'zrodla')
+  const audyt = await readStrategyFoundation(ctx, 'audyt')
   if (!strategy || !brief || !zrodla || !audyt) throw new Error('[internal] 5.3 needs current KLI-STRATEGIA, KLI-BRIEF, WEW-ZRODLA and WEW-AUDYT versions — run 5.2 first')
-  const previous = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
+  const previous = await readStrategyPairVersion(ctx, 'tov')
   const inputVersions: InputVersion[] = [ctx.orderVersion, pin(strategy), pin(brief), pin(zrodla), pin(audyt), ...(previous ? [pin(previous)] : [])]
   const run = await startTaskRun(ctx.em, ctx.scope, { orderRef: ctx.orderRef, brand: ctx.order.brand, stepId: '5.3', attempt: ctx.attempt, runner: ctx.runner, models: ctx.models, inputVersions })
   ctx.taskRunIds.push(run.id)
@@ -289,6 +290,7 @@ export async function runTovStep(ctx: StepContext): Promise<StepOutcome> {
       simulation: simulation !== null,
     })
     ctx.documentVersionIds.push(saved.version.id)
+    if (ctx.strategyInputs) recordStrategyPairVersion(ctx, 'tov', { document_id: saved.envelope.document_id, version: saved.envelope.version, status: saved.envelope.status, versionId: saved.version.id, data: saved.version.data })
     await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { stats: result.stats }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
   } catch (error) {

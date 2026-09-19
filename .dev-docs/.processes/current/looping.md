@@ -60,6 +60,15 @@ Start independent direct agents on disjoint paths. Let them complete their tasks
 and review the handoff once; do not repeatedly poll or review each intermediate
 step. The coordinator owns shared/generated files and shared runtime validation.
 
+Select work from `node scripts/agency-spec-progress.mjs --feature FNN` in
+`ai-company/`: read the actual story acceptance criteria, inspect teammate/code
+coverage, then task only the missing behavior. A linked done task is not a fully
+verified story. Keep several independently useful workstreams moving; agree their
+small shared contracts first and serialize only real dependencies. A blocked
+handoff must not stop unrelated ready delivery. Prefer finishing and integrating
+usable work over opening more scaffolds. A goal names an observable product
+outcome and its stopping condition, not a task-count or documentation target.
+
 ## First-slice reference
 
 `T01 -> (T02 client-intake handoff || T03 employee backend) -> T04 proof`

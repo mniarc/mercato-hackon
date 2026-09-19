@@ -39,6 +39,10 @@ inspect native AI settings/run metadata if another model is reported. Keys stay 
 `NEXT_PUBLIC_*`, commit a filled example, paste keys into tasks/chat, or log them.
 Restart the app and workers after changing their environment.
 
+Research tiers also inherit `OM_AI_MODEL`. Leave
+`OM_AGENCY_RESEARCH_MODEL_EXTRACT`, `_SYNTHESIS`, and `_QA` unset unless deliberately
+overriding a tier. Native module/tenant overrides still take precedence.
+
 The model factory already rejects an explicitly pinned, unconfigured provider
 (`AiModelFactoryError`); do not catch that as a successful no-op or silently fall
 back to another provider. A configured key is not proof of credit, model access,
@@ -112,3 +116,91 @@ Native workflow state and persisted research/run references are authoritative.
 The bridge/configuration and deterministic demo are verified independently;
 an end-to-end paid OpenRouter run still requires its own explicit smoke proof.
 See [testing](testing.md) for the persistent runtime.
+
+## Case analysis through teammate research (opt-in)
+
+After coordinated module generation/migration, configure the scope as authorized staff:
+
+```powershell
+node scripts/agency-dev.mjs cli agency_operations configure-analysis --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> --policy-file <approved-policy.json>
+```
+
+Policy JSON requires `through` (`3.2`, `3.5`, `3.8`, or `4.2`), positive `maxCostPln`,
+and `productSelection` matching the actual offer, including explicit
+`result_limits.topics`. It is stored in the native workflow definition; subsequent
+changes require native version publishing. This is execution permission, not
+proof of payment or customer acceptance. The research service's budget accounting
+is not a provider-enforced billing ceiling.
+
+For continuation after exact brief acceptance, a `through: "4.2"` policy may
+also contain `strategyExecution: { "maxCostPln": <explicit-positive-cap> }`.
+Omitting it leaves strategy execution unconfigured; the analysis cap never
+authorizes strategy spending. The existing native submission workflow calls the
+teammate strategy/ToV/QA phase with pinned inputs and displays its saved outcome.
+Repeated acceptance handoffs replay the saved result; interrupted or budget-paused
+work is not automatically restarted. This does not grant client acceptance of the
+resulting pair or start planning. Full STD-LIMITY enforcement remains separate.
+
+Enable `AGENCY_ANALYSIS_EXECUTION_ENABLED=true` only for approved execution. The
+existing portal materials API accepts `process: {"kind":"analysis"}` and a private
+JSON file containing `order` plus optional `socialPosts`/`pages`, using the teammate
+`researchRunRequestSchema` shapes. Clients cannot supply execution policy. Uploaded
+product selection must match the configured policy; baseline and ToV are unchanged.
+
+The native workflow calls `agencyResearchService`, saves exact task/document/agent
+references, and exposes them in the employee case process view. Incomplete QA or
+budget outcomes stay waiting; no customer approval is inferred. Targeted supplements
+and automatic recovery of partially persisted research are not implemented: reconcile
+existing runs instead of rerunning the full analysis. Code checks are separate from
+the pending live runtime proof; do not activate this in an occupied development runtime.
+
+## Native client triage (opt-in; local-intelligence proof passed)
+
+With the same Enterprise prerequisites, configure the scope once:
+
+```powershell
+node scripts/agency-dev.mjs cli agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid>
+```
+
+This grants `agent_orchestrator.agents.run` and `agency_research.manage` to the
+native workflow identity for interpretation and authorized brief acceptance.
+Configuration refuses to overwrite an existing definition; changes use native
+workflow version publishing. `OM_AGENCY_TRIAGE_MODE` selects `disabled` (default),
+`fixture`, or `live`. The legacy enabled flag selects fixture-only when no mode
+is supplied; it never enables live execution. Both enabled modes use `INVOKE_AGENT`;
+clients cannot select workers. Answer/clarify and exact invited brief acceptance
+have routes; unsupported typed results remain explicitly unapplied. Acceptance
+can continue to configured strategy execution, without bypassing its execution
+flag or spending authorization. Agent failure enters a native employee UserTask;
+its sole resolution decision returns to the original triage input.
+
+Keep the mode disabled for the deterministic baseline. Live readiness requires
+the shared `OM_AI_PROVIDER=openrouter`, an `OM_AI_MODEL=openrouter/<model-id>`, a
+private key and explicit positive integers for `OM_AGENT_RUN_TIMEOUT_MS`,
+`OM_AGENT_PROVIDER_RETRY_MAX` and `OM_AGENT_PROVIDER_RETRY_BASE_MS`. Remove stale
+fixture endpoints/model allowlists; conflicting module model overrides are rejected.
+The check makes no provider call and does not prove credit, model access, effective
+tenant overrides or output quality. Do not select live until paid execution is approved.
+
+For `yarn dev:agency`, pass the mode in the launching process, as with the
+Enterprise flags; the launcher otherwise pins disabled. Routine `test:agency`
+commands reject live triage or enabled research/ToV execution. App and runner must
+use the same configuration; the runner cannot reconfigure an already running app.
+
+Prompts and the shared model
+environment are not pinned by workflow versioning. Native run timeout does not
+cancel an in-flight provider request; activity timeout/retry settings are not
+agent budgets. No hard monetary/token cap is enforced by this binding. Readiness
+prepares live execution; the paid proof remains separate. T24 still owns pinned
+product configuration and task-wide accounting. Do not require provider cancellation or
+zero cost overshoot as invented demo prerequisites, or claim that a bounded demo
+completes product-wide STD-LIMITY pinning and task accounting.
+
+The canonical headed demo passed on the persistent database: native clarification,
+client reply, controlled provider failure, authorized employee resolution, same-workflow
+retry and fixture cleanup. Only intelligence was substituted. For this unpaid proof,
+set `AGENCY_TEST_NATIVE_TRIAGE=1` in both app and test terminals, configure the workflow
+above once, then run `yarn test:agency:headed`. The runner pins a dummy credential,
+loopback provider (including the higher-priority `AGENCY_OPERATIONS_AI_BASE_URL`)
+and model allowlist; the test owns that temporary provider server.
+This mode is for the demo run, not unattended manual usage after its provider closes.

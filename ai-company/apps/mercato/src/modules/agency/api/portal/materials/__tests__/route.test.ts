@@ -90,8 +90,10 @@ it('does not invoke intake when a mutation guard rejects the submission', async 
   expect(afterSuccess).not.toHaveBeenCalled()
 })
 
-it('accepts an explicit research request without reporting queued work as completed', async () => {
-  const process = { kind: 'tone_of_voice', brand: 'Acme', outputLanguage: 'pl' }
+it.each([
+  { kind: 'tone_of_voice', brand: 'Acme', outputLanguage: 'pl' },
+  { kind: 'analysis' },
+])('accepts an explicit $kind request without reporting queued work as completed', async (process) => {
   submitMaterial.mockResolvedValueOnce({ caseId: 'case-2', workflowInstanceId: 'workflow-2', status: 'WAITING_FOR_ACTIVITIES' })
   const response = await POST(request(JSON.stringify(process)))
   expect(response.status).toBe(202)
@@ -110,6 +112,29 @@ it('accepts an explicit research request without reporting queued work as comple
     input: expect.objectContaining({ mutationPayload: { title: 'Campaign brief', process } }),
   }))
   expect(afterSuccess).toHaveBeenCalledTimes(1)
+})
+
+it.each([
+  { policy: { maxCostPln: 1 } },
+  { maxCostPln: 1 },
+  { model: 'customer-selected-model' },
+  { grantedFeatures: ['*'] },
+  { through: '3.8' },
+])('rejects caller-supplied execution configuration for analysis: %j', async (configuration) => {
+  expect((await POST(request(JSON.stringify({ kind: 'analysis', ...configuration })))).status).toBe(400)
+  expect(submitMaterial).not.toHaveBeenCalled()
+  expect(runGuards).not.toHaveBeenCalled()
+})
+
+it('revalidates guarded analysis input before invoking the intake bridge', async () => {
+  runGuards.mockResolvedValueOnce({
+    ok: true,
+    modifiedPayload: { process: { kind: 'analysis', maxCostPln: 1 } },
+    runAfterSuccess: afterSuccess,
+  })
+  expect((await POST(request(JSON.stringify({ kind: 'analysis' })))).status).toBe(400)
+  expect(submitMaterial).not.toHaveBeenCalled()
+  expect(afterSuccess).not.toHaveBeenCalled()
 })
 
 it.each([

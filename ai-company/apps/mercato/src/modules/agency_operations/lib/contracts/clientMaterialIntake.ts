@@ -10,6 +10,9 @@ export const tovProcessRequestSchema = z.object({
   outputLanguage: z.enum(['en', 'pl']),
 }).strict()
 export type TovProcessRequest = z.infer<typeof tovProcessRequestSchema>
+export const analysisProcessRequestSchema = z.object({ kind: z.literal('analysis') }).strict()
+export const clientProcessRequestSchema = z.discriminatedUnion('kind', [tovProcessRequestSchema, analysisProcessRequestSchema])
+export type ClientProcessRequest = z.infer<typeof clientProcessRequestSchema>
 
 export const clientMaterialIntakeInputSchema = z.object({
   identity: z.object({
@@ -19,7 +22,7 @@ export const clientMaterialIntakeInputSchema = z.object({
     customerUserId: z.uuid(),
   }).strict(),
   title: z.string().trim().min(1).max(200),
-  process: tovProcessRequestSchema.optional(),
+  process: clientProcessRequestSchema.optional(),
   file: z.object({
     buffer: z.instanceof(Buffer).refine((buffer) => buffer.length > 0),
     fileName: z.string().trim().min(1).max(255),

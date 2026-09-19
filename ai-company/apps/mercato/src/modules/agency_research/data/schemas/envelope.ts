@@ -78,6 +78,16 @@ export const approvalRecordSchema = z.object({
   at: z.string().min(1),
   scope: z.string().min(1),
   version: z.string().min(1),
+  documentVersionId: z.uuid().optional(),
+  // Persist the typed acceptance provenance without making data schemas depend on services.
+  source: z.object({
+    kind: z.literal('agency_brief_acceptance'),
+    submissionId: z.uuid(),
+    eventId: z.string().min(1).max(200),
+    workflowInstanceId: z.uuid(),
+    agentRunId: z.uuid(),
+    invitationTaskId: z.uuid(),
+  }).strict().optional(),
 })
 
 export const envelopeSchema = z.object({

@@ -13,6 +13,7 @@ import { clientMaterialIntakeInputSchema } from './contracts/clientMaterialIntak
 import { clientReplyRequestSchema, type ClientReplyItem, type ClientReplyService } from './contracts/clientReply'
 import { clientSubmissionDispositionSchema } from './contracts/clientSubmission'
 import { CLIENT_REPLY_SIGNAL, CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from './clientSubmissionWorkflow'
+import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 
 function project(reply: AgencyClientReply): ClientReplyItem {
   return {
@@ -64,7 +65,7 @@ export function createClientReplyService(container: AppContainer): ClientReplySe
           id: submission.workflowInstanceId, ...workflowScope, deletedAt: null,
         }, { lockMode: LockMode.PESSIMISTIC_WRITE }, workflowScope) : null
         const decision = clientSubmissionDispositionSchema.safeParse(workflow?.context?.[CLIENT_TRIAGE_RESULT_KEY]?.result)
-        if (!workflow || workflow.workflowId !== CLIENT_SUBMISSION_WORKFLOW_ID
+        if (!workflow || ![CLIENT_SUBMISSION_WORKFLOW_ID, NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID].includes(workflow.workflowId)
           || workflow.status !== 'PAUSED' || workflow.currentStepId !== 'client_reply'
           || workflow.context?.caseId !== caseId || workflow.context?.submissionId !== submissionId
           || !decision.success || decision.data.kind !== 'clarify'

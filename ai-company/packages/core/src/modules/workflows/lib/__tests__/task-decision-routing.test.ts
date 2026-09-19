@@ -241,12 +241,20 @@ function makeEm(task: Row) {
     return row
   })
   const persist = jest.fn(() => ({ flush }))
+  const nativeUpdate = jest.fn(async (_entity: unknown, where: Row, data: Row) => {
+    if (where.id !== task.id || where.tenantId !== task.tenantId || where.organizationId !== task.organizationId
+      || !['PENDING', 'IN_PROGRESS'].includes(task.status as string)
+      || where.assignedTo !== (task.assignedTo ?? null) || where.claimedBy !== (task.claimedBy ?? null)) return 0
+    Object.assign(task, data)
+    return 1
+  })
 
   return {
-    em: { findOne, flush, create, persist } as unknown as EntityManager,
+    em: { findOne, flush, create, persist, nativeUpdate } as unknown as EntityManager,
     task,
     instance,
     events,
+    nativeUpdate,
   }
 }
 
@@ -263,6 +271,29 @@ describe('completeUserTask with a decision', () => {
     ;(transitionHandler.findValidTransitions as jest.Mock).mockResolvedValue([
       { isValid: true, transition: { transitionId: 't_approve', toStepId: 'fulfil' } },
     ] as never)
+  })
+
+  test('only one concurrent completion records its decision and continues the workflow', async () => {
+    const { em, task, events, nativeUpdate } = makeEm(makeTask())
+    const outcomes = await Promise.allSettled([
+      completeUserTask(em, container, { taskId: TASK_ID, formData: { reason: 'first' }, userId: USER, scope, decisionId: 'approve' }),
+      completeUserTask(em, container, { taskId: TASK_ID, formData: { reason: 'second' }, userId: USER, scope, decisionId: 'reject' }),
+    ])
+    expect(outcomes.filter((outcome) => outcome.status === 'fulfilled')).toHaveLength(1)
+    const loser = outcomes.find((outcome) => outcome.status === 'rejected') as PromiseRejectedResult
+    expect(loser.reason).toMatchObject({ code: 'TASK_NOT_FOUND', message: 'Task already completed or reassigned' })
+    expect(nativeUpdate).toHaveBeenCalledTimes(2)
+    expect(nativeUpdate).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
+      id: TASK_ID, tenantId: TENANT, organizationId: ORG, status: { $in: ['PENDING', 'IN_PROGRESS'] },
+      assignedTo: null, claimedBy: null,
+    }), expect.objectContaining({ status: 'COMPLETED', completedBy: USER }))
+    expect(events.filter((event) => event.eventType === 'USER_TASK_COMPLETED')).toHaveLength(1)
+    expect(transitionHandler.executeTransition).toHaveBeenCalledTimes(1)
+    expect(executeWorkflow).toHaveBeenCalledTimes(1)
+    const winner = outcomes.findIndex((outcome) => outcome.status === 'fulfilled')
+    expect(task.formData).toEqual(winner === 0
+      ? { reason: 'first', [TASK_DECISION_FORM_KEY]: 'approve' }
+      : { reason: 'second', [TASK_DECISION_FORM_KEY]: 'reject' })
   })
 
   test('routes down the decision it was given, not the first valid transition', async () => {

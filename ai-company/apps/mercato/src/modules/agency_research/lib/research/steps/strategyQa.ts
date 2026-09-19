@@ -13,7 +13,8 @@ import { mustKeysOf } from '../../../data/contracts'
 import { limits } from '../../../data/templates'
 import { AgencyResearchDocument } from '../../../data/entities'
 import { RESEARCH_STRATEGY_QA_AGENT_ID } from '../../agents/ids.strategy'
-import { currentInputVersion, finishTaskRun, startTaskRun } from '../../store'
+import { finishTaskRun, startTaskRun } from '../../store'
+import { readStrategyFoundation, readStrategyPairVersion } from './strategyInputs'
 import { openEscalation, type EscalationInput } from '../escalate'
 import { collectCitedIds } from '../gate'
 import type { Ledger } from '../ledger'
@@ -274,12 +275,12 @@ type PinnedPair = {
 }
 
 async function loadPair(ctx: StepContext): Promise<PinnedPair> {
-  const strategy = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-STRATEGIA')
-  const tov = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-TOV')
-  const brief = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-BRIEF')
-  const zrodla = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-ZRODLA')
-  const audyt = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-AUDYT')
-  const konkurencja = await currentInputVersion(ctx.em, ctx.scope, ctx.orderRef, 'WZR-KONKURENCJA')
+  const strategy = await readStrategyPairVersion(ctx, 'strategy')
+  const tov = await readStrategyPairVersion(ctx, 'tov')
+  const brief = await readStrategyFoundation(ctx, 'brief')
+  const zrodla = await readStrategyFoundation(ctx, 'zrodla')
+  const audyt = await readStrategyFoundation(ctx, 'audyt')
+  const konkurencja = await readStrategyFoundation(ctx, 'konkurencja')
   if (!strategy || !tov || !brief || !zrodla || !audyt) throw new Error('[internal] 5.4 needs current KLI-STRATEGIA, KLI-TOV, KLI-BRIEF, WEW-ZRODLA and WEW-AUDYT versions')
   return { strategy, tov, brief, zrodla, audyt, konkurencja }
 }
@@ -297,7 +298,7 @@ async function clientViewOf(ctx: StepContext, versionId: string): Promise<string
  * client's acceptance (5.5–5.7) is recorded elsewhere.
  */
 export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: (ctx: StepContext) => Promise<StepOutcome>; tovStep: (ctx: StepContext) => Promise<StepOutcome> }): Promise<StrategyQaLoopResult> {
-  const maxRepairs = limits.generation.qaRepairAttemptsPerRun
+  const maxRepairs = ctx.strategyQaRepairAttempts ?? limits.generation.qaRepairAttemptsPerRun
   let repairs = 0
   for (;;) {
     const pair = await loadPair(ctx)
@@ -346,6 +347,14 @@ export async function runStrategyQaLoop(ctx: StepContext, deps: { strategyStep: 
 
     const ready = result.verdict === 'ready_for_approval'
     for (const templateId of ['WZR-STRATEGIA', 'WZR-TOV'] as const) {
+      if (ctx.strategyInputs) {
+        const versionId = templateId === 'WZR-STRATEGIA' ? pair.strategy.versionId : pair.tov.versionId
+        const changed = await ctx.em.nativeUpdate(AgencyResearchDocument, {
+          ...ctx.scope, orderRef: ctx.orderRef, templateId, currentVersionId: versionId, deletedAt: null,
+        }, { status: ready ? 'ready_for_review' : 'draft', updatedAt: new Date() })
+        if (changed !== 1) throw new Error('[internal] Strategy pair was superseded during QA; no unrelated current version can be marked ready')
+        continue
+      }
       const document = await ctx.em.findOne(AgencyResearchDocument, { ...ctx.scope, orderRef: ctx.orderRef, templateId, deletedAt: null })
       if (document) {
         document.status = ready ? 'ready_for_review' : 'draft'

@@ -1,4 +1,4 @@
-import { buildReviewRequest, canAcceptDocument, readDocumentReview, type DocumentReview } from '../data/document-review'
+import { buildReviewRequest, canAcceptDocument, canCommentDocument, readDocumentReview, type DocumentReview } from '../data/document-review'
 
 const brief: DocumentReview = {
   caseId: 'case-1', documentId: 'brief-1', versionId: 'brief-version-2', version: '2',
@@ -31,6 +31,19 @@ describe('readDocumentReview', () => {
     expect(readDocumentReview({ agencyReview: brief })).toEqual({ kind: 'review', review: brief })
   })
 
+  it('preserves an optional timestamp receipt without exposing actor or source fields', () => {
+    const acceptedAt = '2026-09-19T12:30:00.000Z'
+    const review = { ...brief, status: 'approved', acceptanceReceipt: { acceptedAt } }
+    expect(readDocumentReview({ agencyReview: {
+      ...review, acceptanceReceipt: { acceptedAt, customerUserId: 'private-actor', source: 'internal-source' },
+    } })).toEqual({ kind: 'review', review })
+  })
+
+  it('rejects an invalid timestamp receipt', () => {
+    expect(readDocumentReview({ agencyReview: { ...brief, acceptanceReceipt: { acceptedAt: 'yesterday' } } }))
+      .toEqual({ kind: 'invalid' })
+  })
+
   it.each(['caseId', 'documentId', 'versionId', 'version'])('rejects a missing or blank %s', (field) => {
     expect(readDocumentReview({ agencyReview: { ...brief, [field]: undefined } })).toEqual({ kind: 'invalid' })
     expect(readDocumentReview({ agencyReview: { ...brief, [field]: '  ' } })).toEqual({ kind: 'invalid' })
@@ -60,6 +73,29 @@ describe('document decisions', () => {
       channel: 'portal', kind: 'message', documentId: 'post-1', versionId: 'post-version-4',
       externalEventId: 'event-2', body: 'Please change the opening.',
     })
+  })
+
+  it('allows clarification on a current brief without permitting acceptance', () => {
+    const review = { ...brief, status: 'needs_review' as const }
+    expect(canCommentDocument(review)).toBe(true)
+    expect(buildReviewRequest(review, 'comments', '', '  Our audience is local retailers.  ', 'clarification-event')).toEqual({
+      channel: 'portal', kind: 'message', documentId: brief.documentId, versionId: brief.versionId,
+      externalEventId: 'clarification-event', body: 'Our audience is local retailers.',
+    })
+    expect(() => buildReviewRequest(review, 'accept', '', '', 'approval-event')).toThrow('not ready for approval')
+  })
+
+  it.each([
+    { ...brief, isCurrent: false },
+    { ...brief, isCurrent: false, status: 'needs_review' as const },
+    { ...brief, status: 'approved' as const },
+    { ...brief, status: 'blocked' as const },
+    { ...brief, status: 'draft' as const },
+    { ...plan, status: 'needs_review' as const },
+    { ...publication, status: 'needs_review' as const },
+  ])('refuses comments on unavailable review $templateId / $status / current=$isCurrent', (review) => {
+    expect(canCommentDocument(review)).toBe(false)
+    expect(() => buildReviewRequest(review, 'comments', '', 'New information', 'event')).toThrow('not available for comments')
   })
 
   it.each(['', '  ', '\n\t'])('rejects empty comments: %p', (body) => {
