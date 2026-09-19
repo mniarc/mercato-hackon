@@ -98,6 +98,13 @@ the team for help. Redact secrets before sharing; never attach the runtime env f
 
 ## What this does not prove or enable
 
+Current release work is deferred in [T105](../../.tasks/T105-package-and-boot-current-integrated-release.md);
+daily work uses indev tests, not production builds. The existing image and outer
+bundle are `.build-artifacts/agency-app-1209dbd26.tar` and
+`.build-artifacts/agency-release-1209dbd26.tar`; these local files are not delivered
+by `git pull`. Build commands and recovery diagnostics remain in
+[deployment](../../.dev-docs/.processes/current/deployment.md).
+
 The `1209dbd26` image passed native production build, module/worker checks and
 in-memory SQLite verification. **A server deployment/init/browser smoke test has
 not been performed.** It lacks later ToV sole-producer/native-intake integrations;

@@ -22,7 +22,7 @@ Sources: explicit user request for a bounded PowerShell sol/high task triage.
 
 ## Boundaries
 
-This worker edits only task records; all application code, `.tasks-critical/`,
+This worker edits only task records; all application code, deployment guides,
 specs, ADRs, coverage assessments/generated reports and runtime are read-only.
 No tests, builds, generators, installs, servers, browsers, database commands,
 provider calls, subagents, Git staging/commit/push or remote mutations. Do not

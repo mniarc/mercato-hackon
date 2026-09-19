@@ -115,9 +115,9 @@ Screenshots: `ai-company/.ai/qa/test-results/artifacts/`; browser report:
 `ai-company/.ai/qa/test-results/html/`. These are latest-run files: save selected
 evidence before another run replaces it. Separate manual captures live in `.visuals/`.
 The [integration report](../.dev-docs/integrations/generated/generated-report.html) distinguishes
-source wiring from fixture/live execution. Its initial report has zero observations
-until a current journey supplies journals; a registered agent is not evidence it ran.
+source wiring from fixture/live execution. It includes imported teammate live runs
+and local fixture observations; neither proves every current connected-app path.
 For server packaging use [deployment instructions](../.dev-docs/.processes/current/deployment.md).
 The frozen `1209dbd26` image and portable bundle have passed build, offline
 verification and packaging. They exclude later main integrations; clean server
-startup remains unproved. See the [build/package handoff](../.tasks-critical/build-package-handoff.md).
+startup remains unproved. See the [server setup guide](server-setup/guide.md).

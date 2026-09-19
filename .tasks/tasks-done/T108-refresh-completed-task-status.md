@@ -16,7 +16,7 @@ useful links. Leave partial work and required unproved runtime outcomes open;
 source integration alone does not prove a journey or clean server installation.
 Do not repeat T106's broad triage: prioritize changes since that cleanup.
 
-All code, specs, ADRs, coverage, `.tasks-critical/` and excluded active tasks are
+All code, specs, ADRs, coverage, deployment guides and excluded active tasks are
 read-only. No tests, builds, generators, database/server/browser operations,
 provider calls, Git mutations, extra workers or new reports. Never overwrite an
 archive destination; validate moves remain within `.tasks/`.

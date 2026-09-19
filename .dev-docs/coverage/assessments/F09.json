@@ -86,18 +86,20 @@
         },
         {
           "id": "AC5",
-          "implementation": "partial",
+          "implementation": "implemented",
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
               "note": "Versioned draft persists and runs real brief QA."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "T78 consumes native G-directed attachment evidence, refreshes analysis/freeze and produces a new version of the current unapproved brief; focused checks passed, connected late-material proof pending. Approved/downstream impact remains separate."
             }
           ],
-          "missing": [
-            "Newly attached customer evidence after G still lacks targeted4.5 supplementation; initial typed-source intake is separate."
-          ],
+          "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "not_run",
             "liveModel": "not_run"
           }
@@ -106,7 +108,7 @@
     },
     {
       "id": "F09-2",
-      "note": "Focused source-boundary checks passed; connected T58 not yet proven. Arbitrary content changes outside known invited answers are not all implemented.",
+      "note": "T58's invited-answer revision has native fixture proof. T78 adds focused-checked late-material revision of the current unapproved brief; its connected proof is pending. Arbitrary corrections and approved/downstream impact are not all implemented.",
       "criteria": [
         {
           "id": "AC1",
@@ -114,11 +116,11 @@
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/briefRevision/run.ts",
-              "note": "Approved server revision binds source/current brief and reuses previous brief; focused T27 checks passed."
+              "note": "Authorized server revision binds source/current brief and reuses the previous brief (T27). T78 materialRevision/run.ts additionally refreshes sources/findings, passes analysis QA and freeze, then calls the existing brief producer with its previous version; focused checks passed."
             }
           ],
           "missing": [
-            "Connect requested new-evidence4.5 path (T26); invited-answer revision is now proved by T58."
+            "General directed corrections beyond invited answers and T78's bounded late-material path remain unimplemented; approved/downstream changes require the separate impact path."
           ],
           "verification": {
             "focused": "passed",

@@ -6,16 +6,15 @@
     "features": 53,
     "stories": 102,
     "criteria": 489,
-    "tasks": 107,
+    "tasks": 113,
     "tasksByState": {
       "active": 25,
       "blocked": 3,
-      "done": 72,
-      "implemented": 3,
+      "deferred": 2,
+      "done": 76,
+      "implemented": 5,
       "legacy": 1,
-      "queued": 1,
-      "ready": 1,
-      "source": 1
+      "queued": 1
     },
     "mappedStories": 102,
     "taskLinkedStories": 102
@@ -923,7 +922,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -1206,6 +1205,7 @@
                 }
               ],
               "taskIds": [
+                "T24",
                 "T25",
                 "T74",
                 "T75"
@@ -1219,6 +1219,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T24",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "line": 7,
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T25",
@@ -1249,6 +1256,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T24",
+                  "title": "T24 - Pin approved configuration to agency execution",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "state": "active",
+                  "stateLabel": "active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)",
+                  "stateLine": 3,
+                  "owns": "role-specific configuration beside the worker and its native workflow binding; introduce shared product configuration only when an actual process needs it",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T25",
                   "title": "T25 - Start one agency process from a confirmed paid order",
@@ -1359,7 +1377,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -3985,6 +4003,7 @@
                 }
               ],
               "taskIds": [
+                "T24",
                 "T42",
                 "T43",
                 "T54",
@@ -4002,6 +4021,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T24",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "line": 7,
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T42",
@@ -4046,6 +4072,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T24",
+                  "title": "T24 - Pin approved configuration to agency execution",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "state": "active",
+                  "stateLabel": "active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)",
+                  "stateLine": 3,
+                  "owns": "role-specific configuration beside the worker and its native workflow binding; introduce shared product configuration only when an actual process needs it",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T42",
                   "title": "T42 - Hand off the accepted brief and frozen analysis",
@@ -4247,6 +4284,7 @@
                 "T43"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T43"
               ],
               "adrIds": [
@@ -4256,8 +4294,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -4286,9 +4324,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -4349,7 +4387,9 @@
               "taskIds": [
                 "RES-03"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
@@ -4357,8 +4397,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -4380,9 +4420,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -4443,10 +4483,12 @@
                 "T43",
                 "T97",
                 "T98",
+                "T103",
                 "TOV-01",
                 "TOV-02"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T43",
                 "TOV-01"
               ],
@@ -4456,10 +4498,10 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                  "id": "T103",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
+                  "line": 7,
+                  "text": "F22-1, F23-1, F51-1; user instruction to integrate teammate agents. Technical contract: `agency_tov.source_scout` and existing discovery CLI/service."
                 },
                 {
                   "kind": "task-source",
@@ -4479,8 +4521,15 @@
                   "kind": "task-source",
                   "id": "T98",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
-                  "line": 4,
+                  "line": 6,
                   "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -4527,14 +4576,14 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
+                  "id": "T103",
+                  "title": "T103 - Connect specialist source discovery to agency intake",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
                   "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "stateLabel": "active",
                   "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
+                  "owns": "`agency_operations/lib/tovDiscovery/**`, `api/tov-discovery/**`; request shared intake/DI changes from coordinator.",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -4564,10 +4613,21 @@
                   "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
                   "state": "active",
-                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLabel": "active (P0; initial integration and correction source checked; connected native proof pending)",
                   "stateLine": 3,
                   "owns": null,
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -4658,9 +4718,11 @@
                 "T53",
                 "T54",
                 "T97",
-                "T98"
+                "T98",
+                "T103"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T43",
                 "T54"
               ],
@@ -4670,10 +4732,10 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                  "id": "T103",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
+                  "line": 7,
+                  "text": "F22-1, F23-1, F51-1; user instruction to integrate teammate agents. Technical contract: `agency_tov.source_scout` and existing discovery CLI/service."
                 },
                 {
                   "kind": "task-source",
@@ -4693,8 +4755,15 @@
                   "kind": "task-source",
                   "id": "T98",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
-                  "line": 4,
+                  "line": 6,
                   "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -4727,14 +4796,14 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
+                  "id": "T103",
+                  "title": "T103 - Connect specialist source discovery to agency intake",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
                   "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "stateLabel": "active",
                   "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
+                  "owns": "`agency_operations/lib/tovDiscovery/**`, `api/tov-discovery/**`; request shared intake/DI changes from coordinator.",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -4764,10 +4833,21 @@
                   "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
                   "state": "active",
-                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLabel": "active (P0; initial integration and correction source checked; connected native proof pending)",
                   "stateLine": 3,
                   "owns": null,
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -4874,7 +4954,7 @@
                   "kind": "task-source",
                   "id": "T98",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
-                  "line": 4,
+                  "line": 6,
                   "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
                 },
                 {
@@ -4934,7 +5014,7 @@
                   "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
                   "state": "active",
-                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLabel": "active (P0; initial integration and correction source checked; connected native proof pending)",
                   "stateLine": 3,
                   "owns": null,
                   "taskGroup": "T",
@@ -5028,7 +5108,7 @@
                   "kind": "task-source",
                   "id": "T98",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
-                  "line": 4,
+                  "line": 6,
                   "text": "F22-1, F23-1, F24-1, F24-2; explicit user architecture decision."
                 },
                 {
@@ -5070,7 +5150,7 @@
                   "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
                   "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
                   "state": "active",
-                  "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+                  "stateLabel": "active (P0; initial integration and correction source checked; connected native proof pending)",
                   "stateLine": 3,
                   "owns": null,
                   "taskGroup": "T",
@@ -5237,12 +5317,14 @@
               ],
               "taskIds": [
                 "RES-03",
+                "T24",
                 "T28",
                 "T48",
                 "T58",
                 "T62"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28",
                 "T48",
                 "T58",
@@ -5254,9 +5336,16 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
+                  "id": "T24",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "line": 7,
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
+                },
+                {
+                  "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -5297,11 +5386,22 @@
               ],
               "taskEvidence": [
                 {
+                  "id": "T24",
+                  "title": "T24 - Pin approved configuration to agency execution",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "state": "active",
+                  "stateLabel": "active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)",
+                  "stateLine": 3,
+                  "owns": "role-specific configuration beside the worker and its native workflow binding; introduce shared product configuration only when an actual process needs it",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -5398,6 +5498,7 @@
                 "T48"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28",
                 "T48"
               ],
@@ -5408,8 +5509,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -5445,9 +5546,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -5527,6 +5628,7 @@
                 "T62"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28",
                 "T48",
                 "T56",
@@ -5539,8 +5641,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -5590,9 +5692,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -5685,19 +5787,13 @@
                 "T101"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28"
               ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
-                {
-                  "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
                 {
                   "kind": "task-source",
                   "id": "T100",
@@ -5711,6 +5807,13 @@
                   "source": ".tasks/T101-show-current-case-tasks-and-continuation.md",
                   "line": 4,
                   "text": "F10-1 AC1–4; F24-1 AC1–4; F27-2; F32-1; F49-2 AC4; F52-1 AC3–5."
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -5736,17 +5839,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T100",
                   "title": "T100 — Connect the customer and employee journey",
                   "source": ".tasks/T100-connect-context-aware-agency-journey.md",
@@ -5766,6 +5858,17 @@
                   "stateLine": 3,
                   "owns": null,
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -5825,6 +5928,7 @@
                 "T28"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28"
               ],
               "adrIds": [
@@ -5834,8 +5938,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -5857,9 +5961,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -5930,6 +6034,7 @@
                 "T28"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28"
               ],
               "adrIds": [
@@ -5939,8 +6044,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -5962,9 +6067,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -6030,6 +6135,7 @@
                 "T28"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28"
               ],
               "adrIds": [
@@ -6039,8 +6145,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -6062,9 +6168,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -6122,6 +6228,7 @@
                 "T28"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T28"
               ],
               "adrIds": [
@@ -6131,8 +6238,8 @@
                 {
                   "kind": "task-source",
                   "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
                   "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
@@ -6154,9 +6261,9 @@
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
                   "stateLine": 3,
                   "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
                   "taskGroup": "RES",
@@ -6228,11 +6335,13 @@
               ],
               "taskIds": [
                 "RES-03",
+                "T24",
                 "T29",
                 "T49",
                 "T54"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T49",
                 "T54"
               ],
@@ -6242,10 +6351,10 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
+                  "id": "T24",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
+                  "line": 7,
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -6253,6 +6362,13 @@
                   "source": ".tasks/T29-post-production-and-version-review.md",
                   "line": 6,
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -6278,14 +6394,14 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
+                  "id": "T24",
+                  "title": "T24 - Pin approved configuration to agency execution",
+                  "source": ".tasks/T24-versioned-product-execution-config.md",
                   "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
+                  "stateLabel": "active (configuration pinning incomplete; controlled live demo needs explicit configuration and paid approval)",
                   "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
+                  "owns": "role-specific configuration beside the worker and its native workflow binding; introduce shared product configuration only when an actual process needs it",
+                  "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6297,6 +6413,17 @@
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6369,6 +6496,7 @@
                 "T70"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T49",
                 "T70"
               ],
@@ -6378,17 +6506,17 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T29",
                   "source": ".tasks/T29-post-production-and-version-review.md",
                   "line": 6,
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -6421,17 +6549,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
                   "source": ".tasks/T29-post-production-and-version-review.md",
@@ -6440,6 +6557,17 @@
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6520,6 +6648,7 @@
                 "T77"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T49",
                 "T77"
               ],
@@ -6529,17 +6658,17 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T29",
                   "source": ".tasks/T29-post-production-and-version-review.md",
                   "line": 6,
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -6572,17 +6701,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
                   "source": ".tasks/T29-post-production-and-version-review.md",
@@ -6591,6 +6709,17 @@
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -6661,18 +6790,13 @@
                 "T29",
                 "T86"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
-                {
-                  "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
                 {
                   "kind": "task-source",
                   "id": "T29",
@@ -6686,6 +6810,13 @@
                   "source": ".tasks/T86-return-targeted-post-evidence-to-qa.md",
                   "line": 4,
                   "text": "F31-2 AC1-5; T29"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -6703,17 +6834,6 @@
                 }
               ],
               "taskEvidence": [
-                {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
                 {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
@@ -6734,6 +6854,17 @@
                   "stateLine": 3,
                   "owns": "research `lib/postEvidence/**`, additive post-editor contract/prompt and QA continuation; coordinated public service and native caller wiring.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7218,6 +7349,7 @@
                 "T70"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T50",
                 "T70"
               ],
@@ -7227,17 +7359,17 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T29",
                   "source": ".tasks/T29-post-production-and-version-review.md",
                   "line": 6,
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -7263,17 +7395,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
                   "source": ".tasks/T29-post-production-and-version-review.md",
@@ -7282,6 +7403,17 @@
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -7348,6 +7480,7 @@
                 "T51"
               ],
               "doneTaskIds": [
+                "RES-03",
                 "T51"
               ],
               "adrIds": [
@@ -7356,17 +7489,17 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T29",
                   "source": ".tasks/T29-post-production-and-version-review.md",
                   "line": 6,
                   "text": "F30-1, F30-2, F31-1, F31-2, F32-1, F32-2, F32-3, F33-1, F33-2"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "task-source",
@@ -7385,17 +7518,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
                   "source": ".tasks/T29-post-production-and-version-review.md",
@@ -7404,6 +7526,17 @@
                   "stateLine": 3,
                   "owns": "active projection slice `agency_research/lib/postReview/**`; coordinator owns public research service/contracts. Later: `agency_operations/lib/postProcess/**` version-bound client review and producer handoff.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 },
                 {
@@ -7474,24 +7607,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -7503,17 +7638,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -7522,6 +7646,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7570,18 +7705,13 @@
                 "T31",
                 "T83"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
-                {
-                  "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -7595,6 +7725,13 @@
                   "source": ".tasks/T83-configure-exact-discord-publication-destination.md",
                   "line": 4,
                   "text": "F34-2 AC1-2/4 (preparation only); F58-1 AC1; T66"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -7612,17 +7749,6 @@
                 }
               ],
               "taskEvidence": [
-                {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -7643,6 +7769,17 @@
                   "stateLine": 3,
                   "owns": "new research/operations `lib/publicationDestination/**`; coordinated research public service, operations DI and scoped staff configure API.",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7698,24 +7835,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -7734,17 +7873,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -7753,6 +7881,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7808,24 +7947,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -7837,17 +7978,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -7856,6 +7986,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7898,24 +8039,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -7927,17 +8070,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -7946,6 +8078,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -7993,24 +8136,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8022,17 +8167,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -8041,6 +8175,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8088,24 +8233,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8117,17 +8264,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -8136,6 +8272,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8191,24 +8338,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8220,17 +8369,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -8239,6 +8377,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8286,24 +8435,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8315,17 +8466,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -8334,6 +8474,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8376,24 +8527,26 @@
                 "RES-03",
                 "T31"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T31",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
                   "line": 6,
                   "text": "F34-1, F34-2, F35-1, F36-1, F36-2, F36-3, F36-4, F37-1, F37-2, F37-3; F46-1, F46-2, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8405,17 +8558,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
                   "source": ".tasks/T31-proposed-publication-and-reconciliation.md",
@@ -8424,6 +8566,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/publication/**`; native workflow publication adapter",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8488,24 +8641,26 @@
                 "RES-03",
                 "T32"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T32",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
                   "line": 6,
                   "text": "F38-1, F38-2, F38-3, F38-4, F39-1; F47-1, F47-2, F53-1, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8524,17 +8679,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
@@ -8543,6 +8687,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/deliveryProcess/**`; delivery-QA and communication activation",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8590,24 +8745,26 @@
                 "RES-03",
                 "T32"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T32",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
                   "line": 6,
                   "text": "F38-1, F38-2, F38-3, F38-4, F39-1; F47-1, F47-2, F53-1, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8626,17 +8783,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
@@ -8645,6 +8791,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/deliveryProcess/**`; delivery-QA and communication activation",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8692,24 +8849,26 @@
                 "RES-03",
                 "T32"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T32",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
                   "line": 6,
                   "text": "F38-1, F38-2, F38-3, F38-4, F39-1; F47-1, F47-2, F53-1, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8728,17 +8887,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
@@ -8747,6 +8895,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/deliveryProcess/**`; delivery-QA and communication activation",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8789,24 +8948,26 @@
                 "RES-03",
                 "T32"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T32",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
                   "line": 6,
                   "text": "F38-1, F38-2, F38-3, F38-4, F39-1; F47-1, F47-2, F53-1, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8825,17 +8986,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
@@ -8844,6 +8994,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/deliveryProcess/**`; delivery-QA and communication activation",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -8899,24 +9060,26 @@
                 "RES-03",
                 "T32"
               ],
-              "doneTaskIds": [],
+              "doneTaskIds": [
+                "RES-03"
+              ],
               "adrIds": [
                 "ADR-003"
               ],
               "mappingEvidence": [
                 {
                   "kind": "task-source",
-                  "id": "RES-03",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "line": 4,
-                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
-                },
-                {
-                  "kind": "task-source",
                   "id": "T32",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
                   "line": 6,
                   "text": "F38-1, F38-2, F38-3, F38-4, F39-1; F47-1, F47-2, F53-1, F58-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-03",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "line": 5,
+                  "text": "F21, F22, F23, F26, F27, F28, F29, F30, F31, F33, F34, F35, F36, F37, F38, F39"
                 },
                 {
                   "kind": "adr-reference",
@@ -8928,17 +9091,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "RES-03",
-                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-                  "source": ".tasks/RES-03-strategy-to-closure.md",
-                  "state": "active",
-                  "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-                  "stateLine": 3,
-                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-                  "taskGroup": "RES",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
                   "source": ".tasks/T32-proposed-delivery-and-closure.md",
@@ -8947,6 +9099,17 @@
                   "stateLine": 3,
                   "owns": "`agency_operations/lib/deliveryProcess/**`; delivery-QA and communication activation",
                   "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-03",
+                  "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+                  "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+                  "state": "done",
+                  "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+                  "stateLine": 3,
+                  "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+                  "taskGroup": "RES",
                   "mappingBasis": "sources"
                 }
               ]
@@ -9467,6 +9630,7 @@
               "doneTaskIds": [
                 "T03",
                 "T21",
+                "T45",
                 "T52",
                 "T54",
                 "T56",
@@ -9479,13 +9643,6 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
-                {
-                  "kind": "task-source",
-                  "id": "T45",
-                  "source": ".tasks/T45-research-exception-employee-handoff.md",
-                  "line": 6,
-                  "text": "F48-1; teammate exact-version WEW-ESKALACJA contract"
-                },
                 {
                   "kind": "task-source",
                   "id": "T53",
@@ -9513,6 +9670,13 @@
                   "source": ".tasks/tasks-done/T21-native-exception-resume.md",
                   "line": 6,
                   "text": "F48-1, F49-1, F50-1, F51-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "T45",
+                  "source": ".tasks/tasks-done/T45-research-exception-employee-handoff.md",
+                  "line": 10,
+                  "text": "F48-1; teammate exact-version WEW-ESKALACJA contract"
                 },
                 {
                   "kind": "task-source",
@@ -9573,17 +9737,6 @@
               ],
               "taskEvidence": [
                 {
-                  "id": "T45",
-                  "title": "T45 - Expose a saved research exception as a native employee task",
-                  "source": ".tasks/T45-research-exception-employee-handoff.md",
-                  "state": "active",
-                  "stateLabel": "active",
-                  "stateLine": 3,
-                  "owns": "`agency_operations/lib/researchException/**`, `agency_research/lib/exceptionReview/**`; coordinator owns public service contract, analysis workflow and DI wiring",
-                  "taskGroup": "T",
-                  "mappingBasis": "sources"
-                },
-                {
                   "id": "T53",
                   "title": "T53 - Route saved strategy/ToV QA exceptions to employees",
                   "source": ".tasks/T53-route-strategy-qa-exceptions-to-employees.md",
@@ -9624,6 +9777,17 @@
                   "stateLabel": "done (bounded native failure/employee/resume path)",
                   "stateLine": 3,
                   "owns": "agency exception binding and native workflow/UserTask continuation seam",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "T45",
+                  "title": "T45 - Expose a saved research exception as a native employee task",
+                  "source": ".tasks/tasks-done/T45-research-exception-employee-handoff.md",
+                  "state": "done",
+                  "stateLabel": "done",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/researchException/**`, `agency_research/lib/exceptionReview/**`; coordinator owns public service contract, analysis workflow and DI wiring",
                   "taskGroup": "T",
                   "mappingBasis": "sources"
                 },
@@ -9755,7 +9919,8 @@
               ],
               "taskIds": [
                 "T21",
-                "T60"
+                "T60",
+                "T107"
               ],
               "doneTaskIds": [
                 "T21"
@@ -9764,6 +9929,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "T107",
+                  "source": ".tasks/T107-recover-paused-client-review-analysis.md",
+                  "line": 4,
+                  "text": "teammate `resume-analysis --from` regression; F50-1 AC2–5, F49-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T60",
@@ -9787,6 +9959,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T107",
+                  "title": "T107 — Recover analysis paused on client review",
+                  "source": ".tasks/T107-recover-paused-client-review-analysis.md",
+                  "state": "implemented",
+                  "stateLabel": "implemented; focused checks passed, native recovery proof pending",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/analysisProcess/restart.ts` and focused tests.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T60",
                   "title": "T60 - Complete normal-use recovery instead of generic failure",
@@ -10039,7 +10222,8 @@
               "taskIds": [
                 "T21",
                 "T24",
-                "T60"
+                "T60",
+                "T107"
               ],
               "doneTaskIds": [
                 "T21"
@@ -10050,10 +10234,17 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
+                  "id": "T107",
+                  "source": ".tasks/T107-recover-paused-client-review-analysis.md",
+                  "line": 4,
+                  "text": "teammate `resume-analysis --from` regression; F50-1 AC2–5, F49-1 AC4"
+                },
+                {
+                  "kind": "task-source",
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -10078,6 +10269,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T107",
+                  "title": "T107 — Recover analysis paused on client review",
+                  "source": ".tasks/T107-recover-paused-client-review-analysis.md",
+                  "state": "implemented",
+                  "stateLabel": "implemented; focused checks passed, native recovery proof pending",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/analysisProcess/restart.ts` and focused tests.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -11290,7 +11492,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -11485,7 +11687,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -13333,7 +13535,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "adr-reference",
@@ -13436,7 +13638,8 @@
                 "T24",
                 "T57",
                 "T63",
-                "T97"
+                "T97",
+                "T103"
               ],
               "doneTaskIds": [
                 "T11",
@@ -13452,6 +13655,13 @@
               "mappingEvidence": [
                 {
                   "kind": "task-source",
+                  "id": "T103",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
+                  "line": 7,
+                  "text": "F22-1, F23-1, F51-1; user instruction to integrate teammate agents. Technical contract: `agency_tov.source_scout` and existing discovery CLI/service."
+                },
+                {
+                  "kind": "task-source",
                   "id": "T12",
                   "source": ".tasks/T12-agency-process-foundation.md",
                   "line": 6,
@@ -13462,7 +13672,7 @@
                   "id": "T24",
                   "source": ".tasks/T24-versioned-product-execution-config.md",
                   "line": 7,
-                  "text": "F60-1, F51-1; F04-2, F06-1, F43-1, F44-1, F50-1"
+                  "text": "F60-1, F51-1; F04-2, F05-2, F06-1, F20-1, F26-1, F30-1, F43-1, F44-1, F50-1"
                 },
                 {
                   "kind": "task-source",
@@ -13529,6 +13739,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "T103",
+                  "title": "T103 - Connect specialist source discovery to agency intake",
+                  "source": ".tasks/T103-connect-specialist-source-discovery.md",
+                  "state": "active",
+                  "stateLabel": "active",
+                  "stateLine": 3,
+                  "owns": "`agency_operations/lib/tovDiscovery/**`, `api/tov-discovery/**`; request shared intake/DI changes from coordinator.",
+                  "taskGroup": "T",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T12",
                   "title": "T12 - Prove the gated native ToV reference process",
@@ -13637,55 +13858,6 @@
   ],
   "tasks": [
     {
-      "id": "RES-03",
-      "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
-      "source": ".tasks/RES-03-strategy-to-closure.md",
-      "state": "active",
-      "stateLabel": "active (branch `feat/agency-research`; PR #6, #7 merged; PR #8 = deslop skill in 7.2/7.3 + research tweaks, 2026-09-19)",
-      "stateLine": 3,
-      "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
-      "taskGroup": "RES",
-      "mappingBasis": "sources",
-      "storyIds": [
-        "F21-1",
-        "F21-2",
-        "F22-1",
-        "F23-1",
-        "F26-1",
-        "F26-2",
-        "F27-1",
-        "F27-2",
-        "F27-3",
-        "F28-1",
-        "F29-1",
-        "F29-2",
-        "F30-1",
-        "F30-2",
-        "F31-1",
-        "F31-2",
-        "F33-1",
-        "F33-2",
-        "F34-1",
-        "F34-2",
-        "F35-1",
-        "F36-1",
-        "F36-2",
-        "F36-3",
-        "F36-4",
-        "F37-1",
-        "F37-2",
-        "F37-3",
-        "F38-1",
-        "F38-2",
-        "F38-3",
-        "F38-4",
-        "F39-1"
-      ],
-      "adrIds": [
-        "ADR-001"
-      ]
-    },
-    {
       "id": "T100",
       "title": "T100 — Connect the customer and employee journey",
       "source": ".tasks/T100-connect-context-aware-agency-journey.md",
@@ -13727,16 +13899,62 @@
       "adrIds": []
     },
     {
-      "id": "T102",
-      "title": "T102 - Configure server agent execution and native mail",
-      "source": ".tasks/T102-configure-server-agent-execution-and-native-mail.md",
-      "state": "done",
-      "stateLabel": "done",
+      "id": "T103",
+      "title": "T103 - Connect specialist source discovery to agency intake",
+      "source": ".tasks/T103-connect-specialist-source-discovery.md",
+      "state": "active",
+      "stateLabel": "active",
       "stateLine": 3,
-      "owns": "`ai-company/docker/agency/{compose.yml,runtime.env.example}`, narrow `bin/agency.mjs` validation/tests, existing deployment guidance.",
+      "owns": "`agency_operations/lib/tovDiscovery/**`, `api/tov-discovery/**`; request shared intake/DI changes from coordinator.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F22-1",
+        "F23-1",
+        "F51-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T104",
+      "title": "T104 - Record missing native handoffs from the shared journey",
+      "source": ".tasks/T104-collect-missing-native-handoffs.md",
+      "state": "implemented",
+      "stateLabel": "implemented (source integrated; eight focused unit checks passed; native journey/report proof pending T96)",
+      "stateLine": 3,
+      "owns": "`agency_operations/__integration__/support/productionJourney/evidence.ts` and its focused tests; request record-reader changes explicitly.",
       "taskGroup": "T",
       "mappingBasis": "sources",
       "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T105",
+      "title": "T105 - Package and boot the current integrated release",
+      "source": ".tasks/T105-package-and-boot-current-integrated-release.md",
+      "state": "deferred",
+      "stateLabel": "deferred (user prioritizes indev testing; no build/artifact work now)",
+      "stateLine": 3,
+      "owns": "`bin/**`, `.demo-docs/server-setup/**`, existing build handoff; no application feature edits.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T107",
+      "title": "T107 — Recover analysis paused on client review",
+      "source": ".tasks/T107-recover-paused-client-review-analysis.md",
+      "state": "implemented",
+      "stateLabel": "implemented; focused checks passed, native recovery proof pending",
+      "stateLine": 3,
+      "owns": "`agency_operations/lib/analysisProcess/restart.ts` and focused tests.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F49-1",
+        "F50-1"
+      ],
       "adrIds": []
     },
     {
@@ -13785,7 +14003,11 @@
       "mappingBasis": "sources",
       "storyIds": [
         "F04-2",
+        "F05-2",
         "F06-1",
+        "F20-1",
+        "F26-1",
+        "F30-1",
         "F43-1",
         "F44-1",
         "F50-1",
@@ -13961,21 +14183,6 @@
       "adrIds": []
     },
     {
-      "id": "T45",
-      "title": "T45 - Expose a saved research exception as a native employee task",
-      "source": ".tasks/T45-research-exception-employee-handoff.md",
-      "state": "active",
-      "stateLabel": "active",
-      "stateLine": 3,
-      "owns": "`agency_operations/lib/researchException/**`, `agency_research/lib/exceptionReview/**`; coordinator owns public service contract, analysis workflow and DI wiring",
-      "taskGroup": "T",
-      "mappingBasis": "sources",
-      "storyIds": [
-        "F48-1"
-      ],
-      "adrIds": []
-    },
-    {
       "id": "T47",
       "title": "T47 - Record exact strategy/ToV decisions and expose planning readiness",
       "source": ".tasks/T47-record-paired-strategy-acceptance.md",
@@ -14142,8 +14349,8 @@
       "id": "T85",
       "title": "T85 - Package the agency app for a Linux Docker server",
       "source": ".tasks/T85-package-agency-for-linux-docker.md",
-      "state": "active",
-      "stateLabel": "active; frozen baseline image and portable bundle verified, clean boot/current-main release pending",
+      "state": "deferred",
+      "stateLabel": "deferred; frozen baseline verified, clean boot/current-main release pending in T105",
       "stateLine": 3,
       "owns": "`bin/agency.{ps1,sh,mjs}`, `ai-company/docker/agency/**`; agreed native Dockerfile/context changes",
       "taskGroup": "T",
@@ -14202,8 +14409,8 @@
       "id": "T93",
       "title": "T93 — Persistent manual fixture and live walkthrough modes",
       "source": ".tasks/T93-persistent-manual-fixture-and-live-modes.md",
-      "state": "source",
-      "stateLabel": "source implemented; persistent native/manual proof pending",
+      "state": "active",
+      "stateLabel": "active",
       "stateLine": 3,
       "owns": null,
       "taskGroup": "T",
@@ -14241,8 +14448,8 @@
       "id": "T96",
       "title": "T96 - Integrate and prove the shared agent harness",
       "source": ".tasks/T96-prove-and-integrate-shared-agent-harness.md",
-      "state": "ready",
-      "stateLabel": "ready",
+      "state": "active",
+      "stateLabel": "active (immediate batch; one assigned runtime owner)",
       "stateLine": 3,
       "owns": "coordinator integration, runtime validation and remaining cross-owner wiring.",
       "taskGroup": "T",
@@ -14274,7 +14481,7 @@
       "title": "T98 — Bind strategy and downstream work to the sole ToV specialist",
       "source": ".tasks/T98-bind-strategy-to-authoritative-tov.md",
       "state": "active",
-      "stateLabel": "active (P0; initial integration source checked, connected recovery/proof pending)",
+      "stateLabel": "active (P0; initial integration and correction source checked; connected native proof pending)",
       "stateLine": 3,
       "owns": null,
       "taskGroup": "T",
@@ -14285,19 +14492,6 @@
         "F24-1",
         "F24-2"
       ],
-      "adrIds": []
-    },
-    {
-      "id": "T99",
-      "title": "T99 - Retain build and package command logs",
-      "source": ".tasks/T99-retain-build-and-package-command-logs.md",
-      "state": "done",
-      "stateLabel": "done",
-      "stateLine": 3,
-      "owns": "`bin/agency.mjs`, `bin/package-release.mjs`, small shared log helper/tests; coordinator owns the already-running build and recovery of its native history.",
-      "taskGroup": "T",
-      "mappingBasis": "sources",
-      "storyIds": [],
       "adrIds": []
     },
     {
@@ -14341,6 +14535,55 @@
         "F09-3"
       ],
       "adrIds": []
+    },
+    {
+      "id": "RES-03",
+      "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
+      "source": ".tasks/tasks-done/RES-03-strategy-to-closure.md",
+      "state": "done",
+      "stateLabel": "done (bounded P5-P9 producer lane merged and re-proven; customer receipts, external send and delivery remain outside this task's stated simulated scope)",
+      "stateLine": 3,
+      "owns": "`ai-company/apps/mercato/src/modules/agency_research/**`",
+      "taskGroup": "RES",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F21-1",
+        "F21-2",
+        "F22-1",
+        "F23-1",
+        "F26-1",
+        "F26-2",
+        "F27-1",
+        "F27-2",
+        "F27-3",
+        "F28-1",
+        "F29-1",
+        "F29-2",
+        "F30-1",
+        "F30-2",
+        "F31-1",
+        "F31-2",
+        "F33-1",
+        "F33-2",
+        "F34-1",
+        "F34-2",
+        "F35-1",
+        "F36-1",
+        "F36-2",
+        "F36-3",
+        "F36-4",
+        "F37-1",
+        "F37-2",
+        "F37-3",
+        "F38-1",
+        "F38-2",
+        "F38-3",
+        "F38-4",
+        "F39-1"
+      ],
+      "adrIds": [
+        "ADR-001"
+      ]
     },
     {
       "id": "T01",
@@ -14507,6 +14750,45 @@
       "adrIds": [
         "ADR-001"
       ]
+    },
+    {
+      "id": "T102",
+      "title": "T102 - Configure server agent execution and native mail",
+      "source": ".tasks/tasks-done/T102-configure-server-agent-execution-and-native-mail.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`ai-company/docker/agency/{compose.yml,runtime.env.example}`, narrow `bin/agency.mjs` validation/tests, existing deployment guidance.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T106",
+      "title": "T106 - Archive genuinely completed tasks without hiding unfinished proof",
+      "source": ".tasks/tasks-done/T106-archive-genuinely-completed-tasks.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`.tasks/*.md` and `.tasks/tasks-done/`, excluding T93-T106 and TOV-02.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
+      "id": "T108",
+      "title": "T108 - Refresh and archive completed task records",
+      "source": ".tasks/tasks-done/T108-refresh-completed-task-status.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`.tasks/*.md` and `.tasks/tasks-done/`, except active T93, T95, T96, T98, T105, T107 and TOV-02.",
+      "taskGroup": "T",
+      "mappingBasis": "title-fallback",
+      "storyIds": [],
+      "adrIds": []
     },
     {
       "id": "T11",
@@ -14948,6 +15230,21 @@
       "storyIds": [
         "F49-2",
         "F50-2"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "T45",
+      "title": "T45 - Expose a saved research exception as a native employee task",
+      "source": ".tasks/tasks-done/T45-research-exception-employee-handoff.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`agency_operations/lib/researchException/**`, `agency_research/lib/exceptionReview/**`; coordinator owns public service contract, analysis workflow and DI wiring",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F48-1"
       ],
       "adrIds": []
     },
@@ -15475,6 +15772,19 @@
       "adrIds": []
     },
     {
+      "id": "T99",
+      "title": "T99 - Retain build and package command logs",
+      "source": ".tasks/tasks-done/T99-retain-build-and-package-command-logs.md",
+      "state": "done",
+      "stateLabel": "done",
+      "stateLine": 3,
+      "owns": "`bin/agency.mjs`, `bin/package-release.mjs`, small shared log helper/tests; coordinator owns the already-running build and recovery of its native history.",
+      "taskGroup": "T",
+      "mappingBasis": "sources",
+      "storyIds": [],
+      "adrIds": []
+    },
+    {
       "id": "TOV-01",
       "title": "TOV-01 - Tone-of-voice research baseline",
       "source": ".tasks/tasks-done/TOV-01-tone-of-voice-research-agents.md",
@@ -15512,20 +15822,23 @@
   "unmappedStories": [],
   "storiesWithoutTasks": [],
   "tasksWithoutStories": [
-    "T102",
+    "T104",
+    "T105",
     "T79",
     "T85",
     "T93",
     "T94",
     "T95",
     "T96",
-    "T99",
     "T04",
     "T05",
     "T06",
     "T07",
     "T08",
     "T09",
+    "T102",
+    "T106",
+    "T108",
     "T13",
     "T23",
     "T34",
@@ -15536,7 +15849,8 @@
     "T73",
     "T81",
     "T82",
-    "T91"
+    "T91",
+    "T99"
   ],
   "diagnostics": [
     {

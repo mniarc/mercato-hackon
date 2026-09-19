@@ -29,6 +29,8 @@ This repository owns the application in `ai-company/`, `.tasks/`, `.specs/`, and
   only checks affected by a real fix.
 - Write Markdown only for durable tasks, processes, decisions, or requested docs.
   Update existing guidance; keep transient coordination in the conversation.
+- Keep requirements in `.specs/user-stories/`, actionable work and its priority in
+  `.tasks/`, and run/setup instructions in `.demo-docs/`; do not duplicate a critical-task queue.
 - Ground business behavior in the relevant `.specs/user-stories` IDs. Name the
   source in each task; distinguish teammate frontend/ToV contracts from product
   requirements. Flag conflicts or missing business decisions instead of inventing

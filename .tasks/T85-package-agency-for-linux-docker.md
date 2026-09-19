@@ -1,6 +1,6 @@
 # T85 - Package the agency app for a Linux Docker server
 
-State: active; frozen baseline image and portable bundle verified, clean boot/current-main release pending
+State: deferred; frozen baseline verified, clean boot/current-main release pending in T105
 Owns: `bin/agency.{ps1,sh,mjs}`, `ai-company/docker/agency/**`; agreed native Dockerfile/context changes
 Source: user-requested server deployment; existing Open Mercato Docker/build/runtime contracts
 
@@ -11,7 +11,7 @@ passed. Image export and portable packaging exited 0. The release tar contains
 the expected image, runners, logger, Compose/config template and quickstart;
 image revision is `1209dbd26`, bundle tooling/config revision `13d8c0e85`.
 Clean server boot and a release of newer main remain unproved. See
-`.tasks-critical/build-package-handoff.md` for team takeover.
+[server setup](../.demo-docs/server-setup/guide.md) for team takeover.
 
 ## Deliver
 

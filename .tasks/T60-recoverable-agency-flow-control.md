@@ -21,6 +21,12 @@ Reuse teammate producers and Open Mercato workflow contracts. Never invent budge
 increases, bypass approval, claim success on failure, or restart the whole order.
 T27 owns client-answer application; do not duplicate that work here.
 
+Delivered boundaries: T63 saves exhausted brief repairs as an employee exception;
+T107 implements explicit recovery of a pending brief review on its separate
+workflow (focused checks passed, native recovery proof pending). T78 implements
+late-material revision of an unapproved brief (native proof pending). These do
+not supply general budget-increase/resume authority or downstream invalidation.
+
 ## Done when
 
 The initial strategy/budget trace is classified and each demonstrated missing

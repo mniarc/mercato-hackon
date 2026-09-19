@@ -274,18 +274,20 @@
         },
         {
           "id": "AC4",
-          "implementation": "partial",
+          "implementation": "implemented",
           "evidence": [
             {
               "path": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/freeze.ts",
-              "note": "Freeze primitive can refresh changed analysis; T27 uses it for client-answer findings."
+              "note": "Freeze refreshes changed analysis; T27 uses it for client answers."
+            },
+            {
+              "path": "ai-company/apps/mercato/src/modules/agency_research/lib/materialRevision/run.ts",
+              "note": "T78 runs analysis QA, freezes the refreshed versions and calls the existing brief/QA producers for the same unapproved brief. Focused checks passed; connected late-material proof is pending. Approved/downstream impact is separate."
             }
           ],
-          "missing": [
-            "Targeted 4.5 evidence-return contract and resume of same brief remain missing (T26)."
-          ],
+          "missing": [],
           "verification": {
-            "focused": "unknown",
+            "focused": "passed",
             "nativeApp": "not_run",
             "liveModel": "not_run"
           }
