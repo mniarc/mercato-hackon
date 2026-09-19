@@ -4,6 +4,7 @@ import { renderContractFields } from '../../data/contracts'
 import { competitorCardResult, competitorChannelsResult, competitorSelectorResult, competitorSynthesizerResult } from '../../data/agents/competitors'
 import { RESEARCH_COMPETITOR_CARD_AGENT_ID, RESEARCH_COMPETITOR_CHANNELS_AGENT_ID, RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID } from './ids.competitors'
 import { MODEL_EXTRACT, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // F07 — competitors (3.4–3.5). Discovery and fetching are code (Firecrawl search,
 // then pages read by the page extractor with `entity` = the competitor); these
@@ -18,7 +19,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
     label: 'Competitor selector',
     description: 'Picks up to three competitors from real search results, each justified by similarity of audience, need and offer; separates direct competitors from alternative routes.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_COMPETITOR_SELECTOR_AGENT_ID, [
       'From `search_hits` (real results: url, title, snippet) choose at most `maxCompetitors`',
       'companies that a buyer of the offer in `business_profile` / `offer_map` would consider',
       'INSTEAD of the client in `order`: same audience, same need, comparable offer. Each',
@@ -32,7 +33,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
       'benchmark rather than a rival. Fewer than the maximum is correct when the hits are poor.',
       SHARED_RULES,
       renderContractFields('WZR-KONKURENCJA', ['selection']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: competitorSelectorResult },
   }),
 
@@ -43,7 +44,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
     label: 'Competitor card extractor',
     description: 'Builds one comparable card for one competitor from its extracted facts: buyer, problem, service, message, mechanism, proof, CTA, language, channels — unknown where nothing was read.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_COMPETITOR_CARD_AGENT_ID, [
       'Build the WZR-KONKURENCJA `card` for `company` from its `facts` and `language_samples`',
       '(ids from the input only). Every dimension (`market_segment`, `problem`, `service`,',
       '`message`, `mechanism`, `proof`, `cta`, `language`) has `text`, `fact_ids` and an',
@@ -56,7 +57,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
       'public.',
       SHARED_RULES,
       renderContractFields('WZR-KONKURENCJA', ['cards']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: competitorCardResult },
   }),
 
@@ -67,7 +68,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
     label: 'Competitor channel observation',
     description: 'Describes what is visible of one competitor\'s channel activity from its extracted facts — the sample, the visible metrics and the unknowns; activity is not effectiveness.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_COMPETITOR_CHANNELS_AGENT_ID, [
       'Return the WZR-KONKURENCJA `channel_observation` for `company` from its `facts` and',
       '`language_samples` (ids from the input only): the `visible_activity`, the `sample` you',
       'had, the `visible_metrics` you could see, `fact_ids`, and the `unknowns` (leads, cost,',
@@ -75,7 +76,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
       '`unknown`, never filled from memory.',
       SHARED_RULES,
       renderContractFields('WZR-KONKURENCJA', ['channels']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: competitorChannelsResult },
   }),
 
@@ -86,7 +87,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
     label: 'Comparison coordinator',
     description: 'Compares the client with the selected competitors on the same criteria: parity claims, alternative routes, honest differentiator candidates, implications for strategy, and gaps to send back to research.',
     defaultModel: MODEL_SYNTHESIS,
-    instructions: [
+    instructions: promptFor(RESEARCH_COMPETITOR_SYNTHESIZER_AGENT_ID, [
       'Compare the `client` (its offer, buyer scenarios, message map, proof cards) with the',
       '`cards` of the selected competitors on the SAME criteria. `parity_claims`: at least two',
       'concrete promises common to the category when the material confirms them (claim, which',
@@ -108,7 +109,7 @@ export const competitorsAgents: AiAgentDefinition[] = [
       'the expected result. If `repair_findings` is non-empty, fix exactly what they name.',
       SHARED_RULES,
       renderContractFields('WZR-KONKURENCJA', ['parity_claims', 'alternative_routes', 'difference_candidates', 'implications']),
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: competitorSynthesizerResult },
   }),
 ]

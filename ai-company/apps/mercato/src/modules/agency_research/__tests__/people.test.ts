@@ -89,7 +89,7 @@ describe('3.2a — people who speak for the brand', () => {
   it('registers two extract-tier agents that only choose among what they are given', () => {
     expect(peopleAgents.map((a) => a.id)).toEqual([RESEARCH_PEOPLE_FINDER_AGENT_ID, RESEARCH_CHANNEL_SELECTOR_AGENT_ID])
     const selector = peopleAgents[1] as unknown as { systemPrompt: string; allowedTools?: string[] }
-    expect(selector.systemPrompt).toMatch(/MUST be exactly one of the hit urls/)
+    expect(selector.systemPrompt).toMatch(/Każdy url musi być dokładnie jednym z adresów hits/)
     expect(selector.allowedTools ?? []).toEqual([])
   })
 

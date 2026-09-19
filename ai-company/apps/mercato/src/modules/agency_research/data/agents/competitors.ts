@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { onboardingContextSchema } from './onboarding'
 import { businessProfileSchema, factKinds } from '../schemas/zrodla'
 import { alternativeRouteSchema, cardDimensionSchema, claimStrengths, implicationSchema, parityClaimSchema, returnRequestSchema } from '../schemas/konkurencja'
 
@@ -13,6 +14,7 @@ const ids = z.array(z.string().min(1))
 const orderContext = z.object({ brand: z.string(), market: z.string(), language: z.string(), websiteUrl: z.string(), purchaseGoal: z.string().nullable() })
 
 export const competitorSelectorInputSchema = z.object({
+  onboarding_context: onboardingContextSchema.nullable().optional(),
   order: orderContext,
   outputLanguage: z.enum(['pl', 'en']),
   business_profile: businessProfileSchema,

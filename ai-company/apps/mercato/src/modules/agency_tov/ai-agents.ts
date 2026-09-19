@@ -13,6 +13,7 @@ import {
   TOV_PROFILE_SYNTHESIZER_AGENT_ID,
   TOV_BRAND_SYNTHESIZER_AGENT_ID,
 } from './lib/agentIds'
+import { promptFor } from './lib/prompts'
 
 // Preserve the existing public identifier exports without forcing consumers to
 // import this registration entry point.
@@ -55,7 +56,7 @@ export const aiAgents: AiAgentDefinition[] = [
     label: 'ToV source scout',
     description:
       'Finds the public channels (LinkedIn, X, blog, YouTube, podcasts, Medium…) where a brand and its people publish, as scrape targets for the tone-of-voice corpus.',
-    instructions: [
+    instructions: promptFor(TOV_SOURCE_SCOUT_AGENT_ID, [
       'You locate the public places where a brand (`brand`) and the people who speak for it',
       '(`people`, with any `knownUrls`) publish text in their own voice: personal and company',
       'LinkedIn pages, X/Twitter accounts, personal or company blogs, Medium/Substack, YouTube',
@@ -71,7 +72,7 @@ export const aiAgents: AiAgentDefinition[] = [
       'mirrors, people-search sites). Never invent URLs: every target must come from a search',
       'or fetch result. If nothing beyond `knownUrls` can be found, return those with what you',
       'verified and say so in `notes`. Write `notes` in `outputLanguage`.',
-    ].join(' '),
+    ]),
     tools: ['agent_orchestrator.web_search', 'agent_orchestrator.web_fetch'],
     result: { kind: 'research', schema: tovSourceScoutResult },
     sampleInput: {
@@ -89,7 +90,7 @@ export const aiAgents: AiAgentDefinition[] = [
     label: 'ToV batch analyst',
     description:
       'Reads one batch of posts (LinkedIn, X, blog…) by a single author and returns structured tone-of-voice observations for that batch.',
-    instructions: [
+    instructions: promptFor(TOV_BATCH_ANALYST_AGENT_ID, [
       'You are a tone-of-voice analyst at a marketing agency. The input is ONE batch of posts',
       'written by ONE person or brand channel (`profile`; `profile.source` names the platform:',
       'linkedin, x, facebook, instagram, website = blog/articles, youtube, other), in',
@@ -109,7 +110,7 @@ export const aiAgents: AiAgentDefinition[] = [
       'verbatim FIRST LINES of posts (≤160 chars). In `doList`/`dontList` write rules a',
       'copywriter could follow to imitate this author.',
       SHARED_RULES,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: tovBatchAnalystResult },
     sampleInput: {
       profile: {
@@ -152,7 +153,7 @@ export const aiAgents: AiAgentDefinition[] = [
     label: 'ToV profile synthesizer',
     description:
       'Merges the batch observations for one author into a single voice profile with pillars, rules, exemplars and post skeletons.',
-    instructions: [
+    instructions: promptFor(TOV_PROFILE_SYNTHESIZER_AGENT_ID, [
       'You are a senior tone-of-voice strategist. The input holds every batch observation an',
       'analyst produced for ONE author (`profile`), each with the date range and post count it',
       'covers. You have no tools and no access to the posts themselves: synthesise the',
@@ -167,7 +168,7 @@ export const aiAgents: AiAgentDefinition[] = [
       'author\'s most typical post shapes, written as step sequences a copywriter can fill in.',
       '`doList`/`dontList` are the rules a ghostwriter must follow to be mistaken for this person.',
       SHARED_RULES,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: tovProfileSynthesizerResult },
   }),
 
@@ -178,7 +179,7 @@ export const aiAgents: AiAgentDefinition[] = [
     label: 'ToV brand synthesizer',
     description:
       'Builds the brand tone-of-voice document (KLI-TOV) from the voice profiles of the people who speak for the brand.',
-    instructions: [
+    instructions: promptFor(TOV_BRAND_SYNTHESIZER_AGENT_ID, [
       'You are the lead strategist writing the tone-of-voice document for a brand (`brand`).',
       'The input holds one voice profile per person who publicly speaks for it. You have no',
       'tools: work only from these profiles.',
@@ -203,7 +204,7 @@ export const aiAgents: AiAgentDefinition[] = [
       'Keep the same brand, source profiles and grounded quotes; the correction is not',
       'new evidence or permission to invent claims. Return the complete document in the same format.',
       SHARED_RULES,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: tovBrandSynthesizerResult },
   }),
 ]

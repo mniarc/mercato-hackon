@@ -191,7 +191,8 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
   return findings.map((raw) => {
     // The QA agent sometimes prefixes paths with the input key it read them from.
     const f = /^documents\./.test(raw.path) ? { ...raw, path: raw.path.replace(/^documents\./, '') } : raw
-    if (f.owner === 'client' || f.owner === 'staff') return f
+    // A question for the client or staff never routes a repair, whatever the agent wrote into fix_step.
+    if (f.owner === 'client' || f.owner === 'staff') return f.fix_step === null ? f : { ...f, fix_step: null }
     // A conflict the register already records is the register doing its job; which side is true is the client's answer.
     // Only when the finding is ABOUT the recorded conflict — a downstream document taking one side is still the writer's fault.
     const conflictId = f.path.match(/\b(X\d{2,})\b/)?.[1] ?? f.gap.match(/\bconflicts?\W+(X\d{2,})\b/i)?.[1]
@@ -216,6 +217,7 @@ export function reclassifyRecordedClaims(findings: QaFinding[], zrodla: ZrodlaDa
         return { ...f, owner: 'client', fix_step: null, fix_hint: 'recorded as a first-party claim with its limitation; the client supplies the basis or accepts hedged wording (question / evidence request)' }
       }
     }
+    // The path decides the author step; prose in fix_step ("the auditor should…") is not a step id.
     const routed = fixStepForPath(f.path)
     return routed && routed !== f.fix_step ? { ...f, fix_step: routed } : f
   })
@@ -352,7 +354,8 @@ export async function runQaLoop(ctx: StepContext, opts: { authorSteps: AuthorSte
     ctx.log(`3.7 attempt ${repairs + 1}: ${result.verdict} (${result.findings.length} findings)`)
     if (result.verdict === 'ready') return { verdict: 'ready', findings: result.findings, taskRunId: run.id, repairs }
 
-    const blocking = result.findings.filter((f) => f.severity === 'blocking')
+    // Only findings an author step owns route a repair; client/staff questions never block the round.
+    const blocking = result.findings.filter((f) => f.severity === 'blocking' && (f.owner === 'agent' || f.owner === 'research'))
     // In step order: a register rewritten by 3.2 must precede the steps that read it in the same round.
     const fixSteps = ([...new Set(blocking.map((f) => f.fix_step).filter((s): s is string => s !== null))] as AuthorStepId[]).sort()
     const canRepair = result.verdict === 'to_fix' && repairs < maxRepairs && fixSteps.length > 0 && fixSteps.every((s) => opts.authorSteps[s])

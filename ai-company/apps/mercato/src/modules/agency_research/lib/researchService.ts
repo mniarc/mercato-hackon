@@ -60,6 +60,7 @@ import { runBriefQaLoop } from './research/steps/briefQa'
 import { runComparisonStep, runCompetitorsStep } from './research/steps/competitors'
 import type { StepContext, StepOutcome } from './research/steps/context'
 import { discoverPeople, type KnownPerson, type ScrapeProfilePosts } from './research/steps/people'
+import type { OnboardingContext } from '../data/agents/onboarding'
 import { runFindingsStep } from './research/steps/findings'
 import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
@@ -96,6 +97,8 @@ export type RunResearchOptions = {
   materialSources?: ResearchMaterialSource[]
   /** 3.2a — people the client named on the order (name, role, known profile URLs). */
   knownPeople?: KnownPerson[]
+  /** Prompt v2 — onboarding answers for 3.3, 3.4 and 3.6. */
+  onboardingContext?: OnboardingContext | null
   /** 3.2a — profile-post scraper; the service wires the ToV lane's Apify seam when APIFY_TOKEN is set. */
   scrapeProfilePosts?: ScrapeProfilePosts
   through: ResearchStep
@@ -341,6 +344,7 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
     pages: opts.pages,
     materialSources: opts.materialSources,
     knownPeople: opts.knownPeople,
+    onboardingContext: opts.onboardingContext ?? null,
     scrapeProfilePosts: opts.scrapeProfilePosts,
     repairFindings: [],
     attempt: 1,
@@ -543,6 +547,7 @@ export function createAgencyResearchService(container: Container): AgencyResearc
         pages: fixtureSources?.pages ?? parsed.pages,
         materialSources: parsed.materialSources,
         knownPeople: (parsed.people ?? []).map((person) => ({ name: person.name, role: person.role ?? null, provided_by: 'client' as const, knownUrls: person.knownUrls ?? [] })),
+        onboardingContext: parsed.onboardingContext ?? null,
         scrapeProfilePosts: fixtureSources ? undefined : profileScraperFrom(container),
         through: parsed.through,
         selectedTopicId: parsed.selectedTopicId ?? null,

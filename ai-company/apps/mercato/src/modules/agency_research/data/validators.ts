@@ -79,6 +79,10 @@ export const pageExtractorInputSchema = z.object({
 })
 export type PageExtractorInput = z.infer<typeof pageExtractorInputSchema>
 
+/** Prompt v2: who the claim is about and what role the described thing plays in the offer. */
+export const factSubjectTypes = ['brand', 'person', 'related_organization', 'competitor', 'unknown'] as const
+export const factOfferRoles = ['commercial_offer', 'internal_tool', 'project', 'beneficiary', 'not_applicable', 'unknown'] as const
+
 export const extractedFactSchema = z.object({
   local_ref: z.string().min(1),
   claim: z.string().min(1),
@@ -87,6 +91,9 @@ export const extractedFactSchema = z.object({
   kind: z.enum(factKinds),
   use_scope: z.array(z.string().min(1)),
   limitation: z.string().nullable(),
+  subject_entity: z.string().nullable().optional(),
+  subject_type: z.enum(factSubjectTypes).optional(),
+  offer_role: z.enum(factOfferRoles).optional(),
 })
 
 export const extractedSampleSchema = z.object({

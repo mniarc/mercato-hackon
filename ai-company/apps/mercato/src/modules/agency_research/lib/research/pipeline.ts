@@ -4,6 +4,7 @@ import { limits } from '../../data/templates'
 import { GateError, type GateIssue } from './gate'
 import { BudgetPausedError, type Ledger, type Usage } from './ledger'
 import { fingerprint } from './util'
+import { PROMPT_PACK_VERSION, hasPackedPrompt } from '../agents/prompts'
 
 /**
  * The pipeline core every step shares: the injected runner contract, the cache,
@@ -73,7 +74,8 @@ export function createStepRunner(opts: {
   return async ({ step, agentId, label, input, parse, gate }) => {
     const tier = RESEARCH_AGENT_TIERS[agentId as keyof typeof RESEARCH_AGENT_TIERS] ?? 'extract'
     const model = models[tier]
-    const key = `${agentId}:${fingerprint([agentId, input, model])}`
+    // The prompt is part of the input: a new prompt pack never replays an output written under the old one.
+    const key = `${agentId}:${fingerprint([agentId, input, model, hasPackedPrompt(agentId) ? PROMPT_PACK_VERSION : 'composed'])}`
     const cached = cache ? await cache.get(key) : null
     if (cached !== null && cached !== undefined) {
       // Cached results are judged again on read: a resume can never replay an ungrounded one.

@@ -3,6 +3,7 @@ import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator
 import { channelSelectorResult, peopleFinderResult } from '../../data/agents/people'
 import { RESEARCH_CHANNEL_SELECTOR_AGENT_ID, RESEARCH_PEOPLE_FINDER_AGENT_ID } from './ids.people'
 import { MODEL_EXTRACT, SHARED_RULES } from './shared'
+import { promptFor } from './prompts'
 
 // 3.2a — the people who speak for the brand. Two small extract-tier agents around
 // code-owned search: the finder names people that the stored pages (or the client)
@@ -17,7 +18,7 @@ export const peopleAgents: AiAgentDefinition[] = [
     label: 'People finder',
     description: 'Names the people who speak for the brand — founders, owners, leaders, named spokespeople — only from the stored client pages or the list the client provided.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_PEOPLE_FINDER_AGENT_ID, [
       'From the stored client `pages` (excerpts) and `known_people`, return the `people` who speak',
       'for the brand in `order`: founders, owners, managing partners, leaders, named experts or',
       'spokespeople whose words carry the company\'s voice. Include every `known_people` entry',
@@ -30,7 +31,7 @@ export const peopleAgents: AiAgentDefinition[] = [
       'empty list is correct when no page names anyone. `notes` (≤ 60 words): what you could',
       'not tell from the pages.',
       SHARED_RULES,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: peopleFinderResult },
     sampleInput: {
       order: { brand: 'Acme', market: 'Polska', language: 'pl', websiteUrl: 'https://acme.example' },
@@ -47,7 +48,7 @@ export const peopleAgents: AiAgentDefinition[] = [
     label: 'Channel selector',
     description: 'For one person who speaks for the brand, picks from real search hits the channels where they publish and the pages where they are quoted; never a URL that was not a hit.',
     defaultModel: MODEL_EXTRACT,
-    instructions: [
+    instructions: promptFor(RESEARCH_CHANNEL_SELECTOR_AGENT_ID, [
       'You receive one `person` (name, role) of the brand in `order` and the real search `hits` for',
       'them (query, url, title, snippet). Decide which hits are THIS person: the brand name, the',
       'role, the city or the market in the title or snippet are your cues; a namesake in another',
@@ -61,7 +62,7 @@ export const peopleAgents: AiAgentDefinition[] = [
       '(already read) and duplicate hosts. Fewer entries is right when the hits are poor; empty',
       'lists are correct when nothing is clearly this person.',
       SHARED_RULES,
-    ].join(' '),
+    ]),
     result: { kind: 'research', schema: channelSelectorResult },
     sampleInput: {
       order: { brand: 'Acme', market: 'Polska', language: 'pl', websiteUrl: 'https://acme.example' },

@@ -1,40 +1,8 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-19T19:34:42.268Z",
-  "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered teammate agents. The native agency_operations.client_triage router is additionally mapped so its journal observations are recognized; it is not a teammate producer. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. Imported teammate live-labelled runs are historical producer evidence, not locally rerun or current connected-app proof; simulated acceptance checkpoints and retired-writer observations do not establish current client approval or producer ownership. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
+  "generatedAt": "2026-09-19T21:09:06.418Z",
+  "note": "Source snapshot of 37 teammate definitions: 33 in agency_research (one competing ToV writer intentionally retired by the app override) and 4 in agency_tov, leaving 36 registered agents. Registration is not execution proof. agency_tov is the sole ToV producer; its exact saved KLI-TOV version is handed to strategy through the connected specialist continuation. Code-only publication preparation/closure are not missing agents; sending remains disabled. agency_operations orchestration agents are outside this teammate inventory. Source connections are not execution proof. Fixture observations do not prove live model quality. A journal records supplied native references; it does not authenticate their origin or certify every product path.",
   "agents": [
-    {
-      "id": "agency_operations.client_triage",
-      "processId": "agency_operations.client-submission.native.v1",
-      "source": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/definition.ts",
-      "connection": "connected",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/workflow.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/agents/client-triage/activities.ts",
-      "notes": "Native G submission interpretation/router, registered under CLIENT_TRIAGE_AGENT_ID when triage is enabled. Its completed run does not prove any downstream producer or handoff.",
-      "fixture": "observed",
-      "live": "not_observed",
-      "observationCount": 2,
-      "last": {
-        "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.034Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
-        "agentId": "agency_operations.client_triage",
-        "phase": "completed",
-        "refs": {
-          "agentRunId": "2d6c4453-0882-4367-85eb-7b52fe190adb",
-          "workflowInstanceId": "d0dbcf1a-4393-47e2-ad65-b045c537add3"
-        }
-      },
-      "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
-        "live": []
-      }
-    },
     {
       "id": "agency_research.page_extractor",
       "processId": "agency_operations.analysis.v1",
@@ -45,31 +13,29 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 116,
+      "observationCount": 117,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.046Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:47:24.191Z",
         "agentId": "agency_research.page_extractor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "a9981608-b8c1-4cf6-bbcc-166b7e9d2355",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "19d71c58-99a2-47e4-909c-cb85613169a6",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -83,31 +49,29 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 9,
+      "observationCount": 8,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.039Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:37:12.537Z",
         "agentId": "agency_research.proof_builder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "fe669b82-f7bd-43cd-b25f-1432bc637b76",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "68ea108f-c090-4d91-88d3-cf7729a1f8b2",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -121,31 +85,29 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 6,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.040Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:39:52.722Z",
         "agentId": "agency_research.content_seeder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "59a3b0f6-8c07-46a3-b173-9ac370546270",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "73b2ae4d-6ef2-492e-a21b-065c37a27583",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -161,25 +123,25 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 1,
+      "observationCount": 2,
       "last": {
         "schemaVersion": 1,
-        "runId": "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-        "journey": "agency-case-analysis",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T16:30:44.492Z",
+        "time": "2026-09-19T20:34:12.600Z",
         "agentId": "agency_research.people_finder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "bf47c126-a412-4af1-bd7b-24bb3055cca1",
-          "taskRunId": "ba3171f7-a6be-4cc6-a871-c9817c3fd6d1",
-          "workflowInstanceId": "2a534b5d-0609-428f-8094-cfa244294d7d"
+          "agentRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -195,25 +157,25 @@
       ],
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 1,
+      "observationCount": 2,
       "last": {
         "schemaVersion": 1,
-        "runId": "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-        "journey": "agency-case-analysis",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T16:30:56.779Z",
+        "time": "2026-09-19T20:34:22.182Z",
         "agentId": "agency_research.channel_selector",
         "phase": "completed",
         "refs": {
-          "agentRunId": "9b97dc51-8902-45ac-9527-35180ab9c9b3",
-          "taskRunId": "ba3171f7-a6be-4cc6-a871-c9817c3fd6d1",
-          "workflowInstanceId": "2a534b5d-0609-428f-8094-cfa244294d7d"
+          "agentRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -227,31 +189,29 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 6,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.040Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:40:21.888Z",
         "agentId": "agency_research.conflict_finder",
         "phase": "completed",
         "refs": {
-          "agentRunId": "4fd673b6-3736-4988-8618-4f518d5fef57",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "ac6a54c3-f8b6-4fb2-ba9f-ec1518d1149f",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -265,31 +225,29 @@
       "integrationIds": [
         "research-sources-to-audit"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 6,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.042Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:40:29.811Z",
         "agentId": "agency_research.coverage_assessor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "d05f00db-dd5d-4b2d-9ccc-e76cecd68138",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "e9bc52c7-f3fa-4e96-bd78-ede8bc9e3628",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -303,31 +261,29 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 8,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.043Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:42:47.704Z",
         "agentId": "agency_research.audit_mapper",
         "phase": "completed",
         "refs": {
-          "agentRunId": "781ed133-7169-4f17-919b-8efec9393193",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "ece639ac-5aed-4ee1-ba23-58e030f0e6cb",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -341,31 +297,29 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 8,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.041Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:44:29.307Z",
         "agentId": "agency_research.audit_voice",
         "phase": "completed",
         "refs": {
-          "agentRunId": "fa2f1f74-bd58-4308-b487-6f3901c67bdc",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "7edace3f-d4bb-4113-8b7e-370c67ff809e",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -379,31 +333,29 @@
       "integrationIds": [
         "research-audit-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 8,
+      "observationCount": 7,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.044Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:46:25.595Z",
         "agentId": "agency_research.audit_gaps_assets",
         "phase": "completed",
         "refs": {
-          "agentRunId": "58ff6095-abcc-412c-9469-c5e7fd9763dc",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "b47cc62a-d2d9-401a-ad2f-5cb08d8050d1",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -417,31 +369,29 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 7,
+      "observationCount": 6,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.042Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:46:48.727Z",
         "agentId": "agency_research.competitor_selector",
         "phase": "completed",
         "refs": {
-          "agentRunId": "4ad15d11-536a-4e63-a855-06a520834a92",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "dca9c815-d862-4e15-93dc-9429453e564f",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -455,30 +405,29 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 28,
+      "observationCount": 27,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.048Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:48:36.948Z",
         "agentId": "agency_research.competitor_card",
         "phase": "completed",
         "refs": {
-          "agentRunId": "a976d0a0-2498-4a96-a15d-febf5d61e504",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "87a970ce-2ae7-40a1-9b62-d3288203c3f3",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -492,30 +441,29 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 28,
+      "observationCount": 27,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.044Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:49:09.173Z",
         "agentId": "agency_research.competitor_channels",
         "phase": "completed",
         "refs": {
-          "agentRunId": "f52ecdfc-88fc-4319-977d-5bdcc6a13364",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "f6c26a3a-0595-4f17-9554-be9fb9e64fce",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -529,30 +477,29 @@
       "integrationIds": [
         "research-competitors-to-findings"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
       "observationCount": 15,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.048Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:51:21.778Z",
         "agentId": "agency_research.competitor_synthesizer",
         "phase": "completed",
         "refs": {
-          "agentRunId": "2d3fc57f-e5cf-44f1-a974-557c266699e1",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "c255c02d-233e-4eb2-adfc-a850add00b24",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -566,30 +513,29 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 15,
+      "observationCount": 14,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.054Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:53:43.955Z",
         "agentId": "agency_research.field_mapper",
         "phase": "completed",
         "refs": {
-          "agentRunId": "f7531687-8a80-4a8d-ba37-bd5a6944ba95",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "04b56eeb-9360-4c84-915f-80a85e414300",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -603,30 +549,29 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 13,
+      "observationCount": 12,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.050Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:55:14.551Z",
         "agentId": "agency_research.question_writer",
         "phase": "completed",
         "refs": {
-          "agentRunId": "f0bff3ba-5714-43b4-bd59-57babbfe4311",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "29326040-7396-43ac-a918-2302344f7247",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -640,30 +585,29 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 13,
+      "observationCount": 12,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.053Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:55:51.852Z",
         "agentId": "agency_research.readiness_assessor",
         "phase": "completed",
         "refs": {
-          "agentRunId": "35e1df50-ae04-474a-a6b8-4b0d9acc37f1",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "17af02cd-8723-49f4-a1a8-1a78d7536f4d",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -677,30 +621,29 @@
       "integrationIds": [
         "research-findings-to-brief"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
       "observationCount": 28,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.050Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:02:15.871Z",
         "agentId": "agency_research.research_qa",
         "phase": "completed",
         "refs": {
-          "agentRunId": "3f241622-aeee-4b4d-9b4f-7949bea52249",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -714,30 +657,29 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 13,
+      "observationCount": 12,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.055Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:02:46.811Z",
         "agentId": "agency_research.brief_writer.offer_audience_direction",
         "phase": "completed",
         "refs": {
-          "agentRunId": "ab651fb3-bbe4-4484-bc69-7d1beb470413",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "ad9a91c4-383f-43a8-a2f7-4d3bfb83dbf8",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -751,30 +693,29 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 13,
+      "observationCount": 12,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.056Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:03:26.029Z",
         "agentId": "agency_research.brief_writer.promise_voice",
         "phase": "completed",
         "refs": {
-          "agentRunId": "32edc2b0-cfcd-418b-ae36-cd90918b7a47",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "03abe427-3b65-4aca-b9c5-d3dbb2a7b919",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -788,30 +729,29 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 13,
+      "observationCount": 12,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.055Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:04:09.645Z",
         "agentId": "agency_research.brief_writer.channel_success_assets",
         "phase": "completed",
         "refs": {
-          "agentRunId": "9a16e8c5-e0c4-4f7f-b05d-70aba7a28031",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "4a926131-6787-4847-8d02-8834b16bf99f",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -825,30 +765,29 @@
       "integrationIds": [
         "research-brief-to-client-review"
       ],
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
       "observationCount": 15,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.052Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:04:47.066Z",
         "agentId": "agency_research.brief_qa",
         "phase": "completed",
         "refs": {
-          "agentRunId": "fae33ac5-f736-41bf-a88e-7f50858a54e2",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+          "agentRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1263,15 +1202,15 @@
     },
     {
       "id": "agency_tov.source_scout",
-      "processId": "agency_tov_source_discovery",
+      "processId": "agency_tov.cli.discover",
       "source": "ai-company/apps/mercato/src/modules/agency_tov/ai-agents.ts",
-      "connection": "connected",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/corpus/sources.ts",
       "integrationIds": [
         "scout-to-tov-targets"
       ],
-      "notes": "Authorized case-scoped app API invokes the teammate scout through native agentRuntime at step agency_tov_source_discovery and reads its saved target result. CLI --discover also remains. This source connection is not executed proof or a completed normalized-corpus handoff.",
+      "notes": "Conditional CLI --discover only; not invoked by native workflow or canonical agency flow.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -1290,27 +1229,12 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/paidCaseAnalysis/bootstrap.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "not_observed",
-      "observationCount": 1,
-      "last": {
-        "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.062Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
-        "integrationId": "paid-capture-to-analysis",
-        "phase": "completed",
-        "refs": {
-          "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
-          "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-        }
-      },
+      "observationCount": 0,
+      "last": null,
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": []
       }
     },
@@ -1323,25 +1247,26 @@
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/sources.ts",
       "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 1,
+      "observationCount": 2,
       "last": {
         "schemaVersion": 1,
-        "runId": "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
-        "journey": "agency-case-analysis",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
         "mode": "live",
-        "time": "2026-09-19T16:31:40.441Z",
+        "time": "2026-09-19T20:35:14.917Z",
         "integrationId": "research-people-to-sources",
         "phase": "completed",
         "refs": {
-          "producerRunId": "9b97dc51-8902-45ac-9527-35180ab9c9b3",
-          "consumerRunId": "17855888-2370-42c2-bde8-36b2e786fbd2",
-          "taskRunId": "ba3171f7-a6be-4cc6-a871-c9817c3fd6d1"
+          "producerRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
+          "consumerRunId": "1d57ac42-12f7-4507-8783-341e29638001",
+          "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
         }
       },
       "proofRunIds": {
         "fixture": [],
         "live": [
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1352,32 +1277,30 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/audit.ts",
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 22,
+      "observationCount": 21,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.057Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T20:46:26.058Z",
         "integrationId": "research-sources-to-audit",
         "phase": "completed",
         "refs": {
-          "producerRunId": "614848fe-e781-48ea-8ff4-91de25c86de1",
-          "consumerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
-          "outputVersionId": "40129284-e972-4e44-a884-c2885b674c84"
+          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+          "consumerRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+          "taskRunId": "af2213b7-c1f9-4e92-9bc5-bd01f8d52b83"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1388,31 +1311,30 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
       "observationCount": 24,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.058Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:01:19.229Z",
         "integrationId": "research-audit-to-findings",
         "phase": "completed",
         "refs": {
-          "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
-          "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-          "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
+          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1423,31 +1345,30 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/findings.ts",
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
       "observationCount": 24,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.059Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:01:19.229Z",
         "integrationId": "research-competitors-to-findings",
         "phase": "completed",
         "refs": {
-          "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
-          "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-          "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
+          "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+          "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1458,31 +1379,30 @@
       "connection": "connected",
       "entry": "ai-company/apps/mercato/src/modules/agency_operations/lib/analysisProcess/activity.ts",
       "handoff": "ai-company/apps/mercato/src/modules/agency_research/lib/research/steps/brief.ts",
-      "fixture": "observed",
+      "fixture": "not_observed",
       "live": "observed",
-      "observationCount": 22,
+      "observationCount": 20,
       "last": {
         "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.061Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:04:10.224Z",
         "integrationId": "research-findings-to-brief",
         "phase": "completed",
         "refs": {
-          "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-          "consumerRunId": "31c8c7ff-5917-411a-89fa-3e15e2a0eb6c",
-          "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+          "producerRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
+          "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+          "taskRunId": "cd4c7286-e20c-4fdd-853e-4300baa99516"
         }
       },
       "proofRunIds": {
-        "fixture": [
-          "c110bccb-5a20-4583-bdbd-deef8255437f"
-        ],
+        "fixture": [],
         "live": [
           "demo-open-mercato-3",
           "26fcfecf-7ef7-4887-80f9-0fabb1007755",
-          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61"
+          "aaedcb14-b416-4cd6-9f06-d1dc06ab7e61",
+          "demo-open-mercato-4"
         ]
       }
     },
@@ -1658,12 +1578,12 @@
     },
     {
       "id": "scout-to-tov-targets",
-      "processId": "agency_tov_source_discovery",
-      "source": "ai-company/apps/mercato/src/modules/agency_operations/lib/tovDiscovery/service.ts",
-      "connection": "connected",
-      "entry": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/route.ts",
-      "handoff": "ai-company/apps/mercato/src/modules/agency_operations/api/tov-discovery/[id]/route.ts",
-      "notes": "App start/read routes expose persisted native scout targets. This edge ends at saved target selection, not corpus collection or specialist production; no execution observation is implied.",
+      "processId": "agency_tov.cli.discover",
+      "source": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "connection": "defined",
+      "entry": "ai-company/apps/mercato/src/modules/agency_tov/cli.ts",
+      "handoff": "ai-company/apps/mercato/src/modules/agency_tov/lib/tov/pipeline.ts",
+      "notes": "CLI target selection exists. No canonical app trigger or handoff proven.",
       "fixture": "not_observed",
       "live": "not_observed",
       "observationCount": 0,
@@ -3352,6 +3272,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T02:51:10.949Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "ace2446c-6a14-47ea-99e5-3ffb2b2ed846"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T02:52:44.583Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -3554,6 +3486,18 @@
           "phase": "completed",
           "refs": {
             "taskRunId": "3e45e885-54b7-46c9-bb4e-6a66d4f0d70e"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T02:53:30.362Z",
+          "checkpointId": "research.step.3.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "31f209b0-4a45-4f43-80df-c4e0548c8810"
           }
         },
         {
@@ -4716,6 +4660,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T03:40:57.658Z",
+          "checkpointId": "research.step.3.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "ebbf1bd2-573a-4353-91bf-49225ceeb94a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T03:46:43.723Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -4761,6 +4717,18 @@
           "refs": {
             "taskRunId": "70b61564-73e7-4f9d-bafb-4bfaeb50d1ca",
             "outputVersionId": "f6798896-b6b7-434f-8f85-6c8caad539d7"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T03:46:45.778Z",
+          "checkpointId": "research.step.3.4",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "33f3f142-8550-432b-bbab-6a693be5baf4"
           }
         },
         {
@@ -5622,6 +5590,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T04:09:04.608Z",
+          "checkpointId": "research.step.5.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "7688ecec-2315-4602-890c-da67f14ad724"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T04:10:39.022Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -5902,6 +5882,18 @@
           "phase": "completed",
           "refs": {
             "taskRunId": "68986bbb-7a32-4cec-b413-f76c257c7290"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T04:18:20.784Z",
+          "checkpointId": "research.step.3.4",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "7cce9430-4ac1-4d9d-86de-5cf8737befb8"
           }
         },
         {
@@ -6841,6 +6833,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T04:50:20.270Z",
+          "checkpointId": "research.step.5.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "c48e823f-4bcc-4262-9026-2a95f4b6fb4e"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T04:53:16.024Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -7069,6 +7073,18 @@
           "refs": {
             "taskRunId": "2a1ed9be-cfa1-43c2-8661-136b1253fbed",
             "outputVersionId": "32094766-7bd4-4735-9a70-c120a716b41e"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T04:54:15.743Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "0a5bfce6-c25e-46cc-b129-9bcbbb9b7962"
           }
         },
         {
@@ -7828,6 +7844,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T05:08:45.885Z",
+          "checkpointId": "research.step.6.3",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "e60a8f94-6088-47e7-bc86-aac2ec93776b"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T05:09:40.112Z",
           "agentId": "agency_research.plan_qa",
           "phase": "completed",
@@ -7938,6 +7966,18 @@
           "refs": {
             "agentRunId": "382158e1-8c76-467e-9edc-5fe22a64c16a",
             "taskRunId": "2ed6c87e-1c0a-4689-9d92-70d33f272e65"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T05:16:25.773Z",
+          "checkpointId": "research.step.6.2",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "c1f05ed9-6b75-41c2-9e3d-f3d50657f934"
           }
         },
         {
@@ -9229,6 +9269,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T05:55:52.216Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "b2e21cd6-c05f-476b-9133-6cf5b287e42a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T05:57:54.205Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -9450,6 +9502,18 @@
           "runId": "demo-open-mercato-3",
           "journey": "agency-research-cli",
           "mode": "live",
+          "time": "2026-09-19T05:58:43.220Z",
+          "checkpointId": "research.step.3.3",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "7f4fc108-421c-4f11-890e-fcd337275a4e"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
           "time": "2026-09-19T06:00:08.496Z",
           "checkpointId": "research.step.3.2",
           "phase": "started",
@@ -9652,6 +9716,18 @@
           "phase": "completed",
           "refs": {
             "taskRunId": "92bfda84-944a-4e06-b374-bf480cd5a6f6"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-3",
+          "journey": "agency-research-cli",
+          "mode": "live",
+          "time": "2026-09-19T06:00:46.388Z",
+          "checkpointId": "research.step.3.5",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "2ee968f4-2693-40b8-8d33-481b0d899836"
           }
         },
         {
@@ -17274,1055 +17350,922 @@
       ]
     },
     {
-      "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
-      "mode": "fixture",
-      "journey": "TC-AGENCY-002",
+      "runId": "demo-open-mercato-4",
+      "mode": "live",
+      "journey": "agency-research-cli-v2",
       "lastReached": {
         "schemaVersion": 1,
-        "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
-        "time": "2026-09-19T18:27:06.163Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
-        "checkpointId": "journey",
-        "phase": "failed",
-        "reason": "execution"
-      },
-      "failedEventCount": 1,
-      "events": [
-        {
-          "schemaVersion": 1,
-          "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
-          "time": "2026-09-19T18:22:50.199Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "started"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "b9f713b1-2f68-4629-aea1-5f60c505a1ac",
-          "time": "2026-09-19T18:27:06.163Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "failed",
-          "reason": "execution"
-        }
-      ]
-    },
-    {
-      "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-      "mode": "fixture",
-      "journey": "TC-AGENCY-002",
-      "lastReached": {
-        "schemaVersion": 1,
-        "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-        "time": "2026-09-19T18:30:04.151Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
-        "integrationId": "research-sources-to-audit",
+        "runId": "demo-open-mercato-4",
+        "journey": "agency-research-cli-v2",
+        "mode": "live",
+        "time": "2026-09-19T21:04:47.454Z",
+        "checkpointId": "research.step.4.2",
         "phase": "completed",
         "refs": {
-          "producerRunId": "4b982e39-9a52-483b-a62e-d0eea5affc8f",
-          "consumerRunId": "f04904dd-28ee-4a37-a84c-8b7078057826",
-          "outputVersionId": "7bfa9f2a-2fb3-4bf6-bf32-22da6a4ee7a5"
+          "taskRunId": "70eda6ec-8ff7-48fd-a137-d6b898950723",
+          "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
         }
       },
-      "failedEventCount": 1,
+      "failedEventCount": 0,
       "events": [
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:28:23.430Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "started"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:29:03.848Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00-native-signup-email-verified",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:29:27.116Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00-paid-case-native-research-queued",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:29:35.389Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00b-private-material-saved-on-paid-case",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.023Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "failed",
-          "reason": "execution"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.138Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_operations.client_triage",
-          "phase": "completed",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:33:57.488Z",
+          "checkpointId": "research.step.3.2",
+          "phase": "started",
           "refs": {
-            "agentRunId": "7cc4b375-fcef-4747-b7a0-c3f2c075e581",
-            "workflowInstanceId": "08adeafa-f1d3-45b4-a8bd-4931ca5f82f5"
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a",
+            "outputVersionId": "aa65c020-1c05-4986-9eeb-9b935c80d11b"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.139Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:34:12.600Z",
+          "agentId": "agency_research.people_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:34:22.182Z",
+          "agentId": "agency_research.channel_selector",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:09.016Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "bc50c967-890a-418e-a9b4-c0f1a1dc6baa",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "77924501-09a5-41dd-84cf-72d2cccc09c0",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.140Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:09.904Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "ba427fd7-9d52-4286-907e-a5647a8ba9bc",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "71b55b30-9405-4527-97fe-f3fb5db340bc",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.141Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:14.917Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "16bd3a95-70c9-42b4-941b-afe8575dc802",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "1d57ac42-12f7-4507-8783-341e29638001",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.142Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:14.917Z",
+          "integrationId": "research-people-to-sources",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "43ed0b36-0426-4443-be7a-6b704f7b8eec",
+            "consumerRunId": "1d57ac42-12f7-4507-8783-341e29638001",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:16.824Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "a11b28e5-38ff-416b-b2dd-b3e0334cbb87",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "e6ada95e-5059-44e6-a19e-c2b17619dab5",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.142Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:18.023Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "08bd3f48-eab5-463f-b35c-0e63e492f4d9",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "478a7923-40d3-4904-b697-eb22fe2f38dc",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.143Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:18.466Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "441789f1-689c-4aaa-97a0-97ab11fa746b",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "ac0826f5-f9d2-43c9-b918-99d562a64f73",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.143Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.conflict_finder",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "ce3c3503-fbba-4240-8aea-afd34240291c",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.144Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.audit_mapper",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "5d1776e8-5faf-48b1-b8b3-57f02aa10f26",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.145Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:26.037Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "fa9e6ea8-f0ed-4de2-8223-55120550f300",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "fe4c8b8a-b99c-48bf-b0db-5729c178f834",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.145Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:28.350Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "93c332da-5bf5-4674-9007-3baedc3c7b60",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:31.398Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "738bdf26-ca5e-4156-bda3-238cd3c45fa3",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:32.933Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "42435417-f085-4352-b45a-37c5372ef877",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:33.888Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "8fe50da3-4ee7-4a7d-a633-ce548a416f78",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:36.548Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bedc3b37-d895-411f-b251-ada9949ec00c",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:36.908Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "bf909d0b-f270-42a1-9db5-4da24d21fca4",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:42.430Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "d58adf50-7b7a-46d7-9905-9690a4480397",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:47.010Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "8997c236-7c14-4e30-a001-8bd753b3f6ac",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:35:47.736Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "43698420-c02b-4980-b963-ef08148dffd3",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:37:12.537Z",
           "agentId": "agency_research.proof_builder",
           "phase": "completed",
           "refs": {
-            "agentRunId": "264d7175-d562-4e7c-b78d-8f65d87e9dee",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "68ea108f-c090-4d91-88d3-cf7729a1f8b2",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.146Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:39:52.722Z",
           "agentId": "agency_research.content_seeder",
           "phase": "completed",
           "refs": {
-            "agentRunId": "3f7b4a92-9bb3-4483-b189-bf99d1e09b19",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "73b2ae4d-6ef2-492e-a21b-065c37a27583",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.146Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:40:21.888Z",
+          "agentId": "agency_research.conflict_finder",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ac6a54c3-f8b6-4fb2-ba9f-ec1518d1149f",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:40:29.811Z",
           "agentId": "agency_research.coverage_assessor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "bb59cdc8-6fa6-42a4-8f74-51f20fac2add",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "e9bc52c7-f3fa-4e96-bd78-ede8bc9e3628",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.147Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:40:30.021Z",
+          "checkpointId": "research.step.3.2",
           "phase": "completed",
           "refs": {
-            "agentRunId": "4ad93584-ac3d-4520-bb5e-68c386715537",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a",
+            "outputVersionId": "aa65c020-1c05-4986-9eeb-9b935c80d11b"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.147Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:40:30.056Z",
+          "checkpointId": "research.step.3.3",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "af2213b7-c1f9-4e92-9bc5-bd01f8d52b83",
+            "outputVersionId": "0ac2a0fa-ea95-4675-8243-1c7e2e3f2dc1"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:42:47.704Z",
+          "agentId": "agency_research.audit_mapper",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "ece639ac-5aed-4ee1-ba23-58e030f0e6cb",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:44:29.307Z",
           "agentId": "agency_research.audit_voice",
           "phase": "completed",
           "refs": {
-            "agentRunId": "4fb08d22-dabd-45a1-9fba-11bece447a03",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "7edace3f-d4bb-4113-8b7e-370c67ff809e",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.148Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:46:25.595Z",
           "agentId": "agency_research.audit_gaps_assets",
           "phase": "completed",
           "refs": {
-            "agentRunId": "080c7b79-cd0a-4a91-ad98-a7327606b310",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "agentRunId": "b47cc62a-d2d9-401a-ad2f-5cb08d8050d1",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.149Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.competitor_selector",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:46:26.058Z",
+          "checkpointId": "research.step.3.3",
           "phase": "completed",
           "refs": {
-            "agentRunId": "32b45ca9-d444-47ad-9ca4-2206a43db2f9",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
+            "taskRunId": "af2213b7-c1f9-4e92-9bc5-bd01f8d52b83",
+            "outputVersionId": "0ac2a0fa-ea95-4675-8243-1c7e2e3f2dc1"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.149Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "e496b2e9-0bef-49dd-83fc-1e3b4c6aa448",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.150Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "b256ce3f-cefc-4739-86a4-9e923ac72646",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.150Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "e917e9ef-53b8-4faf-acd8-94848f303c60",
-            "workflowInstanceId": "11899579-15c3-4a17-976f-38dfc1b827d3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "1d50abd7-4c5e-4922-9e01-11710a17ff15",
-          "time": "2026-09-19T18:30:04.151Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:46:26.058Z",
           "integrationId": "research-sources-to-audit",
           "phase": "completed",
           "refs": {
-            "producerRunId": "4b982e39-9a52-483b-a62e-d0eea5affc8f",
-            "consumerRunId": "f04904dd-28ee-4a37-a84c-8b7078057826",
-            "outputVersionId": "7bfa9f2a-2fb3-4bf6-bf32-22da6a4ee7a5"
+            "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "consumerRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+            "taskRunId": "af2213b7-c1f9-4e92-9bc5-bd01f8d52b83"
           }
-        }
-      ]
-    },
-    {
-      "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-      "mode": "fixture",
-      "journey": "TC-AGENCY-002",
-      "lastReached": {
-        "schemaVersion": 1,
-        "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-        "time": "2026-09-19T18:36:54.062Z",
-        "journey": "TC-AGENCY-002",
-        "mode": "fixture",
-        "integrationId": "paid-capture-to-analysis",
-        "phase": "completed",
-        "refs": {
-          "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
-          "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
-          "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-        }
-      },
-      "failedEventCount": 1,
-      "events": [
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:35:20.034Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "started"
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:02.756Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00-native-signup-email-verified",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:16.889Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00-paid-case-native-research-queued",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:23.463Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "00b-private-material-saved-on-paid-case",
-          "phase": "completed"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:53.944Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "checkpointId": "journey",
-          "phase": "failed",
-          "reason": "execution"
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.032Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:46:26.076Z",
+          "checkpointId": "research.step.3.4",
+          "phase": "started",
           "refs": {
-            "agentRunId": "163d6e7d-701e-4ee0-9e8f-3cd7c1027809",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "1a41addd-5d9f-4e5a-86c6-d324d13459a8",
+            "outputVersionId": "88581908-ac4d-4d0e-831e-753860f243a3"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.033Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "8a3dc74c-9b46-4d22-aad5-f04f9eb71cce",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.034Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "f6e9b626-71df-427c-b4df-f63e864c1a7d",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.034Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_operations.client_triage",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "2d6c4453-0882-4367-85eb-7b52fe190adb",
-            "workflowInstanceId": "d0dbcf1a-4393-47e2-ad65-b045c537add3"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.035Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "e4c2027c-230e-42f9-bb1a-87d2e1cbba58",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.036Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "da499701-764c-4734-9c06-2ea94c7de943",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.037Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "81cb0115-9169-405f-b9d6-718b353c89ee",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.038Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.competitor_channels",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "e4da5919-5329-40cb-9dfc-bc6920b9511f",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.038Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.page_extractor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "e8e93253-3abe-453e-96a2-7817e76b33d0",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.039Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.proof_builder",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "fe669b82-f7bd-43cd-b25f-1432bc637b76",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.040Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.content_seeder",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "59a3b0f6-8c07-46a3-b173-9ac370546270",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.040Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.conflict_finder",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "4fd673b6-3736-4988-8618-4f518d5fef57",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.041Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.audit_voice",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "fa2f1f74-bd58-4308-b487-6f3901c67bdc",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.042Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:46:48.727Z",
           "agentId": "agency_research.competitor_selector",
           "phase": "completed",
           "refs": {
-            "agentRunId": "4ad15d11-536a-4e63-a855-06a520834a92",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "dca9c815-d862-4e15-93dc-9429453e564f",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.042Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.coverage_assessor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "d05f00db-dd5d-4b2d-9ccc-e76cecd68138",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.043Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.audit_mapper",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "781ed133-7169-4f17-919b-8efec9393193",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.044Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.audit_gaps_assets",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "58ff6095-abcc-412c-9469-c5e7fd9763dc",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.044Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.competitor_channels",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "f52ecdfc-88fc-4319-977d-5bdcc6a13364",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.045Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.research_qa",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "944a2463-8d25-4ad7-92af-95c2e2b13aaa",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.045Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.readiness_assessor",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "3043f2d7-782d-43de-b816-22f4f0578ef8",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.046Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:47:09.211Z",
           "agentId": "agency_research.page_extractor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "a9981608-b8c1-4cf6-bbcc-166b7e9d2355",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "05adc5cf-919a-40e8-896b-581fe50bba35",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.047Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:47:20.606Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "49750ddd-4c0e-43f3-ba5f-6fda689b72e9",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:47:23.609Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "4c8d1450-f6c6-46c1-b66d-f68bea9c9aaa",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:47:24.191Z",
+          "agentId": "agency_research.page_extractor",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "19d71c58-99a2-47e4-909c-cb85613169a6",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:48:36.948Z",
           "agentId": "agency_research.competitor_card",
           "phase": "completed",
           "refs": {
-            "agentRunId": "f31a410e-6cd3-4dab-8931-a293fedcf29a",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "87a970ce-2ae7-40a1-9b62-d3288203c3f3",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.047Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.brief_writer.offer_audience_direction",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:49:09.173Z",
+          "agentId": "agency_research.competitor_channels",
           "phase": "completed",
           "refs": {
-            "agentRunId": "8c3c9973-4e61-4822-ad1b-551cbc419841",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "f6c26a3a-0595-4f17-9554-be9fb9e64fce",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.048Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.competitor_card",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "a976d0a0-2498-4a96-a15d-febf5d61e504",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.048Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:51:21.778Z",
           "agentId": "agency_research.competitor_synthesizer",
           "phase": "completed",
           "refs": {
-            "agentRunId": "2d3fc57f-e5cf-44f1-a974-557c266699e1",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "c255c02d-233e-4eb2-adfc-a850add00b24",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.049Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.question_writer",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:51:22.652Z",
+          "checkpointId": "research.step.3.4",
           "phase": "completed",
           "refs": {
-            "agentRunId": "dce5fd3f-7e36-4992-9a64-c21db20c6246",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "1a41addd-5d9f-4e5a-86c6-d324d13459a8",
+            "outputVersionId": "88581908-ac4d-4d0e-831e-753860f243a3"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.050Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.question_writer",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:51:22.660Z",
+          "checkpointId": "research.step.3.5",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "69e9b0f2-55ac-4726-a4ea-0e9fb3ec1d59",
+            "outputVersionId": "d0bf6917-e226-4515-9746-20c2d04a0484"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:51:22.698Z",
+          "checkpointId": "research.step.3.5",
           "phase": "completed",
           "refs": {
-            "agentRunId": "f0bff3ba-5714-43b4-bd59-57babbfe4311",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "69e9b0f2-55ac-4726-a4ea-0e9fb3ec1d59",
+            "outputVersionId": "d0bf6917-e226-4515-9746-20c2d04a0484"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.050Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.research_qa",
-          "phase": "completed",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:51:22.714Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "started",
           "refs": {
-            "agentRunId": "3f241622-aeee-4b4d-9b4f-7949bea52249",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "a681fccb-933b-400d-a61a-d40644172cdd",
+            "outputVersionId": "871c199a-f0fb-44f4-be28-6b2f865db773"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.051Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.brief_writer.promise_voice",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "1a805a9e-7b4c-42fb-839d-65024eb3cf5f",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.052Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.brief_qa",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "fae33ac5-f736-41bf-a88e-7f50858a54e2",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.052Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:53:43.955Z",
           "agentId": "agency_research.field_mapper",
           "phase": "completed",
           "refs": {
-            "agentRunId": "0bf561b3-95ba-4232-ab8d-db02af5ac45e",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "04b56eeb-9360-4c84-915f-80a85e414300",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.053Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:14.551Z",
+          "agentId": "agency_research.question_writer",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "29326040-7396-43ac-a918-2302344f7247",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:51.852Z",
           "agentId": "agency_research.readiness_assessor",
           "phase": "completed",
           "refs": {
-            "agentRunId": "35e1df50-ae04-474a-a6b8-4b0d9acc37f1",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "17af02cd-8723-49f4-a1a8-1a78d7536f4d",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.054Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.field_mapper",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:52.524Z",
+          "checkpointId": "research.step.3.6",
           "phase": "completed",
           "refs": {
-            "agentRunId": "f7531687-8a80-4a8d-ba37-bd5a6944ba95",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "a681fccb-933b-400d-a61a-d40644172cdd",
+            "outputVersionId": "871c199a-f0fb-44f4-be28-6b2f865db773"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.054Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.brief_writer.channel_success_assets",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:52.524Z",
+          "integrationId": "research-audit-to-findings",
           "phase": "completed",
           "refs": {
-            "agentRunId": "14de47f7-1d4d-4b16-aa69-f1b71036ae60",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "consumerRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+            "taskRunId": "a681fccb-933b-400d-a61a-d40644172cdd"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.055Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:52.524Z",
+          "integrationId": "research-competitors-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "consumerRunId": "2a24f95b-f881-4da1-8b57-e2576915af36",
+            "taskRunId": "a681fccb-933b-400d-a61a-d40644172cdd"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:55:52.539Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "7e55249e-b88c-49ea-95b9-49632fbf4d9b"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:56:49.696Z",
+          "agentId": "agency_research.research_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "taskRunId": "461d62c2-81d6-444e-907b-9d793b4c2c9a"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T20:56:50.218Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "7e55249e-b88c-49ea-95b9-49632fbf4d9b"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:01:19.155Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7",
+            "outputVersionId": "2e4ae778-7c5f-4e75-9da4-fbd96ad9537d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:01:19.229Z",
+          "checkpointId": "research.step.3.6",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7",
+            "outputVersionId": "2e4ae778-7c5f-4e75-9da4-fbd96ad9537d"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:01:19.229Z",
+          "integrationId": "research-audit-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:01:19.229Z",
+          "integrationId": "research-competitors-to-findings",
+          "phase": "completed",
+          "refs": {
+            "producerRunId": "26fe5f0e-c09a-4105-a680-ec3f72521e96",
+            "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:01:19.252Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "fc2290e6-41b0-4513-8ed8-f7e474dd5df4"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:02:15.871Z",
+          "agentId": "agency_research.research_qa",
+          "phase": "completed",
+          "refs": {
+            "agentRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:02:16.549Z",
+          "checkpointId": "research.step.3.7",
+          "phase": "completed",
+          "refs": {
+            "taskRunId": "fc2290e6-41b0-4513-8ed8-f7e474dd5df4"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:02:16.624Z",
+          "checkpointId": "research.step.4.1",
+          "phase": "started",
+          "refs": {
+            "taskRunId": "cd4c7286-e20c-4fdd-853e-4300baa99516",
+            "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
+          }
+        },
+        {
+          "schemaVersion": 1,
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:02:46.811Z",
           "agentId": "agency_research.brief_writer.offer_audience_direction",
           "phase": "completed",
           "refs": {
-            "agentRunId": "ab651fb3-bbe4-4484-bc69-7d1beb470413",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "ad9a91c4-383f-43a8-a2f7-4d3bfb83dbf8",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.055Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "agentId": "agency_research.brief_writer.channel_success_assets",
-          "phase": "completed",
-          "refs": {
-            "agentRunId": "9a16e8c5-e0c4-4f7f-b05d-70aba7a28031",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.056Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:03:26.029Z",
           "agentId": "agency_research.brief_writer.promise_voice",
           "phase": "completed",
           "refs": {
-            "agentRunId": "32edc2b0-cfcd-418b-ae36-cd90918b7a47",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "agentRunId": "03abe427-3b65-4aca-b9c5-d3dbb2a7b919",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.057Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-sources-to-audit",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:09.645Z",
+          "agentId": "agency_research.brief_writer.channel_success_assets",
           "phase": "completed",
           "refs": {
-            "producerRunId": "614848fe-e781-48ea-8ff4-91de25c86de1",
-            "consumerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
-            "outputVersionId": "40129284-e972-4e44-a884-c2885b674c84"
+            "agentRunId": "4a926131-6787-4847-8d02-8834b16bf99f",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.057Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-audit-to-findings",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:10.224Z",
+          "checkpointId": "research.step.4.1",
           "phase": "completed",
           "refs": {
-            "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
-            "consumerRunId": "0de57578-40d2-4e80-8b6e-38f4e0104f93",
-            "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
+            "taskRunId": "cd4c7286-e20c-4fdd-853e-4300baa99516",
+            "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.058Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-audit-to-findings",
-          "phase": "completed",
-          "refs": {
-            "producerRunId": "19e049a0-00e1-467e-92c7-065f435218ec",
-            "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-            "outputVersionId": "81ea9868-49e9-49a1-945b-5d2d07304b02"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.058Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-competitors-to-findings",
-          "phase": "completed",
-          "refs": {
-            "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
-            "consumerRunId": "0de57578-40d2-4e80-8b6e-38f4e0104f93",
-            "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.059Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-competitors-to-findings",
-          "phase": "completed",
-          "refs": {
-            "producerRunId": "92544fea-66a3-4d00-a548-fc654306b1a7",
-            "consumerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-            "outputVersionId": "6d5ca6f6-e508-4b17-9d20-b52fc3fbc2f6"
-          }
-        },
-        {
-          "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.060Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:10.224Z",
           "integrationId": "research-findings-to-brief",
           "phase": "completed",
           "refs": {
-            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-            "consumerRunId": "48f3c870-d9a5-4ffd-8f82-e4a1c6438ff2",
-            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+            "producerRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
+            "consumerRunId": "8e36ad41-ccdc-41b5-988d-d74ac17f8696",
+            "taskRunId": "cd4c7286-e20c-4fdd-853e-4300baa99516"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.060Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-findings-to-brief",
-          "phase": "completed",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:10.248Z",
+          "checkpointId": "research.step.4.2",
+          "phase": "started",
           "refs": {
-            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-            "consumerRunId": "1f6c7a9f-1eea-4421-896f-473e1aa62776",
-            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+            "taskRunId": "70eda6ec-8ff7-48fd-a137-d6b898950723",
+            "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.061Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "research-findings-to-brief",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:47.066Z",
+          "agentId": "agency_research.brief_qa",
           "phase": "completed",
           "refs": {
-            "producerRunId": "6ac225ea-0c38-4da0-97eb-ce3e42d8d0fe",
-            "consumerRunId": "31c8c7ff-5917-411a-89fa-3e15e2a0eb6c",
-            "outputVersionId": "f058965f-8a28-436c-9f2a-e6ac14755daa"
+            "agentRunId": "68fad4eb-3b8d-4612-bf79-154747e7df15",
+            "taskRunId": "7a45f9a0-b006-421c-8a66-ce2482a5f3f7"
           }
         },
         {
           "schemaVersion": 1,
-          "runId": "c110bccb-5a20-4583-bdbd-deef8255437f",
-          "time": "2026-09-19T18:36:54.062Z",
-          "journey": "TC-AGENCY-002",
-          "mode": "fixture",
-          "integrationId": "paid-capture-to-analysis",
+          "runId": "demo-open-mercato-4",
+          "journey": "agency-research-cli-v2",
+          "mode": "live",
+          "time": "2026-09-19T21:04:47.454Z",
+          "checkpointId": "research.step.4.2",
           "phase": "completed",
           "refs": {
-            "producerRunId": "dbb4717b-d681-46d5-adfb-9532231c1c77",
-            "consumerRunId": "d17472b9-51b5-4cc8-b3bf-be9822579245",
-            "workflowInstanceId": "abba296e-b81d-4c2a-9821-a42775d3888a"
+            "taskRunId": "70eda6ec-8ff7-48fd-a137-d6b898950723",
+            "outputVersionId": "ac06220f-173d-427f-8a2b-8d4007cf57fb"
           }
         }
       ]

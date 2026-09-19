@@ -6,15 +6,16 @@
     "features": 53,
     "stories": 102,
     "criteria": 489,
-    "tasks": 116,
+    "tasks": 119,
     "tasksByState": {
-      "active": 26,
+      "active": 27,
       "blocked": 3,
       "deferred": 3,
       "done": 77,
       "implemented": 5,
       "legacy": 1,
-      "queued": 1
+      "queued": 2,
+      "ready": 1
     },
     "mappedStories": 102,
     "taskLinkedStories": 102
@@ -73,6 +74,7 @@
                 }
               ],
               "taskIds": [
+                "RES-04",
                 "T25",
                 "T59",
                 "T89",
@@ -86,6 +88,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T100",
@@ -123,6 +132,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T100",
                   "title": "T100 — Connect the customer and employee journey",
@@ -905,6 +925,7 @@
                 }
               ],
               "taskIds": [
+                "RES-04",
                 "T24",
                 "T25",
                 "T74"
@@ -917,6 +938,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -947,6 +975,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -1205,6 +1244,7 @@
                 }
               ],
               "taskIds": [
+                "RES-04",
                 "T24",
                 "T25",
                 "T74",
@@ -1219,6 +1259,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -1256,6 +1303,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -1979,6 +2037,7 @@
               ],
               "taskIds": [
                 "RES-02",
+                "RES-05",
                 "T26"
               ],
               "doneTaskIds": [
@@ -1988,6 +2047,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -2018,6 +2084,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -2358,6 +2435,7 @@
               ],
               "taskIds": [
                 "RES-02",
+                "RES-05",
                 "T26",
                 "T42"
               ],
@@ -2369,6 +2447,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -2406,6 +2491,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -2499,6 +2595,7 @@
               ],
               "taskIds": [
                 "RES-02",
+                "RES-05",
                 "T27"
               ],
               "doneTaskIds": [
@@ -2509,6 +2606,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-02",
@@ -2539,6 +2643,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-02",
                   "title": "RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA",
@@ -2604,6 +2719,7 @@
               ],
               "taskIds": [
                 "RES-02",
+                "RES-05",
                 "T27"
               ],
               "doneTaskIds": [
@@ -2614,6 +2730,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-02",
@@ -2644,6 +2767,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-02",
                   "title": "RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA",
@@ -3229,6 +3363,7 @@
                 }
               ],
               "taskIds": [
+                "RES-05",
                 "T27",
                 "T39",
                 "T41"
@@ -3242,6 +3377,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T27",
@@ -3272,6 +3414,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T27",
                   "title": "T27 - Apply client answers and regenerate the brief",
@@ -3355,6 +3508,7 @@
                 }
               ],
               "taskIds": [
+                "RES-05",
                 "T26",
                 "T27",
                 "T78"
@@ -3366,6 +3520,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -3424,6 +3585,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -3499,6 +3671,7 @@
                 }
               ],
               "taskIds": [
+                "RES-05",
                 "T26",
                 "T27",
                 "T78"
@@ -3510,6 +3683,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T26",
@@ -3554,6 +3734,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T26",
                   "title": "T26 - Produce one versioned evidence and analysis handoff",
@@ -4003,6 +4194,7 @@
                 }
               ],
               "taskIds": [
+                "RES-05",
                 "T24",
                 "T42",
                 "T43",
@@ -4021,6 +4213,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -4072,6 +4271,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -4385,7 +4595,8 @@
                 }
               ],
               "taskIds": [
-                "RES-03"
+                "RES-03",
+                "RES-05"
               ],
               "doneTaskIds": [
                 "RES-03"
@@ -4394,6 +4605,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-03",
@@ -4417,6 +4635,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
@@ -4479,6 +4708,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T12",
                 "T43",
                 "T97",
@@ -4496,6 +4726,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T103",
@@ -4575,6 +4812,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T103",
                   "title": "T103 - Connect specialist source discovery to agency intake",
@@ -4714,6 +4962,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T43",
                 "T53",
                 "T54",
@@ -4730,6 +4979,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T103",
@@ -4795,6 +5051,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T103",
                   "title": "T103 - Connect specialist source discovery to agency intake",
@@ -5317,6 +5584,8 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
+                "RES-05",
                 "T24",
                 "T28",
                 "T48",
@@ -5334,6 +5603,20 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -5385,6 +5668,28 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -5494,6 +5799,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T28",
                 "T48"
               ],
@@ -5506,6 +5812,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "RES-03",
@@ -5543,6 +5856,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "RES-03",
                   "title": "RES-03 — P5–P9: strategy + ToV, plan + post instruction, post + editor, publication documents, package + closure",
@@ -6335,6 +6659,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T24",
                 "T29",
                 "T49",
@@ -6349,6 +6674,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -6393,6 +6725,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -6491,6 +6834,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T29",
                 "T49",
                 "T70"
@@ -6504,6 +6848,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T29",
@@ -6548,6 +6899,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
@@ -6643,6 +7005,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T29",
                 "T49",
                 "T77"
@@ -6656,6 +7019,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T29",
@@ -6700,6 +7070,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
@@ -6787,6 +7168,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-05",
                 "T29",
                 "T86"
               ],
@@ -6797,6 +7179,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-05",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "line": 6,
+                  "text": "F09-1 AC5, F09-2 AC1, F10-3 AC2, F11-1, F11-2, F07-3 AC3, F08-3 AC4, F31-1 AC2, F31-2; F21-2 AC1-3, F22-1 AC4, F26-2 AC4, F30-2 AC4; F20-1 AC4, F23-1 AC1, F26-1 AC2, F30-1 AC4"
+                },
                 {
                   "kind": "task-source",
                   "id": "T29",
@@ -6834,6 +7223,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-05",
+                  "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+                  "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+                  "state": "active",
+                  "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+                  "stateLine": 3,
+                  "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T29",
                   "title": "T29 - Produce and review one exact text-post version",
@@ -7605,6 +8005,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
                 "T31"
               ],
               "doneTaskIds": [
@@ -7614,6 +8015,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -7637,6 +8045,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -7702,6 +8121,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
                 "T31",
                 "T83"
               ],
@@ -7712,6 +8132,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -7749,6 +8176,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -7833,6 +8271,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
                 "T31"
               ],
               "doneTaskIds": [
@@ -7842,6 +8281,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -7872,6 +8318,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -8847,6 +9304,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
                 "T32"
               ],
               "doneTaskIds": [
@@ -8856,6 +9314,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T32",
@@ -8886,6 +9351,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
@@ -9058,6 +9534,7 @@
               ],
               "taskIds": [
                 "RES-03",
+                "RES-04",
                 "T32"
               ],
               "doneTaskIds": [
@@ -9067,6 +9544,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T32",
@@ -9090,6 +9574,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T32",
                   "title": "T32 - Share a verified final package and close only a completed case",
@@ -9176,6 +9671,7 @@
                 }
               ],
               "taskIds": [
+                "RES-06",
                 "T33"
               ],
               "doneTaskIds": [],
@@ -9183,6 +9679,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-06",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9199,6 +9702,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-06",
+                  "title": "RES-06 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after RES-04, RES-05 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -9265,6 +9779,7 @@
                 }
               ],
               "taskIds": [
+                "RES-06",
                 "T33",
                 "T58"
               ],
@@ -9275,6 +9790,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-06",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9298,6 +9820,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-06",
+                  "title": "RES-06 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after RES-04, RES-05 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -9375,6 +9908,7 @@
                 }
               ],
               "taskIds": [
+                "RES-06",
                 "T31",
                 "T32",
                 "T33",
@@ -9385,6 +9919,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-06",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T31",
@@ -9422,6 +9963,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-06",
+                  "title": "RES-06 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after RES-04, RES-05 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T31",
                   "title": "T31 - Execute a consent-bound publication with real provider evidence",
@@ -9521,6 +10073,7 @@
                 }
               ],
               "taskIds": [
+                "RES-06",
                 "T33"
               ],
               "doneTaskIds": [],
@@ -9528,6 +10081,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-06",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "line": 6,
+                  "text": "F56-1, F57-1, F58-1, F59-1; live-model proof for every story the run reaches"
+                },
                 {
                   "kind": "task-source",
                   "id": "T33",
@@ -9544,6 +10104,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-06",
+                  "title": "RES-06 - One golden native run, journaled, and the demo evidence around it",
+                  "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+                  "state": "queued",
+                  "stateLabel": "queued (after RES-04, RES-05 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T33",
                   "title": "T33 - Show the real agency process and an honest end-to-end demo",
@@ -13523,6 +14094,7 @@
                 }
               ],
               "taskIds": [
+                "RES-04",
                 "T24"
               ],
               "doneTaskIds": [],
@@ -13530,6 +14102,13 @@
                 "ADR-003"
               ],
               "mappingEvidence": [
+                {
+                  "kind": "task-source",
+                  "id": "RES-04",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "line": 6,
+                  "text": "the 86 criteria with `externalDecision` in `.dev-docs/coverage/assessments`; F01-1, F04-2, F05-2, F26-1, F34-1, F34-2, F35-1, F38-3, F39-1, F60-1"
+                },
                 {
                   "kind": "task-source",
                   "id": "T24",
@@ -13560,6 +14139,17 @@
                 }
               ],
               "taskEvidence": [
+                {
+                  "id": "RES-04",
+                  "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+                  "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+                  "state": "ready",
+                  "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+                  "stateLine": 3,
+                  "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+                  "taskGroup": "RES",
+                  "mappingBasis": "sources"
+                },
                 {
                   "id": "T24",
                   "title": "T24 - Pin approved configuration to agency execution",
@@ -13857,6 +14447,79 @@
     }
   ],
   "tasks": [
+    {
+      "id": "RES-04",
+      "title": "RES-04 - Settle the eight agency decisions the coverage report waits for",
+      "source": ".taskbench/tasks/RES-04-settle-the-eight-agency-decisions.md",
+      "state": "ready",
+      "stateLabel": "ready (decision work, not code; owner Marcin with Rafał)",
+      "stateLine": 3,
+      "owns": "`.dev-docs/adr/004-agency-product-decisions.md` (new) and the STD-* documents it amends",
+      "taskGroup": "RES",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F01-1",
+        "F04-2",
+        "F05-2",
+        "F26-1",
+        "F34-1",
+        "F34-2",
+        "F35-1",
+        "F38-3",
+        "F39-1",
+        "F60-1"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "RES-05",
+      "title": "RES-05 - Research lane: directed revision, evidence supplement and pinned limits",
+      "source": ".taskbench/tasks/RES-05-research-lane-revision-supplement-and-pinned-limits.md",
+      "state": "active",
+      "stateLabel": "active (Marcin; research side of T24, T26, T30, T86)",
+      "stateLine": 3,
+      "owns": "`agency_research/lib/revision/**` (new), `lib/research/steps/supplement.ts` (new), the `limits`/QA-criteria readers in `agency_research/data/templates.ts` and `lib/research/steps/*Qa.ts`; the public service contract additions in `lib/contracts/agencyResearch.ts`",
+      "taskGroup": "RES",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F07-3",
+        "F08-3",
+        "F09-1",
+        "F09-2",
+        "F10-3",
+        "F11-1",
+        "F11-2",
+        "F20-1",
+        "F21-2",
+        "F22-1",
+        "F23-1",
+        "F26-1",
+        "F26-2",
+        "F30-1",
+        "F30-2",
+        "F31-1",
+        "F31-2"
+      ],
+      "adrIds": []
+    },
+    {
+      "id": "RES-06",
+      "title": "RES-06 - One golden native run, journaled, and the demo evidence around it",
+      "source": ".taskbench/tasks/RES-06-golden-native-run-and-demo-evidence.md",
+      "state": "queued",
+      "stateLabel": "queued (after RES-04, RES-05 and the unblocked T30/T31/T32; owner: whoever runs the demo rehearsal, Marcin pays)",
+      "stateLine": 3,
+      "owns": "`.dev-docs/integrations/journals/` (local), the regenerated `generated/` indexes, the coverage `liveModel` claims it justifies, the demo script and fallback recording",
+      "taskGroup": "RES",
+      "mappingBasis": "sources",
+      "storyIds": [
+        "F56-1",
+        "F57-1",
+        "F58-1",
+        "F59-1"
+      ],
+      "adrIds": []
+    },
     {
       "id": "T100",
       "title": "T100 — Connect the customer and employee journey",

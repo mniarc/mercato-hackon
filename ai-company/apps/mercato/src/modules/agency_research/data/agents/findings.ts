@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { onboardingContextSchema } from './onboarding'
 import { provenances, readiness } from '../schemas/zrodla'
 import { briefFieldKeys, decisionStates, fieldPriorities, knowledgeStatuses, readinessOutputs } from '../schemas/ustalenia'
 
@@ -63,6 +64,7 @@ export const fieldMapperSeedSchema = z.object({
 })
 
 export const fieldMapperInputSchema = findingsBankSchema.extend({
+  onboarding_context: onboardingContextSchema.nullable().optional(),
   seeded_rows: z.array(fieldMapperSeedSchema),
   repair_findings: z.array(z.object({ path: z.string(), gap: z.string(), fix_hint: z.string().nullable() })),
 })
@@ -95,6 +97,7 @@ export const questionWriterInputSchema = findingsBankSchema.pick({ order: true, 
   proof_cards: z.array(z.object({ proof_id: z.string(), proof_type: z.string(), observed_result: z.string().nullable() })),
   /** Data the client already gave — never asked again. */
   already_known: z.array(z.string()),
+  onboarding_context: onboardingContextSchema.nullable().optional(),
   question_batch_max: z.number().int().min(1),
   repair_findings: z.array(z.object({ path: z.string(), gap: z.string(), fix_hint: z.string().nullable() })),
 })

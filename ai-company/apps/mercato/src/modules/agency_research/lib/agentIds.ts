@@ -8,6 +8,7 @@ import { peopleAgentTiers } from './agents/ids.people'
 import { strategyAgentTiers } from './agents/ids.strategy'
 import { planAgentTiers } from './agents/ids.plan'
 import { postAgentTiers } from './agents/ids.post'
+import { reviewAgentTiers } from './agents/ids.review'
 
 export * from './agents/ids.sources'
 export * from './agents/ids.people'
@@ -18,6 +19,7 @@ export * from './agents/ids.brief'
 export * from './agents/ids.strategy'
 export * from './agents/ids.plan'
 export * from './agents/ids.post'
+export * from './agents/ids.review'
 
 export type ResearchAgentTier = 'extract' | 'synthesis' | 'qa'
 
@@ -32,4 +34,5 @@ export const RESEARCH_AGENT_TIERS: Record<string, ResearchAgentTier> = {
   ...strategyAgentTiers,
   ...planAgentTiers,
   ...postAgentTiers,
+  ...reviewAgentTiers,
 }
