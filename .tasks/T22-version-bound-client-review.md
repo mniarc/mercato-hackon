@@ -1,6 +1,6 @@
 # T22 - Connect a real version-bound review invitation
 
-State: ready
+State: blocked (producer handoff)
 Depends on: T15, T17
 Owns: agency review invitation/receipt adapter; teammate owns review rendering
 Sources: F24-1, F24-2, F41-1, F45-1, F53-1, F55-1; teammate portal spec section 10
@@ -25,3 +25,5 @@ publish consent or planning authorization. F24 requires the shown immutable pair
 post-QA state and valid brief for that domain transition. Brand-scoped
 `document.currentVersionId` alone does not establish the case's review state.
 Do not implement the full pair gate until its real process prerequisites exist.
+
+Missing handoff: an eligible case/client/exact version plus teammate-owned immutable client HTML. Current ToV provides JSON/Markdown; `frontend2` supplies the review consumer, not the producer. Do not substitute a renderer or infer eligibility from brand-wide current version.

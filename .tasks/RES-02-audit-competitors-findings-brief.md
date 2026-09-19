@@ -1,6 +1,7 @@
 # RES-02 — F07–F09: audit, competitors, findings map + QA + escalation + freeze, brief + brief QA
 
-State: active (PRs #3, #4, #5 stacked on main)
+State: active (merged; original live-through-4.2 proof remains pending)
+Sources: F07, F08, F09
 Depends on: RES-01
 Owns: `ai-company/apps/mercato/src/modules/agency_research/**`
 Context: The remaining three research boxes, built in parallel on disjoint paths from the shared per-phase
