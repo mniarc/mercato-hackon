@@ -11,6 +11,10 @@ import { configurePostReviewWorkflow } from './lib/postReview/configure'
 import { configureDemoPurchase } from './lib/orderBootstrap/configure'
 import { configureDemoPurchaseWorkflow } from './lib/orderBootstrap/workflow'
 import { configureSalesQuestions } from './lib/salesQuestions/configure'
+import type { EntityManager } from '@mikro-orm/postgresql'
+import { findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { AgencyCase, AgencyClientSubmission } from './data/entities'
+import { CLIENT_SUBMISSION_SERVICE, clientSubmissionRequestSchema, type ClientSubmissionService } from './lib/contracts/clientSubmission'
 
 const configureTov: ModuleCli = {
   command: 'configure-tov',
@@ -33,16 +37,18 @@ const configureTriage: ModuleCli = {
   command: 'configure-triage',
   async run(argv) {
     const options = new Map<string, string>()
-    for (let index = 0; index < argv.length; index += 2) {
-      if (!argv[index]?.startsWith('--') || !argv[index + 1]) {
-        throw new Error('[internal] Usage: agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> [--tov-revision-policy-file <approved-policy.json>]')
+    const republish = argv.includes('--republish')
+    const args = argv.filter((arg) => arg !== '--republish')
+    for (let index = 0; index < args.length; index += 2) {
+      if (!args[index]?.startsWith('--') || !args[index + 1]) {
+        throw new Error('[internal] Usage: agency_operations configure-triage --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> [--tov-revision-policy-file <approved-policy.json>] [--republish]')
       }
-      options.set(argv[index].slice(2), argv[index + 1])
+      options.set(args[index].slice(2), args[index + 1])
     }
     const result = await configureNativeClientTriage(await createRequestContainer(), {
       tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user'),
       ...(options.has('tov-revision-policy-file') ? { tovRevision: JSON.parse(await readFile(options.get('tov-revision-policy-file')!, 'utf8')) } : {}),
-    })
+    }, { republish })
     process.stdout.write(`${JSON.stringify(result)}\n`)
   },
 }
@@ -163,6 +169,58 @@ const resumeAnalysis: ModuleCli = {
   },
 }
 
+/**
+ * Operator recovery for submissions the portal stored while native intake was
+ * unavailable (triage disabled or misconfigured): each one is re-submitted with its
+ * immutable original under `startPending`, so the native workflow starts now and
+ * the customer's words are never retyped. Submissions that already have a workflow
+ * are left alone.
+ */
+const startPendingSubmissions: ModuleCli = {
+  command: 'start-pending-submissions',
+  async run(argv) {
+    const usage = '[internal] Usage: agency_operations start-pending-submissions --case <uuid>'
+    if (argv[0] !== '--case' || !argv[1]) throw new Error(usage)
+    const caseId = argv[1]
+    const container = await createRequestContainer()
+    try {
+      const em = container.resolve<EntityManager>('em')
+      const agencyCase = await em.findOne(AgencyCase, { id: caseId, deletedAt: null })
+      if (!agencyCase) throw new Error('[internal] Case not found')
+      const scope = { tenantId: agencyCase.tenantId, organizationId: agencyCase.organizationId }
+      const pending = await findWithDecryption(em, AgencyClientSubmission, { ...scope, caseId, workflowInstanceId: null, deletedAt: null }, { orderBy: { createdAt: 'asc' } }, scope)
+      const service = container.resolve<ClientSubmissionService>(CLIENT_SUBMISSION_SERVICE)
+      const results: Array<{ submissionId: string; workflow: { status: string; currentStep: string } | null; replayed: boolean }> = []
+      for (const submission of pending) {
+        const original = clientSubmissionRequestSchema.parse(submission.original)
+        const identity = { ...scope, customerEntityId: agencyCase.customerEntityId, customerUserId: submission.submittedByCustomerUserId }
+        const result = await service.submit(identity, caseId, original, { requireNative: true, startPending: true })
+        results.push({ submissionId: result.item.submissionId, workflow: result.item.workflow, replayed: result.replayed })
+      }
+      process.stdout.write(`${JSON.stringify({ caseId, pending: pending.length, results })}
+`)
+    } finally { await container.dispose() }
+  },
+}
+
+/**
+ * Operator nudge for a native instance left at an automated step after its
+ * definition was republished (a transition the old definition lacked): the executor
+ * re-reads the definition and evaluates the outgoing transitions once more.
+ */
+const continueInstance: ModuleCli = {
+  command: 'continue-instance',
+  async run(argv) {
+    if (argv[0] !== '--instance' || !argv[1]) throw new Error('[internal] Usage: agency_operations continue-instance --instance <uuid>')
+    const container = await createRequestContainer()
+    try {
+      const em = container.resolve<EntityManager>('em')
+      const result = await container.resolve<{ executeWorkflow(em: EntityManager, container: unknown, instanceId: string): Promise<unknown> }>('workflowExecutor').executeWorkflow(em, container, argv[1])
+      process.stdout.write(`${JSON.stringify(result)}\n`)
+    } finally { await container.dispose() }
+  },
+}
+
 const configureSales: ModuleCli = {
   command: 'configure-sales-questions',
   async run(argv) {
@@ -182,4 +240,4 @@ const configureSales: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis, configureSales]
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis, startPendingSubmissions, continueInstance, configureSales]

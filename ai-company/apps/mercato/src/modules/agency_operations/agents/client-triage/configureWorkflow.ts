@@ -22,7 +22,7 @@ export function clientTriageDefinitionWithTovRevision(rawPolicy?: unknown) {
   return definition
 }
 
-export async function configureNativeClientTriage(container: AppContainer, rawInput: unknown) {
+export async function configureNativeClientTriage(container: AppContainer, rawInput: unknown, options: { republish?: boolean } = {}) {
   const input = configurationInputSchema.parse(rawInput)
   const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
   const grantedFeatures = input.tovRevision ? [...CLIENT_TRIAGE_GRANTED_FEATURES, 'agency_tov.manage'] : CLIENT_TRIAGE_GRANTED_FEATURES
@@ -35,8 +35,10 @@ export async function configureNativeClientTriage(container: AppContainer, rawIn
   const em = container.resolve<EntityManager>('em')
   const authoring = container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring')
   const existing = await authoring.findOwnedDefinition(em, { workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, ...scope })
-  if (existing) {
-    throw new Error('[internal] Native triage definition already exists; use native workflow version publishing instead of overwriting running configuration')
+  // `republish` writes the current code's definition over the configured one (same owner, same
+  // principal) — for when the workflow gained transitions after it was first published.
+  if (existing && !options.republish) {
+    throw new Error('[internal] Native triage definition already exists; use native workflow version publishing instead of overwriting running configuration (or pass --republish)')
   }
   const result = await authoring.upsertOwnedDefinition(em, {
     ownerModule: 'agency_operations', ownerId: 'client_triage',

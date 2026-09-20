@@ -12,7 +12,7 @@ import type { ClientCaseIdentity } from './contracts/clientCaseQuery'
 import { clientMaterialIntakeInputSchema, AGENCY_CASE_ATTACHMENT_ENTITY_ID, AGENCY_CASE_ATTACHMENT_PARTITION_CODE } from './contracts/clientMaterialIntake'
 import { clientSubmissionDispositionSchema, clientSubmissionRequestSchema, type ClientSubmissionItem, type ClientSubmissionService } from './contracts/clientSubmission'
 import { CLIENT_SUBMISSION_WORKFLOW_ID, CLIENT_TRIAGE_RESULT_KEY } from './clientSubmissionWorkflow'
-import { ClientTriageConfigurationError, isClientTriageEnabled } from '../agents/client-triage/configuration'
+import { CLIENT_TRIAGE_MODE_ENV, ClientTriageConfigurationError, isClientTriageEnabled } from '../agents/client-triage/configuration'
 import { NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID } from '../agents/client-triage/workflow'
 
 type Executor = {
@@ -40,20 +40,25 @@ export function createClientSubmissionService(container: AppContainer): ClientSu
   }
 
   async function nativeReady(scope: { tenantId: string; organizationId: string }): Promise<boolean> {
+    // Each gate that keeps a submission out of native intake is named once, so an operator sees why.
+    const notReady = (reason: string): false => { console.warn('[agency_operations:client-intake] native intake not ready: ' + reason); return false }
     try {
-      if (!isClientTriageEnabled()) return false
+      if (!isClientTriageEnabled()) return notReady(`${CLIENT_TRIAGE_MODE_ENV}=${process.env[CLIENT_TRIAGE_MODE_ENV] ?? 'unset'}`)
     } catch (error) {
       // Invalid native provider configuration must not discard the customer's
       // original or turn it into a fabricated interpretation.
-      if (error instanceof ClientTriageConfigurationError) return false
+      if (error instanceof ClientTriageConfigurationError) return notReady(error.message)
       throw error
     }
-    if (!container.hasRegistration('agentWorkflowBridge') || !container.hasRegistration('workflowDefinitionAuthoring')) return false
+    if (!container.hasRegistration('agentWorkflowBridge')) return notReady('agentWorkflowBridge is not registered (agent_orchestrator)')
+    if (!container.hasRegistration('workflowDefinitionAuthoring')) return notReady('workflowDefinitionAuthoring is not registered')
     const definition = await container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring').findOwnedDefinition(em, {
       workflowId: NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID, ...scope,
     })
-    return Boolean(definition?.enabled && definition.metadata?.generatedBy?.module === 'agency_operations'
-      && definition.metadata.generatedBy.ownerId === 'client_triage')
+    if (!definition) return notReady(`${NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID} has no owned definition in this scope`)
+    if (!definition.enabled) return notReady(`${NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID} is disabled`)
+    if (definition.metadata?.generatedBy?.module !== 'agency_operations' || definition.metadata.generatedBy.ownerId !== 'client_triage') return notReady(`${NATIVE_CLIENT_SUBMISSION_WORKFLOW_ID} is owned by another author`)
+    return true
   }
 
   async function project(manager: EntityManager, submission: AgencyClientSubmission, nativeAvailable: boolean): Promise<ClientSubmissionItem> {
