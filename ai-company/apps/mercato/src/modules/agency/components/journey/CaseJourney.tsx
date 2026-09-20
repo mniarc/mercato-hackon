@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import ReactMarkdown, { type Components } from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { CalendarDays, Check, Compass, FileText, PackageCheck, PenLine, Search, Send, ShieldCheck, Bot, type LucideIcon } from 'lucide-react'
 
 /** Tailwind Preflight strips heading, list and table styling; the client view relies on them. */
 const markdownComponents: Components = {
@@ -46,6 +47,7 @@ const AgencyTaskPage = dynamic(() => import('../AgencyTaskPage'))
 
 type Perspective = 'client' | 'agents'
 type StepState = 'done' | 'current' | 'working' | 'upcoming'
+type AgentState = 'done' | 'working' | 'error' | 'waiting' | 'idle'
 type StepId = 'research' | 'brief' | 'strategy' | 'plan' | 'prod' | 'post' | 'publish' | 'close'
 
 type DocumentRow = { output_id: string; version: string | null; status: string; simulation: boolean; has_client_view: boolean }
@@ -92,11 +94,23 @@ function stateOf(step: StepDefinition, documents: DocumentRow[], runs: ProgressR
   return 'upcoming'
 }
 
-const tones: Record<StepState, string> = {
+const STEP_ICONS: Record<StepId, LucideIcon> = {
+  research: Search, brief: FileText, strategy: Compass, plan: CalendarDays, prod: ShieldCheck, post: PenLine, publish: Send, close: PackageCheck,
+}
+
+const stepperTones: Record<StepState, string> = {
   done: 'border-status-success-border bg-status-success-bg text-status-success-text',
-  current: 'border-status-info-border bg-status-info-bg text-status-info-text',
+  current: 'border-primary bg-primary text-primary-foreground shadow-md',
   working: 'border-status-warning-border bg-status-warning-bg text-status-warning-text',
   upcoming: 'border-border bg-card text-muted-foreground',
+}
+
+const pillTones: Record<AgentState, string> = {
+  done: 'border-status-success-border bg-status-success-bg text-status-success-text',
+  working: 'border-status-warning-border bg-status-warning-bg text-status-warning-text',
+  error: 'border-status-danger-border bg-status-danger-bg text-status-danger-text',
+  waiting: 'border-status-info-border bg-status-info-bg text-status-info-text',
+  idle: 'border-border bg-muted text-muted-foreground',
 }
 
 export function CaseJourney({ orgSlug, caseId }: { orgSlug: string; caseId: string }) {
@@ -188,33 +202,40 @@ export function CaseJourney({ orgSlug, caseId }: { orgSlug: string; caseId: stri
         ))}
       </div>
 
-      <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4" aria-label={t('agency.journey.axis')}>
-        {STEPS.map((step, index) => {
-          const state = states[step.id]
-          const isShown = shownStep.id === step.id
-          return (
-            <li key={step.id}>
-              <button
-                type="button"
-                onClick={() => setSelected(step.id)}
-                aria-current={state === 'current' ? 'step' : undefined}
-                aria-pressed={isShown}
-                className={`w-full rounded-lg border p-3 text-left transition-shadow hover:shadow-sm ${tones[state]} ${isShown ? 'ring-2 ring-ring ring-offset-2 ring-offset-background' : ''}`}
-              >
-                <div className="text-xs font-medium uppercase tracking-wide opacity-80">{index + 1} · {step.code}</div>
-                <div className="mt-1 text-sm font-semibold">{t(`agency.journey.steps.${step.id}.label`)}</div>
-                <div className="mt-0.5 text-xs">{t(`agency.journey.steps.${step.id}.sub`)}</div>
-                <div className="mt-2 text-xs font-medium">{t(`agency.journey.state.${state}`)}</div>
-              </button>
-            </li>
-          )
-        })}
-      </ol>
+      <PortalCard>
+        <ol className="grid grid-cols-4 gap-y-4 sm:grid-cols-8" aria-label={t('agency.journey.axis')}>
+          {STEPS.map((step, index) => {
+            const state = states[step.id]
+            const isShown = shownStep.id === step.id
+            const Icon = STEP_ICONS[step.id]
+            return (
+              <li key={step.id} className="relative flex flex-col items-center">
+                {index > 0 ? <span aria-hidden className={`absolute left-0 right-1/2 top-5 h-px ${states[STEPS[index - 1].id] === 'done' ? 'bg-status-success-border' : 'bg-border'}`} /> : null}
+                {index < STEPS.length - 1 ? <span aria-hidden className={`absolute left-1/2 right-0 top-5 h-px ${state === 'done' ? 'bg-status-success-border' : 'bg-border'}`} /> : null}
+                <button
+                  type="button"
+                  onClick={() => setSelected(step.id)}
+                  aria-current={state === 'current' ? 'step' : undefined}
+                  aria-pressed={isShown}
+                  title={`${step.code} · ${t(`agency.journey.state.${state}`)}`}
+                  className="group relative z-10 flex w-full flex-col items-center gap-2 rounded-md px-1 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className={`flex size-10 items-center justify-center rounded-full border transition-shadow ${stepperTones[state]} ${isShown ? 'ring-2 ring-ring ring-offset-2 ring-offset-background' : 'group-hover:shadow-sm'}`}>
+                    {state === 'done' ? <Check className="size-4" aria-hidden /> : <Icon className={`size-4 ${state === 'working' ? 'animate-pulse' : ''}`} aria-hidden />}
+                  </span>
+                  <span className={`text-xs leading-tight ${isShown || state === 'current' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>{t(`agency.journey.steps.${step.id}.label`)}</span>
+                  <span className={`hidden text-xs leading-none sm:block ${state === 'current' ? 'text-status-info-text' : state === 'working' ? 'text-status-warning-text' : 'text-muted-foreground'}`}>{t(`agency.journey.state.${state}`)}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ol>
+      </PortalCard>
 
       {perspective === 'client' ? (
         <ClientStep step={shownStep} state={states[shownStep.id]} orgSlug={orgSlug} caseId={caseId} documents={documents} runs={runs} questions={questions} currentTask={currentTask} reload={load} />
       ) : (
-        <AgentsView runs={runs} states={states} />
+        <AgentsView step={shownStep} state={states[shownStep.id]} runs={runs} />
       )}
     </div>
   )
@@ -348,59 +369,113 @@ function docStatusKey(status: string): string {
   return ['draft', 'ready_for_review', 'approved', 'blocked', 'accepted', 'published', 'closed'].includes(status) ? status : 'other'
 }
 
-function AgentsView({ runs, states }: { runs: ProgressRun[]; states: Record<StepId, StepState> }) {
+function agentLabel(agentId: string): string {
+  return agentId.replace(/^agency_(research|tov)\./, '').replace(/_/g, ' ')
+}
+
+/**
+ * The orchestrator board of one step: the stage coordinator on top (its state
+ * is the step's), the agents that actually ran underneath with what the runs
+ * recorded — ok / error / still running — then the raw run log. Agents of a
+ * step that has not started are unknown until it runs, so the board says so
+ * instead of inventing a roster.
+ */
+function AgentsView({ step, state, runs }: { step: StepDefinition; state: StepState; runs: ProgressRun[] }) {
+  const t = useT()
+  const stepRuns = runs.filter((run) => step.researchSteps.includes(run.step_id) && run.runner !== 'system')
+  const agents = new Map<string, { ok: number; error: number; running: boolean; steps: Set<string> }>()
+  for (const run of stepRuns) for (const agent of run.agents) {
+    const entry = agents.get(agent.agent_id) ?? { ok: 0, error: 0, running: false, steps: new Set<string>() }
+    if (agent.status === 'ok') entry.ok += 1
+    else if (agent.status === 'error') entry.error += 1
+    if (run.status === 'running') entry.running = true
+    entry.steps.add(run.step_id)
+    agents.set(agent.agent_id, entry)
+  }
+  const qaRuns = stepRuns.filter((run) => run.verdict !== null)
+  const repairs = qaRuns.filter((run) => run.status === 'to_fix').length
+  const lastQa = qaRuns[qaRuns.length - 1] ?? null
+  const coordinator: AgentState = state === 'current' ? 'waiting' : state === 'working' ? 'working' : state === 'done' ? 'done' : 'idle'
+  const coordinatorNote = stepRuns.length === 0
+    ? (step.decision && step.researchSteps.length === 0 ? t('agency.journey.orchestrator.humanStep') : t('agency.journey.orchestrator.noRuns'))
+    : lastQa
+      ? t('agency.journey.orchestrator.qa', { verdict: t(`agency.journey.verdict.${verdictKey(lastQa.verdict)}`), repairs: String(repairs) })
+      : t('agency.journey.orchestrator.summary', { runs: String(stepRuns.length), agents: String(agents.size) })
+
+  return (
+    <PortalCard>
+      <PortalCardHeader
+        label={`${step.code} · ${t(`agency.journey.state.${state}`)}`}
+        title={t(`agency.journey.steps.${step.id}.label`)}
+        description={t('agency.journey.orchestrator.summary', { runs: String(stepRuns.length), agents: String(agents.size) })}
+      />
+      <div className="mt-4 flex flex-col items-center gap-0">
+        <div className="w-full max-w-sm rounded-lg border border-border bg-muted/40 p-4">
+          <div className="flex items-center gap-2">
+            <span className="flex size-8 items-center justify-center rounded-md border border-border bg-card"><Bot className="size-4" aria-hidden /></span>
+            <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">{t('agency.journey.board.coordinator')}</span>
+          </div>
+          <AgentPill state={coordinator} />
+          <p className="mt-2 text-sm">{coordinatorNote}</p>
+        </div>
+        {agents.size > 0 ? <span aria-hidden className="h-6 w-px bg-border" /> : null}
+        {agents.size > 0 ? (
+          <ul className="grid w-full grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4" aria-label={t('agency.journey.orchestrator.agents')}>
+            {[...agents.entries()].map(([agentId, entry]) => {
+              const agentState: AgentState = entry.running ? 'working' : entry.error > 0 && entry.ok === 0 ? 'error' : 'done'
+              return (
+                <li key={agentId} className="rounded-lg border border-border bg-card p-3">
+                  <div className="font-mono text-xs uppercase leading-tight tracking-wide">{agentLabel(agentId)}</div>
+                  <AgentPill state={agentState} />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t('agency.journey.board.agentSummary', { steps: [...entry.steps].join(', '), ok: String(entry.ok), errors: String(entry.error) })}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+      </div>
+      {stepRuns.length > 0 ? (
+        <details className="mt-4 text-xs">
+          <summary className="cursor-pointer text-muted-foreground">{t('agency.journey.board.runs', { count: String(stepRuns.length) })}</summary>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-left text-muted-foreground">
+                  <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.step')}</th>
+                  <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.attempt')}</th>
+                  <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.agents')}</th>
+                  <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.result')}</th>
+                  <th className="py-1 font-medium">{t('agency.journey.orchestrator.col.time')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stepRuns.map((run) => (
+                  <tr key={`${run.step_id}-${run.attempt}-${run.started_at}`} className="border-t border-border align-top">
+                    <td className="py-1 pr-3 font-mono">{run.step_id}</td>
+                    <td className="py-1 pr-3 tabular-nums">{run.attempt}</td>
+                    <td className="py-1 pr-3 font-mono">{run.agents.length > 0 ? [...new Set(run.agents.map((agent) => agentLabel(agent.agent_id)))].join(', ') : t('agency.journey.orchestrator.codeOnly')}</td>
+                    <td className="py-1 pr-3">{run.verdict ? t(`agency.journey.verdict.${verdictKey(run.verdict)}`) : t(`agency.journey.runStatus.${runStatusKey(run.status)}`)}</td>
+                    <td className="py-1 tabular-nums">{durationLabel(run.started_at, run.finished_at)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      ) : null}
+    </PortalCard>
+  )
+}
+
+function AgentPill({ state }: { state: AgentState }) {
   const t = useT()
   return (
-    <div className="flex flex-col gap-4">
-      {STEPS.map((step) => {
-        const stepRuns = runs.filter((run) => step.researchSteps.includes(run.step_id) && run.runner !== 'system')
-        const agents = new Map<string, { ok: number; error: number }>()
-        for (const run of stepRuns) for (const agent of run.agents) {
-          const entry = agents.get(agent.agent_id) ?? { ok: 0, error: 0 }
-          if (agent.status === 'ok') entry.ok += 1; else if (agent.status === 'error') entry.error += 1
-          agents.set(agent.agent_id, entry)
-        }
-        const qaRuns = stepRuns.filter((run) => run.verdict !== null)
-        const repairs = qaRuns.filter((run) => run.status === 'to_fix').length
-        const lastQa = qaRuns[qaRuns.length - 1] ?? null
-        return (
-          <PortalCard key={step.id}>
-            <PortalCardHeader
-              label={`${step.code} · ${t(`agency.journey.state.${states[step.id]}`)}`}
-              title={t(`agency.journey.steps.${step.id}.label`)}
-              description={stepRuns.length === 0 ? (step.decision && step.researchSteps.length === 0 ? t('agency.journey.orchestrator.humanStep') : t('agency.journey.orchestrator.noRuns')) : t('agency.journey.orchestrator.summary', { runs: String(stepRuns.length), agents: String(agents.size) })}
-            />
-            {stepRuns.length > 0 ? (
-              <div className="mt-3 overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-left text-muted-foreground">
-                      <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.step')}</th>
-                      <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.attempt')}</th>
-                      <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.agents')}</th>
-                      <th className="py-1 pr-3 font-medium">{t('agency.journey.orchestrator.col.result')}</th>
-                      <th className="py-1 font-medium">{t('agency.journey.orchestrator.col.time')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stepRuns.map((run) => (
-                      <tr key={`${run.step_id}-${run.attempt}-${run.started_at}`} className="border-t border-border align-top">
-                        <td className="py-1 pr-3 font-mono">{run.step_id}</td>
-                        <td className="py-1 pr-3 tabular-nums">{run.attempt}</td>
-                        <td className="py-1 pr-3 font-mono">{run.agents.length > 0 ? [...new Set(run.agents.map((agent) => agent.agent_id.replace(/^agency_(research|tov)\./, '')))].join(', ') : t('agency.journey.orchestrator.codeOnly')}</td>
-                        <td className="py-1 pr-3">{run.verdict ? t(`agency.journey.verdict.${verdictKey(run.verdict)}`) : t(`agency.journey.runStatus.${runStatusKey(run.status)}`)}</td>
-                        <td className="py-1 tabular-nums">{durationLabel(run.started_at, run.finished_at)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : null}
-            {lastQa ? <p className="mt-3 text-sm text-muted-foreground">{t('agency.journey.orchestrator.qa', { verdict: t(`agency.journey.verdict.${verdictKey(lastQa.verdict)}`), repairs: String(repairs) })}</p> : null}
-          </PortalCard>
-        )
-      })}
-    </div>
+    <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-medium ${pillTones[state]}`}>
+      <span aria-hidden className={`size-1.5 rounded-full bg-current ${state === 'working' ? 'animate-pulse' : ''}`} />
+      {t(`agency.journey.board.state.${state}`)}
+    </span>
   )
 }
 

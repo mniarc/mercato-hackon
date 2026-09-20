@@ -437,5 +437,13 @@
   "agency.journey.orchestrator.col.time": "Czas",
   "agency.journey.document.show": "Pokaż dokument",
   "agency.journey.document.hide": "Zwiń",
-  "agency.journey.document.loadError": "Nie udało się wczytać dokumentu."
+  "agency.journey.document.loadError": "Nie udało się wczytać dokumentu.",
+  "agency.journey.board.coordinator": "Koordynator etapu",
+  "agency.journey.board.state.done": "Zakończył",
+  "agency.journey.board.state.working": "Pracuje",
+  "agency.journey.board.state.error": "Błąd",
+  "agency.journey.board.state.waiting": "Czeka na klienta",
+  "agency.journey.board.state.idle": "Wolny",
+  "agency.journey.board.agentSummary": "kroki {steps} · ok {ok} · błędy {errors}",
+  "agency.journey.board.runs": "Uruchomienia ({count})"
 }

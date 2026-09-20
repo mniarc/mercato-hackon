@@ -437,5 +437,13 @@
   "agency.journey.orchestrator.col.time": "Time",
   "agency.journey.document.show": "Show document",
   "agency.journey.document.hide": "Collapse",
-  "agency.journey.document.loadError": "The document could not be loaded."
+  "agency.journey.document.loadError": "The document could not be loaded.",
+  "agency.journey.board.coordinator": "Stage coordinator",
+  "agency.journey.board.state.done": "Finished",
+  "agency.journey.board.state.working": "Working",
+  "agency.journey.board.state.error": "Error",
+  "agency.journey.board.state.waiting": "Waiting for the client",
+  "agency.journey.board.state.idle": "Idle",
+  "agency.journey.board.agentSummary": "steps {steps} · ok {ok} · errors {errors}",
+  "agency.journey.board.runs": "Runs ({count})"
 }
