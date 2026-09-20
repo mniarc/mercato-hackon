@@ -434,5 +434,8 @@
   "agency.journey.orchestrator.col.attempt": "Attempt",
   "agency.journey.orchestrator.col.agents": "Agents",
   "agency.journey.orchestrator.col.result": "Result",
-  "agency.journey.orchestrator.col.time": "Time"
+  "agency.journey.orchestrator.col.time": "Time",
+  "agency.journey.document.show": "Show document",
+  "agency.journey.document.hide": "Collapse",
+  "agency.journey.document.loadError": "The document could not be loaded."
 }

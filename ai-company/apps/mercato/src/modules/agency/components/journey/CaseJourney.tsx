@@ -3,6 +3,7 @@
 import * as React from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import ReactMarkdown from 'react-markdown'
 import { useT } from '@open-mercato/shared/lib/i18n/context'
 import { apiCall } from '@open-mercato/ui/backend/utils/apiCall'
 import { LoadingMessage, ErrorMessage } from '@open-mercato/ui/backend/detail'
@@ -251,12 +252,10 @@ function ClientStep({ step, state, orgSlug, caseId, documents, runs, questions, 
           </ol>
         ) : null}
         {docs.length > 0 ? (
-          <ul className="space-y-1">
+          <ul className="space-y-2">
             {docs.map((doc) => (
-              <li key={doc.output_id} className="flex flex-wrap items-baseline gap-2">
-                <span className="font-medium">{doc.output_id.replace(/@.*$/, '')}</span>
-                <span className="text-muted-foreground">{doc.version ? t('agency.journey.version', { version: doc.version }) : t('agency.journey.noVersion')} · {t(`agency.journey.docStatus.${docStatusKey(doc.status)}`)}</span>
-                {doc.simulation ? <span className="rounded-md border border-status-warning-border bg-status-warning-bg px-1.5 text-xs text-status-warning-text">{t('agency.journey.simulation')}</span> : null}
+              <li key={doc.output_id}>
+                <DocumentPanel caseId={caseId} doc={doc} />
               </li>
             ))}
           </ul>
@@ -276,6 +275,40 @@ function ClientStep({ step, state, orgSlug, caseId, documents, runs, questions, 
         </div>
       </div>
     </PortalCard>
+  )
+}
+
+/** One client document of the order: status line, and the client view (markdown) on demand — the same projection the review tasks show. */
+function DocumentPanel({ caseId, doc }: { caseId: string; doc: DocumentRow }) {
+  const t = useT()
+  const [open, setOpen] = React.useState(false)
+  const [markdown, setMarkdown] = React.useState<string | null>(null)
+  const [failed, setFailed] = React.useState(false)
+  const outputId = doc.output_id.replace(/@.*$/, '')
+  React.useEffect(() => {
+    if (!open || markdown !== null || !doc.has_client_view) return
+    let cancelled = false
+    void apiCall<{ client_view_md?: string | null }>(`/api/agency_research/portal/documents?order_ref=${encodeURIComponent(caseId)}&output=${encodeURIComponent(outputId)}`)
+      .then((response) => { if (!cancelled) { if (response.ok) setMarkdown(response.result?.client_view_md ?? ''); else setFailed(true) } })
+      .catch(() => { if (!cancelled) setFailed(true) })
+    return () => { cancelled = true }
+  }, [open, markdown, doc.has_client_view, caseId, outputId])
+  return (
+    <div className="rounded-md border border-border bg-card">
+      <button type="button" className="flex w-full flex-wrap items-baseline gap-2 px-3 py-2 text-left" onClick={() => setOpen((value) => !value)} aria-expanded={open} disabled={!doc.has_client_view}>
+        <span className="font-medium">{outputId}</span>
+        <span className="text-muted-foreground">{doc.version ? t('agency.journey.version', { version: doc.version }) : t('agency.journey.noVersion')} · {t(`agency.journey.docStatus.${docStatusKey(doc.status)}`)}</span>
+        {doc.simulation ? <span className="rounded-md border border-status-warning-border bg-status-warning-bg px-1.5 text-xs text-status-warning-text">{t('agency.journey.simulation')}</span> : null}
+        {doc.has_client_view ? <span className="ml-auto text-xs text-muted-foreground">{open ? t('agency.journey.document.hide') : t('agency.journey.document.show')}</span> : null}
+      </button>
+      {open ? (
+        <div className="border-t border-border px-4 py-3">
+          {failed ? <p className="text-sm text-status-error-text">{t('agency.journey.document.loadError')}</p>
+            : markdown === null ? <LoadingMessage label={t('agency.journey.loading')} />
+            : <div className="prose prose-sm max-w-none dark:prose-invert"><ReactMarkdown>{markdown}</ReactMarkdown></div>}
+        </div>
+      ) : null}
+    </div>
   )
 }
 

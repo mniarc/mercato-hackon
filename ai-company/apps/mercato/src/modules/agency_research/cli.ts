@@ -110,7 +110,7 @@ function loadSocialCorpus(file: string): SocialPost[] {
  *   yarn mercato agency_research run --order <zamowienie.json> --order-ref <ref> --out output/research/<slug> \
  *     [--through 3.2|3.5|3.8|4.2] [--social-corpus corpus.json] [--pages url,url] [--fixture-pages <dir>] [--fixture-search <file>] \
  *     [--people "Name, role, https://…; Name2"] [--onboarding <answers.json>] \
- *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--resume-from 3.8] [--dry-run] [--yes] [--refetch] \
+ *     [--runner orchestrator|direct|fixture] [--fixture <dir>] [--max-cost-pln 20] [--resume-from 3.8] [--simulate-client] [--dry-run] [--yes] [--refetch] \
  *     [--tenant <id> --org <id> --user <id>]
  *
  * The orchestrator runner is the default (persisted `agent_runs`, admission,
@@ -175,6 +175,9 @@ const run: ModuleCli = {
       scrapeProfilePosts: runnerName === 'fixture' ? undefined : profileScraperFrom(db),
       through,
       resumeFrom: resumeFrom ?? null,
+      // Rehearsal past the brief: 5.x–9.x with simulated client decisions, every version flagged; needs the
+      // research ToV writer registered (OM_AGENCY_RESEARCH_LEGACY_TOV_WRITER=1) because the specialist path is native-only.
+      simulateClient: args['simulate-client'] === 'true',
       selectedTopicId: args.topic ?? null,
       freshSelection: args.refetch === 'true',
       maxCostPln,

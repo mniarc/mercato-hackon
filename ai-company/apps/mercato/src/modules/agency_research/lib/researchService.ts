@@ -66,6 +66,9 @@ import { runFreezeStep } from './research/steps/freeze'
 import { runQaLoop } from './research/steps/qa'
 import { runSourcesStep } from './research/steps/sources'
 import { runPlanStep } from './research/steps/plan'
+import { runStrategyStep } from './research/steps/strategy'
+import { runTovStep } from './research/steps/tov'
+import { runStrategyQaLoop } from './research/steps/strategyQa'
 import { runPlanQaLoop } from './research/steps/planQa'
 import { runSelectionStep } from './research/steps/selection'
 import { runPostInstructionStep } from './research/steps/postInstruction'
@@ -109,6 +112,8 @@ export type RunResearchOptions = {
   freshSelection?: boolean
   /** Skip the chain groups before the one that holds this step (their stored versions are the inputs). */
   resumeFrom?: ResearchStep | null
+  /** CLI rehearsal only: run 5.x–9.x with simulated client decisions. Never set by the portal or the native workflows. */
+  simulateClient?: boolean
   maxCostPln?: number
   cache?: PipelineCache
   concurrency?: number
@@ -298,8 +303,8 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
  * task run has recorded it. Agents remain read-only throughout.
  */
 export async function runResearch(opts: RunResearchOptions): Promise<RunResearchOutcome> {
-  if (reaches(opts.through, '5.4')) {
-    throw new Error('[internal] Research whole-pipeline execution ends at 4.2. Use the accepted-case native strategy and agency_tov specialist continuation for later phases; the competing ToV writer is retired.')
+  if (reaches(opts.through, '5.4') && !opts.simulateClient) {
+    throw new Error('[internal] Research whole-pipeline execution ends at 4.2. Use the accepted-case native strategy and agency_tov specialist continuation for later phases, or the explicit CLI rehearsal (--simulate-client), which records every downstream version as a simulation.')
   }
   const { em, scope, orderRef } = opts
   const order = orderDataSchema.parse(opts.order)
@@ -400,9 +405,19 @@ export async function runResearch(opts: RunResearchOptions): Promise<RunResearch
       },
     },
     {
-      // Historical phase identity retained; new work goes through the accepted-case specialist path.
+      // The accepted-case native path owns 5.x (strategy + agency_tov specialist + pair review). The CLI rehearsal
+      // (`simulateClient`) runs the historical chain instead — 5.2 strategy → 5.3 research ToV → 5.4 Q-S — with
+      // every version flagged as a simulation, because no client approved anything.
       step: '5.4',
-      run: async () => { throw new Error('[internal] Strategy requires the accepted-case native specialist continuation') },
+      run: async (c) => {
+        if (!opts.simulateClient) throw new Error('[internal] Strategy requires the accepted-case native specialist continuation')
+        await runStrategyStep(c)
+        await runTovStep(c)
+        const qa = await runStrategyQaLoop(c, { strategyStep: runStrategyStep, tovStep: runTovStep })
+        strategyQaVerdict = qa.verdict
+        escalationVersionId = qa.escalationVersionId ?? escalationVersionId
+        return { taskRunId: qa.taskRunId, versionId: qa.strategyVersionId, status: qa.verdict === 'ready_for_approval' ? 'done' : 'to_fix' }
+      },
     },
     {
       // 6.2 plan → 6.3 Q-P → 6.5 selection (client's topic or the recommendation, simulated) → 6.7 post instruction (code only).

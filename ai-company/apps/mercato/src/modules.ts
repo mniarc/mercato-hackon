@@ -233,6 +233,8 @@ if (enterpriseModulesEnabled && enterpriseAgentsEnabled) {
   // Same SDK, same gate: only enabled alongside the orchestrator.
   enabledModules.push({ id: 'agency_research', from: '@app',
     // Historical records keep their stable ID; only agency_tov may author new ToV.
-    overrides: { ai: { agents: { 'agency_research.tov_writer': null } } },
+    // OM_AGENCY_RESEARCH_LEGACY_TOV_WRITER=1 keeps the research writer registered for the CLI rehearsal
+    // (`agency_research run --simulate-client`); the app never sets it.
+    ...(process.env.OM_AGENCY_RESEARCH_LEGACY_TOV_WRITER === '1' ? {} : { overrides: { ai: { agents: { 'agency_research.tov_writer': null } } } }),
   })
 }
