@@ -16,7 +16,12 @@ import { configurePostReviewWorkflow } from '../postReview/configure'
 export const AGENCY_ANALYSIS_GRANTED_FEATURES = ['agency_research.manage', 'agent_orchestrator.agents.run']
 const inputSchema = z.object({ tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), policy: analysisExecutionPolicySchema })
 
-export async function configureAgencyAnalysisProcess(container: AppContainer, rawInput: unknown) {
+/**
+ * `republish` replaces the execution policy of an already configured analysis
+ * (the same owned definition, updated in place) instead of refusing; the review
+ * workflows it depends on stay as they are.
+ */
+export async function configureAgencyAnalysisProcess(container: AppContainer, rawInput: unknown, options: { republish?: boolean } = {}) {
   const input = inputSchema.parse(rawInput)
   const scope = { tenantId: input.tenantId, organizationId: input.organizationId }
   const failure = await authorizeWorkflowGrantChange(container.resolve<Parameters<typeof authorizeWorkflowGrantChange>[0]>('rbacService'), {
@@ -28,13 +33,16 @@ export async function configureAgencyAnalysisProcess(container: AppContainer, ra
   }
   const em = container.resolve<EntityManager>('em')
   const authoring = container.resolve<WorkflowDefinitionAuthoring>('workflowDefinitionAuthoring')
-  if (await authoring.findOwnedDefinition(em, { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, ...scope })) {
-    throw new Error('[internal] Analysis is already configured; publish a new native workflow version to change its execution policy')
+  const configured = await authoring.findOwnedDefinition(em, { workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, ...scope })
+  if (configured && !options.republish) {
+    throw new Error('[internal] Analysis is already configured; publish a new native workflow version to change its execution policy (or pass --republish)')
   }
-  if (input.policy.through === '4.2') await configureBriefReviewWorkflow(container, input)
-  if (input.policy.strategyExecution || input.policy.planningExecution || input.policy.postExecution) await configureStrategyPairReviewWorkflow(container, input)
-  if (input.policy.planningExecution || input.policy.postExecution) await configurePlanReviewWorkflow(container, input)
-  if (input.policy.postExecution) await configurePostReviewWorkflow(container, input)
+  if (!configured) {
+    if (input.policy.through === '4.2') await configureBriefReviewWorkflow(container, input)
+    if (input.policy.strategyExecution || input.policy.planningExecution || input.policy.postExecution) await configureStrategyPairReviewWorkflow(container, input)
+    if (input.policy.planningExecution || input.policy.postExecution) await configurePlanReviewWorkflow(container, input)
+    if (input.policy.postExecution) await configurePostReviewWorkflow(container, input)
+  }
   const result = await authoring.upsertOwnedDefinition(em, {
     ownerModule: 'agency_operations', ownerId: 'analysis', workflowId: AGENCY_ANALYSIS_WORKFLOW_ID,
     workflowName: 'Agency analysis', description: 'Case-scoped teammate research with explicitly authorized execution limits; not payment or client approval.',

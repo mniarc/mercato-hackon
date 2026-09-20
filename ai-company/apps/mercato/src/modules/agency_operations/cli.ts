@@ -50,18 +50,20 @@ const configureTriage: ModuleCli = {
 const configureAnalysis: ModuleCli = {
   command: 'configure-analysis',
   async run(argv) {
-    const usage = '[internal] Usage: agency_operations configure-analysis --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> --policy-file <approved-policy.json>'
+    const usage = '[internal] Usage: agency_operations configure-analysis --tenant <uuid> --organization <uuid> --user <granting-staff-uuid> --policy-file <approved-policy.json> [--republish]'
     const options = new Map<string, string>()
-    for (let index = 0; index < argv.length; index += 2) {
-      if (!['--tenant', '--organization', '--user', '--policy-file'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
-      options.set(argv[index].slice(2), argv[index + 1])
+    const republish = argv.includes('--republish')
+    const args = argv.filter((arg) => arg !== '--republish')
+    for (let index = 0; index < args.length; index += 2) {
+      if (!['--tenant', '--organization', '--user', '--policy-file'].includes(args[index]) || !args[index + 1]) throw new Error(usage)
+      options.set(args[index].slice(2), args[index + 1])
     }
     const policyFile = options.get('policy-file')
     if (!policyFile) throw new Error(usage)
     const policy: unknown = JSON.parse(await readFile(policyFile, 'utf8'))
     const result = await configureAgencyAnalysisProcess(await createRequestContainer(), {
       tenantId: options.get('tenant'), organizationId: options.get('organization'), userId: options.get('user'), policy,
-    })
+    }, { republish })
     process.stdout.write(`${JSON.stringify(result)}\n`)
   },
 }

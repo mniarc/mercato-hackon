@@ -1,8 +1,8 @@
 import type { AiAgentDefinition } from '@open-mercato/ai-assistant/modules/ai_assistant/lib/ai-agent-definition'
 import { defineAgent } from '@open-mercato/enterprise/modules/agent_orchestrator/lib/sdk/defineAgent'
 import { renderContractFields } from '../../data/contracts'
-import { strategyChoiceSectionResult, strategyPillarsSectionResult, strategyProofSectionResult, strategyQaAgentResult } from '../../data/agents/strategy'
-import { RESEARCH_STRATEGY_CHOICE_AGENT_ID, RESEARCH_STRATEGY_PILLARS_AGENT_ID, RESEARCH_STRATEGY_PROOF_AGENT_ID, RESEARCH_STRATEGY_QA_AGENT_ID } from './ids.strategy'
+import { strategyChoiceSectionResult, strategyPillarsSectionResult, strategyProofSectionResult, strategyQaAgentResult, tovWriterResult } from '../../data/agents/strategy'
+import { RESEARCH_STRATEGY_CHOICE_AGENT_ID, RESEARCH_STRATEGY_PILLARS_AGENT_ID, RESEARCH_STRATEGY_PROOF_AGENT_ID, RESEARCH_STRATEGY_QA_AGENT_ID, RESEARCH_TOV_WRITER_AGENT_ID } from './ids.strategy'
 import { DESLOP_PROSE_RULES } from './deslop'
 import { MODEL_QA, MODEL_SYNTHESIS, SHARED_RULES } from './shared'
 import { promptFor } from './prompts'
@@ -32,6 +32,22 @@ const STRATEGY_RULES = [
   'already written in this run are in `draft` — stay consistent with them. On a revision',
   '`previous_strategy` is given: keep what the findings do not touch. When `repair_findings`',
   'is non-empty, fix exactly those findings and keep everything else.',
+  DESLOP_PROSE_RULES,
+].join(' ')
+
+const TOV_RULES = [
+  'You write the brand voice rules (KLI-TOV) from the working strategy (`strategy`), the',
+  'brief\'s voice preferences and audience (`brief`), the audit\'s voice findings',
+  '(`voice_audit`) and the client\'s real language samples (`language_samples`, verbatim).',
+  'Translate the direction into repeatable language decisions a copywriter can apply in a',
+  'sentence: "professional and friendly" without an example is not a rule. The recommended',
+  'voice is a proposal for the client\'s approval, not a diagnosis of the current style.',
+  'Examples add no facts: before/after pairs sit on the SAME facts (`fact_ids` from `facts`)',
+  'and change only the language; a pair without a fact is a creative example. Replacements',
+  'keep the meaning; a banned word never changes what is claimed. Evidence language must',
+  'match the strategy\'s claim strengths and prohibited promises. Sections already written',
+  'in this run are in `draft`. On a revision `previous_tov` is given: keep what the findings',
+  'do not touch. When `repair_findings` is non-empty, fix exactly those findings.',
   DESLOP_PROSE_RULES,
 ].join(' ')
 
@@ -108,6 +124,36 @@ export const strategyAgents: AiAgentDefinition[] = [
       renderContractFields('WZR-STRATEGIA', ['pillars', 'channel_role', 'measurement_hypothesis', 'creative_boundaries']),
     ]),
     result: { kind: 'research', schema: strategyPillarsSectionResult },
+  }),
+
+  defineAgent({
+    id: RESEARCH_TOV_WRITER_AGENT_ID,
+    moduleId: 'agency_research',
+    agentType: 'researcher',
+    label: 'Tone of voice writer',
+    description: 'Writes one section group of the brand voice rules (KLI-TOV) from the strategy, the brief preferences, the voice audit and the real language samples; executable rules with examples on the same facts.',
+    defaultModel: MODEL_SYNTHESIS,
+    instructions: promptFor(RESEARCH_TOV_WRITER_AGENT_ID, [
+      TOV_RULES,
+      'The output shape depends on `section`: `principles_axes_wording` → `voice_principles`',
+      '(EXACTLY four: `trait`, `purpose` for this brand, concrete `author_behavior`,',
+      '`typical_error`), `style_axes` (one row for EACH of `formality`, `directness`,',
+      '`technicality`, `humor`, `claim_strength`: the `position` described by behaviour, an',
+      '`example` sentence, `change_when` — no 7/10 scales) and `wording` (`preferred_in_context`,',
+      'at least five `replacements` {avoid, use}, the `replacement_boundary`, banned `cliches`,',
+      '`expert_terms` and how they are explained, a `sentence_pattern`).',
+      '`evidence_examples_checks` → `evidence_language` (one row for EACH of `fact`,',
+      '`first_party_claim`, `hypothesis`, `illustrative_example`, `limitation`: the `pattern` and',
+      'the `forbidden_upgrade`), `before_after` (exactly three pairs on the same facts: the',
+      'undesired `before`, the recommended `after`, the `changed_principle`, `fact_ids`),',
+      '`context_rules` (explaining the method, inviting contact, answering scepticism, admitting',
+      'missing data: `situation`, `tone_and_example`, `boundary`) and `copy_checks` (6–8',
+      'observable yes/no questions an editor can answer on a post).',
+      'Return ONLY the keys of the requested section.',
+      SHARED_RULES,
+      renderContractFields('WZR-TOV'),
+    ]),
+    result: { kind: 'research', schema: tovWriterResult },
   }),
 
   defineAgent({

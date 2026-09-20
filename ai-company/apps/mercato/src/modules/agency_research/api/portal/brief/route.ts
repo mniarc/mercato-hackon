@@ -2,6 +2,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import type { CustomerAuthContext } from '@open-mercato/core/modules/customer_accounts/lib/customerAuth'
 import { getCustomerAuthFromRequest } from '@open-mercato/core/modules/customer_accounts/lib/customerAuth'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
+import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { CrudHttpError, isCrudHttpError } from '@open-mercato/shared/lib/crud/errors'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import type { OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
@@ -10,6 +11,7 @@ import { z } from 'zod'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion } from '../../../data/entities'
 import { ustaleniaDataSchema } from '../../../data/schemas/ustalenia'
 import { firstContactQuestions } from '../../../lib/research/render/brief'
+import { CLIENT_CASE_QUERY_SERVICE, type ClientCaseQueryService } from '@/modules/agency_operations/lib/contracts/clientCaseQuery'
 
 /**
  * The customer portal's brief surface (step 4.3's delivery): the client view of
@@ -31,7 +33,22 @@ export const metadata = { GET: { requireAuth: false } }
 export function assertCustomerOwnsOrder(auth: Pick<CustomerAuthContext, 'customerEntityId'>, orderRef: string): void {
   const customerEntityId = auth.customerEntityId ?? ''
   if (customerEntityId && orderRef.startsWith(customerEntityId)) return
-  // TODO(portal): resolve the persisted order for `orderRef` and compare its customer entity id.
+  throw new CrudHttpError(403, { error: 'This order is not yours' })
+}
+
+/**
+ * Ownership for the two shapes an order ref takes: a portal case id (the spine's
+ * case query decides, the same check the case page uses) or the legacy
+ * `<customerEntityId>-…` convention. Anything else is not the customer's.
+ */
+export async function assertCustomerOwnsOrderOrCase(container: AppContainer, auth: Pick<CustomerAuthContext, 'sub' | 'customerEntityId' | 'tenantId' | 'orgId'>, orderRef: string): Promise<void> {
+  const customerEntityId = auth.customerEntityId ?? ''
+  if (customerEntityId && orderRef.startsWith(customerEntityId)) return
+  if (customerEntityId && z.uuid().safeParse(orderRef).success && container.hasRegistration(CLIENT_CASE_QUERY_SERVICE)) {
+    const cases = container.resolve<ClientCaseQueryService>(CLIENT_CASE_QUERY_SERVICE)
+    const owned = await cases.get({ customerUserId: auth.sub, customerEntityId, tenantId: auth.tenantId, organizationId: auth.orgId }, orderRef)
+    if (owned) return
+  }
   throw new CrudHttpError(403, { error: 'This order is not yours' })
 }
 
@@ -50,9 +67,9 @@ export async function GET(request: Request): Promise<Response> {
   if (!auth) return NextResponse.json({ error: 'Customer authentication required' }, { status: 401 })
   if (!auth.customerEntityId) return NextResponse.json({ error: 'Customer account not linked' }, { status: 403 })
   try {
-    assertCustomerOwnsOrder(auth, query.data.order_ref)
     const scope = { tenantId: auth.tenantId, organizationId: auth.orgId }
     const container = await createRequestContainer()
+    await assertCustomerOwnsOrderOrCase(container, auth, query.data.order_ref)
     const em = container.resolve<EntityManager>('em')
     const brief = await findOneWithDecryption(em, AgencyResearchDocument, { ...scope, orderRef: query.data.order_ref, templateId: 'WZR-BRIEF', deletedAt: null }, undefined, scope)
     if (!brief?.currentVersionId) return NextResponse.json({ error: 'Brief not ready' }, { status: 404 })

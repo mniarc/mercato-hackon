@@ -434,5 +434,8 @@
   "agency.journey.orchestrator.col.attempt": "Próba",
   "agency.journey.orchestrator.col.agents": "Agenci",
   "agency.journey.orchestrator.col.result": "Wynik",
-  "agency.journey.orchestrator.col.time": "Czas"
+  "agency.journey.orchestrator.col.time": "Czas",
+  "agency.journey.document.show": "Pokaż dokument",
+  "agency.journey.document.hide": "Zwiń",
+  "agency.journey.document.loadError": "Nie udało się wczytać dokumentu."
 }

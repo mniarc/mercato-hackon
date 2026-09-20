@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { AgencyResearchDocument, AgencyResearchDocumentVersion } from '../../../data/entities'
 import { outputIdByTemplate } from '../../../data/schemas/envelope'
 import { clientViewTemplates, type ClientViewTemplate } from '../../../lib/contracts'
-import { assertCustomerOwnsOrder } from '../brief/route'
+import { assertCustomerOwnsOrderOrCase } from '../brief/route'
 
 /**
  * The customer portal's document surface for everything after the brief: the
@@ -55,9 +55,9 @@ export async function GET(request: Request): Promise<Response> {
   if (!auth) return NextResponse.json({ error: 'Customer authentication required' }, { status: 401 })
   if (!auth.customerEntityId) return NextResponse.json({ error: 'Customer account not linked' }, { status: 403 })
   try {
-    assertCustomerOwnsOrder(auth, query.data.order_ref)
     const scope = { tenantId: auth.tenantId, organizationId: auth.orgId }
     const container = await createRequestContainer()
+    await assertCustomerOwnsOrderOrCase(container, auth, query.data.order_ref)
     const em = container.resolve<EntityManager>('em')
     if (!query.data.output) {
       const documents = await findWithDecryption(em, AgencyResearchDocument, { ...scope, orderRef: query.data.order_ref, templateId: { $in: [...clientViewTemplates] }, deletedAt: null }, undefined, scope)
