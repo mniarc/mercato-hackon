@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.sourceRecovery.ready": "Klient zapisał poprawione dane źródła. Wznów analizę źródeł z dotychczasowymi ustawieniami wykonania.",
+  "agencyOperations.cases.process.sourceRecovery.resume": "Wznów analizę źródeł",
+  "agencyOperations.cases.process.sourceRecovery.resuming": "Wznawianie…",
+  "agencyOperations.cases.process.sourceRecovery.failed": "Nie udało się wznowić analizy źródeł. Odśwież sprawę i sprawdź jej bieżący stan.",
+  "agencyOperations.cases.process.sourceRecovery.unavailable": "Bieżąca sprawa nie ma zakończonej korekty źródeł, po której można wznowić analizę.",
   "agencyOperations.journey.openCase": "Otwórz sprawę agencyjną",
   "agencyOperations.cases.process.materialRevision.title": "Dowody z nowego materiału",
   "agencyOperations.cases.process.materialRevision.completed": "Zakończono wskazane uzupełnienie dowodów i briefu z zapisanym QA.",

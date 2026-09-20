@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.sourceRecovery.ready": "고객이 수정된 출처 정보를 저장했습니다. 기존 실행 설정으로 출처 분석을 재개하세요.",
+  "agencyOperations.cases.process.sourceRecovery.resume": "출처 분석 재개",
+  "agencyOperations.cases.process.sourceRecovery.resuming": "재개 중…",
+  "agencyOperations.cases.process.sourceRecovery.failed": "출처 분석을 재개하지 못했습니다. 사건을 새로고침하고 현재 상태를 확인하세요.",
+  "agencyOperations.cases.process.sourceRecovery.unavailable": "현재 사건에 분석을 재개할 수 있는 완료된 출처 수정이 없습니다.",
   "agencyOperations.cases.researchLineage.title": "Document lineage",
   "agencyOperations.cases.researchLineage.back": "Back to previous version",
   "agencyOperations.cases.researchLineage.history": "Version history",

@@ -26,6 +26,8 @@ import { createStaffTovIntakeService } from './lib/tovIntake/service'
 import { createClientTriageActivities } from './agents/client-triage/activities'
 import { PREPARE_CLIENT_TRIAGE_FUNCTION, PROJECT_CLIENT_TRIAGE_FUNCTION, ACCEPT_BRIEF_FUNCTION, ACCEPT_STRATEGY_PAIR_FUNCTION, ACCEPT_PLAN_FUNCTION, ACCEPT_POST_FUNCTION } from './agents/client-triage/workflow'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, createAnalysisWorkflowActivity } from './lib/analysisProcess'
+import { SOURCE_RESPONSE_FUNCTION } from './lib/sourceClarification/contracts'
+import { createSourceClarificationResponseActivity } from './lib/sourceClarification/response'
 import { BRIEF_RESPONSE_FUNCTION, BRIEF_REVIEW_SERVICE } from './lib/briefStrategyProcess/contracts'
 import { createBriefReviewService } from './lib/briefStrategyProcess/service'
 import { createAnalysisBriefReviewHandoff } from './lib/analysisProcess/briefReviewHandoff'
@@ -189,6 +191,9 @@ export function register(container: AppContainer): void {
     ).scoped(),
     [`workflowFunction:${AGENCY_ANALYSIS_FUNCTION_NAME}`]: asFunction(
       () => createAnalysisWorkflowActivity(container),
+    ).scoped(),
+    [`workflowFunction:${SOURCE_RESPONSE_FUNCTION}`]: asFunction(
+      () => createSourceClarificationResponseActivity(container),
     ).scoped(),
   })
 }

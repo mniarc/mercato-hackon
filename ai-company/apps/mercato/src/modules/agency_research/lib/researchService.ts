@@ -77,6 +77,7 @@ import { runPublicationConfirmationStep } from './research/steps/publicationConf
 import { runPackageStep } from './research/steps/package'
 import { runClosureStep } from './research/steps/closure'
 import { createOrchestratorRunner } from './runners'
+import { InsufficientSourceEvidenceError } from './research/sourceOutcome'
 import { AgencyResearchDocumentVersion, AgencyResearchTaskRun } from '../data/entities'
 import { currentInputVersion, finishTaskRun, orderStatus, saveDocumentVersion, saveSources, startTaskRun, type ResearchScope } from './store'
 
@@ -276,6 +277,13 @@ export async function runSourcesStepDb(ctx: StepContext): Promise<StepOutcome> {
     await finishTaskRun(ctx.em, run, { status: 'done', outputVersionId: saved.version.id, summary: { businessProfile: result.businessProfile, stats: result.stats, people: people?.stats ?? null }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
     return { taskRunId: run.id, versionId: saved.version.id, status: 'done' }
   } catch (error) {
+    if (error instanceof InsufficientSourceEvidenceError) {
+      await finishTaskRun(ctx.em, run, { status: 'needs_client_data',
+        summary: { reason: error.code, sourceIds: error.sourceIds, sourceAttempts: error.attempts }, agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot() })
+      error.persisted = { taskRunIds: [...ctx.taskRunIds], documentVersionIds: [...ctx.documentVersionIds],
+        agentRunIds: [...ctx.agentRunIds], spentPln: ctx.ledger.snapshot().total }
+      throw error
+    }
     const paused = error instanceof BudgetPausedError
     await finishTaskRun(ctx.em, run, { status: paused ? 'paused_budget' : 'failed', agentRunIds: ctx.agentRunIds, cost: ctx.ledger.snapshot(), error: error instanceof Error ? error.message : String(error) })
     throw error

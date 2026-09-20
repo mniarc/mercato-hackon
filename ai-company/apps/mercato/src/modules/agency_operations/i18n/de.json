@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.sourceRecovery.ready": "Der Kunde hat korrigierte Quellenangaben gespeichert. Setzen Sie die Quellenanalyse mit den bisherigen Ausführungseinstellungen fort.",
+  "agencyOperations.cases.process.sourceRecovery.resume": "Quellenanalyse fortsetzen",
+  "agencyOperations.cases.process.sourceRecovery.resuming": "Wird fortgesetzt…",
+  "agencyOperations.cases.process.sourceRecovery.failed": "Die Quellenanalyse konnte nicht fortgesetzt werden. Aktualisieren Sie den Fall und prüfen Sie den aktuellen Status.",
+  "agencyOperations.cases.process.sourceRecovery.unavailable": "Für diesen Fall liegt keine abgeschlossene Quellenkorrektur zur Fortsetzung vor.",
   "agencyOperations.cases.researchLineage.title": "Document lineage",
   "agencyOperations.cases.researchLineage.back": "Back to previous version",
   "agencyOperations.cases.researchLineage.history": "Version history",

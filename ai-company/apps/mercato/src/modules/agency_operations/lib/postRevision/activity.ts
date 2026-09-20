@@ -66,10 +66,28 @@ export function createPostRevisionActivity(container: AppContainer) {
     if (!parseBooleanWithDefault(process.env.AGENCY_ANALYSIS_EXECUTION_ENABLED, false)) return unavailable('execution_disabled')
     const userId = await resolveWorkflowPrincipalUserId(em, workflow)
     if (!userId) throw new Error('[internal] Post revision requires the native workflow execution principal')
-    return container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE).runPostRevision({
-      context: { ...scope, userId, workflowInstanceId: workflow.id, stepId: POST_REVISION_STEP_ID,
-        ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}) },
+    const research = container.resolve<AgencyResearchService>(AGENCY_RESEARCH_SERVICE)
+    const executionContext = { ...scope, userId, workflowInstanceId: workflow.id, stepId: POST_REVISION_STEP_ID,
+      ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}) }
+    const revised = await research.runPostRevision({
+      context: executionContext,
       request: { ...request, process: { workflowDefinitionId: definition.id, workflowId: definition.workflowId, version: definition.version }, maxCostPln: authorization.data.maxCostPln },
     })
+    if (revised.status !== 'completed' || !revised.evidenceRequest || !revised.postVersionId || !revised.qaTaskRunId) return revised
+    const evidenceAuthorization = authorizationSchema.safeParse(activities[0].config.args?.policy?.postEvidence)
+    if (!evidenceAuthorization.success) return { ...revised, readyForReview: false, evidencePendingReason: 'missing_post_evidence_authorization' }
+    const returned = await research.runPostEvidence({ context: executionContext, request: {
+      orderRef: agencyCase.id, instructionVersionId: revised.instructionVersionId,
+      postVersionId: revised.postVersionId, qaTaskRunId: revised.qaTaskRunId, maxCostPln: evidenceAuthorization.data.maxCostPln,
+    } })
+    if (returned.status === 'not_ready' || returned.status === 'execution_incomplete') return {
+      ...revised, readyForReview: false, evidencePendingReason: returned.reason,
+    }
+    return { ...revised, ...returned, evidenceRequest: undefined, escalationVersionId: returned.escalationVersionId,
+      taskRunIds: [...new Set([...revised.taskRunIds, ...returned.taskRunIds])],
+      documentVersionIds: [...new Set([...revised.documentVersionIds, ...returned.documentVersionIds])],
+      agentRunIds: [...new Set([...revised.agentRunIds, ...returned.agentRunIds])],
+      spentPln: revised.spentPln + returned.spentPln,
+    }
   }
 }

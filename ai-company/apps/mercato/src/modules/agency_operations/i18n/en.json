@@ -1,4 +1,9 @@
 {
+  "agencyOperations.cases.process.sourceRecovery.ready": "The customer saved corrected source details. Resume the source analysis using the existing execution settings.",
+  "agencyOperations.cases.process.sourceRecovery.resume": "Resume source analysis",
+  "agencyOperations.cases.process.sourceRecovery.resuming": "Resuming…",
+  "agencyOperations.cases.process.sourceRecovery.failed": "Source analysis could not be resumed. Refresh the case and check its current state.",
+  "agencyOperations.cases.process.sourceRecovery.unavailable": "The current case has no completed source correction available to resume.",
   "agencyOperations.journey.openCase": "Open agency case",
   "agencyOperations.cases.process.materialRevision.title": "Late material evidence",
   "agencyOperations.cases.process.materialRevision.completed": "The directed evidence and brief revision completed with saved QA.",

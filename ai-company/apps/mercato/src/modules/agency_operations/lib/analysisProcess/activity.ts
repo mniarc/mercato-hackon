@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { isDeepStrictEqual } from 'node:util'
 import type { EntityManager } from '@mikro-orm/postgresql'
 import type { AttachmentService } from '@open-mercato/core/modules/attachments'
-import { WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
+import { WorkflowDefinition, WorkflowInstance } from '@open-mercato/core/modules/workflows/data/entities'
 import { AgentRun } from '@open-mercato/enterprise/modules/agent_orchestrator/data/entities'
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
@@ -17,6 +17,8 @@ import { PAID_CASE_ANALYSIS_CONTEXT } from '../paidCaseAnalysis/contracts'
 import { mapPaidPurchaseMaterial } from '../paidCaseAnalysis/material'
 import { loadCaseMaterialSources } from './materialSources'
 import { createLogger } from '@open-mercato/shared/lib/logger'
+import { InsufficientSourceEvidenceError } from '@/modules/agency_research/lib/research/sourceOutcome'
+import { SOURCE_CLARIFICATION_STEP, SOURCE_CORRECTION_KEY, sourceCorrectionSchema } from '../sourceClarification/contracts'
 
 const logger = createLogger('agency_operations').child({ component: 'analysis' })
 const SOCIAL_CORPUS_MAX_POSTS = 40
@@ -168,13 +170,35 @@ export function createAnalysisWorkflowActivity(container: AppContainer) {
     if (resumeFrom) logger.info('Resuming research after a pause', { caseId: agencyCase.id, resumeFrom, cap: input.policy.maxCostPln })
     const materialSources = await loadCaseMaterialSources(container, scope, agencyCase.id, context.userId)
     const socialPosts = parsed.socialPosts?.length ? parsed.socialPosts : await liveSocialCorpus(container, parsed.order, agencyCase.id)
-    const result = await service.run({
-      context: {
-        ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
-        ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
-      },
-      request: { ...parsed, materialSources, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln, ...(resumeFrom ? { resumeFrom } : {}) },
-    })
+    const rawCorrection = context.workflowInstance.context[SOURCE_CORRECTION_KEY]
+    const correction = rawCorrection === undefined ? null : sourceCorrectionSchema.parse(rawCorrection)
+    if (correction && !restart.success) throw new Error('[internal] Source correction requires an authorized analysis restart')
+    const corrected = correction ? {
+      ...parsed, order: { ...parsed.order, brand: { ...parsed.order.brand, website_url: correction.websiteUrl } },
+      pages: undefined,
+    } : parsed
+    let result: Awaited<ReturnType<AgencyResearchService['run']>>
+    try {
+      result = await service.run({
+        context: {
+          ...scope, userId: context.userId, workflowInstanceId: context.workflowInstance.id, stepId: 'research',
+          ...(context.stepInstanceId ? { invocationId: context.stepInstanceId } : {}),
+        },
+        request: { ...corrected, materialSources, ...(socialPosts ? { socialPosts } : {}), orderRef: agencyCase.id, through: input.policy.through, maxCostPln: input.policy.maxCostPln, ...(resumeFrom ? { resumeFrom } : {}) },
+      })
+    } catch (error) {
+      if (!(error instanceof InsufficientSourceEvidenceError) || !error.persisted) throw error
+      const em = container.resolve<EntityManager>('em')
+      const instance = await findOneWithDecryption(em, WorkflowInstance, {
+        ...scope, id: context.workflowInstance.id, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, deletedAt: null,
+      }, undefined, scope)
+      const definition = instance ? await findOneWithDecryption(em, WorkflowDefinition, {
+        ...scope, id: instance.definitionId, workflowId: instance.workflowId, version: instance.version, deletedAt: null,
+      }, undefined, scope) : null
+      if (!definition?.definition.steps.some((step) => step.stepId === SOURCE_CLARIFICATION_STEP && step.stepType === 'USER_TASK')) throw error
+      return { ...error.persisted, caseId: agencyCase.id, requestedThrough: input.policy.through, state: 'waiting',
+        completedThrough: null, sourceClarification: { reason: error.code, sourceIds: error.sourceIds } }
+    }
     const completed = result.completedThrough === input.policy.through
       && (input.policy.through === '3.2' || input.policy.through === '3.5' || result.qaVerdict === 'ready')
       && (input.policy.through !== '4.2' || result.briefQaVerdict === 'ready_for_approval')

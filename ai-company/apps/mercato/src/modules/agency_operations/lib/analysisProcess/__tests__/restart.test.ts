@@ -7,8 +7,11 @@ import { AgencyCase } from '../../../data/entities'
 import { restartAnalysisCase } from '../restart'
 import { AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID, createAgencyAnalysisWorkflowDefinition } from '../workflow'
 import { BRIEF_REVIEW_CONTEXT_KEY, BRIEF_REVIEW_STEP_ID, BRIEF_REVIEW_WORKFLOW_ID } from '../../briefStrategyProcess/contracts'
+import { SOURCE_CORRECTION_KEY, SOURCE_RESPONSE_STEP } from '../../sourceClarification/contracts'
+import { readCompletedSourceCorrection } from '../../sourceClarification/recovery'
 
 jest.mock('@open-mercato/shared/lib/encryption/find', () => ({ findOneWithDecryption: jest.fn(), findWithDecryption: jest.fn() }))
+jest.mock('../../sourceClarification/recovery', () => ({ readCompletedSourceCorrection: jest.fn() }))
 
 const uuid = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`
 const input = { tenantId: uuid(1), organizationId: uuid(2), userId: uuid(3), caseId: uuid(4) }
@@ -74,6 +77,27 @@ test('explicit recovery keeps the original process version and both purchase lay
     initialContext: expect.objectContaining({ purchase, paidPurchaseOrigin: { materialHash: 'original' },
       restart: expect.objectContaining({ previousWorkflowInstanceId: uuid(5), by: input.userId }) }) }))
   expect(agencyCase.workflowInstanceId).toBe(uuid(11))
+})
+
+test('source correction resumes collection through existing restart authority and preserves its receipt', async () => {
+  previous.status = 'COMPLETED'; previous.currentStepId = SOURCE_RESPONSE_STEP
+  const correction = { workflowInstanceId: previous.id, taskId: uuid(70), submissionId: uuid(71), websiteUrl: 'https://correct.test' }
+  jest.mocked(readCompletedSourceCorrection).mockResolvedValue(correction)
+  await restartAnalysisCase(container, { ...input, expectedWorkflowInstanceId: previous.id })
+  expect(startWorkflow).toHaveBeenCalledWith(em, expect.objectContaining({ initialContext: expect.objectContaining({
+    [SOURCE_CORRECTION_KEY]: correction, purchase,
+    restart: expect.objectContaining({ resumeFrom: '3.2' }),
+  }) }))
+})
+
+test('a stale restart button, unverified answer or skipped collection cannot authorize source recovery', async () => {
+  await expect(restartAnalysisCase(container, { ...input, expectedWorkflowInstanceId: uuid(99) })).rejects.toMatchObject({ status: 409 })
+  previous.status = 'COMPLETED'; previous.currentStepId = SOURCE_RESPONSE_STEP
+  jest.mocked(readCompletedSourceCorrection).mockResolvedValue(null)
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '3.2' })).rejects.toMatchObject({ status: 409 })
+  jest.mocked(readCompletedSourceCorrection).mockResolvedValue({ workflowInstanceId: previous.id, taskId: uuid(70), submissionId: uuid(71), websiteUrl: 'https://correct.test' })
+  await expect(restartAnalysisCase(container, { ...input, resumeFrom: '3.8' })).rejects.toMatchObject({ status: 409 })
+  expect(startWorkflow).not.toHaveBeenCalled()
 })
 
 test('a terminal workflow is not proof that its provider or a parallel client-response worker is dead', async () => {

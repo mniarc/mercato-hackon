@@ -15,6 +15,7 @@ const journeySpecs = {
   purchase: 'TC-AGENCY-003-demo-purchase.spec.ts',
 }
 const productionFixtureDirectory = path.join(app, 'src', 'modules', 'agency_research', '__fixtures__', 'flow')
+const agencyProviderEndpointKeys = ['OPENROUTER_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL', 'AGENCY_TOV_AI_BASE_URL']
 const usage = 'Use start [--journey canonical|production|purchase] [--intelligence fixture|live] [--allow-live] [--profile fixture|live] | setup|migrate|status [--profile fixture|live] | test [--journey canonical|production|purchase] [--intelligence fixture|live] [--allow-live] [--headed] [--list] | cli [--profile fixture|live] [--allow-live] <mercato arguments>'
 
 export function agencyManualProfile(profile) {
@@ -227,6 +228,7 @@ export function agencyEnvironment(sharedEnvironment, overrides = {}) {
       OM_AI_AGENCY_TOV_PROVIDER: 'openrouter',
       OM_AI_AGENCY_TOV_MODEL: 'openrouter/agency-triage-fixture',
       OM_AI_AGENCY_TOV_BASE_URL: 'http://127.0.0.1:5003/v1',
+      AGENCY_TOV_AI_BASE_URL: 'http://127.0.0.1:5003/v1',
       AGENCY_RESEARCH_AI_PROVIDER: 'openrouter',
       AGENCY_RESEARCH_AI_MODEL: 'openrouter/agency-triage-fixture',
       AGENCY_RESEARCH_AI_BASE_URL: 'http://127.0.0.1:5003/v1',
@@ -259,6 +261,7 @@ export function assertUnpaidDemoEnvironment(env) {
     && env.OM_AI_AGENCY_TOV_PROVIDER === 'openrouter'
     && env.OM_AI_AGENCY_TOV_MODEL === 'openrouter/agency-triage-fixture'
     && env.OM_AI_AGENCY_TOV_BASE_URL === 'http://127.0.0.1:5003/v1'
+    && env.AGENCY_TOV_AI_BASE_URL === 'http://127.0.0.1:5003/v1'
   if (env.OM_AGENCY_TRIAGE_MODE === 'live'
     || (/^(true|1)$/i.test(env.AGENCY_ANALYSIS_EXECUTION_ENABLED ?? '') && !nativeExecutionFixture)
     || (/^(true|1)$/i.test(env.AGENCY_TOV_EXECUTION_ENABLED ?? '') && !nativeTovFixture)) {
@@ -278,7 +281,7 @@ export function assertLiveJourneyEnvironment(env) {
     || env.OPENROUTER_API_KEY === 'agency-triage-fixture-only') {
     throw new Error('Live journey intelligence requires the private central OpenRouter provider, prefixed model and real API key.')
   }
-  for (const key of ['OPENROUTER_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL', 'OM_AI_AGENCY_TOV_BASE_URL']) {
+  for (const key of [...agencyProviderEndpointKeys, 'OM_AI_AGENCY_TOV_BASE_URL']) {
     if (nonEmpty(env[key])) throw new Error(`Live journey intelligence refuses custom provider endpoint ${key}; use the private central provider.`)
   }
   for (const [key, value] of Object.entries(env)) {
@@ -330,6 +333,7 @@ export function agencyManualEnvironment(shared, existing, profile, { action = 's
       AGENCY_TOV_EXECUTION_ENABLED: 'true',
       OM_AI_AGENCY_OPERATIONS_BASE_URL: endpoint, OM_AI_AGENCY_RESEARCH_BASE_URL: endpoint,
       OM_AI_AGENCY_TOV_BASE_URL: endpoint,
+      AGENCY_TOV_AI_BASE_URL: endpoint,
       AGENCY_OPERATIONS_AI_BASE_URL: endpoint, AGENCY_RESEARCH_AI_BASE_URL: endpoint })
   } else {
     for (const key of Object.keys(env)) if (key.startsWith('AGENCY_TEST_')) delete env[key]
@@ -340,7 +344,7 @@ export function agencyManualEnvironment(shared, existing, profile, { action = 's
         || env.OM_AI_MODEL.includes('fixture') || !env.OPENROUTER_API_KEY || env.OPENROUTER_API_KEY === 'agency-triage-fixture-only') {
         throw new Error('Configure the private central OpenRouter provider, model and API key before live manual execution.')
       }
-      for (const key of ['OPENROUTER_BASE_URL', 'AGENCY_OPERATIONS_AI_BASE_URL', 'AGENCY_RESEARCH_AI_BASE_URL']) {
+      for (const key of agencyProviderEndpointKeys) {
         if (env[key] && ['localhost', '127.0.0.1', '::1', '[::1]'].includes(new URL(env[key]).hostname)) {
           throw new Error(`Live manual profile refuses a loopback intelligence endpoint in ${key}. Clear stale fixture overrides.`)
         }

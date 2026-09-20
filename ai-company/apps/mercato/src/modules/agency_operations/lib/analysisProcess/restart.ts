@@ -15,6 +15,8 @@ import { briefReviewStatus } from '../briefStrategyProcess/review'
 import { assertAnalysisExecutionEnabled } from './activity'
 import { analysisIntakeSteps, analysisExecutionPolicySchema } from './contracts'
 import { AGENCY_ANALYSIS_FUNCTION_NAME, AGENCY_ANALYSIS_WORKER_ID, AGENCY_ANALYSIS_WORKFLOW_ID } from './workflow'
+import { SOURCE_CORRECTION_KEY, SOURCE_RESPONSE_STEP, sourceCorrectionSchema } from '../sourceClarification/contracts'
+import { readCompletedSourceCorrection } from '../sourceClarification/recovery'
 
 type Executor = Pick<typeof import('@open-mercato/core/modules/workflows/lib/workflow-executor'), 'startWorkflow' | 'executeWorkflow' | 'updateWorkflowContext' | 'completeWorkflow'>
 
@@ -22,6 +24,7 @@ const inputSchema = z.object({
   tenantId: z.uuid(), organizationId: z.uuid(), userId: z.uuid(), caseId: z.uuid(),
   /** Explicit intake recovery point, still bounded by the original process policy. */
   resumeFrom: z.enum(analysisIntakeSteps).optional(),
+  expectedWorkflowInstanceId: z.uuid().optional(),
 }).strict()
 const TERMINAL = new Set(['FAILED', 'CANCELLED', 'COMPLETED'])
 
@@ -50,6 +53,16 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
       ? await findOneWithDecryption(tx, WorkflowInstance, { ...scope, id: agencyCase.workflowInstanceId, workflowId: AGENCY_ANALYSIS_WORKFLOW_ID, deletedAt: null }, undefined, scope)
       : null
     if (!previous) throw new CrudHttpError(409, { error: 'A terminal analysis workflow is required before restart.' })
+    if (input.expectedWorkflowInstanceId && input.expectedWorkflowInstanceId !== previous.id) {
+      throw new CrudHttpError(409, { error: 'The analysis workflow changed; reload the case before restarting.' })
+    }
+    const sourceCorrection = previous.currentStepId === SOURCE_RESPONSE_STEP
+      ? await readCompletedSourceCorrection(tx, scope, agencyCase, previous) : null
+    if (previous.currentStepId === SOURCE_RESPONSE_STEP && (!sourceCorrection || (input.resumeFrom && input.resumeFrom !== '3.2'))) {
+      throw new CrudHttpError(409, { error: 'Source recovery requires the saved customer correction and restart from source collection.' })
+    }
+    const resumeFrom = sourceCorrection ? '3.2' as const : input.resumeFrom
+    const inheritedCorrection = sourceCorrectionSchema.safeParse(previous.context[SOURCE_CORRECTION_KEY])
     // A persisted running provider invocation is not proof the process died.
     // Refuse unresolved activity, including a parallel client-response worker.
     const submissions = await findWithDecryption(tx, AgencyClientSubmission, { ...scope, caseId: agencyCase.id, deletedAt: null }, { fields: ['workflowInstanceId'] }, scope)
@@ -61,11 +74,11 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
     if (!definition?.enabled || definition.metadata?.generatedBy?.module !== 'agency_operations' || definition.metadata.generatedBy.ownerId !== 'analysis') {
       throw new CrudHttpError(409, { error: 'The original pinned analysis definition is unavailable.' })
     }
-    if (input.resumeFrom) {
+    if (resumeFrom) {
       const activities = definition.definition.transitions.flatMap((transition) => transition.activities ?? [])
         .filter((activity) => activity.activityType === 'EXECUTE_FUNCTION' && activity.config.functionName === AGENCY_ANALYSIS_FUNCTION_NAME)
       const policy = activities.length === 1 ? analysisExecutionPolicySchema.safeParse(activities[0].config.args?.policy) : null
-      if (!policy?.success || analysisIntakeSteps.indexOf(input.resumeFrom) > analysisIntakeSteps.indexOf(policy.data.through)) {
+      if (!policy?.success || analysisIntakeSteps.indexOf(resumeFrom) > analysisIntakeSteps.indexOf(policy.data.through)) {
         throw new CrudHttpError(409, { error: 'The requested resume point is outside the original pinned analysis policy.' })
       }
     }
@@ -130,7 +143,9 @@ export async function restartAnalysisCase(container: AppContainer, rawInput: unk
         materialFileName: agencyCase.materialFileName, materialMimeType: agencyCase.materialMimeType, materialFileSize: agencyCase.materialFileSize,
         ...(previous.context[PAID_CASE_ANALYSIS_CONTEXT] ? { [PAID_CASE_ANALYSIS_CONTEXT]: previous.context[PAID_CASE_ANALYSIS_CONTEXT] } : {}),
         ...(previous.context.purchase ? { purchase: previous.context.purchase } : {}),
-        restart: { attempt, previousWorkflowInstanceId: previous.id, by: input.userId, at: new Date().toISOString(), ...(input.resumeFrom ? { resumeFrom: input.resumeFrom } : {}) },
+        ...(sourceCorrection || inheritedCorrection.success
+          ? { [SOURCE_CORRECTION_KEY]: sourceCorrection ?? (inheritedCorrection.success ? inheritedCorrection.data : undefined) } : {}),
+        restart: { attempt, previousWorkflowInstanceId: previous.id, by: input.userId, at: new Date().toISOString(), ...(resumeFrom ? { resumeFrom } : {}) },
       },
       metadata: { entityType: 'agency_operations:agency_case', entityId: agencyCase.id, labels: { agentWorkerId: agencyCase.agentWorkerId } },
     })

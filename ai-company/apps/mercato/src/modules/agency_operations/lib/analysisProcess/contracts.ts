@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { researchRunRequestSchema, researchSteps } from '@/modules/agency_research/lib/contracts'
+import { sourceClarificationSchema } from '../sourceClarification/contracts'
 
 export const analysisIntakeSteps = ['3.2', '3.5', '3.8', '4.2'] as const
 
@@ -63,6 +64,7 @@ export const analysisProcessResultSchema = z.object({
   qaVerdict: z.enum(['ready', 'to_fix', 'exception']).optional(),
   briefQaVerdict: z.enum(['ready_for_approval', 'needs_client_data', 'needs_agent_fix']).optional(),
   escalationVersionId: z.string().optional(),
+  sourceClarification: sourceClarificationSchema.optional(),
 })
 
 export type AnalysisExecutionPolicy = z.infer<typeof analysisExecutionPolicySchema>

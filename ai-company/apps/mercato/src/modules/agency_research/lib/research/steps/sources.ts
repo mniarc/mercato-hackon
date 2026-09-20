@@ -37,6 +37,7 @@ import { chunkMarkdown, type CollectedSource } from '../fetch'
 import { gateConflicts, gateCoverage, gatePageExtraction, gateProofCards, gateSeeds, planCapacity, type GateIssue } from '../gate'
 import { conflictId, factId, groupMaterials, proofId, sampleId, seedId, signalId } from '../ids'
 import { mapWithConcurrency, quoteOffset } from '../util'
+import { InsufficientSourceEvidenceError } from '../sourceOutcome'
 import { createStepRunner, DEFAULT_CONCURRENCY, DEFAULT_EXTRACT_TIMEOUT_MS, DEFAULT_SYNTHESIS_TIMEOUT_MS, EXPECTED_OUTPUT_TOKENS, type Ledger, type ModelSet, type PipelineCache, type PipelineEvent, type ResearchAgentRunner } from '../pipeline'
 
 /**
@@ -217,7 +218,9 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
     }
   }
   if (facts.length === 0) {
-    throw new Error('[internal] 3.2: no grounded fact from any readable source — the register cannot be built; check the fetch report')
+    throw new InsufficientSourceEvidenceError(sources.map((source) => source.source_id), sources.map((source) => ({
+      sourceId: source.source_id, url: source.url_or_file, access: source.access, limitation: source.limitation,
+    })))
   }
   const factIds = new Set(facts.map((f) => f.fact_id))
   const caseFactIds = new Set(facts.filter((f) => f.kind === 'case_evidence').map((f) => f.fact_id))

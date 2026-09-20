@@ -11,10 +11,12 @@ import { CollapsibleSection, SectionHeader } from '@open-mercato/ui/backend/Sect
 import { Button } from '@open-mercato/ui/primitives/button'
 import { StatusBadge } from '@open-mercato/ui/primitives/status-badge'
 import type { CaseAnalysisProcess, CaseProcessResponse } from '../../../../../lib/processProjection/contract'
+import { SOURCE_RESPONSE_STEP } from '../../../../../lib/sourceClarification/contracts'
+import { AgencySourceRecoveryAction } from './AgencySourceRecoveryAction'
 
 const key = 'agencyOperations.cases.process'
 
-function AnalysisProcess({ analysis }: { analysis: CaseAnalysisProcess }) {
+function AnalysisProcess({ analysis, caseId, onResumed }: { analysis: CaseAnalysisProcess; caseId: string; onResumed: () => void }) {
   const translate = useT()
   return (
     <CollapsibleSection title={translate(`${key}.analysis.title`)}>
@@ -29,6 +31,8 @@ function AnalysisProcess({ analysis }: { analysis: CaseAnalysisProcess }) {
         </div>
         <p className="break-all text-xs text-muted-foreground">{analysis.workflowId} · {translate(`${key}.version`)} {analysis.version}</p>
         {analysis.awaitingFollowUp ? <p className="text-sm text-status-warning-text">{translate(`${key}.analysis.waiting`)}</p> : null}
+        {analysis.status === 'COMPLETED' && analysis.currentStepId === SOURCE_RESPONSE_STEP
+          ? <AgencySourceRecoveryAction caseId={caseId} workflowInstanceId={analysis.id} onResumed={onResumed} /> : null}
         {analysis.error ? <JsonDisplay data={analysis.error} title={translate('agencyOperations.cases.detail.run.error')} /> : null}
         {analysis.result ? (
           <>
@@ -88,7 +92,7 @@ export function AgencyCaseProcess({ caseId }: { caseId: string }) {
       )} />
       {loading ? <LoadingMessage label={translate('agencyOperations.cases.detail.loading')} /> : null}
       {error ? <ErrorMessage label={translate(error)} /> : null}
-      {data?.analysis ? <AnalysisProcess analysis={data.analysis} /> : null}
+      {data?.analysis ? <AnalysisProcess analysis={data.analysis} caseId={caseId} onResumed={() => setRevision((value) => value + 1)} /> : null}
       {data?.submissions.length === 0 ? <p className="text-sm text-muted-foreground">{translate(`${key}.empty`, 'No client submissions recorded.')}</p> : null}
       {data?.hasMore ? <p className="text-sm text-muted-foreground">{translate(`${key}.limited`, 'Showing the latest 100 submissions.')}</p> : null}
       {data?.submissions.map((submission, index) => (
