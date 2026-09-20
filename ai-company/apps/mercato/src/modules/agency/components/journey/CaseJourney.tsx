@@ -163,6 +163,11 @@ export function CaseJourney({ orgSlug, caseId }: { orgSlug: string; caseId: stri
   }, [load])
   usePortalAppEvent('workflows.task.portal_assigned', () => { void load() }, [load])
   usePortalAppEvent('agency.*', () => { void load() }, [load])
+  // Research steps do not broadcast to the portal; while the team works, the page re-reads its state every 30 s.
+  React.useEffect(() => {
+    const timer = setInterval(() => { if (document.visibilityState === 'visible') void load() }, 30_000)
+    return () => clearInterval(timer)
+  }, [load])
 
   const states = React.useMemo(() => {
     const result = {} as Record<StepId, StepState>

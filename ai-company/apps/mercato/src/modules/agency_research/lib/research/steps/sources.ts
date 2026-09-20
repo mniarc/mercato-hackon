@@ -34,7 +34,7 @@ import {
   RESEARCH_AGENT_TIERS,
 } from '../../agentIds'
 import { chunkMarkdown, type CollectedSource } from '../fetch'
-import { gateConflicts, gateCoverage, gatePageExtraction, gateProofCards, gateSeeds, planCapacity, type GateIssue } from '../gate'
+import { gateConflicts, gateCoverage, gatePageExtraction, gateProofCards, gateSeeds, planCapacity, GateError, type GateIssue } from '../gate'
 import { conflictId, factId, groupMaterials, proofId, sampleId, seedId, signalId } from '../ids'
 import { mapWithConcurrency, quoteOffset } from '../util'
 import { InsufficientSourceEvidenceError } from '../sourceOutcome'
@@ -152,13 +152,20 @@ export async function runSourcesStep(opts: Step32Options): Promise<Step32Result>
       },
       outputLanguage: lang,
     }
+    const label = `${page.source.source_id}#${page.index + 1}/${page.total}`
     const { value, issues: pageIssues } = await step<PageExtraction>({
       step: '3.2',
       agentId: RESEARCH_PAGE_EXTRACTOR_AGENT_ID,
-      label: `${page.source.source_id}#${page.index + 1}/${page.total}`,
+      label,
       input,
       parse: (raw) => pageExtractorResult.parse(raw).data,
       gate: (extraction) => gatePageExtraction(extraction, page.text, page.source.source_id),
+    }).catch((error: unknown) => {
+      // Cite-or-abstain per page: a chunk whose every quote failed the verbatim check, even after the
+      // grounding retries, contributes nothing to the bank and says so — it does not end the research.
+      if (!(error instanceof GateError)) throw error
+      const dropped: GateIssue = { code: 'PAGE_UNGROUNDED', severity: 'dropped', path: label, detail: `no grounded fact survived on ${label}; the page is left out of the fact bank` }
+      return { value: { facts: [], language_samples: [], audience_signals: [], page_summary: `Left out: nothing grounded survived on ${label}.` }, issues: [...error.issues, dropped], cached: false }
     })
     issues.push(...pageIssues)
     return { page, value }
