@@ -15,6 +15,8 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { findWithDecryption } from '@open-mercato/shared/lib/encryption/find'
 import { AgencyCase, AgencyClientSubmission } from './data/entities'
 import { CLIENT_SUBMISSION_SERVICE, clientSubmissionRequestSchema, type ClientSubmissionService } from './lib/contracts/clientSubmission'
+import { UserTask } from '@open-mercato/core/modules/workflows/data/entities'
+import { completeUserTask } from '@open-mercato/core/modules/workflows/lib/task-handler'
 
 const configureTov: ModuleCli = {
   command: 'configure-tov',
@@ -221,6 +223,32 @@ const continueInstance: ModuleCli = {
   },
 }
 
+/**
+ * Operator decision on a staff task from the CLI (an exception task's "obstacle
+ * resolved", for example) — the same completion path the backend UI uses.
+ */
+const decideTask: ModuleCli = {
+  command: 'decide-task',
+  async run(argv) {
+    const usage = '[internal] Usage: agency_operations decide-task --task <uuid> --decision <decisionId> --user <staff-uuid>'
+    const options = new Map<string, string>()
+    for (let index = 0; index < argv.length; index += 2) {
+      if (!['--task', '--decision', '--user'].includes(argv[index]) || !argv[index + 1]) throw new Error(usage)
+      options.set(argv[index].slice(2), argv[index + 1])
+    }
+    const taskId = options.get('task'); const decisionId = options.get('decision'); const userId = options.get('user')
+    if (!taskId || !decisionId || !userId) throw new Error(usage)
+    const container = await createRequestContainer()
+    try {
+      const em = container.resolve<EntityManager>('em')
+      const task = await em.findOne(UserTask, { id: taskId })
+      if (!task) throw new Error('[internal] Task not found')
+      await completeUserTask(em, container, { taskId, userId, decisionId, formData: { triageRecoveryReason: 'operator retry after a transient provider error (response did not match schema)', triageRecoveryEvidence: 'agent_runs: agency_operations.client_triage error at 12:30:28; provider reachable, retried by operator' }, scope: { tenantId: task.tenantId, organizationId: task.organizationId } })
+      process.stdout.write(`${JSON.stringify({ taskId, decisionId, status: 'completed' })}\n`)
+    } finally { await container.dispose() }
+  },
+}
+
 const configureSales: ModuleCli = {
   command: 'configure-sales-questions',
   async run(argv) {
@@ -240,4 +268,4 @@ const configureSales: ModuleCli = {
   },
 }
 
-export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis, startPendingSubmissions, continueInstance, configureSales]
+export default [configureTov, configureTriage, configureAnalysis, configureEmployeeQuestions, configurePlanReview, configurePostReview, configurePurchase, resumeAnalysis, startPendingSubmissions, continueInstance, decideTask, configureSales]
